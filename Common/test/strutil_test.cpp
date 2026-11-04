@@ -43,3 +43,26 @@ TEST(StrUtil, GetKeyValue)
     EXPECT_STREQ("NoSeparator", kv.first.GetCStr());
     EXPECT_TRUE(kv.second.IsEmpty());
 }
+
+TEST(StrUtil, SplitPreservingDoublequoted)
+{
+    String s = "\"path with, comma\":\"value with, comma\",\"second path\":\"second value\",\"third, comma\":\"third value,\"";
+    auto result = StrUtil::SplitPreservingDoublequoted(s, ',');
+    EXPECT_EQ(3, result.size());
+    EXPECT_STREQ("\"path with, comma\":\"value with, comma\"", result[0].GetCStr());
+    EXPECT_STREQ("\"second path\":\"second value\"", result[1].GetCStr());
+    EXPECT_STREQ("\"third, comma\":\"third value,\"", result[2].GetCStr());
+
+    // Additional test with extra commas
+    s = ",,\"path with, comma\":\"value with, comma\",\"second path\":\"second value\",,\"third, comma\":\"third value,\",,";
+    result = StrUtil::SplitPreservingDoublequoted(s, ',');
+    EXPECT_EQ(8, result.size());
+    EXPECT_STREQ("", result[0].GetCStr());
+    EXPECT_STREQ("", result[1].GetCStr());
+    EXPECT_STREQ("\"path with, comma\":\"value with, comma\"", result[2].GetCStr());
+    EXPECT_STREQ("\"second path\":\"second value\"", result[3].GetCStr());
+    EXPECT_STREQ("", result[4].GetCStr());
+    EXPECT_STREQ("\"third, comma\":\"third value,\"", result[5].GetCStr());
+    EXPECT_STREQ("", result[6].GetCStr());
+    EXPECT_STREQ("", result[7].GetCStr());
+}

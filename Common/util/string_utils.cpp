@@ -405,6 +405,37 @@ std::pair<String, String> StrUtil::GetKeyValue(const String &s, char key_val_sep
     return std::make_pair(key, value);
 }
 
+std::vector<String> StrUtil::SplitPreservingDoublequoted(const String &s, char separator)
+{
+    if (s.IsEmpty())
+        std::vector<String>{""};
+    if (separator == '\"')
+        return s.Split(separator);
+
+    std::vector<String> result;
+    bool inside_quotes = false;
+    size_t begin_at = 0u;
+    for (size_t i = 0u; i < s.GetLength(); ++i)
+    {
+        char c = s[i];
+        if (c == '\"')
+        {
+            inside_quotes = !inside_quotes;
+        }
+        else if (c == separator)
+        {
+            if (!inside_quotes)
+            {
+                result.push_back(s.Mid(begin_at, i - begin_at));
+                begin_at = i + 1u;
+            }
+        }
+    }
+    // Append last section (it may be empty if separator was a last character)
+    result.push_back(s.Mid(begin_at, s.GetLength() - begin_at));
+    return result;
+}
+
 size_t StrUtil::ConvertUtf8ToAscii(const char *mbstr, const char *loc_name, char *out_cstr, size_t out_sz)
 {
     if (out_sz == 0)

@@ -1,17 +1,21 @@
 REVISION HISTORY
 ===================================================================================================
-VERSION 4.0.0 - Alpha, October 2026
+VERSION 4.0.0 - Alpha, November 2026
 
 Common:
+ - AGS now integrates SDL_ttf library for rendering TTF fonts. Alfont library is no longer used.
+   FreeType library is updated to the recent version.
  - Support true 32-bit colors in GUI, text messages and drawing commands in script.
    Color number properties now correspond to the encoded 32-bit ARGB (A8R8G8B8 format).
  - Fonts are split into Font Files and Fonts, where multiple Fonts may use same Font File,
    or not have any Font File assigned at all (for instance, if they are meant to act as
    placeholders and get replaced by fonts from plugin).
+ - Removed limit of inventory items in game (was 300). Items are now counted from index 0.
  - Most of the deprecated functionality (game settings and script API) is cut out from both
    Editor and Engine, and is no longer supported. The Editor guarantees to import the projects
    saved by AGS 3.6.0 and later, but *running* games compiled by pre-4.0 versions is no longer
    guaranteed.
+ - Removed support for ASCII text mode. Any older ASCII project will be converted to Unicode.
  - Removed support for 16-bit games. Any older 16-bit project will be converted to 32-bit
    on import by the Editor.
  - Completely removed Global Messages and Room Messages.
@@ -24,11 +28,12 @@ Common:
 
 Editor:
  - Editor requires .NET Framework 4.7 to run.
- - Open room project format: rooms are now saved as subfolders in "Rooms" folder, where each
-   component has its own separate file (room data, backgrounds, masks and scripts).
+ - Dialogs and dialog scripts are now stored as individual files inside "Dialogs" folder.
  - "Fonts" node in the Project Explorer now contains separate "Font Files" and "Fonts" sublists.
  - Actual font files on disk are now stored in "Fonts" subfolder in the project when imported,
    and keep their original names (no longer renamed to "agsfntN.*").
+ - Open room project format: rooms are now saved as subfolders in "Rooms" folder, where each
+   component has its own separate file (room data, backgrounds, masks and scripts).
  - Translation sources are now saved in PO format.
  - The "Upgrade Game Wizard" dialog will be now shown if the loaded game must go through noteable
    modifications when upgrading to the current version.
@@ -40,6 +45,9 @@ Editor:
    using it; but you may still enter RGBA value by hand.
  - In General Settings added "Script Compiler" option that lets to choose between old and new
    script compilers for your game (see "Scripting" section below for the new compiler's details).
+ - All objects Description properties, and similar (RealName), are renamed to DisplayName.
+ - All objects Name properties are renamed to ScriptName.
+ - Added optional ScriptName property to Region, Walkable Area and Walk-behind areas.
  - Object and hotspot events are now visibly divided into common events and "cursor events".
    Cursor events are no longer hardcoded, but generated following new Cursor settings.
  - Added CreateEvent, EventLabel and EventFunctionName properties to Cursors. If CreateEvent is
@@ -68,6 +76,11 @@ Editor:
  - Added XOffset and YOffset properties for the View Frames.
  - Redesigned Color Finder panel, now it lets to specify alpha color component, and convert
    between several different color representations.
+ - Editor generates pointer variables for each region, walkable area and walk-behind in the room
+   that have their script name set.
+ - Added "Replace font file" context menu command for the font file items.
+ - Editor will detect when a font file was modified externally and update opened font and gui
+   previews.
  - Implemented "Watch Variables" panel which lets to watch values of the selected script variables
    while running the game. This feature is working only if game is built in Debug mode.
    The panel has an option to automatically enlist local variables (relative to current position
@@ -80,6 +93,9 @@ Editor:
  - Support importing and keeping sprites as explicitly 8-bit images without converting to the
    game's default color depth. This lets to have chosen sprites used as 8-bit masks in a 16/32-bit
    game.
+ - When upgrading older projects, the editor will create a dummy inventory item at index 0,
+   in order to fill in the slot, while keeping existing item indexes. It's up to the user to decide
+   what to do with it later (ignore, reuse, delete).
  - When upgrading older projects, Editor will replace old-style linebreak ('[') in string
    properties (Label.Text and similar). The ones in script are not replaced automatically though.
  - When importing room backgrounds of a different size Editor will now let user decide whether
@@ -94,6 +110,9 @@ Compiler:
    args during compilation.
 
 Scripting:
+ - Support "managedbase" keyword that lets declare the ultimate parent of all the managed structs
+   in script. Only one managedbase type can exist. If there's one declared, then all other managed
+   structs automatically inherit it, which is equivalent to declaring them with "extends Type".
  - Managed structs may have constructors. Constructor is a member function which name is
    identical to the struct's name, and type is "void". Constructor will be called
    automatically when the managed object is created with "new" command, but cannot be called
@@ -127,6 +146,7 @@ Scripting:
    order of declaration.
  - When calling a function you may specify parameter names like "name1: value, name2: value",
    and when doing so - pass arguments in any order.
+ - Allow void functions to have a call to another void function within their "return" command.
  - Compiler can now evaluate integer or float expressions at compile time whenever result
    is actually constant and can be calculated at compile time.
  - "const" keyword now may be used to define compile-time "int" and "float" constants.
@@ -154,6 +174,10 @@ Script API:
  - All existing Color properties now assume full ARGB values (0xAARRGGBB) in 32-bit games.
    This means that you *must* specify alpha value when assigning a color number directly,
    otherwise the game will treat the color as fully transparent.
+ - Added Anything struct, which acts as an automatic and implicit parent of all the other managed
+   structs, including user structs. In practice this allows to store virtually any managed object
+   in the Anything* variable. Anything struct itself has only single readonly property called
+   TypeName which returns the actual name of the type of the current object.
  - Added AnimatedOverlay struct, which is a child type of Overlay, which has Animate command,
    and readonly properties which describe current animation, similar to other animateable objects
    (View, Loop, Frame, etc). As Overlays have specific use cases in games (may be part of UI),
@@ -171,6 +195,11 @@ Script API:
    serving as a navigation mask.
  - Added MotionPath struct, which lets to read existing game object's motion plan, or create your
    own and use it as a reference when moving a custom object.
+ - All Name properties that were returning object's script name are renamed to ScriptName.
+ - All Name properties, and similar (RealName) that were returning human-readable object's
+   description are renamed to DisplayName.
+ - All types GetByName() functions are renamed to GetByScriptName().
+ - Game.GetLocationName() is renamed to Game.GetDisplayNameAt().
  - Added Custom Properties interface to types: AudioClip, Dialog, GUI, GUIControl, Region,
    WalkableArea. This includes functions: GetProperty(), GetTextProperty(), SetProperty() and
    SetTextProperty().
@@ -211,6 +240,8 @@ Script API:
  - Added Character.MotionPath and Object.MotionPath properties that let to get active character's
    or object's movement plan.
  - Expanded LocationType enum with eLocationInvItem.
+ - GetLocationType() now returns eLocationInvItem if there's a inventory item under the given
+   coordinates.
  - Expanded RepeatStyle enum with more animation flow styles: eOnceAndReset, eOnceAndBack and
    eRepeatAlternate. These styles are currently supported in Animate(), MovePath() and WalkPath()
    commands, and MotionPath struct.
@@ -223,6 +254,9 @@ Script API:
  - Added DrawingSurface.ColorDepth readonly property.
  - Added DrawingSurface.SetPixel() function that lets to set a pixel value of specified color,
    disregarding any surface's drawing settings.
+ - Added multiple new functions to DrawingSurface: DrawArc(), DrawCircleOutline(), DrawEllipse(),
+   DrawEllipseOutline(), DrawPie(), DrawPieOutline(), DrawRectangleOutline(), DrawTriangleOutline(),
+   FloodFill().
  - Added Game.RoomCount, RoomNumbers[] and RoomNames[] properties.
  - Added Game.SpriteColorDepth[] readonly indexed property.
  - Added GUI.ScaleX and ScaleY properties, GUI.SetScale() function.
@@ -240,6 +274,7 @@ Script API:
  - Added Room.HotspotCount, RegionCount, WalkableAreaCount and WalkbehindCount properties.
  - Added Room.PathFinder property that returns a Pathfinder object, searching paths over this
    room's walkable areas.
+ - Added Region.ScriptName property and Region.GetByScriptName() function.
  - Added StringSplitOptions enum, String.Join(), String.Split() and String.Trim() functions.
  - Expanded String.IndexOf() with new parameters: "StringCompareStyle", "index" and "count".
  - ViewFrame.Flipped property is now settable and returns eFlipDirection instead of bool.
@@ -262,6 +297,7 @@ Script API:
  - Removed Object.MergeIntoBackground() function as redundant, and complicating Object's logic.
 
 Engine:
+ - Support Direct3D 11 graphics driver.
  - Support joystick and gamepad input.
  - Support touch input directly, without touch-to-mouse emulation.
  - All color settings in a 32-bit game now respect alpha value, meaning they may be
@@ -287,6 +323,7 @@ Engine:
    as opposed to being scheduled to run after the current script finishes. This refers to function
    calls such as ProcessClick and RunInteraction, and also to functions which trigger on_event
    callback, such as AddInventory.
+ - Do not fixup GUI's border color if it's 0 while background color is not 0.
  - Overlay.X and Y properties of textual screen overlays, such as blocking speech, now treat
    assigned values correctly as screen coordinates and return values set by user consistently.
    They also return the assigned values without any offsets for textual overlays created using

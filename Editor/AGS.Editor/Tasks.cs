@@ -973,9 +973,9 @@ namespace AGS.Editor
             //
             parameter += " --runfromide" +
                 " \"" + Path.Combine(AGSEditor.OUTPUT_DIRECTORY, BuildTargetWindows.WINDOWS_DIRECTORY) + "\" " +
-                "\"" + Factory.AGSEditor.GameDirectory + "\":\"\"" + "," +
-                "\"" + AudioComponent.AUDIO_CACHE_DIRECTORY + "\":\"audio\"" + "," +
-                "\"" + SpeechComponent.SPEECH_DIRECTORY + "\":\"voice\"";
+                "\"\\\"" + Factory.AGSEditor.GameDirectory + "\\\"\":\"\"" + "," +
+                "\"\\\"" + AudioComponent.AUDIO_CACHE_DIRECTORY + "\\\"\":\"audio\"" + "," +
+                "\"\\\"" + SpeechComponent.SPEECH_DIRECTORY + "\\\"\":\"voice\"";
 
             // Explicit path to the file containing main game data,
             // this is to ensure that the engine won't try to scan other places

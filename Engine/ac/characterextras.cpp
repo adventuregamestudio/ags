@@ -148,7 +148,8 @@ void CharacterExtras::UpdateEffectiveValues(const CharacterInfo *chin)
 
 void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, CharacterSvgVersion save_ver)
 {
-    if (save_ver < kCharSvgVersion_36310)
+    // 4.0 saves before kCharSvgVersion_400_28 have the legacy inventory too (as with audio_speed below)
+    if (save_ver < kCharSvgVersion_36310 || (save_ver >= kCharSvgVersion_400 && save_ver < kCharSvgVersion_400_28))
     {
         int16_t invorder[LEGACY_MAX_CHAR_INVENTORY];
         in->ReadArrayOfInt16(invorder, LEGACY_MAX_CHAR_INVENTORY);

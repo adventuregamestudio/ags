@@ -3208,3 +3208,43 @@ TEST_F(Compile1, ImpliedStaticFuncNonStaticCall02)
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'Armor::Wizardy'"));
 }
+
+TEST_F(Compile1, ReturnVoidExpressionFromVoidFunc) {
+
+    // A 'void' function may return the result of a call to another 'void' function
+
+    char const *inpl = "\
+        void Func1()            \n\
+        {                       \n\
+        }                       \n\
+        void Func2()            \n\
+        {                       \n\
+            return Func1();     \n\
+        }                       \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+}
+
+TEST_F(Compile1, ReturnValueFromVoidFunc) {
+
+    // A 'void' function may not return a non-void value
+
+    char const *inpl = "\
+        int Func1()             \n\
+        {                       \n\
+            return 1;           \n\
+        }                       \n\
+        void Func2()            \n\
+        {                       \n\
+            return Func1();     \n\
+        }                       \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("'void' function"));
+}

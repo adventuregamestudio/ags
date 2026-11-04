@@ -4532,24 +4532,29 @@ startvarbit:
                 int functionReturnType = sym.entries[inFuncSym].funcparams[0].Type;
 
                 if (sym.get_type(targ.peeknext()) != SYM_SEMICOLON) {
-                    if (functionReturnType == sym.normalVoidSym) {
-                        cc_error("Cannot return value from void function");
-                        return -1;
-                    }
-
                     // parse what is being returned
                     if (evaluate_expression(&targ,scrip,0,false) < 0)
                         return -1;
-                    // convert into String if appropriate
-                    PerformStringConversionInAX(scrip, &scrip->ax_val_type, functionReturnType);
-                    // check return type is correct
-                    if (check_type_mismatch(scrip->ax_val_type, functionReturnType, 1))
-                        return -1;
 
-                    if ((is_string(scrip->ax_val_type)) &&
-                        (scrip->ax_val_scope == SYM_LOCALVAR)) {
-                            cc_error("Cannot return local string from function");
+                    if (functionReturnType == sym.normalVoidSym) {
+                        // void function may return a void expression, e.g. "return voidfunc();"
+                        if (scrip->ax_val_type != sym.normalVoidSym) {
+                            cc_error("Cannot return value from void function");
                             return -1;
+                        }
+                    }
+                    else {
+                        // convert into String if appropriate
+                        PerformStringConversionInAX(scrip, &scrip->ax_val_type, functionReturnType);
+                        // check return type is correct
+                        if (check_type_mismatch(scrip->ax_val_type, functionReturnType, 1))
+                            return -1;
+
+                        if ((is_string(scrip->ax_val_type)) &&
+                            (scrip->ax_val_scope == SYM_LOCALVAR)) {
+                                cc_error("Cannot return local string from function");
+                                return -1;
+                        }
                     }
                 }
                 else if ((functionReturnType != sym.normalIntSym) && (functionReturnType != sym.normalVoidSym)) {

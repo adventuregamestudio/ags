@@ -6712,19 +6712,26 @@ void AGS::Parser::ParseReturn(Symbol name_of_current_func)
 
     if (kKW_Semicolon != _src.PeekNext())
     {
-        if (functionReturnType == kKW_Void)
-            UserError("Cannot return a value from a 'void' function");
-
         // parse what is being returned
         EvaluationResult eres;
         ParseExpression(_src, eres);
         EvaluationResultToAx(eres);
-        ConvertAXStringToStringObject(functionReturnType, eres.Vartype);
 
-        // check whether the return type is correct
-        CheckVartypeMismatch(eres.Vartype, functionReturnType, true, "");
-        if (_sym.IsOldstring(eres.Vartype) && eres.LocalNonParameter)
-            UserError("Cannot return a local 'string' variable");
+        if (functionReturnType == kKW_Void)
+        {
+            // A 'void' function may return a 'void' expression, e.g., 'return voidfunc();'
+            if (kKW_Void != eres.Vartype)
+                UserError("Cannot return a value from a 'void' function");
+        }
+        else
+        {
+            ConvertAXStringToStringObject(functionReturnType, eres.Vartype);
+
+            // check whether the return type is correct
+            CheckVartypeMismatch(eres.Vartype, functionReturnType, true, "");
+            if (_sym.IsOldstring(eres.Vartype) && eres.LocalNonParameter)
+                UserError("Cannot return a local 'string' variable");
+        }
     }
     else if (_sym.IsAnyIntegerVartype(functionReturnType))
     {

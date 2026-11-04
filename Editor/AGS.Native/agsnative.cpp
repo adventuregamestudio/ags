@@ -1114,7 +1114,7 @@ void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum, bool right
 
     color_t outline_color = use_32bit_preview ?
         makeacol32(0, 0, 0, 255) :
-        tempblock->GetCompatibleColor(0); // fixed black color
+        tempblock->GetCompatibleColor(16); // fixed black color
     AGS::Common::GUI::DrawTextLinesAligned(tempblock.get(), lines.GetVector(), lines.Count(), fontnum, linespacing, text_color, outline_color,
         RectWH(text_atx, text_aty, max_width, dc_height - (dc_aty + text_aty)), right_to_left ? kAlignTopRight : kAlignTopLeft, false);
 

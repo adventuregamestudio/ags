@@ -35,7 +35,9 @@ namespace AGS.Types
             _gfxFiltersAll = new Dictionary<GraphicsDriver, Dictionary<string, string>>();
             Dictionary<string, string> filters = new Dictionary<string, string>();
             filters[DEFAULT_GFX_FILTER_NAME] = "Nearest-neighbour";
+            filters["linear"] = "Linear interpolation (with anti-aliasing)";
             _gfxFiltersAll.Add(GraphicsDriver.Software, filters);
+
             filters = new Dictionary<string, string>();
             filters[DEFAULT_GFX_FILTER_NAME] = "Nearest-neighbour";
             filters["linear"] = "Linear interpolation (with anti-aliasing)";

@@ -40,11 +40,13 @@ namespace AGS.Types
             filters[DEFAULT_GFX_FILTER_NAME] = "Nearest-neighbour";
             filters["linear"] = "Linear interpolation (with anti-aliasing)";
             _gfxFiltersAll.Add(GraphicsDriver.D3D9, filters);
+            _gfxFiltersAll.Add(GraphicsDriver.D3D11, filters);
             _gfxFiltersAll.Add(GraphicsDriver.OpenGL, filters);
 
             _gfxFiltersDefault = new Dictionary<GraphicsDriver, string>();
             _gfxFiltersDefault[GraphicsDriver.Software] = DEFAULT_GFX_FILTER_NAME;
             _gfxFiltersDefault[GraphicsDriver.D3D9] = DEFAULT_GFX_FILTER_NAME;
+            _gfxFiltersDefault[GraphicsDriver.D3D11] = DEFAULT_GFX_FILTER_NAME;
             _gfxFiltersDefault[GraphicsDriver.OpenGL] = DEFAULT_GFX_FILTER_NAME;
         }
 

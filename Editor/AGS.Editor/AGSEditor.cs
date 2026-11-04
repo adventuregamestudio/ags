@@ -1338,6 +1338,18 @@ namespace AGS.Editor
             return null;
         }
 
+        private bool DoesGraphicDriverSupportPaletteEffects(GraphicsDriver driver)
+        {
+            switch (driver)
+            {
+                case GraphicsDriver.Software: return true;
+                case GraphicsDriver.D3D9: return false;
+                case GraphicsDriver.D3D11: return false;
+                case GraphicsDriver.OpenGL: return false;
+                default: return false;
+            }
+        }
+
         private void RunPreCompilationChecks(CompileMessages errors)
         {
             if (_game.PlayerCharacter == null)
@@ -1349,8 +1361,7 @@ namespace AGS.Editor
                 errors.Add(new CompileError($"The player character {_game.PlayerCharacter.ScriptName} has StartingRoom set to room {_game.PlayerCharacter.StartingRoom} which does not exist"));
             }
 
-            if ((_game.Settings.ColorDepth == GameColorDepth.Palette) &&
-                ((_game.DefaultSetup.GraphicsDriver == GraphicsDriver.D3D9) || (_game.DefaultSetup.GraphicsDriver == GraphicsDriver.OpenGL)))
+            if ((_game.Settings.ColorDepth == GameColorDepth.Palette) && !DoesGraphicDriverSupportPaletteEffects(_game.DefaultSetup.GraphicsDriver))
             {
                 errors.Add(new CompileWarning(
                     string.Format("{0} selected as a default graphics driver may not be well suited for a 256-colour game. Consider Software driver instead.",
@@ -1679,11 +1690,12 @@ namespace AGS.Editor
         {
             switch (driver)
             {
-                case GraphicsDriver.Software: return "Software";
-                case GraphicsDriver.D3D9: return "D3D9";
-                case GraphicsDriver.OpenGL: return "OGL";
+                case GraphicsDriver.Software: return "software";
+                case GraphicsDriver.D3D9: return "d3d9";
+                case GraphicsDriver.D3D11: return "d3d11";
+                case GraphicsDriver.OpenGL: return "ogl";
+                default: return "";
             }
-            return "";
         }
 
         private static string MakeGameScalingConfig(GameScaling scaling)

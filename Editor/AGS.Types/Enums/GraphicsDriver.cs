@@ -12,6 +12,8 @@ namespace AGS.Types
 		Software,
 		[Description("Direct3D 9")]
 		D3D9,
+        [Description("Direct3D 11")]
+        D3D11,
 		[Description("OpenGL")]
 		OpenGL
 	}

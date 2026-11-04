@@ -114,10 +114,22 @@ namespace AGS.Editor
             }
         }
 
+        private GraphicsDriver ReplaceGraphicsDriver(GraphicsDriver driver)
+        {
+            switch (driver)
+            {
+                case GraphicsDriver.D3D9: return GraphicsDriver.OpenGL;
+                case GraphicsDriver.D3D11: return GraphicsDriver.OpenGL;
+                case GraphicsDriver.Software:
+                case GraphicsDriver.OpenGL:
+                default:
+                    return driver;
+            }
+        }
+
         public override RuntimeSetup FixInvalidSettings(RuntimeSetup setup)
         {
-            setup.GraphicsDriver = setup.GraphicsDriver == GraphicsDriver.D3D9 ? GraphicsDriver.OpenGL : setup.GraphicsDriver;
-
+            setup.GraphicsDriver = ReplaceGraphicsDriver(setup.GraphicsDriver);
             return setup;
         }
     }

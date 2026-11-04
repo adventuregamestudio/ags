@@ -104,7 +104,7 @@ SpeechMode parse_speechmode(const String &option, SpeechMode def_value)
 
 void parse_asset_dirs(const String &option, std::vector<std::pair<String, String>> &opt_dirs)
 {
-    const auto asset_dirs = option.Split(',');
+    const auto asset_dirs = StrUtil::SplitPreservingDoublequoted(option, ',');
     for (const auto &adir : asset_dirs)
     {
         String filters;

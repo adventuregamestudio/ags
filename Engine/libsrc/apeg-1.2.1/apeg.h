@@ -54,7 +54,7 @@ typedef struct APEG_STREAM {
 		APEG_420,
 		APEG_422,
 		APEG_444
-	} pixel_format;
+	} pixel_format, pixel_format_info;
 
 	double frame_rate;
 	int fps_numerator, fps_denominator;

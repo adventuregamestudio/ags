@@ -284,7 +284,20 @@ int alogg_open(APEG_LAYER *layer)
 			                             (double)layer->stream.h * aspect;
 		}
 
+		// TODO: record this value in pixel_format_info for now,
+		// because having it in pixel_format breaks renderer down the line;
+		// apparently APEG was never complete to work with anything but YUV 420.
+		switch (info->tinfo.pixelformat)
+		{
+		case OC_PF_420: layer->stream.pixel_format_info = APEG_420; break;
+		case OC_PF_422: layer->stream.pixel_format_info = APEG_422; break;
+		case OC_PF_444: layer->stream.pixel_format_info = APEG_444; break;
+		default: layer->stream.pixel_format_info = APEG_420; break; // just leave this wrong
+		}
+
 		// Allocate frame pointers
+		// TODO: warning: this frame size is enough *only* for YUV 420.
+		// will cause mem access exception if tried to render anything else
 		size = layer->coded_width*layer->coded_height +
 			   (layer->chroma_width*layer->chroma_height)*2;
 

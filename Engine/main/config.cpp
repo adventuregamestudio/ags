@@ -157,7 +157,7 @@ bool parse_legacy_frame_config(const String &scaling_option, String &filter_id,
 
 void parse_asset_dirs(const String &option, std::vector<std::pair<String, String>> &opt_dirs)
 {
-    const auto asset_dirs = option.Split(',');
+    const auto asset_dirs = StrUtil::SplitPreservingDoublequoted(option, ',');
     for (const auto &adir : asset_dirs)
     {
         String filters;

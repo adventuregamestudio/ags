@@ -205,6 +205,12 @@ namespace StrUtil
     // Reads the string and splits it by key and value, separated by the first found separator char;
     // if no separator is found, then returns the key as the source string, with empty value.
     std::pair<String, String> GetKeyValue(const String &s, char key_val_separator = '=');
+    // Split the given string into parts by the given separator,
+    // but keep the doublequoted sections as one despite any separator chars inside of them.
+    // This allows to split e.g. comma-separated double-quoted paths that may also
+    // have commas between double-quotes.
+    // If separator is double-quote char, then falls back to simple Split.
+    std::vector<String> SplitPreservingDoublequoted(const String &s, char separator);
 
     // Convert utf-8 string to ascii/ansi representation;
     // writes into out_cstr buffer limited by out_sz bytes; returns bytes written.

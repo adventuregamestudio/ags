@@ -1108,8 +1108,8 @@ void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum, bool right
         tempblock->GetCompatibleColor(8));
 
     color_t text_color = use_32bit_preview ?
-        (get_wfn_font_bits_per_pixel(fontnum) == 1 ?
-            makeacol32(255, 255, 255, 255) : makeacol32(136, 136, 136, 255)) :
+        (get_wfn_font_bits_per_pixel(fontnum) == 4 ?
+            makeacol32(136, 136, 136, 255) : makeacol32(255, 255, 255, 255)) :
         tempblock->GetCompatibleColor(15); // fixed white color
 
     color_t outline_color = use_32bit_preview ?

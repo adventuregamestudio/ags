@@ -119,6 +119,136 @@ void WFNFontRenderer::RenderText(const char* text, int fontNumber, BITMAP* desti
     RenderTextInternal(text, fontNumber, destination, x, y, colour, _stencilMode);
 }
 
+void WFNFontRenderer::BuildPaletteShadeColors(int colour, int base_shade, color_t shade_colors[16]) const
+{
+    PALETTE current_palette;
+    get_palette(current_palette);
+    const int base_palette_index = colour & 0xFF;
+
+    const RGB& base = current_palette[base_palette_index];
+
+    shade_colors[0] = 0;
+    shade_colors[base_shade] = colour;
+
+    // Collect palette colors that match the base hue.
+    struct PaletteShade
+    {
+        int Index;
+        int Brightness;
+        int Distance;
+    };
+
+    std::vector<PaletteShade> darker_colors;
+    std::vector<PaletteShade> lighter_colors;
+
+    const int base_brightness =
+        299 * base.r + 587 * base.g + 114 * base.b;
+
+    for (int i = 1; i < 256; ++i)
+    {
+        if (i == base_palette_index)
+            continue;
+
+        if (_hasPaletteEligibility && !_paletteEligible[i])
+            continue;
+
+        const RGB& candidate = current_palette[i];
+
+        if (!IsCompatibleWFNHue(base, candidate))
+            continue;
+
+        const int brightness =
+            299 * candidate.r + 587 * candidate.g + 114 * candidate.b;
+
+        const int distance = std::abs(i - base_palette_index);
+
+        if (brightness < base_brightness)
+            darker_colors.push_back({ i, brightness, distance });
+        else if (brightness > base_brightness)
+            lighter_colors.push_back({ i, brightness, distance });
+    }
+
+    // Prefer nearby palette entries while preserving brightness order.
+    const auto by_brightness = [](const PaletteShade& a, const PaletteShade& b)
+        {
+            if (a.Brightness != b.Brightness)
+                return a.Brightness < b.Brightness;
+
+            return a.Distance < b.Distance;
+        };
+
+    std::sort(darker_colors.begin(), darker_colors.end(), by_brightness);
+    std::sort(lighter_colors.begin(), lighter_colors.end(), by_brightness);
+
+    // Distribute compatible palette colors across the WFN shade range,
+    // preserving brightness order and the exact base color.
+    const auto select_shades = [&](bool darker)
+        {
+            const auto& colors = darker ? darker_colors : lighter_colors;
+
+            if (colors.empty())
+            {
+                for (int shade = darker ? base_shade - 1 : base_shade + 1;
+                    darker ? shade >= 1 : shade <= 15;
+                    shade += darker ? -1 : 1)
+                {
+                    shade_colors[shade] = colour;
+                }
+                return;
+            }
+
+            // Prefer hue-compatible palette entries near the base index.
+            std::vector<PaletteShade> preferred_colors;
+
+            for (const auto& candidate : colors)
+            {
+                if (candidate.Distance <= 4)
+                    preferred_colors.push_back(candidate);
+            }
+
+            // Prioritize two compatible palette colors immediately after the base index.
+            std::vector<PaletteShade> adjacent_colors;
+
+            for (const auto& candidate : colors)
+            {
+                if (candidate.Index == base_palette_index + 1 ||
+                    candidate.Index == base_palette_index + 2)
+                {
+                    adjacent_colors.push_back(candidate);
+                }
+            }
+
+            if (adjacent_colors.size() >= 2)
+                preferred_colors = adjacent_colors;
+
+            if (preferred_colors.empty())
+                preferred_colors = colors;
+
+            const int range = darker ? base_shade - 1 : 15 - base_shade;
+            const int count = static_cast<int>(preferred_colors.size());
+
+            for (int distance = 1; distance <= range; ++distance)
+            {
+                const int shade = darker
+                    ? base_shade - distance
+                    : base_shade + distance;
+
+                // Spread available colors across the shade range,
+                // allowing intermediate shades to share palette entries.
+                const int step = 1 + (distance - 1) * count / range;
+
+                const int index = darker
+                    ? std::max(0, count - step)
+                    : std::min(count - 1, step - 1);
+
+                shade_colors[shade] = preferred_colors[index].Index;
+            }
+        };
+
+    select_shades(true);
+    select_shades(false);
+}
+
 void WFNFontRenderer::RenderTextInternal(const char* text, int fontNumber, BITMAP* destination, int x, int y, int colour, bool silhouette)
 {
     int oldeip = get_our_eip();
@@ -130,139 +260,17 @@ void WFNFontRenderer::RenderTextInternal(const char* text, int fontNumber, BITMA
     const int char_spacing = _fontData[fontNumber].CharacterSpacing;
     Bitmap ds(destination, true);
 
+    // Use the default base shade if the font specifies an invalid value.
+    const uint32_t stored_base_shade = font->GetBaseShadeIndex();
+    const uint8_t base_shade = (stored_base_shade >= 1 && stored_base_shade <= 15)
+        ? static_cast<uint8_t>(stored_base_shade) : 8;
+
     color_t shade_colors[16] = {};
     const color_t* shade_lookup = nullptr;
 
     if (!silhouette && font->GetBitsPerPixel() == 4 && ds.GetColorDepth() == 8)
     {
-        PALETTE current_palette;
-        get_palette(current_palette);
-        const int base_palette_index = colour & 0xFF;
-
-        const RGB& base = current_palette[base_palette_index];
-        const int base_shade = font->GetBaseShadeIndex();
-
-        shade_colors[0] = 0;
-        shade_colors[base_shade] = colour;
-
-        // Collect palette colors that match the base hue.
-        struct PaletteShade
-        {
-            int Index;
-            int Brightness;
-            int Distance;
-        };
-
-        std::vector<PaletteShade> darker_colors;
-        std::vector<PaletteShade> lighter_colors;
-
-        const int base_brightness =
-            299 * base.r + 587 * base.g + 114 * base.b;
-
-        for (int i = 1; i < 256; ++i)
-        {
-            if (i == base_palette_index)
-                continue;
-
-            if (_hasPaletteEligibility && !_paletteEligible[i])
-                continue;
-
-            const RGB& candidate = current_palette[i];
-
-            if (!IsCompatibleWFNHue(base, candidate))
-                continue;
-
-            const int brightness =
-                299 * candidate.r + 587 * candidate.g + 114 * candidate.b;
-
-            const int distance = std::abs(i - base_palette_index);
-
-            if (brightness < base_brightness)
-                darker_colors.push_back({ i, brightness, distance });
-            else if (brightness > base_brightness)
-                lighter_colors.push_back({ i, brightness, distance });
-        }
-
-        // Prefer nearby palette entries while preserving brightness order.
-        const auto by_brightness = [](const PaletteShade& a, const PaletteShade& b)
-        {
-            if (a.Brightness != b.Brightness)
-                return a.Brightness < b.Brightness;
-
-            return a.Distance < b.Distance;
-        };
-
-        std::sort(darker_colors.begin(), darker_colors.end(), by_brightness);
-        std::sort(lighter_colors.begin(), lighter_colors.end(), by_brightness);
-
-        // Distribute compatible palette colors across the WFN shade range,
-        // preserving brightness order and the exact base color.
-        const auto select_shades = [&](bool darker)
-            {
-                const auto& colors = darker ? darker_colors : lighter_colors;
-
-                if (colors.empty())
-                {
-                    for (int shade = darker ? base_shade - 1 : base_shade + 1;
-                        darker ? shade >= 1 : shade <= 15;
-                        shade += darker ? -1 : 1)
-                    {
-                        shade_colors[shade] = colour;
-                    }
-                    return;
-                }
-
-                // Prefer hue-compatible palette entries near the base index.
-                std::vector<PaletteShade> preferred_colors;
-
-                for (const auto& candidate : colors)
-                {
-                    if (candidate.Distance <= 4)
-                        preferred_colors.push_back(candidate);
-                }
-
-                // Prioritize two compatible palette colors immediately after the base index.
-                std::vector<PaletteShade> adjacent_colors;
-
-                for (const auto& candidate : colors)
-                {
-                    if (candidate.Index == base_palette_index + 1 ||
-                        candidate.Index == base_palette_index + 2)
-                    {
-                        adjacent_colors.push_back(candidate);
-                    }
-                }
-
-                if (adjacent_colors.size() >= 2)
-                    preferred_colors = adjacent_colors;
-
-                if (preferred_colors.empty())
-                    preferred_colors = colors;
-
-                const int range = darker ? base_shade - 1 : 15 - base_shade;
-                const int count = static_cast<int>(preferred_colors.size());
-
-                for (int distance = 1; distance <= range; ++distance)
-                {
-                    const int shade = darker
-                        ? base_shade - distance
-                        : base_shade + distance;
-
-                    // Spread available colors across the shade range,
-                    // allowing intermediate shades to share palette entries.
-                    const int step = 1 + (distance - 1) * count / range;
-
-                    const int index = darker
-                        ? std::max(0, count - step)
-                        : std::min(count - 1, step - 1);
-
-                    shade_colors[shade] = preferred_colors[index].Index;
-                }
-            };
-
-        select_shades(true);
-        select_shades(false);
-
+        BuildPaletteShadeColors(colour, base_shade, shade_colors);
         shade_lookup = shade_colors;
     }
 
@@ -273,7 +281,7 @@ void WFNFontRenderer::RenderTextInternal(const char* text, int fontNumber, BITMA
     {
         x += char_spacing + RenderChar(&ds, x, y, clip, font->GetChar(code),
             params.SizeMultiplier, colour, shade_lookup,
-            font->GetBaseShadeIndex(), silhouette);
+            base_shade, silhouette);
     }
 
     set_our_eip(oldeip);
@@ -288,6 +296,7 @@ static int RenderChar(Bitmap* ds, const int at_x, const int at_y, Rect clip,
     const int height = wfn_char.Height;
     const unsigned char* actdata = wfn_char.Data;
     const int bytewid = wfn_char.GetRowByteCount();
+    const int depth = ds->GetColorDepth();
 
     int sx = std::max(at_x, clip.Left), ex = clip.Right + 1;
     int sy = std::max(at_y, clip.Top), ey = clip.Bottom + 1;
@@ -310,7 +319,6 @@ static int RenderChar(Bitmap* ds, const int at_x, const int at_y, Rect clip,
                 {
                     draw_pixel = true;
 
-                    const int depth = ds->GetColorDepth();
                     if (!silhouette && depth > 8 && shade != base_shade)
                     {
                         const int base_red = getr_depth(depth, text_color);
@@ -438,7 +446,7 @@ void WFNFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char
 void WFNFontRenderer::GetValidCharCodes(int fontNumber, std::vector<int> &char_codes)
 {
     const WFNFont *font = _fontData[fontNumber].Font;
-    for (int i = 0; i < font->GetCharCount(); ++i)
+    for (size_t i = 0; i < font->GetCharCount(); ++i)
     {
         if (font->GetChar(i).IsValid())
             char_codes.push_back(i);
@@ -464,17 +472,10 @@ void WFNFontRenderer::SetCharacterSpacing(int fontNumber, int spacing)
     }
 }
 
-void WFNFontRenderer::SetPaletteEligibility(const uint8_t* palette_eligible)
+void WFNFontRenderer::SetPaletteEligibility(const std::array<bool, 256>& palette_eligible)
 {
-    if (palette_eligible)
-    {
-        std::memcpy(_paletteEligible, palette_eligible, sizeof(_paletteEligible));
-        _hasPaletteEligibility = true;
-    }
-    else
-    {
-        _hasPaletteEligibility = false;
-    }
+    _paletteEligible = palette_eligible;
+    _hasPaletteEligibility = true;
 }
 
 int WFNFontRenderer::GetFontBitsPerPixel(int fontNumber) const

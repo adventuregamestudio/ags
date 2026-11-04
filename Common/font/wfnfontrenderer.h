@@ -15,9 +15,10 @@
 #define __AC_WFNFONTRENDERER_H
 
 #include <map>
-#include <cstdint>
+#include "platform/types.h"
 #include "data/assetmanager.h"
 #include "font/agsfontrenderer.h"
+#include <array>
 
 class WFNFont;
 
@@ -54,7 +55,7 @@ public:
 
   int GetFontBitsPerPixel(int fontNumber) const;
   // Set eligible palette entries for 8-bit WFN grayscale shading.
-  void SetPaletteEligibility(const uint8_t* palette_eligible);
+  void SetPaletteEligibility(const std::array<bool, 256>& palette_eligible);
 
   WFNFontRenderer(AGS::Common::AssetManager *mgr)
       : _amgr(mgr) {}
@@ -66,6 +67,8 @@ private:
   void RenderTextInternal(const char* text, int fontNumber, BITMAP* destination,
       int x, int y, int colour, bool silhouette);
 
+  void BuildPaletteShadeColors(int colour, int base_shade, color_t shade_colors[16]) const;
+
   struct FontData
   {
     WFNFont         *Font;
@@ -74,7 +77,7 @@ private:
   };
   std::map<int, FontData> _fontData;
   AGS::Common::AssetManager* _amgr = nullptr;
-  uint8_t _paletteEligible[256] = {};
+  std::array<bool, 256> _paletteEligible = {};
   bool _hasPaletteEligibility = false;
   bool _stencilMode = false;
 };

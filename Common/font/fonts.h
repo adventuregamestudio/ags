@@ -22,6 +22,7 @@
 #include "data/assetmanager.h"
 #include "gfx/bitmap.h"
 #include "util/string.h"
+#include <array>
 
 // TODO: we need to make some kind of TextManager class of this module
 
@@ -35,7 +36,7 @@ struct FontMetrics;
 void init_font_renderer(AGS::Common::AssetManager *amgr);
 void set_gamedata_version(GameDataVersion data_ver);
 // Supply palette usage flags for 8-bit WFN grayscale rendering.
-void set_wfn_palette_eligibility(const uint8_t* palette_eligible);
+void set_wfn_palette_eligibility(const std::array<bool, 256>& palette_eligible);
 void shutdown_font_renderer();
 void adjust_y_coordinate_for_text(int* ypos, int font_number);
 IAGSFontRenderer* font_replace_renderer(int font_number, IAGSFontRenderer* renderer);
@@ -44,8 +45,8 @@ void font_recalc_metrics(int font_number);
 bool font_first_renderer_loaded();
 bool is_font_loaded(int font_number);
 bool is_bitmap_font(int font_number);
-// Enable or disable stencil rendering for the font's internal renderer.
-// Returns false if the renderer does not support stencil mode.
+// Enables or disables stencil mode for the specified font.
+// Returns false if the font number is invalid or no internal renderer is available.
 bool set_font_stencil_mode(int font_number, bool enabled);
 // Returns 1 or 4 for WFN fonts, or 0 for other fonts.
 int get_wfn_font_bits_per_pixel(int font_number);

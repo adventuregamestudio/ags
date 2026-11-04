@@ -81,7 +81,7 @@ void init_font_renderer(AssetManager *amgr)
     wfnRenderer.reset(new WFNFontRenderer(amgr));
 }
 
-void set_wfn_palette_eligibility(const uint8_t* palette_eligible)
+void set_wfn_palette_eligibility(const std::array<bool, 256>& palette_eligible)
 {
     if (wfnRenderer)
         wfnRenderer->SetPaletteEligibility(palette_eligible);

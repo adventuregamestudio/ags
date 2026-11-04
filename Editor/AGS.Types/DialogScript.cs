@@ -9,16 +9,20 @@ namespace AGS.Types
     /// DialogScript class implements a script related to the particular Dialog.
     /// Dialog script is a superset of a AGS script, featuring dialog-specific command syntax.
     /// </summary>
+    [Serializable]
     public class DialogScript : IScript, ISaveable
     {
         public const string DIALOG_SCRIPT_FILE_EXT = "dasc";
 
         private string _fileName = string.Empty;
         private string _text = string.Empty;
+        [NonSerialized]
         private bool _modified = false;
+        [NonSerialized]
         private ScriptAutoCompleteData _autoCompleteData = new ScriptAutoCompleteData();
-        // FIXME: this field will be used when file listener is implemented
+        [NonSerialized]
         private bool _isBeingSaved = false;
+        [NonSerialized]
         private DateTime _lastSavedAt = DateTime.MinValue;
 
         public DialogScript()

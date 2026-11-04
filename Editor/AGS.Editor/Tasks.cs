@@ -113,6 +113,16 @@ namespace AGS.Editor
                 };
             }
 
+            string[] dialogFiles = null;
+            if (game.SavedXmlVersion >= new System.Version(AGSEditor.AGS_4_0_0_XML_VERSION_OPEN_DIALOGS))
+            {
+                dialogFiles = new string[]
+                {
+                    $"{Dialog.DIALOG_FILES_DIRECTORY}/*.{Dialog.DIALOG_DATA_FILE_EXT}",
+                    $"{Dialog.DIALOG_FILES_DIRECTORY}/*.{DialogScript.DIALOG_SCRIPT_FILE_EXT}"
+                };
+            }
+
             List<string> allFiles = new List<string>();
             allFiles.AddRange(commonFiles);
             if (mediaRes != null)
@@ -121,6 +131,8 @@ namespace AGS.Editor
                 allFiles.AddRange(roomFiles);
             if (fontFiles != null)
                 allFiles.AddRange(fontFiles);
+            if (dialogFiles != null)
+                allFiles.AddRange(dialogFiles);
             return allFiles.ToArray();
         }
 

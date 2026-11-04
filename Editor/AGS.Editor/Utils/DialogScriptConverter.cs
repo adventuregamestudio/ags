@@ -34,6 +34,18 @@ namespace AGS.Editor
             {
                 sb.AppendLine(AGS.CScript.Compiler.ScriptAnnotations.MakeNewScriptMarker($"Dialog {dialog.ID}"));
 
+                // TODO: after the Dialog scripts are now stored in separate files,
+                // we need two things to optimize dialog conversion:
+                // 1. Need to know if dialog script's text was ever actually loaded from file
+                //    (empty string is not a indication in this case, as script file can be empty too)
+                // 2. Need to remember timestamp of the last loaded script file, and record
+                //    that along with the cached converted script.
+                // (looks like these two things are actually one thing - script file timestamp record)
+                if (!dialog.Script.Modified)
+                    dialog.Script.LoadFromDisk();
+
+                dialog.CachedConvertedScript = null;
+
                 if ((dialog.CachedConvertedScript == null) ||
                     (dialog.Script.Modified) ||
                     (rebuildAll))

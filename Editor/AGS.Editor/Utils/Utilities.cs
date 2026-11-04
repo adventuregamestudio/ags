@@ -553,6 +553,8 @@ namespace AGS.Editor
 
         public static string BackupFile(string fileName)
         {
+            if (!File.Exists(fileName))
+                return string.Empty;
             string bkpFileName = fileName + ".bkp";
             File.Copy(fileName, bkpFileName);
             return bkpFileName;

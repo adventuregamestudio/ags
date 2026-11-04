@@ -215,12 +215,6 @@ namespace AGS.Editor
             return sb.ToString();
         }
 
-        public void SaveData()
-        {
-            _script.Text = scintillaEditor.GetText();
-            scintillaEditor.SetSavePoint();
-        }
-
         // TODO: find a way to merge this with ScriptEditor.SaveChanges and move to ScriptEditorBase
         public override void SaveChanges()
         {
@@ -233,6 +227,8 @@ namespace AGS.Editor
                 scintillaEditor.SetSavePoint();
                 AfterSave();
             }
+            // TODO: track dialog own modified state too
+            _saveToXml?.Invoke(_dialog);
         }
 
         public void GoToScriptLine(ZoomToFileEventArgs evArgs)
@@ -277,7 +273,8 @@ namespace AGS.Editor
                 flowLayoutPanel1.Controls.Remove(editorToDelete);
                 _optionPanes.RemoveAt(_optionPanes.Count - 1);
 
-                SaveData();
+                // Sync script text with scintilla, before generating more script
+                _script.Text = scintillaEditor.GetText();
 
                 if (_dialog.Options.Count < 1)
                 {
@@ -374,7 +371,8 @@ namespace AGS.Editor
 
             btnDeleteOption.Visible = true;
 
-            SaveData();
+            // Sync script text with scintilla, before generating more script
+            _script.Text = scintillaEditor.GetText();
 
             // Ensure there is an entry point in the script for this
             if (!_script.Text.Contains(Environment.NewLine + "@" + newOption.ID))
@@ -384,7 +382,7 @@ namespace AGS.Editor
                     _script.Text += Environment.NewLine;
                 }
                 _script.Text += "@" + newOption.ID + Environment.NewLine + "return" + Environment.NewLine;
-                scintillaEditor.SetText(_script.Text);
+                scintillaEditor.SetTextModified(_script.Text);
             }
         }
 

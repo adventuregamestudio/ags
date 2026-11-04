@@ -30,9 +30,9 @@ namespace AGS.Types
         // The version this dialog was loaded from
         private System.Version _savedXmlVersion = null;
         private int _id;
-        private string _scriptName;
+        private string _scriptName = string.Empty;
         private bool _showTextParser;
-        private DialogScript _script;
+        private DialogScript _script = new DialogScript();
         // TODO: move cached converted script to DialogScript?
         [NonSerialized]
         private string _cachedConvertedScript = null;
@@ -41,8 +41,8 @@ namespace AGS.Types
 
         public Dialog()
         {
-            _script = new DialogScript();
             _script.Text = DEFAULT_NEW_DIALOG_SCRIPT;
+            _script.Modified = false;
         }
 
         public Dialog(int id, string scriptName)
@@ -264,7 +264,6 @@ namespace AGS.Types
             writer.WriteEndElement();
 
             writer.WriteEndElement();
-
         }
 
         #region IComparable<Dialog> Members

@@ -120,9 +120,12 @@ namespace AGS.Editor.Components
         {
             newDialog.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
             newDialog.ScriptName = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
+            SaveDialogToXml(newDialog);
+            newDialog.Script.SaveToDisk();
             // NOTE: this assumes that Dialogs list always stays sorted and without gaps
             _agsEditor.CurrentGame.Dialogs.Add(newDialog);
             _dialogGuids[newDialog] = Guid.NewGuid();
+            _dialogFiles[_dialogGuids[newDialog]] = new DialogFiles(newDialog.DataFileName, newDialog.ScriptFileName);
             string newNodeID;
             if (_itemRightClicked != null)
                 newNodeID = AddSingleItem(new DialogRef(newDialog), GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), _itemRightClicked)));
@@ -149,6 +152,8 @@ namespace AGS.Editor.Components
             }
             else if (controlID == COMMAND_COPY_ITEM)
             {
+                if (!_itemRightClicked.Dialog.Script.Modified)
+                    _itemRightClicked.Dialog.Script.LoadFromDisk();
                 ClipboardUtils.CopyToClipboard(_itemRightClicked.Dialog);
             }
             else if (controlID == COMMAND_PASTE_ITEM)
@@ -211,6 +216,13 @@ namespace AGS.Editor.Components
 
         private void DeleteDialog(Dialog dialog)
         {
+            Utilities.TryDeleteFile(dialog.DataFileName);
+            Utilities.TryDeleteFile(dialog.Script.FileName);
+
+            // Remove dialog reference from the list of files and from guids
+            _dialogFiles.Remove(_dialogGuids[dialog]);
+            _dialogGuids.Remove(dialog);
+
             _agsEditor.CurrentGame.Dialogs.Remove(dialog);
             // Must shift all greater IDs down to fill the gap;
             // do this both for DialogRef and Dialog
@@ -234,10 +246,7 @@ namespace AGS.Editor.Components
 
         protected override void DeleteResourcesUsedByItem(DialogRef item)
         {
-            // Remove dialog from the guids, this marks associated xml document as obsolete
-            _dialogGuids.Remove(item.Dialog);
-
-            // Delete item itself
+            // Delete dialog and associated project files
             DeleteDialog(item.Dialog);
         }
 
@@ -293,9 +302,14 @@ namespace AGS.Editor.Components
                 Utilities.TryDeleteFile(oldFiles.DataFile);
                 Utilities.TryDeleteFile(oldFiles.ScriptFile);
                 // Rename backups to proper names
-                File.Move(bkpFiles.DataFile, dlg.DataFileName);
-                File.Move(bkpFiles.ScriptFile, dlg.ScriptFileName);
+                if (File.Exists(bkpFiles.DataFile))
+                    File.Move(bkpFiles.DataFile, dlg.DataFileName);
+                if (File.Exists(bkpFiles.ScriptFile))
+                    File.Move(bkpFiles.ScriptFile, dlg.ScriptFileName);
                 _dialogFiles[_dialogGuids[dlg]] = new DialogFiles(dlg.DataFileName, dlg.ScriptFileName);
+
+                // Save the dialog xml after renaming in order to update ID and script name there
+                SaveDialogToXml(dlg);
             }
         }
 
@@ -434,9 +448,16 @@ namespace AGS.Editor.Components
 
         private DialogEditor ShowPaneForDialog(Dialog chosenItem)
         {
-            if (!chosenItem.Script.Modified && File.Exists(chosenItem.Script.FileName))
+            if (File.Exists(chosenItem.Script.FileName))
             {
-                chosenItem.Script.LoadFromDisk();
+                if (!chosenItem.Script.Modified)
+                    chosenItem.Script.LoadFromDisk();
+            }
+            else
+            {
+                // Recreate file if it does not exist for some reason
+                // TODO: regenerate default script based on existing Dialog options
+                chosenItem.Script.SaveToDisk(true);
             }
 
             AddDocumentIfNeeded(true, chosenItem);

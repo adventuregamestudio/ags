@@ -693,27 +693,6 @@ static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, con
     return HSaveError::None();
 }
 
-// Registers any static script objects that are missing from the managed pool,
-// e.g. if restoring a save made before they were added to the game
-static void RegisterMissingManagedObjects()
-{
-    for (int i = 0; i < game.numCompatGameChannels; ++i)
-        ccRegisterPersistentObjectIfMissing(&scrAudioChannel[i], &ccDynamicAudio);
-    for (auto &clip : game.audioClips)
-        ccRegisterPersistentObjectIfMissing(&clip, &ccDynamicAudioClip);
-    for (int i = 0; i < game.numcharacters; ++i)
-        ccRegisterPersistentObjectIfMissing(&game.chars[i], &ccDynamicCharacter);
-    for (int i = 0; i < game.numdialog; ++i)
-        ccRegisterPersistentObjectIfMissing(&scrDialog[i], &ccDynamicDialog);
-    for (int i = 0; i < game.numgui; ++i)
-    {
-        ccRegisterPersistentObjectIfMissing(&scrGui[i], &ccDynamicGUI);
-        // FIXME: implement in ags4 way!! -- see RegisterAllGUIControls()
-        //for (int c = 0; c < guis[i].GetControlCount(); ++c)
-        //    ccRegisterPersistentObjectIfMissing(guis[i].GetControl(c), &ccDynamicGUIObject);
-    }
-}
-
 // Final processing after successfully restoring from save
 HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveCmpSelection select_cmp)
 {
@@ -748,7 +727,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     GUI::RebuildGUI(guis, guictrl_refs);
 
     // Register any static script objects missing from the restored managed pool
-    RegisterMissingManagedObjects();
+    RegisterMissingManagedObjects(game);
 
     HError err = LinkGlobalScripts();
     // this may be a remainer of an old code or engine logic which is no longer necessary

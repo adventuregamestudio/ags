@@ -174,8 +174,7 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &
         game.chars[i].frame = 0;
         game.chars[i].walkwait = -1;
         // register and save handle
-        int handle = ccRegisterPersistentObject(&game.chars[i], &ccDynamicCharacter);
-        StaticCharacterArray[i] = handle;
+        StaticCharacterArray[i] = ccRegisterPersistentObject(&game.chars[i], &ccDynamicCharacter);
 
         // export the character's script object
         if (!game.chars[i].scrname.IsEmpty())
@@ -207,8 +206,7 @@ void InitAndRegisterDialogs(const GameSetupStruct &game)
     {
         scrDialog[i].id = i;
         // register and save handle
-        int handle = ccRegisterPersistentObject(&scrDialog[i], &ccDynamicDialog);
-        StaticDialogArray[i] = handle;
+        StaticDialogArray[i] = ccRegisterPersistentObject(&scrDialog[i], &ccDynamicDialog);
 
         if (!dialog[i].ScriptName.IsEmpty())
             ccAddExternalScriptObjectHandle(dialog[i].ScriptName, &StaticDialogArray[i]);
@@ -245,8 +243,7 @@ void RegisterAllGUIControls(const GameSetupStruct &game)
 
             if (!mgr)
                 continue;
-            int handle = ccRegisterPersistentObject(guio, mgr); // add ref for engine
-            StaticGUIControlsHandles[i][j] = handle;
+            StaticGUIControlsHandles[i][j] = ccRegisterPersistentObject(guio, mgr); // add ref for engine
             if (!guio->GetName().IsEmpty())
             {
                 ccAddExternalScriptObjectHandle(guio->GetName(), &StaticGUIControlsHandles[i][j]);
@@ -277,8 +274,7 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
         scrGui[i].id = i;
         // register and save handle
         IScriptObject *mgr = guis[i].IsTextWindow() ? &ccDynamicTextWindowGUI : &ccDynamicGUI;
-        int handle = ccRegisterPersistentObject(&scrGui[i], mgr);
-        StaticGUIArray[i] = handle;
+        StaticGUIArray[i] = ccRegisterPersistentObject(&scrGui[i], mgr);
 
         // export the gui script object
         if (!guis[i].GetName().IsEmpty())
@@ -301,12 +297,61 @@ void InitAndRegisterInvItems(const GameSetupStruct &game)
     {
         scrInv[i].id = i;
         // register and save handle
-        int handle = ccRegisterPersistentObject(&scrInv[i], &ccDynamicInv);
-        StaticInventoryArray[i] = handle;
+        StaticInventoryArray[i] = ccRegisterPersistentObject(&scrInv[i], &ccDynamicInv);
 
         if (!game.invScriptNames[i].IsEmpty())
             ccAddExternalScriptObjectHandle(game.invScriptNames[i], &StaticInventoryArray[i]);
     }
+}
+
+// Register any gui controls that are not present in the managed pool.
+// We assume that handle arrays are already created of proper size when the game was loaded,
+// so we only need to fill missing elements.
+static void RegisterMissingGUIControls(GameSetupStruct &game)
+{
+    for (int i = 0; i < game.numgui; ++i)
+    {
+        auto const &gui = guis[i];
+        for (int j = 0; j < gui.GetControlCount(); j++)
+        {
+            GUIControl *guio = gui.GetControl(j);
+            IScriptObject *mgr;
+            switch (gui.GetControlType(j))
+            {
+            case kGUIButton: mgr = &ccDynamicGUIButton; break;
+            case kGUILabel: mgr = &ccDynamicGUILabel; break;
+            case kGUIInvWindow: mgr = &ccDynamicGUIInvWindow; break;
+            case kGUISlider: mgr = &ccDynamicGUISlider; break;
+            case kGUITextBox: mgr = &ccDynamicGUITextBox; break;
+            case kGUIListBox: mgr = &ccDynamicGUIListBox; break;
+            default: mgr = nullptr; break;
+            }
+
+            if (mgr)
+                StaticGUIControlsHandles[i][j] = ccRegisterPersistentObjectIfMissing(guio, mgr); // add ref for engine
+        }
+    }
+}
+
+// Registers any persistent script objects that are missing from the managed pool,
+// e.g. if restoring a save made before they were added to the game.
+// We assume that handle arrays are already created of proper size when the game was loaded,
+// so we only need to fill missing elements.
+void RegisterMissingManagedObjects(GameSetupStruct &game)
+{
+    for (int i = 0; i < game.numCompatGameChannels; ++i)
+        ccRegisterPersistentObjectIfMissing(&scrAudioChannel[i], &ccDynamicAudio);
+    for (size_t i = 0; i < game.audioClips.size(); ++i)
+        StaticAudioClipArray[i] = ccRegisterPersistentObjectIfMissing(&game.audioClips[i], &ccDynamicAudioClip);
+    for (int i = 0; i < game.numcharacters; ++i)
+        StaticCharacterArray[i] = ccRegisterPersistentObjectIfMissing(&game.chars[i], &ccDynamicCharacter);
+    for (int i = 0; i < game.numdialog; ++i)
+        StaticDialogArray[i] = ccRegisterPersistentObjectIfMissing(&scrDialog[i], &ccDynamicDialog);
+    for (int i = 0; i < game.numinvitems; ++i)
+        StaticInventoryArray[i] = ccRegisterPersistentObjectIfMissing(&scrInv[i], &ccDynamicInv);
+    for (int i = 0; i < game.numgui; ++i)
+        StaticGUIArray[i] = ccRegisterPersistentObjectIfMissing(&scrGui[i], &ccDynamicGUI);
+    RegisterMissingGUIControls(game);
 }
 
 // Register room script entity of a given type
@@ -318,8 +363,7 @@ void RegisterRoomEntities(std::vector<int> &static_arr, TScriptType scr_objs[], 
     {
         scr_objs[i].id = i;
         // register and save handle
-        int handle = ccRegisterPersistentObject(&scr_objs[i], &mgr);
-        static_arr[i] = handle;
+        static_arr[i] = ccRegisterPersistentObject(&scr_objs[i], &mgr);
     }
 }
 

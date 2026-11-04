@@ -61,6 +61,10 @@ void ApplyBehaviorOptions(GameSetupStruct &game, GamePlayState &play, const Game
 // Prints behavior options to the log
 void PrintBehaviorOptions(const GameSetupStruct &game, const GamePlayState &play);
 
+// Registers any persistent script objects that are missing from the managed pool,
+// e.g. if restoring a save made before they were added to the game.
+void RegisterMissingManagedObjects(GameSetupStruct &game);
+
 } // namespace Engine
 } // namespace AGS
 

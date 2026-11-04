@@ -354,10 +354,14 @@ HError gamecfg_command(AGF::AGFReader &reader, const String &dst, bool no_empty_
     ConfigTree cfg;
     WriteConfig(setup, &settings, cfg);
 
-    // Write config tree as ini
-    String str;
-    IniUtil::WriteToString(str, cfg);
-    return write_to_file(str, dst);
+    // Write the config tree as the editor does (AGSEditor.WriteConfigFile): into a new file,
+    // with IniUtil::Merge, which formats it as an ini file of its own
+    if (File::IsFile(dst))
+        File::DeleteFile(dst);
+    IniUtil::Merge(dst, cfg);
+    if (!File::IsFile(dst))
+        return new Error(String::FromFormat("Failed to write %s", dst.GetCStr()));
+    return HError::None();
 }
 
 int main(int argc, char *argv[])

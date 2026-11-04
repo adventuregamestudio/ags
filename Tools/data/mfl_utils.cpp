@@ -226,7 +226,11 @@ HError WriteLibraryFile(AssetLibInfo &lib, const StringIMap &asset_map,
     out->Seek(s_offset, kSeekBegin);
     MFLUtil::WriteHeader(lib, MFLUtil::kMFLVersion_MultiV30, lib_index, out.get());
     out->Seek(0, kSeekEnd);
-    MFLUtil::WriteEnder(s_offset, lib_version, out.get());
+    // A library appended to another file ends with its offset, by which the reader finds it (the
+    // offset is set below); a file of its own begins with the library and needs none, as the
+    // editor writes it
+    if (append)
+        MFLUtil::WriteEnder(s_offset, lib_version, out.get());
     out->Flush();
 
     // If appending, then write to the final file

@@ -185,7 +185,8 @@ enum AudioClipFileType
     kAudioFile_WAV = 3,
     kAudioFile_VOC = 4,
     kAudioFile_MIDI = 5,
-    kAudioFile_MOD = 6
+    kAudioFile_MOD = 6,
+    kAudioFile_FLAC = 7
 };
 
 enum CrossfadeSpeed
@@ -237,8 +238,8 @@ struct CharacterData : EntityRef
     int BlockingY{};
     int BlockingWidth{};
     int BlockingHeight{};
-    bool Clickable{};
-    bool DiagonalLoops{};
+    bool Clickable = true;
+    bool DiagonalLoops = true;
     int IdleAnimationDelay{};
     int IdleDelay{};
     int IdleView{};
@@ -248,21 +249,28 @@ struct CharacterData : EntityRef
     int MovementSpeedY{};
     int NormalView{};
     String RealName;
-    bool Solid{};
+    bool Solid = true;
+    bool Enabled = true;
+    bool Visible = true;
     int SpeechAnimationDelay{};
     int SpeechColor{};
     int SpeechView{};
     int StartX{};
     int StartY{};
-    int StartingRoom{};
+    int StartingRoom = -1;
     int ThinkingView{};
     int Transparency{};
-    bool TurnBeforeWalking{};
-    bool TurnWhenFacing{};
-    bool UniformMovementSpeed{};
-    bool UseRoomAreaLighting{};
-    bool UseRoomAreaScaling{};
-    String ScriptModule;
+    bool TurnBeforeWalking = true;
+    bool TurnWhenFacing = true;
+    bool UniformMovementSpeed = true;
+    bool UseRoomAreaLighting = true;
+    bool UseRoomAreaScaling = true;
+    int BlendMode{}; // AGS.Types BlendMode, same values as Common::BlendMode
+    Pointf GraphicAnchor = Pointf(0.5f, 1.f);
+    Point GraphicOffset;
+    String OnAnyClick;
+    String OnFrameEvent;
+    String ScriptModule = "GlobalScript.asc"; // the editor's default
     std::vector<String> InteractionEvents;
     std::vector<CustomPropertyValue> Properties;
 };
@@ -270,9 +278,12 @@ struct CharacterData : EntityRef
 struct ViewFrameData
 {
     int Delay{};
-    bool Flipped{};
+    String EventName;
+    int Flip{}; // SpriteFlipStyle: 1 horizontal, 2 vertical, 3 both
     int Image{};
     int Sound{}; // stable audio clip index in the AGF
+    int XOffset{};
+    int YOffset{};
 };
 
 struct ViewLoopData
@@ -302,6 +313,7 @@ struct FontData : EntityRef
     int SizeMultiplier = 1;
     FontMetricsFixup MetricsFixup = kFontMetrics_None;
     int VerticalOffset{};
+    String FontFileName;
 };
 
 struct SpriteData
@@ -330,6 +342,8 @@ struct SpriteData
     int TransparentColourIndex = 0;
     bool RemapToGamePalette = false;
     bool RemapToRoomPalette = false;
+    // SpriteImportColorDepth: 0 converts to the game's depth, 8 keeps the image 8-bit
+    int ImportColorDepth = 0;
 };
 
 struct PaletteEntryData
@@ -366,6 +380,7 @@ struct AudioClipData : EntityRef
     bool Repeat{};
     int Priority = 50;
     int Volume = 100;
+    std::vector<CustomPropertyValue> Properties;
 };
 
 struct PluginData
@@ -385,6 +400,7 @@ struct DialogRef : EntityRef
 {
     int OptionCount = 0;
     bool ShowTextParser = false;
+    std::vector<CustomPropertyValue> Properties;
     std::vector<DialogOptionData> Options;
 };
 
@@ -399,7 +415,7 @@ struct GUIControlData : EntityRef
     bool Clickable{};
     bool Enabled{};
     bool Visible{};
-    bool Translated{};
+    bool Translated = true;
     bool ShowBorder{};
     bool SolidBackground{};
     int BackgroundColor{};
@@ -407,6 +423,9 @@ struct GUIControlData : EntityRef
     int BorderWidth{};
     int PaddingX{};
     int PaddingY{};
+    int Transparency{}; // 0-100
+    int BlendMode{};
+    std::vector<CustomPropertyValue> Properties;
 };
 
 struct GUIButtonData : GUIControlData
@@ -419,6 +438,8 @@ struct GUIButtonData : GUIControlData
     int MouseoverImage{};
     int NewModeNumber{};
     String OnClick;
+    String OnFrameEvent;
+    bool IsTextWindowEdge{}; // a text window's edge, which the editor writes as a button
     int PushedImage{};
     String Text;
     FrameAlignment TextAlignment = kAlignTopCenter;
@@ -508,12 +529,21 @@ struct GUIData : EntityRef
     int PopupYPos{};
     int Top{};
     int Transparency{};
-    int Visible{};
+    bool Visible{};
     int Width{};
     int ZOrder{};
     int Padding = TEXTWINDOW_PADDING_DEFAULT;
     int TextColor{};
+    int BlendMode{};
+    std::vector<CustomPropertyValue> Properties;
     std::vector<std::shared_ptr<GUIControlData>> Controls;
+};
+
+enum VariableArrayType
+{
+    kVariable_Single, // not an array
+    kVariable_Array,  // fixed size array
+    kVariable_DynamicArray
 };
 
 // Game variable (for variables defined in the game project)
@@ -522,6 +552,8 @@ struct Variable
     String Type;
     String Name;
     String Value;
+    VariableArrayType ArrayType = kVariable_Single;
+    int ArraySize = 0;
 };
 
 // Game settings
@@ -548,6 +580,8 @@ struct GameSettings
     bool DebugMode;
     int DefaultRoomMaskResolution;
     String Description;
+    String DeveloperErrorText;
+    float FaceDirectionRatio{};
     String DeveloperName;
     String DeveloperURL;
     bool DialogOptionsBackwards;
@@ -572,8 +606,8 @@ struct GameSettings
     int GlobalSpeechAnimationDelay;
     bool HandleInvClicksInScript;
     bool InventoryCursors;
-    unsigned int InventoryHotspotMarkerCrosshairColor;
-    unsigned int InventoryHotspotMarkerDotColor;
+    int InventoryHotspotMarkerCrosshairColor{};
+    int InventoryHotspotMarkerDotColor{};
     int InventoryHotspotMarkerSprite;
     DataUtil::InventoryHotspotMarkerStyle InventoryHotspotMarkerStyle = kInventoryHotspot_None;
     bool LeftToRightPrecedence;
@@ -672,8 +706,10 @@ struct InventoryItemData : EntityRef
     int CursorImage = 0;
     int HotspotX = 0;
     int HotspotY = 0;
+    FrameAlignment HotspotAlignment = kAlignNone;
     bool PlayerStartsWith = false;
-    String ScriptModule;
+    String OnAnyClick;
+    String ScriptModule = "GlobalScript.asc"; // the editor's default
     std::vector<String> InteractionEvents;
     std::vector<CustomPropertyValue> Properties;
 };
@@ -691,6 +727,8 @@ struct CursorData : EntityRef
     bool AnimateOnlyWhenMoving = false;
     bool StandardMode = false;
     int AnimationDelay = 5;
+    int StandardRole = -1;    // AGS.Types CursorRole
+    bool CreateEvent = false; // the cursor has an interaction event
 };
 
 // Lightweight game data used by script generation and dialog conversion.

@@ -225,7 +225,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     cmls.pos[last_stage] = { data_to_game_coord(last_pos.X), data_to_game_coord(last_pos.Y) };
     const int dst_x = data_to_game_coord(x);
     const int dst_y = data_to_game_coord(y);
-    Pathfinding::AddWaypointDirect(cmls, dst_x, dst_y, move_speed_x, move_speed_y, kMoveStage_Direct);
+    MoveListOp::AddWaypointDirect(cmls, dst_x, dst_y, move_speed_x, move_speed_y, kMoveStage_Direct);
     convert_move_path_to_data_resolution(cmls, last_stage, last_stage + 1);
 }
 
@@ -1021,7 +1021,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
     if (chaa->is_moving_onpath() && (old_speedx != xspeed || old_speedy != yspeed))
     {
-        Pathfinding::RecalculateMoveSpeeds(mls[chaa->get_movelist_id()], old_speedx, old_speedy, xspeed, yspeed);
+        MoveListOp::RecalculateMoveSpeeds(mls[chaa->get_movelist_id()], old_speedx, old_speedy, xspeed, yspeed);
     }
 }
 
@@ -2033,7 +2033,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
         for (auto &pt : data_path)
             data_to_game_coords(&pt.X, &pt.Y);
 
-        path_result = Pathfinding::CalculateMoveList(mls[mslot], data_path, move_speed_x, move_speed_y, ignwal ? kMoveStage_Direct : 0);
+        path_result = MoveListOp::CalculateMoveList(mls[mslot], data_path, move_speed_x, move_speed_y, ignwal ? kMoveStage_Direct : 0);
     }
     else
     {

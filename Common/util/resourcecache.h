@@ -225,14 +225,15 @@ public:
     // Disposes all items that are not locked or external
     void DisposeFreeItems()
     {
-        for (auto mru_it = _sectionLocked; mru_it != _mru.end(); ++mru_it)
+        // the MRU list has the normal items first, and the locked section after them
+        for (auto mru_it = _mru.begin(); mru_it != _sectionLocked;)
         {
             auto it = _storage.find(*mru_it);
             assert(it != _storage.end());
             auto &item = it->second;
             _cacheSize -= item.Size;
             _storage.erase(it);
-            _mru.erase(mru_it);
+            mru_it = _mru.erase(mru_it);
         }
     }
 

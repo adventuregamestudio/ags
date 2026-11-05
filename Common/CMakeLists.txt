@@ -268,6 +268,7 @@ if(AGS_TESTS)
         test/memory_test.cpp
         test/paletteop_test.cpp
         test/path_test.cpp
+        test/resourcecache_test.cpp
         test/splitline_test.cpp
 		test/spritecache_test.cpp
 		test/spritefile_test.cpp

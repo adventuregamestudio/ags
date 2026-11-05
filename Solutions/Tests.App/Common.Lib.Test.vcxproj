@@ -36,6 +36,7 @@
     <ClCompile Include="..\..\Common\test\path_test.cpp" />
     <ClCompile Include="..\..\Common\test\bitmapdata_test.cpp" />
     <ClCompile Include="..\..\Common\test\paletteop_test.cpp" />
+    <ClCompile Include="..\..\Common\test\resourcecache_test.cpp" />
     <ClCompile Include="..\..\Common\test\sdl2_stubs.c" />
     <ClCompile Include="..\..\Common\test\splitline_test.cpp" />
     <ClCompile Include="..\..\Common\test\spritecache_test.cpp" />

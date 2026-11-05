@@ -12,7 +12,10 @@
 //
 //=============================================================================
 #include "ac/characterinfo.h"
+#include <algorithm>
 #include <string.h>
+#include <utility>
+#include <vector>
 #include "ac/game_version.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
@@ -332,9 +335,12 @@ void CharacterInfo::WriteToSavegame(Stream *out) const
     out->WriteInt16(0); // legacy animating
     out->WriteInt16(walkspeed);
     out->WriteInt16(animspeed);
-    // new inv item quantity format since kCharSvgVersion_400_33
-    out->WriteInt32(invq.size());
-    for (const auto &iq : invq)
+    // new inv item quantity format since kCharSvgVersion_400_33;
+    // written in the order of item IDs, so that the same inventory always gives the same bytes
+    std::vector<std::pair<int, int>> items(invq.begin(), invq.end());
+    std::sort(items.begin(), items.end());
+    out->WriteInt32(items.size());
+    for (const auto &iq : items)
     {
         out->WriteInt32(iq.first);
         out->WriteInt32(iq.second);

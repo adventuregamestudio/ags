@@ -48,6 +48,9 @@ class MoveList
 {
 public:
     // TODO: protect all these fields!
+    // TODO: backport MoveList structure refactor from ags4:
+    // no new features, only code reorganization, hide fields,
+    // move "step" function into the class (named Forward()), etc.
 
     // Waypoints, per stage
     std::vector<Point> pos;
@@ -91,5 +94,16 @@ public:
     AGS::Engine::HSaveError ReadFromSavegame(Common::Stream *in, int32_t cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;
 };
+
+// TODO: make these MoveList's public methods!
+namespace MoveListOp
+{
+    // Calculate the MoveList from the given navigation path and move speeds.
+    bool CalculateMoveList(MoveList &mls, const std::vector<Point> path, int move_speed_x, int move_speed_y, uint8_t stage_flag);
+    // Append a waypoint to the move list, skip pathfinding
+    bool AddWaypointDirect(MoveList &mls, int x, int y, int move_speed_x, int move_speed_y, uint8_t stage_flag);
+    // Recalculates MoveList's step speeds
+    void RecalculateMoveSpeeds(MoveList &mls, int old_speed_x, int old_speed_y, int new_speed_x, int new_speed_y);
+}
 
 #endif // __AGS_EN_AC__MOVELIST_H

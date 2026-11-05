@@ -73,7 +73,7 @@ MINIMAL_ALLEGRO_OBJS = \
 
 MINIZ_OBJS = \
 	../../libsrc/miniz/miniz.c
-	../../libsrc/miniz/miniz_ex.c
+	../../libsrc/miniz_ex/miniz_ex.c
 
 STB_OBJS = \
 	../../libsrc/stb/stb_image.c

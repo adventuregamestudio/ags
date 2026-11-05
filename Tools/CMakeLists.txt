@@ -151,6 +151,7 @@ target_sources(libtools
         )
         
 target_link_libraries(libtools PUBLIC MiniZ::MiniZ)
+target_link_libraries(libtools PUBLIC MiniZ_Ex::MiniZ_Ex)
 target_link_libraries(libtools PUBLIC stb::stb)
 target_link_libraries(libtools PUBLIC TinyXML2::TinyXML2)
 if (WIN32)

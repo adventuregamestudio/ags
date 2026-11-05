@@ -19,6 +19,9 @@
     <Filter Include="stb">
       <UniqueIdentifier>{4be780b6-cd2b-4a68-9b4c-b23dc754040e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="miniz_ex">
+      <UniqueIdentifier>{511d69f8-32e5-4e6f-a508-5432e4197f8f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
@@ -138,6 +141,9 @@
     <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libsrc\miniz_ex\miniz_ex.c">
+      <Filter>miniz_ex</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\crmpak\commands.h">
@@ -220,6 +226,12 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\gfx\sprite_data_fmt.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\miniz\miniz.h">
+      <Filter>miniz</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\miniz_ex\miniz_ex.h">
+      <Filter>miniz_ex</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

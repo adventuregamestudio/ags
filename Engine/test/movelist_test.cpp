@@ -136,11 +136,11 @@ TEST(MoveList, SpeedsPerStage)
 TEST(MoveList, InvalidInputIsRefused)
 {
     MoveList mls;
-    EXPECT_FALSE(Pathfinding::CalculateMoveList(mls, {}, 1.f, 1.f, 0, RunPathParams::DefaultOnce()));
+    EXPECT_FALSE(MoveListOp::CalculateMoveList(mls, {}, 1.f, 1.f, 0, RunPathParams::DefaultOnce()));
     // both speeds zero: no movement possible
-    EXPECT_FALSE(Pathfinding::CalculateMoveList(mls, {{0, 0}, {1, 1}}, 0.f, 0.f, 0, RunPathParams::DefaultOnce()));
+    EXPECT_FALSE(MoveListOp::CalculateMoveList(mls, {{0, 0}, {1, 1}}, 0.f, 0.f, 0, RunPathParams::DefaultOnce()));
     // fewer speeds than stages
-    EXPECT_FALSE(Pathfinding::CalculateMoveList(mls, {{0, 0}, {6, 0}, {6, 6}}, {{3.f, 3.f}}, 0,
+    EXPECT_FALSE(MoveListOp::CalculateMoveList(mls, {{0, 0}, {6, 0}, {6, 6}}, {{3.f, 3.f}}, 0,
         RunPathParams::DefaultOnce()));
 }
 #endif // NDEBUG

@@ -626,6 +626,7 @@ if(AGS_TESTS)
     add_executable(
         engine_test
         test/game_test.cpp
+        test/movelist_test.cpp
         test/scsprintf_test.cpp
         test/systemimports_test.cpp
     )

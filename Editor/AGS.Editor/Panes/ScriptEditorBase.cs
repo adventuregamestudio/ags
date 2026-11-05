@@ -130,7 +130,7 @@ namespace AGS.Editor
             }
         }
 
-        public bool IsModified
+        public virtual bool IsModified
         {
             get { return _scintilla != null ? _scintilla.IsModified : false; }
         }

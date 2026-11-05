@@ -150,6 +150,15 @@ namespace AGS.Editor
             return _dialog.WindowTitle + (IsModified ? " *" : "");
         }
 
+        public override bool IsModified
+        {
+            get
+            {
+                // TODO: test if dialog was modified!
+                return base.IsModified || _dialog.Script.Modified;
+            }
+        }
+
         protected override void OnKeyPressed(Keys keyData)
         {
             if (keyData.Equals(Keys.Escape))
@@ -215,20 +224,33 @@ namespace AGS.Editor
             return sb.ToString();
         }
 
-        // TODO: find a way to merge this with ScriptEditor.SaveChanges and move to ScriptEditorBase
-        public override void SaveChanges()
+        /// <summary>
+        /// Saves data from control into the Dialog and DialogScript objects.
+        /// </summary>
+        private void SaveData()
         {
             if (!scintillaEditor.IsDisposed && scintillaEditor.IsModified)
             {
                 _script.Text = scintillaEditor.GetText();
-                BeforeSave();
-                _script.Text = scintillaEditor.GetText();
-                _script.SaveToDisk();
                 scintillaEditor.SetSavePoint();
+            }
+                
+        }
+
+        // TODO: find a way to merge this with ScriptEditor.SaveChanges and move to ScriptEditorBase
+        public override void SaveChanges()
+        {
+            SaveData();
+            if (_script.Modified)
+            {
+                BeforeSave();
+                _script.SaveToDisk();
+                _script.Modified = false;
                 AfterSave();
             }
             // TODO: track dialog own modified state too
             _saveToXml?.Invoke(_dialog);
+            UpdateWindowTitle();
         }
 
         public void GoToScriptLine(ZoomToFileEventArgs evArgs)
@@ -274,7 +296,7 @@ namespace AGS.Editor
                 _optionPanes.RemoveAt(_optionPanes.Count - 1);
 
                 // Sync script text with scintilla, before generating more script
-                _script.Text = scintillaEditor.GetText();
+                SaveData();
 
                 if (_dialog.Options.Count < 1)
                 {
@@ -372,7 +394,7 @@ namespace AGS.Editor
             btnDeleteOption.Visible = true;
 
             // Sync script text with scintilla, before generating more script
-            _script.Text = scintillaEditor.GetText();
+            SaveData();
 
             // Ensure there is an entry point in the script for this
             if (!_script.Text.Contains(Environment.NewLine + "@" + newOption.ID))
@@ -382,7 +404,7 @@ namespace AGS.Editor
                     _script.Text += Environment.NewLine;
                 }
                 _script.Text += "@" + newOption.ID + Environment.NewLine + "return" + Environment.NewLine;
-                scintillaEditor.SetTextModified(_script.Text);
+                scintillaEditor.SetText(_script.Text);
             }
         }
 

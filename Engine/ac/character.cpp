@@ -225,7 +225,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
         debug_script_warn("Character::AddWaypoint: called for '%s' with walk speed 0", chaa->scrname.GetCStr());
     }
 
-    Pathfinding::AddWaypointDirect(cmls, x, y, move_speed_x, move_speed_y, kMoveStage_Direct);
+    MoveListOp::AddWaypointDirect(cmls, x, y, move_speed_x, move_speed_y, kMoveStage_Direct);
 }
 
 void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
@@ -1058,7 +1058,7 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
 
     if (chaa->is_moving() && (old_speedx != xspeed || old_speedy != yspeed))
     {
-        Pathfinding::RecalculateMoveSpeeds(*get_movelist(chaa->get_movelist_id()), old_speedx, old_speedy, xspeed, yspeed);
+        MoveListOp::RecalculateMoveSpeeds(*get_movelist(chaa->get_movelist_id()), old_speedx, old_speedy, xspeed, yspeed);
     }
 }
 
@@ -2313,7 +2313,7 @@ void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, in
     bool path_result = false;
     if (path)
     {
-        path_result = Pathfinding::CalculateMoveList(new_mlist, *path, move_speed_x, move_speed_y,
+        path_result = MoveListOp::CalculateMoveList(new_mlist, *path, move_speed_x, move_speed_y,
             ignwal ? kMoveStage_Direct : 0, run_params);
     }
     else

@@ -149,4 +149,17 @@ private:
     void OnPathRevertedBack();
 };
 
+// TODO: make these MoveList's public methods!
+namespace MoveListOp
+{
+    // Calculate the MoveList from the given navigation path and move speeds.
+    bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, float move_speed_x, float move_speed_y, uint8_t stage_flag, const RunPathParams &run_params);
+    // Calculate the MoveList from the given navigation path and variable move speeds per section.
+    bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, const std::vector<Pointf> &move_speeds, uint8_t stage_flag, const RunPathParams &run_params);
+    // Append a waypoint to the move list, skip pathfinding
+    bool AddWaypointDirect(MoveList &mls, int x, int y, float move_speed_x, float move_speed_y, uint8_t stage_flag);
+    // Recalculates MoveList's step speeds
+    void RecalculateMoveSpeeds(MoveList &mls, float old_speed_x, float old_speed_y, float new_speed_x, float new_speed_y);
+}
+
 #endif // __AGS_EN_AC__MOVELIST_H

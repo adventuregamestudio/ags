@@ -23,6 +23,7 @@
 #include <allegro.h> // RGB and PALETTE types, MASK_COLOR constants
 #include "debug/assert.h"
 #include "platform/types.h"
+#include "util/geometry.h"
 #include "util/stream.h"
 #include "util/string.h"
 
@@ -158,6 +159,10 @@ typedef std::array<RGB, PAL_SIZE> Palette;
 // combined with the description of its format.
 // Its purpose is to pass the buffer pointer without bringing
 // dependency on full Bitmap class.
+// TODO: there may be situations when we need to store this for a while somewhere,
+// as a reference to Bitmap. In which case this becomes unsafe (as there's no
+// way to tell if Bitmap is deallocated in the meanwhile). We need a sort of
+// either shared_ptr or weak_ptr over pixel data here, shared with Bitmap.
 // TODO: consider adding optional palette field (unique_ptr with RGB array?),
 // may be useful to combine them when loading indexed images.
 class BitmapData
@@ -183,6 +188,7 @@ public:
     inline int GetBytesPerPixel() const { return (_bitsPerPixel + 7) / 8; }
     inline int GetWidth() const { return _width; }
     inline int GetHeight() const { return _height; }
+    inline Size GetSize() const { return Size(_width, _height); }
     // Gets the total size of the pixel data buffer, in bytes
     inline size_t GetDataSize() const { return _dataSize; }
     // Gets the length of a single bitmap line, in bytes;

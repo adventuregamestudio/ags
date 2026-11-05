@@ -1120,7 +1120,7 @@ void move_object(int objj, const std::vector<Point> *path, int tox, int toy, int
     bool path_result = false;
     if (path)
     {
-        path_result = Pathfinding::CalculateMoveList(new_mlist, *path, speed, speed,
+        path_result = MoveListOp::CalculateMoveList(new_mlist, *path, speed, speed,
             ignwal ? kMoveStage_Direct : 0, run_params);
     }
     else

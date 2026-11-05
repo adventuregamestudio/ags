@@ -443,3 +443,252 @@ void MoveList::WriteToSavegame(Stream *out) const
     out->WriteInt32(0); // potential: from,to (waypoint range)
     out->WriteInt32(0);
 }
+
+namespace MoveListOp
+{
+
+// Negative move speeds become fractional, e.g. -2 = 1/2 speed.
+inline float InputSpeedToVelocity(float speed_val)
+{
+    if (speed_val < 0.f)
+        return 1.f / (-speed_val);
+    else
+        return speed_val;
+}
+
+// Calculates velocity vector length from x/y speed components
+inline float CalcMoveSpeedAtAngle(float speed_x, float speed_y, float xdist, float ydist)
+{
+    float useMoveSpeed;
+    // short circuit degenerate "simple" cases
+    if (xdist == 0.f || speed_x == 0.f)
+    {
+        useMoveSpeed = speed_y;
+    }
+    else if (ydist == 0.f || speed_y == 0.f)
+    {
+        useMoveSpeed = speed_x;
+    }
+    else if (speed_x == speed_y)
+    {
+        useMoveSpeed = speed_x;
+    }
+    else
+    {
+        // different X and Y move speeds
+        // speed_x and speed_y are the axis of an ellipse, whose border represent the "valid"
+        // movement speeds at each angle. The equation for that is
+        // (x/a)^2 + (y/b)^2 = 1
+        // where
+        // a == speed_x
+        // b == speed_y
+        // ydist and xdist give a straight line for the movement at this stage. Its equation is
+        // y = mx
+        // The slope m is ydist/xdist.
+        // The velocity we want to compute is the length of the segment of that line from the
+        // origin to its intersection with the ellipse. The coordinates of that intersection
+        // can be found by substituting y = mx into the equation of the ellipse to solve for
+        // x, and then solving back for y. The velocity is then computed by Pithagora's theorem.
+        float a_squared = speed_x * speed_x;
+        float b_squared = speed_y * speed_y;
+        float m_squared = (ydist * ydist) / (xdist * xdist);
+        float v_squared = (a_squared * b_squared * (1.f + m_squared)) / (b_squared + a_squared * m_squared);
+        useMoveSpeed = sqrtf(v_squared);
+    }
+    // validate that the computed speed is in a valid range
+    assert(useMoveSpeed >= std::min(speed_x, speed_y) && useMoveSpeed <= std::max(speed_x, speed_y));
+    return useMoveSpeed;
+}
+
+// Calculates the X and Y per game loop, for this stage of the movelist
+static void CalculateMoveStage(MoveList &mls, uint32_t index, float move_speed_x, float move_speed_y)
+{
+    assert(index < mls.pos.size() && index < mls.permove.size() && index < mls.stageflags.size());
+    if (index >= mls.pos.size())
+        return;
+
+    // work out the x & y per move. First, opp/adj=tan, so work out the angle
+    if (mls.pos[index] == mls.pos[index + 1])
+    {
+        mls.permove[index].X = 0.f;
+        mls.permove[index].Y = 0.f;
+        return;
+    }
+
+    int ourx = mls.pos[index].X;
+    int oury = mls.pos[index].Y;
+    int destx = mls.pos[index + 1].X;
+    int desty = mls.pos[index + 1].Y;
+
+    // Special case for vertical and horizontal movements
+    if (ourx == destx)
+    {
+        mls.permove[index].X = 0.f;
+        mls.permove[index].Y = move_speed_y;
+        if (desty < oury)
+            mls.permove[index].Y = -mls.permove[index].Y;
+        return;
+    }
+
+    if (oury == desty)
+    {
+        mls.permove[index].X = move_speed_x;
+        mls.permove[index].Y = 0.f;
+        if (destx < ourx)
+            mls.permove[index].X = -mls.permove[index].X;
+        return;
+    }
+
+    float xdist = abs(ourx - destx);
+    float ydist = abs(oury - desty);
+
+    float useMoveSpeed = CalcMoveSpeedAtAngle(move_speed_x, move_speed_y, xdist, ydist);
+    float angl = atan(ydist / xdist);
+
+    // now, since new opp=hyp*sin, work out the Y step size
+    float newymove = useMoveSpeed * sin(angl);
+
+    // since adj=hyp*cos, work out X step size
+    float newxmove = useMoveSpeed * cos(angl);
+
+    // validate that the computed movement isn't larger than the set maxima
+    assert(newxmove <= move_speed_x && newymove <= move_speed_y);
+
+    if (destx < ourx)
+        newxmove = -newxmove;
+    if (desty < oury)
+        newymove = -newymove;
+
+    mls.permove[index].X = newxmove;
+    mls.permove[index].Y = newymove;
+}
+
+static bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path,
+    float move_speed_x, float move_speed_y, const std::vector<Pointf> &move_speeds,
+    uint8_t stage_flag, const RunPathParams &run_params)
+{
+    MoveList mlist;
+    mlist.pos = path;
+    // Ensure there are at least 2 pos elements (required for the further algorithms)
+    if (mlist.pos.size() == 1)
+        mlist.pos.push_back(mlist.pos[0]);
+    mlist.permove.resize(path.size());
+    mlist.stageflags.resize(path.size(), stage_flag);
+
+    if (move_speeds.empty())
+    {
+        const float fspeed_x = InputSpeedToVelocity(move_speed_x);
+        const float fspeed_y = InputSpeedToVelocity(move_speed_y);
+        for (uint32_t i = 0; i < mlist.GetNumStages() - 1; i++)
+            CalculateMoveStage(mlist, i, fspeed_x, fspeed_y);
+    }
+    else
+    {
+        for (uint32_t i = 0; i < mlist.GetNumStages() - 1 && i < move_speeds.size(); i++)
+        {
+            const float fspeed_x = InputSpeedToVelocity(move_speeds[i].X);
+            const float fspeed_y = InputSpeedToVelocity(move_speeds[i].Y);
+            CalculateMoveStage(mlist, i, fspeed_x, fspeed_y);
+        }
+    }
+
+    mlist.run_params = run_params;
+    mlist.ResetToBegin();
+    mls = mlist;
+    return true;
+}
+
+bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, float move_speed_x, float move_speed_y,
+    uint8_t stage_flag, const RunPathParams &run_params)
+{
+    assert(!path.empty());
+    assert(move_speed_x != 0.f || move_speed_y != 0.f);
+    if (path.empty() || (move_speed_x == 0.f) && (move_speed_y == 0.f))
+        return false;
+
+    return CalculateMoveList(mls, path, move_speed_x, move_speed_y, std::vector<Pointf>(), stage_flag, run_params);
+}
+
+bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path,
+    const std::vector<Pointf> &move_speeds, uint8_t stage_flag, const RunPathParams &run_params)
+{
+    assert(!path.empty());
+    assert(move_speeds.size() >= path.size() - 1);
+    if (path.empty() || (move_speeds.size() < path.size() - 1))
+        return false;
+
+    return CalculateMoveList(mls, path, 0.f, 0.f, move_speeds, stage_flag, run_params);
+}
+
+bool AddWaypointDirect(MoveList &mls, int x, int y, float move_speed_x, float move_speed_y, uint8_t stage_flag)
+{
+    // Safety fixup, because the MoveList logic requires at least 2 points
+    if (mls.GetNumStages() == 0)
+    {
+        mls.pos.emplace_back(x, y);
+    }
+
+    const float fspeed_x = InputSpeedToVelocity(move_speed_x);
+    const float fspeed_y = InputSpeedToVelocity(move_speed_y);
+
+    mls.pos.emplace_back( x, y );
+    mls.permove.resize(mls.pos.size());
+    mls.stageflags.resize(mls.pos.size(), stage_flag);
+    mls.stageflags[mls.GetNumStages() - 2] = stage_flag;
+    // Calculate new stage starting from the one before last
+    CalculateMoveStage(mls, mls.GetNumStages() - 2, fspeed_x, fspeed_y);
+    return true;
+}
+
+void RecalculateMoveSpeeds(MoveList &mls, float old_speed_x, float old_speed_y, float new_speed_x, float new_speed_y)
+{
+    const float old_movspeed_x = InputSpeedToVelocity(old_speed_x);
+    const float old_movspeed_y = InputSpeedToVelocity(old_speed_y);
+    const float new_movspeed_x = InputSpeedToVelocity(new_speed_x);
+    const float new_movspeed_y = InputSpeedToVelocity(new_speed_y);
+    // save current stage's step lengths, for later onpart's update
+    const Pointf old_stage_permove = mls.permove[mls.onstage];
+
+    for (uint32_t i = 0; (i < mls.GetNumStages()) && ((mls.permove[i].X != 0.f) || (mls.permove[i].Y != 0.f)); ++i)
+    {
+        // First three cases where the speed is a plain factor, therefore
+        // we may simply divide on old one and multiple on a new one
+        if ((old_movspeed_x == old_movspeed_y) && (new_movspeed_x == new_movspeed_y) // diagonal move at straight 45 degrees
+            || (mls.permove[i].X == 0) // straight vertical move
+            || (mls.permove[i].Y == 0)) // straight horizontal move
+        {
+            mls.permove[i].X = (mls.permove[i].X * new_movspeed_x) / old_movspeed_x;
+            mls.permove[i].Y = (mls.permove[i].Y * new_movspeed_y) / old_movspeed_y;
+        }
+        else
+        {
+            // Move at angle has adjusted speed factor, which we must recalculate first
+            int ourx = mls.pos[i].X;
+            int oury = mls.pos[i].Y;
+            int destx = mls.pos[i + 1].X;
+            int desty = mls.pos[i + 1].Y;
+
+            float xdist = abs(ourx - destx);
+            float ydist = abs(oury - desty);
+            float old_speed_at_angle = CalcMoveSpeedAtAngle(old_movspeed_x, old_movspeed_y, xdist, ydist);
+            float new_speed_at_angle = CalcMoveSpeedAtAngle(new_movspeed_x, new_movspeed_y, xdist, ydist);
+
+            mls.permove[i].X = (mls.permove[i].X * new_speed_at_angle) / old_speed_at_angle;
+            mls.permove[i].Y = (mls.permove[i].Y * new_speed_at_angle) / old_speed_at_angle;
+        }
+    }
+
+    // now adjust current passed stage fraction
+    if (mls.onpart >= 0.f)
+    {
+        const auto &new_stage_permove = mls.permove[mls.onstage];
+        if ((old_stage_permove.X != 0.f) && (new_stage_permove.X != 0.f))
+            mls.SetStageDoneSteps((mls.onpart * old_stage_permove.X) / mls.permove[mls.onstage].X);
+        else if ((old_stage_permove.Y != 0.f) && (new_stage_permove.Y != 0.f))
+            mls.SetStageDoneSteps((mls.onpart * old_stage_permove.Y) / mls.permove[mls.onstage].Y);
+        else
+            assert(false); // should never happen
+    }
+}
+
+} // namespace MoveListOp

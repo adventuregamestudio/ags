@@ -254,6 +254,7 @@ add_library(AGS::Common ALIAS common)
 if(AGS_TESTS)
     add_executable(common_test
         test/bitmapdata_test.cpp
+        test/characterinfo_test.cpp
         test/cmdlineopts_test.cpp
         test/common_stubs.cpp
         test/datahelpers_test.cpp
@@ -267,6 +268,7 @@ if(AGS_TESTS)
         test/memory_test.cpp
         test/paletteop_test.cpp
         test/path_test.cpp
+        test/resourcecache_test.cpp
         test/splitline_test.cpp
 		test/spritecache_test.cpp
 		test/spritefile_test.cpp

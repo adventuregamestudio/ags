@@ -2225,7 +2225,8 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     }
 
     const bool prescan = (hlp.RData.Result.RestoreFlags & kSaveRestore_Prescan) != 0;
-    auto pfn_read = prescan ? handler->Prescan : handler->Unserialize;
+    // no handler when the component is left out of the selection: its data is skipped below
+    auto pfn_read = handler ? (prescan ? handler->Prescan : handler->Unserialize) : nullptr;
 
     // If a handler is chosen, and has Unserialize method, then try reading the data
     if (handler && pfn_read)

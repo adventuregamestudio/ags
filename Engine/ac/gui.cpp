@@ -518,8 +518,10 @@ int GetGUIAt(int x, int y, int hit_options)
     {
         if (guis[*g].IsDisplayed())
         {
+            // test in the GUI's own coordinates, which account for its scale and rotation
+            const Point local = guis[*g].GetGraphicSpace().WorldToLocal(x, y);
             if ((only_clickable && guis[*g].IsInteractableAt(x, y) ||
-                (!only_clickable && guis[*g].GetRect().IsInside(x, y))))
+                (!only_clickable && RectWH(guis[*g].GetSize()).IsInside(local))))
             {
                 return *g;
             }

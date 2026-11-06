@@ -82,7 +82,9 @@ bool TransformStream::EOS() const
     // When reading, transform stream is at the end when:
     // - base stream is at the end
     // - output buffer is fully read out
-    return _base && (_base->GetPosition() >= _baseEndPos) && (_outBufPos == _outBufEnd);
+    return _base && (_base->GetPosition() >= _baseEndPos)
+        && (_lastResult == TransformResult::End)
+        && (_outBufPos == _outBufEnd);
 }
 
 void TransformStream::Close()
@@ -181,6 +183,7 @@ void TransformStream::WriteBuffer(bool finalize)
         if ((_outBufEnd == BufferSize)
             || (_lastResult != TransformResult::OK))
         {
+            // we write all accumulated buffer at once, and reset its end ptr
             _base->Write(_outBuffer.data(), _outBufEnd);
             _outBufEnd = 0u;
         }
@@ -194,10 +197,18 @@ void TransformStream::WriteBuffer(bool finalize)
 
 void TransformStream::CloseOnDisposal()
 {
+    // TODO: something got wrong here in this stream's design;
+    // it should Finalize on destruction, but it does not, and requires
+    // to explicitly call Finalize() from external code. Why?
+    // Investigate, and solve this.
     if (_base)
     {
         if (CanWrite() && (_base->GetMode() & kStream_Write) == kStream_Write)
+        {
+            // we write all accumulated buffer at once, and reset its end ptr
             _base->Write(_outBuffer.data(), _outBufEnd);
+            _outBufEnd = 0u;
+        }
         _base->Close();
     }
 }

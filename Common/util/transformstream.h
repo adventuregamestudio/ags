@@ -124,6 +124,8 @@ private:
     void Open(std::unique_ptr<IStreamBase> &&base_stream, StreamMode mode);
     void ReadBuffer();
     void WriteBuffer(bool finalize);
+    // TODO: why is this necessary? what's the difference between this and Close()?
+    // review if this is truly needed, if yes then comment its purpose!
     void CloseOnDisposal();
 
     // TODO: store IStreamBase as a shader_ptr instead? will let use it after wrapper is disposed

@@ -248,6 +248,7 @@ if(AGS_TESTS)
         test/cmdlineopts_test.cpp
         test/common_stubs.cpp
         test/datahelpers_test.cpp
+        test/deflatestream_test.cpp
         test/gfxdef_test.cpp
         test/gui_test.cpp
         test/imagefile_test.cpp

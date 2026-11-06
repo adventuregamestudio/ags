@@ -33,6 +33,7 @@
 #ifndef __AGS_TOOL_DATA__AGFREADER_H
 #define __AGS_TOOL_DATA__AGFREADER_H
 
+#include <map>
 #include <memory>
 #include "data/game_utils.h"
 #include "util/error.h"
@@ -62,10 +63,23 @@ public:
     inline DocElem GetGameRoot() const { return _gameRoot; }
     inline const String &GetEditorVersion() const { return _editorVersion; }
 
+    // AGS 4 projects keep each dialog's data and script in their own files,
+    // Dialogs/<name>.xml and Dialogs/<name>.dasc; the <Dialog> elements in
+    // Game.agf only tell the ID and script name.
+    // Returns the <Dialog> element of the dialog's data file, or null if it cannot be read.
+    DocElem GetDialogData(DocElem dialog_ref);
+    // Reads the dialog's script; returns an empty string if there is none
+    String ReadDialogScript(DocElem dialog_ref);
+
 private:
+    // The base name of the dialog's files (Dialog.DialogFileNameBase)
+    String GetDialogFileBase(DocElem dialog_ref) const;
+
     std::unique_ptr<Document> _doc;
     DocElem _gameRoot;
     String _editorVersion;
+    String _projectDir;
+    std::map<String, std::unique_ptr<Document>> _dialogDocs;
 };
 
 // Helper class, providing static methods for reading values from a doc element
@@ -185,7 +199,7 @@ class Dialog : public EntityParser
 public:
     String ReadType(DocElem elem) override { return "Dialog"; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName"); }
 
     int ReadOptionCount(DocElem elem);
     String ReadScript(DocElem elem) { return ReadString(elem, "Script"); }
@@ -207,7 +221,7 @@ class GUIControl : public EntityParser
 public:
     String ReadType(DocElem elem) override;
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName"); }
     void ReadAllData(DocElem elem, DataUtil::GUIControlData& data);
     void ReadButtonData(DocElem elem, DataUtil::GUIButtonData& data);
     void ReadLabelData(DocElem elem, DataUtil::GUILabelData& data);
@@ -237,7 +251,7 @@ class InventoryItem : public EntityParser
 public:
     String ReadType(DocElem elem) override { return "InventoryItem"; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName"); }
     void ReadAllData(DocElem elem, DataUtil::InventoryItemData &data);
 };
 
@@ -247,7 +261,7 @@ class View : public EntityParser
 public:
     String ReadType(DocElem elem) override { return ""; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName"); }
     void ReadAllData(DocElem elem, DataUtil::ViewData &data);
 };
 
@@ -355,11 +369,13 @@ public:
 class GlobalVariable : public EntityParser
 {
 public:
-    String ReadType(DocElem elem) override { return ReadString(elem, "Type"); }
+    String ReadType(DocElem elem) override;
     int ReadID(DocElem elem) override { return -1; }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override;
 
-    String ReadDefaultValue(DocElem elem) { return ReadString(elem, "DefaultValue"); }
+    String ReadDefaultValue(DocElem elem);
+    DataUtil::VariableArrayType ReadArrayType(DocElem elem);
+    int ReadArraySize(DocElem elem);
 };
 
 class GlobalVariables : public EntityListParser
@@ -413,8 +429,8 @@ public:
 class ScriptElem : public ValueParser
 {
 public:
-    bool   IsHeader(DocElem elem) { return ReadBool(elem, "IsHeader"); }
-    String ReadFilename(DocElem elem) { return ReadString(elem, "FileName"); }
+    bool IsHeader(DocElem elem);
+    String ReadFilename(DocElem elem);
 };
 
 // Parses a description of a script module with header
@@ -439,7 +455,8 @@ public:
 class Plugin : public ValueParser
 {
 public:
-    String ReadFileName(DocElem elem) { return ReadString(elem, "FileName"); }
+    String ReadFileName(DocElem elem);
+    String ReadData(DocElem elem);
 };
 
 // Parses a list of game plugins
@@ -456,8 +473,8 @@ public:
 class Room : public ValueParser
 {
 public:
-    int ReadNumber(DocElem elem) { return ReadInt(elem, "Number", -1); }
-    String ReadDescription(DocElem elem) { return ReadString(elem, "Description"); }
+    int ReadNumber(DocElem elem);
+    String ReadDescription(DocElem elem);
 };
 
 // Parses a list of rooms
@@ -474,7 +491,7 @@ public:
 class Translation : public ValueParser
 {
 public:
-    String ReadName(DocElem elem) { return ReadString(elem, "Name"); }
+    String ReadName(DocElem elem);
 };
 
 // Parses a list of translations
@@ -487,6 +504,22 @@ public:
     }
 };
 
+
+//
+// Drift guard
+//
+
+// The XML elements that the tables of this reader know, for one class of AGS.Types
+struct KnownElements
+{
+    const char *ClassName;
+    std::vector<const char *> Elements;
+};
+// Lists the tables by the name of the AGS.Types class that the editor serializes them from.
+// Tools/data/agf_elements.txt lists what the editor writes; a test checks that every element
+// there is in a table here. A table row without a reader means that the tools do not
+// need the element to build a game.
+const std::vector<KnownElements> &GetKnownElements();
 
 //
 // Helper functions
@@ -522,6 +555,8 @@ void ReadCustomDataDirectories(std::vector<String> &dirs, DocElem root);
 // Reads a list of font IDs.
 // In 3.x AGS project the font items do not provide explicit filenames, so one has to rely on IDs.
 void ReadFontList(std::vector<int> &font_list, DocElem root);
+// Reads the names of the font files, which AGS 4 projects keep in the Fonts folder
+void ReadFontFileList(std::vector<String> &font_files, DocElem root);
 // Reads a list of plugins registered for this game project.
 void ReadPluginList(std::vector<String> &plugin_list, DocElem root);
 // Reads a list of room ID and descriptions found in the game document.

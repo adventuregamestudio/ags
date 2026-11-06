@@ -890,5 +890,50 @@ int Func3()
     EXPECT_EQ(3, currentline);
 }
 
+// "#module <name>" (used by the script API header, agsdefns.sh) adds the module name to the
+// new-script marker; only the first one counts, and the directive line itself becomes blank
+TEST(Preprocess, ModuleDirective)
+{
+    Preprocessor pp = Preprocessor();
+    const char *inpl = R"EOS(
+#module ags
+int i;
+#module other
+)EOS";
+
+    clear_error();
+    String res = pp.Preprocess(inpl, "ScriptName");
+
+    EXPECT_STREQ(last_seen_cc_error(), "");
+    std::vector<AGSString> lines = SplitLines(res);
+    ASSERT_EQ(lines.size(), 6);
+    EXPECT_STREQ(lines[0].GetCStr(), "\"__NEWSCRIPTSTART_ScriptName;ags\"");
+    EXPECT_STREQ(lines[1].GetCStr(), "");
+    EXPECT_STREQ(lines[2].GetCStr(), "");
+    EXPECT_STREQ(lines[3].GetCStr(), "int i;");
+    EXPECT_STREQ(lines[4].GetCStr(), "");
+}
+
+TEST(Preprocess, NoModuleDirective)
+{
+    Preprocessor pp = Preprocessor();
+    clear_error();
+    String res = pp.Preprocess("int i;\n", "ScriptName");
+    EXPECT_STREQ(last_seen_cc_error(), "");
+    EXPECT_STREQ(SplitLines(res)[0].GetCStr(), "\"__NEWSCRIPTSTART_ScriptName\"");
+}
+
+// A script that already contains a marker with a module (scripts are concatenated) must
+// report errors under the script name alone, without the ";module" part
+TEST(Preprocess, MarkerWithModuleSetsScriptName)
+{
+    Preprocessor pp = Preprocessor();
+    const char *inpl = "\"__NEWSCRIPTSTART_Other;ags\"\n#error here\n";
+
+    clear_error();
+    pp.Preprocess(inpl, "ScriptName");
+    EXPECT_STREQ(ccCurScriptName.c_str(), "Other");
+}
+
 } // Preprocessor
 } // AGS

@@ -54,7 +54,6 @@ int main(int argc, char *argv[])
     // We need to query for separate dialog nodes, because ReadGameRef()
     // does not load dialog scripts; we'll have to do that on our own.
     AGF::Dialogs p_dialogs;
-    AGF::Dialog p_dialog;
     std::vector<AGF::DocElem> dlg_elems;
     p_dialogs.GetAll(reader.GetGameRoot(), dlg_elems);
 
@@ -68,7 +67,7 @@ int main(int argc, char *argv[])
     {
         const DialogRef &dialog_obj = game_obj.Dialogs[i];
         AGF::DocElem dialog_el = dlg_elems[i];
-        const String dialog_script = p_dialog.ReadScript(dialog_el);
+        const String dialog_script = reader.ReadDialogScript(dialog_el);
 
         DialogScriptConverter conv(dialog_script, game_obj, dialog_obj);
         String script = conv.Convert();

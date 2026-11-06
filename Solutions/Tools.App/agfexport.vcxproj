@@ -46,6 +46,7 @@
     <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="..\..\Tools\agfexport\main.cpp" />
     <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
+    <ClCompile Include="..\..\Tools\data\xml_fields.cpp" />
     <ClCompile Include="..\..\Tools\data\game_utils.cpp" />
     <ClCompile Include="..\..\Tools\data\scriptgen.cpp" />
   </ItemGroup>

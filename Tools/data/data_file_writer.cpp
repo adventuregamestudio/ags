@@ -168,11 +168,11 @@ void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::View
         for (const auto &frame : loop.Frames)
         {
             out->WriteInt32(frame.Image);
-            out->WriteInt16(0);
-            out->WriteInt16(0);
+            out->WriteInt16(static_cast<int16_t>(frame.XOffset));
+            out->WriteInt16(static_cast<int16_t>(frame.YOffset));
             out->WriteInt16(static_cast<int16_t>(frame.Delay));
-            out->WriteInt16(0);
-            out->WriteInt32(frame.Flipped ? kSprTf_FlipX : 0);
+            out->WriteInt16(0);          // struct alignment padding
+            out->WriteInt32(frame.Flip); // SpriteFlipStyle values are the sprite transform flags
             out->WriteInt32(GetAudioID(game, frame.Sound));
             out->WriteInt32(0);
             out->WriteInt32(0);
@@ -208,7 +208,10 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game,
     chinfo.blocking_height = static_cast<int16_t>(ref.BlockingHeight);
     chinfo.walkspeed = static_cast<int16_t>(ref.UniformMovementSpeed ? ref.MovementSpeed : ref.MovementSpeedX);
     chinfo.animspeed = static_cast<int16_t>(ref.AnimationDelay);
-    chinfo.flags |= CHF_ENABLED | CHF_VISIBLE; // FIXME: read from ags4 properties
+    if (ref.Enabled)
+        chinfo.flags |= CHF_ENABLED;
+    if (ref.Visible)
+        chinfo.flags |= CHF_VISIBLE;
     if (ref.AdjustSpeedWithScaling) chinfo.flags |= CHF_SCALEMOVESPEED;
     if (ref.AdjustVolumeWithScaling) chinfo.flags |= CHF_SCALEVOLUME;
     if (!ref.Clickable) chinfo.flags |= CHF_NOINTERACT;
@@ -478,29 +481,12 @@ int ParseScriptApiVersion(const String &value)
     if (value.CompareNoCase("Highest") == 0)
         return kScriptAPI_Current;
 
-    static const CstrArr<14> kScriptApiNames = {{
-        "v321", "v330", "v334", "v335", "v340",
-        "v341", "v350", "v3507", "v351", "v360",
-        "v36026", "v361", "v362", "v363"
-    }};
-    switch (StrUtil::ParseEnum(value, kScriptApiNames, 13))
+    for (const auto &api : kScriptAPINames)
     {
-    case 0: return kScriptAPI_v321;
-    case 1: return kScriptAPI_v330;
-    case 2: return kScriptAPI_v334;
-    case 3: return kScriptAPI_v335;
-    case 4: return kScriptAPI_v340;
-    case 5: return kScriptAPI_v341;
-    case 6: return kScriptAPI_v350;
-    case 7: return kScriptAPI_v3507;
-    case 8: return kScriptAPI_v351;
-    case 9: return kScriptAPI_v360;
-    case 10: return kScriptAPI_v36026;
-    case 11: return kScriptAPI_v361;
-    case 12: return kScriptAPI_v362;
-    case 13:
-    default: return kScriptAPI_v363;
+        if (value.CompareNoCase(api.Name) == 0)
+            return api.Version;
     }
+    return kScriptAPI_Current; // unknown name: assume the newest level, as before
 }
 
 int ParseSplitResources(const String &value)
@@ -683,6 +669,8 @@ void WriteSpriteFlags(const DataUtil::GameData &game, Stream *out)
     for (const auto &sprite : game.Sprites)
     {
         if (sprite.Slot < 0 || sprite.Slot > topmost) continue;
+        if (sprite.ImportColorDepth != 0)
+            flags[sprite.Slot] |= SPF_KEEPDEPTH;
     }
     if (!flags.empty())
         out->Write(flags.data(), flags.size());

@@ -49,6 +49,7 @@ COMMON_OBJS = \
 
 TOOL_OBJS = \
 	../../Tools/data/agfreader.cpp \
+	../../Tools/data/xml_fields.cpp \
 	../../Tools/data/game_utils.cpp \
 	../../Tools/data/scriptgen.cpp
 

@@ -388,7 +388,7 @@ TEST(DataFileWriter, RoundTripView)
     DataUtil::ViewFrameData frame;
     frame.Image = 12;
     frame.Delay = 3;
-    frame.Flipped = true;
+    frame.Flip = kSprTf_FlipX;
     frame.Sound = 42;
     DataUtil::ViewLoopData loop;
     loop.RunNextLoop = true;
@@ -422,11 +422,11 @@ TEST(DataFileWriter, RoundTripViewsBlock)
     DataUtil::GameData game;
     DataUtil::ViewData first;
     DataUtil::ViewLoopData first_loop;
-    first_loop.Frames.push_back({ 1, false, 10, 0 });
+    first_loop.Frames.push_back({1, "", 0, 10, 0});
     first.Loops.push_back(first_loop);
     DataUtil::ViewData second;
     DataUtil::ViewLoopData second_loop;
-    second_loop.Frames.push_back({ 2, true, 20, 0 });
+    second_loop.Frames.push_back({2, "", kSprTf_FlipX, 20, 0});
     second.Loops.push_back(second_loop);
     game.Views = { first, second };
 
@@ -825,6 +825,7 @@ TEST(DataFileWriter, RoundTripSpriteFlags)
         { 1, 0, 0, 0, DataUtil::kSpriteImport_Real, true },
         { 3, 0, 0, 0, DataUtil::kSpriteImport_HighRes, false }
     };
+    game.Sprites[1].ImportColorDepth = 8; // Indexed8Bit
 
     std::vector<uint8_t> buffer = WriteGameBlock(game,
         DataFileWriter::WriteSpriteFlags);
@@ -837,6 +838,8 @@ TEST(DataFileWriter, RoundTripSpriteFlags)
 
     EXPECT_EQ(0, flags[0]);
     EXPECT_EQ(0, flags[2]);
+    EXPECT_EQ(0, flags[1]);
+    EXPECT_EQ(SPF_KEEPDEPTH, flags[3]); // the sprite must keep its 8-bit depth
     EXPECT_EQ(in->GetLength(), in->GetPosition());
 }
 

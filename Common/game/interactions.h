@@ -202,7 +202,7 @@ protected:
 // InteractionEvent is a single event with a list of commands to performed
 struct InteractionEvent
 {
-    int           Type;     // type of event
+    int           Type;     // type of event (purpose unclear, not used in the engine)
     int           TimesRun; // used by engine to track score changes
     UInterCmdList Response; // list of commands to run
 

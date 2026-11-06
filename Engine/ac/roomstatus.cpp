@@ -87,20 +87,20 @@ void RoomStatus::ReadFromSavegame(Stream *in, GameDataVersion data_ver, RoomStat
         obj[i].ReadFromSavegame(in, save_ver);
         Properties::ReadValues(objProps[i], in);
         if (data_ver <= kGameVersion_272)
-            SavegameComponents::ReadInteraction272(intrObject[i], in);
+            SavegameComponents::ReadInterTimesRun272(intrObject[i], in, save_ver < kRoomStatSvgVersion_36317, true /* is room */);
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
         hotspot[i].ReadFromSavegame(in, save_ver);
         Properties::ReadValues(hsProps[i], in);
         if (data_ver <= kGameVersion_272)
-            SavegameComponents::ReadInteraction272(intrHotspot[i], in);
+            SavegameComponents::ReadInterTimesRun272(intrHotspot[i], in, save_ver < kRoomStatSvgVersion_36317, true /* is room */);
     }
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
         region_enabled[i] = in->ReadInt8();
         if (data_ver <= kGameVersion_272)
-            SavegameComponents::ReadInteraction272(intrRegion[i], in);
+            SavegameComponents::ReadInterTimesRun272(intrRegion[i], in, save_ver < kRoomStatSvgVersion_36317, true /* is room */);
     }
     for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
     {
@@ -110,7 +110,7 @@ void RoomStatus::ReadFromSavegame(Stream *in, GameDataVersion data_ver, RoomStat
     Properties::ReadValues(roomProps, in);
     if (data_ver <= kGameVersion_272)
     {
-        SavegameComponents::ReadInteraction272(intrRoom, in);
+        SavegameComponents::ReadInterTimesRun272(intrRoom, in, save_ver < kRoomStatSvgVersion_36317, true /* is room */);
         in->ReadArrayOfInt32(interactionVariableValues, MAX_INTERACTION_VARIABLES);
     }
 
@@ -140,20 +140,20 @@ void RoomStatus::WriteToSavegame(Stream *out, GameDataVersion data_ver) const
         obj[i].WriteToSavegame(out);
         Properties::WriteValues(objProps[i], out);
         if (data_ver <= kGameVersion_272)
-            SavegameComponents::WriteInteraction272(intrObject[i], out);
+            SavegameComponents::WriteInterTimesRun272(intrObject[i], out);
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
         hotspot[i].WriteToSavegame(out);
         Properties::WriteValues(hsProps[i], out);
         if (data_ver <= kGameVersion_272)
-            SavegameComponents::WriteInteraction272(intrHotspot[i], out);
+            SavegameComponents::WriteInterTimesRun272(intrHotspot[i], out);
     }
     for (int i = 0; i < MAX_ROOM_REGIONS; ++i)
     {
         out->WriteInt8(region_enabled[i]);
         if (data_ver <= kGameVersion_272)
-            SavegameComponents::WriteInteraction272(intrRegion[i], out);
+            SavegameComponents::WriteInterTimesRun272(intrRegion[i], out);
     }
     for (int i = 0; i < MAX_WALK_BEHINDS; ++i)
     {
@@ -163,7 +163,7 @@ void RoomStatus::WriteToSavegame(Stream *out, GameDataVersion data_ver) const
     Properties::WriteValues(roomProps, out);
     if (data_ver <= kGameVersion_272)
     {
-        SavegameComponents::WriteInteraction272(intrRoom, out);
+        SavegameComponents::WriteInterTimesRun272(intrRoom, out);
         out->WriteArrayOfInt32(interactionVariableValues, MAX_INTERACTION_VARIABLES);
     }
 

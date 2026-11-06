@@ -702,7 +702,9 @@ void load_new_room(int newnum, CharacterInfo *forchar)
                 init_object_states(was_obj_states, thisroom.Objects.size());
         }
 
-        // Copy the legacy interaction's Times Run information (for old games)
+        // Legacy <= 2.72 interactions:
+        // copy saved times run information, we're doing this here because
+        // full interaction data will get copied other way - from thisroom to croom - later on.
         if (thisroom.EventHandlers == nullptr)
         {
             thisroom.Interaction->CopyTimesRun(croom->intrRoom);
@@ -762,9 +764,11 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     // Reset contentFormat hint to avoid doing fixups later
     croom->contentFormat = kRoomStatSvgVersion_Current;
 
+    // Legacy <= 2.72 interactions:
+    // copy full interactions data from room file into the RoomStatus
+    // as room states keep only "times run" values while room is unloaded.
     if (thisroom.EventHandlers == nullptr)
-    {// legacy interactions
-        // copy interactions from room file into our temporary struct
+    {
         croom->intrRoom = *thisroom.Interaction;
         for (int cc=0;cc<MAX_ROOM_HOTSPOTS;cc++)
             croom->intrHotspot[cc] = *thisroom.Hotspots[cc].Interaction;

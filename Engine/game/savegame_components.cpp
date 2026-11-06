@@ -666,37 +666,44 @@ HSaveError PrescanAudio(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
     return HSaveError::None();
 }
 
-void WriteTimesRun272(const Interaction &intr, Stream *out)
+// Write "times run" counts for the legacy interaction lists
+void WriteInterTimesRun272(const Interaction &intr, Stream *out)
 {
+    out->WriteInt32(static_cast<uint32_t>(intr.Events.size()));
     for (size_t i = 0; i < intr.Events.size(); ++i)
         out->WriteInt32(intr.Events[i].TimesRun);
 }
 
-void WriteInteraction272(const Interaction &intr, Stream *out)
-{
-    const size_t evt_count = intr.Events.size();
-    out->WriteInt32(evt_count);
-    for (size_t i = 0; i < evt_count; ++i)
-        out->WriteInt32(intr.Events[i].Type);
-    WriteTimesRun272(intr, out);
-}
-
-void ReadTimesRun272(Interaction &intr, Stream *in)
-{
-    for (size_t i = 0; i < intr.Events.size(); ++i)
-        intr.Events[i].TimesRun = in->ReadInt32();
-}
-
-HSaveError ReadInteraction272(Interaction &intr, Stream *in)
+// Read "times run" counts for the legacy interaction lists
+// This data, unfortunately, was saved in a number of wrong ways in the earlier
+// variant of the save format. "bad_ver" flag restores the "wrong" format version.
+HSaveError ReadInterTimesRun272(Interaction &intr, Stream *in, bool bad_ver, bool is_room)
 {
     HSaveError err;
-    const size_t evt_count = in->ReadInt32();
+    const size_t evt_count = (bad_ver && !is_room) ? static_cast<uint32_t>(intr.Events.size())
+        : in->ReadInt32();
     if (!AssertCompatLimit(err, evt_count, MAX_NEWINTERACTION_EVENTS, "interactions"))
         return err;
-    intr.Events.resize(evt_count);
+    // Room states do not contain reliable reference of interactions number
+    // until synced with the loaded full room data. So we must rather rely on read evt_count here.
+    if (is_room)
+    {
+        intr.Events.resize(evt_count);
+    }
+    else
+    {
+        if (!AssertGameContent(err, evt_count, static_cast<uint32_t>(intr.Events.size()), "interactions"))
+            return err;
+    }
+    // in "bad format version" for rooms skip unnecessary int32 per each event
+    if (bad_ver && is_room)
+    {
+        for (size_t i = 0; i < evt_count; ++i)
+            in->ReadInt32();
+    }
+    // times run counters
     for (size_t i = 0; i < evt_count; ++i)
-        intr.Events[i].Type = in->ReadInt32();
-    ReadTimesRun272(intr, in);
+        intr.Events[i].TimesRun = in->ReadInt32();
     return err;
 }
 
@@ -709,7 +716,7 @@ HSaveError WriteCharacters(Stream *out)
         charextra[i].WriteToSavegame(out);
         Properties::WriteValues(play.charProps[i], out);
         if (loaded_game_file_version <= kGameVersion_272)
-            WriteTimesRun272(*game.intrChar[i], out);
+            WriteInterTimesRun272(*game.intrChar[i], out);
     }
     return HSaveError::None();
 }
@@ -734,7 +741,7 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
         }
         Properties::ReadValues(play.charProps[i], in);
         if (loaded_game_file_version <= kGameVersion_272)
-            ReadTimesRun272(*game.intrChar[i], in);
+            ReadInterTimesRun272(*game.intrChar[i], in, cmp_ver < kCharSvgVersion_36317, false /* global obj */);
         // character movement path (for old saves)
         if (cmp_ver < kCharSvgVersion_36109)
         {
@@ -1070,7 +1077,7 @@ HSaveError WriteInventory(Stream *out)
         game.invinfo[i].WriteToSavegame(out);
         Properties::WriteValues(play.invProps[i], out);
         if (loaded_game_file_version <= kGameVersion_272)
-            WriteTimesRun272(*game.intrInv[i], out);
+            WriteInterTimesRun272(*game.intrInv[i], out);
     }
     return HSaveError::None();
 }
@@ -1086,7 +1093,7 @@ HSaveError ReadInventory(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pre
         game.invinfo[i].ReadFromSavegame(in, static_cast<InvitemSvgVersion>(cmp_ver));
         Properties::ReadValues(play.invProps[i], in);
         if (loaded_game_file_version <= kGameVersion_272)
-            ReadTimesRun272(*game.intrInv[i], in);
+            ReadInterTimesRun272(*game.intrInv[i], in, cmp_ver < kInvitemSvgVersion_36317, false /* global obj */);
     }
     return err;
 }

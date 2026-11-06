@@ -57,6 +57,8 @@ String cmdGameDataPath; // game path received from cmdline
 
 extern int editor_debugging_initialized;
 extern char editor_debugger_instance_token[100];
+extern String editor_debugger_comm_type;
+extern String editor_debugger_comm_config;
 
 
 // Startup flags, set from parameters to engine
@@ -259,6 +261,19 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             editor_debugging_enabled = 1;
             cfg["graphics"]["windowed"] = "1";
             ee++;
+            // optional communication type and its config: <comm-type>[=<config>]
+            if (argc > ee + 1)
+            {
+                const String comm = argv[ee + 1];
+                const String comm_type = comm.LeftSection('=');
+                if (comm_type.CompareNoCase("pipe") == 0 || comm_type.CompareNoCase("file") == 0)
+                {
+                    editor_debugger_comm_type = comm_type;
+                    if (comm.GetLength() > comm_type.GetLength())
+                        editor_debugger_comm_config = comm.Mid(comm_type.GetLength() + 1);
+                    ee++;
+                }
+            }
         }
         else if (ags_stricmp(arg, "--conf") == 0 && (argc > ee + 1))
         {

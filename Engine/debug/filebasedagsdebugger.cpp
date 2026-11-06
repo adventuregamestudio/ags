@@ -24,13 +24,30 @@
 
 using namespace AGS::Common;
 
-const char* SENT_MESSAGE_FILE_NAME = "dbgrecv.tmp";
+const char *FileBasedAGSDebugger::SentMessageFileName = "dbgrecv_%s.tmp";
+const char *FileBasedAGSDebugger::SentMessagePartFileName = "dbgrecv_%s.part";
+const char *FileBasedAGSDebugger::ReceivedMessageFileName = "dbgsend_%s.tmp";
+
+FileBasedAGSDebugger::FileBasedAGSDebugger(const String &instance_token, const String &config)
+{
+    String directory;
+    for (const auto &opt : config.Split(','))
+    {
+        const String key = opt.LeftSection(':');
+        if (key.CompareNoCase("dir") == 0 && opt.GetLength() > key.GetLength())
+            directory = opt.Mid(key.GetLength() + 1);
+    }
+    const char *token = instance_token.GetCStr();
+    _sentMessageFile = Path::ConcatPaths(directory, String::FromFormat(SentMessageFileName, token));
+    _sentMessagePartFile = Path::ConcatPaths(directory, String::FromFormat(SentMessagePartFileName, token));
+    _receivedMessageFile = Path::ConcatPaths(directory, String::FromFormat(ReceivedMessageFileName, token));
+}
 
 bool FileBasedAGSDebugger::Initialize()
 {
-    if (File::IsFile(SENT_MESSAGE_FILE_NAME))
+    if (File::IsFile(_sentMessageFile))
     {
-        File::DeleteFile(SENT_MESSAGE_FILE_NAME);
+        File::DeleteFile(_sentMessageFile);
     }
     return true;
 }
@@ -41,27 +58,29 @@ void FileBasedAGSDebugger::Shutdown()
 
 bool FileBasedAGSDebugger::SendMessageToEditor(const char *message) 
 {
-    while (File::IsFile(SENT_MESSAGE_FILE_NAME))
+    while (File::IsFile(_sentMessageFile))
     {
         platform->YieldCPU();
     }
 
-    auto out = File::CreateFile(SENT_MESSAGE_FILE_NAME);
-    // CHECKME: originally the file was opened as "wb" for some reason,
-    // which means the message should be written as a binary array;
-    // or shouldn't it?
-    out->Write(message, strlen(message));
-    return true;
+    // Write a temporary file and rename it, so the editor never reads a partial message
+    {
+        auto out = File::CreateFile(_sentMessagePartFile);
+        if (!out)
+            return false;
+        out->Write(message, strlen(message));
+    }
+    return File::RenameFile(_sentMessagePartFile, _sentMessageFile);
 }
 
 bool FileBasedAGSDebugger::IsMessageAvailable()
 {
-    return (File::IsFile("dbgsend.tmp") != 0);
+    return (File::IsFile(_receivedMessageFile) != 0);
 }
 
 char* FileBasedAGSDebugger::GetNextMessage()
 {
-    auto in = File::OpenFileRead("dbgsend.tmp");
+    auto in = File::OpenFileRead(_receivedMessageFile);
     if (in == nullptr)
     {
         // check again, because the editor might have deleted the file in the meantime
@@ -70,7 +89,7 @@ char* FileBasedAGSDebugger::GetNextMessage()
     size_t fileSize = (size_t)std::min((soff_t)std::numeric_limits<size_t>::max, in->GetLength());
     char *msg = (char*)malloc(fileSize + 1);
     in->Read(msg, fileSize);
-    File::DeleteFile("dbgsend.tmp");
+    File::DeleteFile(_receivedMessageFile);
     msg[fileSize] = 0;
     return msg;
 }

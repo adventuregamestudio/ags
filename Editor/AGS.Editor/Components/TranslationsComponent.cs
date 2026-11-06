@@ -546,7 +546,7 @@ namespace AGS.Editor.Components
             if (!errors.HasErrors)
                 errors.Add(new CompileInformation("Translation(s) compiled successfully", new CompileMessageIcon("BuildIcon")));
             _guiController.PostOutputAndReportErrors(errors, "Translation(s) compiled",
-                allowMessageOnSuccess: true, showFirstError: true);
+                allowPopupOnSuccess: true, showFirstError: true);
         }
 
         public override void CommandClick(string controlID)

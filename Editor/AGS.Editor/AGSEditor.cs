@@ -1481,7 +1481,7 @@ namespace AGS.Editor
 
                 if (!evArgs.AllowCompilation)
                 {
-                    Factory.GUIController.PostOutputAndReportErrors(messages, "The game compiled", allowMessageOnSuccess: true);
+                    Factory.GUIController.PostOutputAndReportErrors(messages, "The game compiled", allowPopupOnSuccess: !createMiniExeForDebug);
                     return messages;
                 }
             }
@@ -1506,7 +1506,7 @@ namespace AGS.Editor
 				}
                 _game.WorkspaceState.RequiresRebuild = false;
             }
-            Factory.GUIController.PostOutputAndReportErrors(messages, "The game compiled", allowMessageOnSuccess: true);
+            Factory.GUIController.PostOutputAndReportErrors(messages, "The game compiled", allowPopupOnSuccess: !createMiniExeForDebug);
             return messages;
         }
 

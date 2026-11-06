@@ -49,7 +49,8 @@ enum RoomStatSvgVersion
     kRoomStatSvgVersion_36304    = 3060304, // room object's blocking rect x,y
     kRoomStatSvgVersion_36310    = 3060310, // audio panning and speed
     kRoomStatSvgVersion_36314    = 3060314, // arbitrary number of room bgs
-    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_36314
+    kRoomStatSvgVersion_36317    = 3060317, // fixes for <=2.72 interaction lists
+    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_36317
 };
 
 // RoomStatus contains everything about a room that could change at runtime.

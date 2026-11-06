@@ -45,10 +45,10 @@ namespace SavegameComponents
 
     // Utility functions for reading and writing legacy interactions,
     // or their "times run" counters separately.
-    void ReadTimesRun272(Interaction &intr, Stream *in);
-    HSaveError ReadInteraction272(Interaction &intr, Stream *in);
-    void WriteTimesRun272(const Interaction &intr, Stream *out);
-    void WriteInteraction272(const Interaction &intr, Stream *out);
+    // This data, unfortunately, was saved in a number of wrong ways in the earlier
+    // variant of the save format. "bad_ver" flag restores the "wrong" format version.
+    HSaveError ReadInterTimesRun272(Interaction &intr, Stream *in, bool bad_ver, bool is_room);
+    void WriteInterTimesRun272(const Interaction &intr, Stream *out);
 }
 
 } // namespace Engine

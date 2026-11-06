@@ -64,6 +64,7 @@ extern std::unique_ptr<Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 extern RoomStruct thisroom;
 extern RoomStatus troom;
 
+#define DEBUG_SAVECOMPONENTS (0)
 
 namespace AGS
 {
@@ -117,16 +118,22 @@ bool AssertFormatTag(Stream *in, const String &tag, bool open = true)
 }
 
 // Reads a component tag and asserts that it matches expected name; formats error message on failure
-bool AssertFormatTagStrict(Stream *in, HSaveError &err, const String &tag, bool open = true)
+bool AssertFormatTagStrict(Stream *in, HSaveError &err, const String &tag, const String &info, bool open = true)
 {
     String read_tag;
     if (!ReadFormatTag(in, read_tag, open) || read_tag.Compare(tag) != 0)
     {
         err = new SavegameError(kSvgErr_InconsistentFormat,
-            "Mismatching tag: %s.", tag.GetCStr());
+            info.IsEmpty() ? String::FromFormat("Mismatching tag: %s.", tag.GetCStr())
+                 : String::FromFormat("Mismatching tag: %s (%s).", tag.GetCStr(), info.GetCStr()));
         return false;
     }
     return true;
+}
+
+inline bool AssertFormatTagStrict(Stream *in, HSaveError &err, const String &tag, bool open = true)
+{
+    return AssertFormatTagStrict(in, err, tag, String(), open);
 }
 
 // Asserts that the read data count does not exceed engine capabilities
@@ -1564,11 +1571,11 @@ HSaveError ReadRoomStates(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
         {
             if (!AssertCompatRange(err, id, 0, MAX_ROOMS - 1, "room index"))
                 return err;
-            if (!AssertFormatTagStrict(in, err, "RoomState", true))
+            if (!AssertFormatTagStrict(in, err, "RoomState", String::FromFormat("Room %d", id), true))
                 return err;
             RoomStatus *roomstat = getRoomStatus(id);
             roomstat->ReadFromSavegame(in, loaded_game_file_version, (RoomStatSvgVersion)cmp_ver);
-            if (!AssertFormatTagStrict(in, err, "RoomState", false))
+            if (!AssertFormatTagStrict(in, err, "RoomState", String::FromFormat("Room %d", id), false))
                 return err;
         }
     }
@@ -2067,6 +2074,12 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
     // If a handler is chosen, and has Unserialize method, then try reading the data
     if (handler && pfn_read)
     {
+#if (DEBUG_SAVECOMPONENTS)
+        Debug::Printf("Save: ReadComponent: %s: data begins at: %u", handler->Name.GetCStr(), info.DataOffset);
+        Debug::Printf("Save: ReadComponent: %s: data size: %zu", handler->Name.GetCStr(), info.DataSize);
+        Debug::Printf("Save: ReadComponent: %s: uncompressed size: %zu", handler->Name.GetCStr(), info.UncompressedDataSize);
+#endif
+
         if (info.Version > handler->Version || info.Version < handler->LowestVersion)
             return new SavegameError(kSvgErr_UnsupportedComponentVersion, "Saved version: %d, supported: %d - %d", info.Version, handler->LowestVersion, handler->Version);
 
@@ -2181,6 +2194,10 @@ HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr, bool compress)
 
     soff_t data_begin_pos = out->GetPosition();
 
+#if (DEBUG_SAVECOMPONENTS)
+    Debug::Printf("Save: WriteComponent: %s: data begins at: %lld", hdlr.Name.GetCStr(), data_begin_pos);
+#endif
+
     uint32_t uncomp_data_sz = 0u;
     if (compress)
     {
@@ -2204,6 +2221,12 @@ HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr, bool compress)
     }
 
     soff_t data_end_pos = out->GetPosition();
+
+#if (DEBUG_SAVECOMPONENTS)
+    Debug::Printf("Save: WriteComponent: %s: data ends at: %lld", hdlr.Name.GetCStr(), data_end_pos);
+    Debug::Printf("Save: WriteComponent: %s: data size: %u", hdlr.Name.GetCStr(), static_cast<uint32_t>(data_end_pos - data_begin_pos));
+    Debug::Printf("Save: WriteComponent: %s: uncompressed size: %u", hdlr.Name.GetCStr(), static_cast<uint32_t>(compress ? uncomp_data_sz : (data_end_pos - data_begin_pos)));
+#endif
 
     out->Seek(header_pos, kSeekBegin);
     out->WriteInt32(data_begin_pos - header_pos);

@@ -146,12 +146,12 @@ namespace AGS.Types
                     }
                 }
             }
-            return string.Join(BuildTargetUIEditor.Separators[0], resultTargetList.ToArray());
+            return string.Join(Utilities.StringListSeparators[0], resultTargetList.ToArray());
         }
 
         private static string GetBuildTargetsString(string targetList, bool checkAvailable)
         {
-            return GetBuildTargetsString(targetList.Split(BuildTargetUIEditor.Separators,
+            return GetBuildTargetsString(targetList.Split(Utilities.StringListSeparators,
                 StringSplitOptions.RemoveEmptyEntries), checkAvailable);
         }
 
@@ -159,7 +159,7 @@ namespace AGS.Types
         {
             if (String.IsNullOrEmpty(input))
                 return input;
-            var dirs = input.Split(StringListUIEditor.Separators, StringSplitOptions.RemoveEmptyEntries).
+            var dirs = input.Split(Utilities.StringListSeparators, StringSplitOptions.RemoveEmptyEntries).
                 Select(d => d.Trim());
             return string.Join(",", dirs);
         }
@@ -197,7 +197,7 @@ namespace AGS.Types
         [Description("The game's name (for display in the title bar)")]
         [Category("(Basic properties)")]
         [DefaultValue("")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string GameName
         {
             get { return _gameName; }
@@ -247,7 +247,7 @@ namespace AGS.Types
         [DisplayName(PROPERTY_RESOLUTION)]
         [Description("The graphics resolution of the game (higher allows more detail, but slower performance and larger file size)")]
         [Category("(Basic properties)")]
-        [EditorAttribute(typeof(CustomResolutionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.CustomResolutionUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomResolutionTypeConverter))]
         [RefreshProperties(RefreshProperties.All)]
         public Size CustomResolution
@@ -436,7 +436,7 @@ namespace AGS.Types
         [Description("A comma-separated list of folders; their contents will be added to the game resources")]
         [Category("Compiler")]
         [DefaultValue("")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string CustomDataDir
         {
             get { return _customDataDir; }
@@ -543,7 +543,7 @@ namespace AGS.Types
         [Description("The sprite to draw on top of the inventory cursor at the hotspot position")]
         [Category("Inventory")]
         [DefaultValue(0)]
-        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
         public int InventoryHotspotMarkerSprite
         {
             get { return _inventoryHotspotMarker.Image; }
@@ -554,7 +554,7 @@ namespace AGS.Types
         [Description("The colour of the central dot of the crosshair")]
         [Category("Inventory")]
         [DefaultValue(0)]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int InventoryHotspotMarkerDotColor
@@ -567,7 +567,7 @@ namespace AGS.Types
         [Description("The colour of the crosshair bars")]
         [Category("Inventory")]
         [DefaultValue(0)]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int InventoryHotspotMarkerCrosshairColor
@@ -773,7 +773,7 @@ namespace AGS.Types
         [Description("Sprite to use as a bullet point before each dialog option (0 for none)")]
         [Category("Dialog")]
         [DefaultValue(0)]
-        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
         public int DialogOptionsBullet
         {
             get { return _dialogBulletImage; }
@@ -994,7 +994,7 @@ namespace AGS.Types
 		[Description("The game's description")]
 		[Category("(Information)")]
         [DefaultValue("")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string Description
 		{
 			get { return _description; }
@@ -1014,7 +1014,7 @@ namespace AGS.Types
 		[Description("The game's genre")]
         [Category("(Information)")]
         [DefaultValue("")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string Genre
 		{
 			get { return _genre; }
@@ -1047,7 +1047,7 @@ namespace AGS.Types
         [Description("A fully custom text to display when the game quits with error message. If none set, then the default engine's error text will be used.")]
         [Category("(Information)")]
         [DefaultValue("")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string DeveloperErrorText
         {
             get { return _developerErrorText; }
@@ -1058,7 +1058,7 @@ namespace AGS.Types
         [Description("The name of the game developer (you!). When building Windows version of the game this will be assigned to the game exe properties.")]
         [Category("(Information)")]
         [DefaultValue("")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string DeveloperName
 		{
 			get { return _developerName; }
@@ -1160,7 +1160,7 @@ namespace AGS.Types
         [DisplayName(PROPERTY_BUILD_TARGETS)]
         [Description("Sets the platforms to compile your game for.")]
         [Category("Compiler")]
-        [Editor(typeof(BuildTargetUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.BuildTargetUIEditor, EditorTypeNames.UITypeEditor)]
         public string BuildTargets
         {
             get { return _buildTargets; }

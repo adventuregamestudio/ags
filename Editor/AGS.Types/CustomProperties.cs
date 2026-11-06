@@ -10,7 +10,7 @@ namespace AGS.Types
     [Category("Custom Properties")]
     [DisplayName("Custom Properties")]
     [TypeConverter(typeof(ExpandableObjectConverter))]
-    [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+    [EditorAttribute(EditorTypeNames.CustomPropertiesUIEditor, EditorTypeNames.UITypeEditor)]
     public class CustomProperties : ICustomTypeDescriptor, ICloneable
     {
         private Dictionary<string, CustomProperty> _properties = new Dictionary<string,CustomProperty>(

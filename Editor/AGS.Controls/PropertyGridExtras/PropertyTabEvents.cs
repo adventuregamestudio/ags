@@ -1,3 +1,4 @@
+using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Windows.Forms.Design;
 
-namespace AGS.Types
+namespace AGS.Controls
 {
     public class PropertyTabEvents : PropertyTab
     {

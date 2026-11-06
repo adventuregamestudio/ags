@@ -1,7 +1,8 @@
+using AGS.Types;
 using System.Windows.Forms;
 using System.Windows.Forms.Design;
 
-namespace AGS.Types.PropertyGridExtras
+namespace AGS.Controls
 {
     public class SpriteFileNameEditor : FileNameEditor
     {

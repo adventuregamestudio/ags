@@ -35,7 +35,7 @@ namespace AGS.Types
 
 		[Description("Colour of the text when drawn on this text window")]
 		[Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int TextColor

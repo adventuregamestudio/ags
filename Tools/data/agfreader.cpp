@@ -13,9 +13,14 @@
 //=============================================================================
 #include "data/agfreader.h"
 #include <algorithm>
+#include <iterator>
 #include <cstdio>
 #include <tinyxml2.h>
+#include "data/xml_fields.h"
 #include "debug/out.h"
+#include "util/file.h"
+#include "util/memory_compat.h"
+#include "util/path.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 
@@ -23,8 +28,15 @@ const char *XML_ROOT_NODE_NAME = "AGSEditorDocument";
 const char *XML_ATTRIBUTE_VERSION = "Version";
 const char *XML_ATTRIBUTE_VERSION_INDEX = "VersionIndex";
 const char *XML_ATTRIBUTE_EDITOR_VERSION = "EditorVersion";
-const char *LATEST_XML_VERSION = "3.0.3.2";
-const int  LOWEST_SUPPORTED_FORMAT = 26; // AGS 3.5.0
+// Up to 4.0.0.19 the Editor wrote this fixed tag plus a VersionIndex; since 4.0.0.20 it writes the
+// project format version itself (AGSEditor.LATEST_XML_VERSION in the Editor).
+const char *LEGACY_XML_VERSION_TAG = "3.0.3.2";
+// The tools read only project formats that need no upgrade step; older projects must be opened
+// and saved in the Editor first, so the upgrade code exists only there. 4.0.0.33 moved the dialogs
+// out of Game.agf into their own files, so nothing older reads as is.
+const char *OLDEST_READABLE_XML_VERSION = "4.0.0.33";
+// The newest project format these tools know: keep in step with AGSEditor.LATEST_XML_VERSION.
+const char *LATEST_XML_VERSION = "4.0.0.33";
 
 using namespace AGS::Common;
 using namespace tinyxml2;
@@ -127,9 +139,7 @@ static const CstrArr<2> kAudioBundlingTypeNames = {{
     "InGameEXE", "InSeparateVOX"
 }};
 
-static const CstrArr<6> kAudioFileTypeNames = {{
-    "OGG", "MP3", "WAV", "VOC", "MIDI", "MOD"
-}};
+static const CstrArr<7> kAudioFileTypeNames = {{"OGG", "MP3", "WAV", "VOC", "MIDI", "MOD", "FLAC"}};
 
 static const CstrArr<5> kCrossfadeSpeedNames = {{
     "No", "SlowFade", "SlowishFade", "MediumFade", "FastFade"
@@ -196,17 +206,23 @@ HError AGFReader::Open(const char *filename)
     const char *attr_filever = _doc->RootElement()->Attribute(XML_ATTRIBUTE_VERSION);
     if (!attr_filever)
         return new Error("Game.agf format version is missing");
-    if (strcmp(attr_filever, LATEST_XML_VERSION))
-        return new Error("Unsupported Game.agf format: %s", attr_filever);
-
-    const int attr_format = _doc->RootElement()->IntAttribute(XML_ATTRIBUTE_VERSION_INDEX);
     const char *attr_editorver = _doc->RootElement()->Attribute(XML_ATTRIBUTE_EDITOR_VERSION);
     _editorVersion = attr_editorver ? attr_editorver : "";
-    Debug::Printf("AGFReader: opened %s,\n format tag: %s\n format index: %d\n saved by AGS %s",
-        filename, attr_filever, attr_format, attr_editorver ? attr_editorver : "unknown");
+    _projectDir = Path::GetParent(Path::MakeAbsolutePath(filename));
+    Debug::Printf("AGFReader: opened %s,\n format: %s\n saved by AGS %s", filename, attr_filever,
+                  attr_editorver ? attr_editorver : "unknown");
 
-    if (attr_format < LOWEST_SUPPORTED_FORMAT)
-        return new Error("Unsupported Game.agf format index: %d", attr_format);
+    if (strcmp(attr_filever, LEGACY_XML_VERSION_TAG) == 0)
+        return new Error("Game.agf was saved by an older AGS Editor (format index %d). Open and save the project "
+                         "in the current Editor first.",
+                         _doc->RootElement()->IntAttribute(XML_ATTRIBUTE_VERSION_INDEX));
+    if (CompareXmlVersions(attr_filever, OLDEST_READABLE_XML_VERSION) < 0)
+        return new Error("Game.agf format %s is older than these tools can read (%s). Open and save the project in "
+                         "the current Editor first.",
+                         attr_filever, OLDEST_READABLE_XML_VERSION);
+    if (CompareXmlVersions(attr_filever, LATEST_XML_VERSION) > 0)
+        return new Error("Game.agf format %s is newer than these tools support (%s). Update the tools.", attr_filever,
+                         LATEST_XML_VERSION);
 
     DocElem game = _doc->RootElement()->FirstChildElement("Game");
     if (!game)
@@ -220,6 +236,38 @@ void AGFReader::Close()
     _doc.reset();
     _gameRoot = nullptr;
     _editorVersion.Empty();
+    _projectDir.Empty();
+    _dialogDocs.clear();
+}
+
+String AGFReader::GetDialogFileBase(DocElem dialog_ref) const
+{
+    const String name = ValueParser::ReadString(dialog_ref, "ScriptName");
+    // a dialog without a script name uses its ID, after a '@' that a script name cannot have
+    return name.IsEmpty() ? String::FromFormat("@dialog%d", ValueParser::ReadInt(dialog_ref, "ID")) : name;
+}
+
+DocElem AGFReader::GetDialogData(DocElem dialog_ref)
+{
+    const String base = GetDialogFileBase(dialog_ref);
+    auto it = _dialogDocs.find(base);
+    if (it == _dialogDocs.end())
+    {
+        auto doc = std::make_unique<Document>();
+        const String filename = Path::ConcatPaths(_projectDir, String::FromFormat("Dialogs/%s.xml", base.GetCStr()));
+        if (doc->LoadFile(filename.GetCStr()) != XML_SUCCESS)
+            doc.reset();
+        it = _dialogDocs.emplace(base, std::move(doc)).first;
+    }
+    return it->second ? it->second->FirstChildElement("Dialog") : nullptr;
+}
+
+String AGFReader::ReadDialogScript(DocElem dialog_ref)
+{
+    const String filename =
+        Path::ConcatPaths(_projectDir, String::FromFormat("Dialogs/%s.dasc", GetDialogFileBase(dialog_ref).GetCStr()));
+    auto in = File::OpenFileRead(filename);
+    return in ? String::FromStream(in.get(), SIZE_MAX) : String();
 }
 
 //-----------------------------------------------------------------------------
@@ -308,8 +356,9 @@ int ValueParser::ReadInt(DocElem elem, const char *field, int def_value)
     if (!elem)
         return def_value;
     DocElem name_f = elem->FirstChildElement(field);
-    if (name_f && name_f->GetText())
-        return StrUtil::StringToInt(name_f->GetText(), def_value);
+    int value;
+    if (name_f && name_f->GetText() && ParseXmlValue(name_f->GetText(), value))
+        return value;
     return def_value;
 }
 
@@ -532,29 +581,80 @@ String Cursor::ReadScriptName(DocElem elem)
     return BuildMouseCursorPrefixedScriptID(ReadString(elem, "Name"));
 }
 
+static bool ParseCursorRole(const char *text, int &value)
+{
+    static const char *const kCursorRoleNames[] = {"Walk", "Look", "Interact", "", "UseInv", "", "Pointer", "Wait"};
+    if (std::strcmp(text, "None") == 0)
+    {
+        value = -1;
+        return true;
+    }
+    return ParseXmlEnum(text, kCursorRoleNames, std::size(kCursorRoleNames), value);
+}
+
+static const XmlField<DataUtil::CursorData> kCursorFields[] = {
+    {"Animate", XML_READ(&DataUtil::CursorData::Animate)},
+    {"AnimateOnlyOnHotspots", XML_READ(&DataUtil::CursorData::AnimateOnlyOnHotspots)},
+    {"AnimateOnlyWhenMoving", XML_READ(&DataUtil::CursorData::AnimateOnlyWhenMoving)},
+    {"AnimationDelay", XML_READ(&DataUtil::CursorData::AnimationDelay)},
+    {"CreateEvent", XML_READ(&DataUtil::CursorData::CreateEvent)},
+    {"EventFunctionName", nullptr}, // names the handlers in the editor
+    {"EventLabel", nullptr},        // the property grid label
+    {"EventUID", nullptr},          // read with the interaction schema, see room_build.cpp
+    {"HotspotX", XML_READ(&DataUtil::CursorData::HotspotX)},
+    {"HotspotY", XML_READ(&DataUtil::CursorData::HotspotY)},
+    {"ID", nullptr}, // the entity reference
+    {"Image", XML_READ(&DataUtil::CursorData::Image)},
+    {"Name", XML_READ(&DataUtil::CursorData::Name)}, // the MouseCursor name
+    {"StandardMode", XML_READ(&DataUtil::CursorData::StandardMode)},
+    {"StandardRole", XML_READ_WITH(&DataUtil::CursorData::StandardRole, ParseCursorRole)},
+    {"View", XML_READ(&DataUtil::CursorData::View)},
+};
+
 void Cursor::ReadAllData(DocElem elem, DataUtil::CursorData &data)
 {
-    data.Name = ReadString(elem, "Name"); // This is MouseCursor Name
-    data.Image = ReadInt(elem, "Image");
-    data.HotspotX = ReadInt(elem, "HotspotX");
-    data.HotspotY = ReadInt(elem, "HotspotY");
-    data.Animate = ReadBool(elem, "Animate");
-    data.View = ReadInt(elem, "View", -1);
-    data.AnimateOnlyOnHotspots = ReadBool(elem, "AnimateOnlyOnHotspots");
-    data.AnimateOnlyWhenMoving = ReadBool(elem, "AnimateOnlyWhenMoving");
-    data.StandardMode = ReadBool(elem, "StandardMode");
-    data.AnimationDelay = ReadInt(elem, "AnimationDelay", 5);
+    ReadFields(elem, data, kCursorFields, UnknownElements::Report);
 }
+
+// Row reader for an enum member, using one of the string-to-enum readers above;
+// write the row with XML_READ_CONVERTED(&T::Member, Convert)
+template <typename MP, MP Member, typename CP, CP Convert>
+static HError ReadConverted(const tinyxml2::XMLElement *elem, typename XmlDetail::MemberPtr<MP>::Class &obj)
+{
+    obj.*Member = Convert(String(XmlDetail::ElementText(elem)));
+    return HError::None();
+}
+
+#define XML_READ_CONVERTED(member, convert) ReadConverted<decltype(member), member, decltype(&convert), &convert>
+
+static FrameAlignment ReadHotspotAlignment(const String &value)
+{
+    return ReadFrameAlignment(value, kAlignNone);
+}
+
+static HError ReadPropertyList(const tinyxml2::XMLElement *list, std::vector<DataUtil::CustomPropertyValue> &props);
+
+static const XmlField<DataUtil::InventoryItemData> kInventoryItemFields[] = {
+    {"CursorImage", XML_READ(&DataUtil::InventoryItemData::CursorImage)},
+    {"DisplayName", XML_READ(&DataUtil::InventoryItemData::Description)},
+    {"HotspotAlignment", XML_READ_CONVERTED(&DataUtil::InventoryItemData::HotspotAlignment, ReadHotspotAlignment)},
+    {"HotspotX", XML_READ(&DataUtil::InventoryItemData::HotspotX)},
+    {"HotspotY", XML_READ(&DataUtil::InventoryItemData::HotspotY)},
+    {"ID", nullptr}, // the entity reference
+    {"Image", XML_READ(&DataUtil::InventoryItemData::Image)},
+    {"Interactions", nullptr}, // see ReadInteractions
+    {"OnAnyClick", XML_READ(&DataUtil::InventoryItemData::OnAnyClick)},
+    {"PlayerStartsWithItem", XML_READ(&DataUtil::InventoryItemData::PlayerStartsWith)},
+    {"Properties", XML_READ_ELEMENT(&DataUtil::InventoryItemData::Properties, ReadPropertyList)},
+    {"ScriptModule", nullptr}, // see ReadInteractions
+    {"ScriptName", nullptr},   // the entity reference
+};
 
 void InventoryItem::ReadAllData(DocElem elem, DataUtil::InventoryItemData &data)
 {
-    data.Description = ReadString(elem, "Description");
-    data.Image = ReadInt(elem, "Image");
-    data.CursorImage = ReadInt(elem, "CursorImage");
-    data.HotspotX = ReadInt(elem, "HotspotX");
-    data.HotspotY = ReadInt(elem, "HotspotY");
-    data.PlayerStartsWith = ReadBool(elem, "PlayerStartsWithItem");
+    ReadFields(elem, data, kInventoryItemFields, UnknownElements::Report);
 }
+
 
 int GUIMain::ReadID(DocElem elem)
 {
@@ -576,8 +676,35 @@ String GUIMain::ReadScriptName(DocElem elem)
     return ReadString(self, "Name");
 }
 
-void GUIMain::ReadAllData(DocElem elem, DataUtil::GUIData& gui_data)
+static const XmlField<DataUtil::GUIData> kGuiMainFields[] = {
+    {"BackgroundColor", XML_READ(&DataUtil::GUIData::BackgroundColor)},
+    {"BackgroundImage", XML_READ(&DataUtil::GUIData::BackgroundImage)},
+    {"BlendMode", XML_READ_WITH(&DataUtil::GUIData::BlendMode, ParseBlendMode)},
+    {"BorderColor", XML_READ(&DataUtil::GUIData::BorderColor)},
+    {"Clickable", XML_READ(&DataUtil::GUIData::Clickable)},
+    {"Controls", nullptr}, // read with GUIControls
+    {"Height", XML_READ(&DataUtil::GUIData::Height)},
+    {"ID", nullptr}, // the entity reference
+    {"Left", XML_READ(&DataUtil::GUIData::Left)},
+    {"Name", nullptr}, // the entity reference
+    {"OnClick", XML_READ(&DataUtil::GUIData::OnClick)},
+    {"Transparency", XML_READ(&DataUtil::GUIData::Transparency)},
+    {"Padding", XML_READ(&DataUtil::GUIData::Padding)},
+    {"PopupStyle", XML_READ_CONVERTED(&DataUtil::GUIData::PopupStyle, ReadGuiPopupStyle)},
+    {"PopupYPos", XML_READ(&DataUtil::GUIData::PopupYPos)},
+    {"Properties", XML_READ_ELEMENT(&DataUtil::GUIData::Properties, ReadPropertyList)},
+    {"ScriptModule", XML_READ(&DataUtil::GUIData::ScriptModule)},
+    {"ScriptName", nullptr}, // the entity reference
+    {"TextColor", XML_READ(&DataUtil::GUIData::TextColor)},
+    {"Top", XML_READ(&DataUtil::GUIData::Top)},
+    {"Visible", XML_READ(&DataUtil::GUIData::Visible)},
+    {"Width", XML_READ(&DataUtil::GUIData::Width)},
+    {"ZOrder", XML_READ(&DataUtil::GUIData::ZOrder)},
+};
+
+void GUIMain::ReadAllData(DocElem elem, DataUtil::GUIData &gui_data)
 {
+    // Normal GUIs and text windows keep their properties in elements of different names
     DocElem self = GetNormalGUI(elem);
     if (!self)
     {
@@ -586,23 +713,7 @@ void GUIMain::ReadAllData(DocElem elem, DataUtil::GUIData& gui_data)
     }
     if (!self)
         return;
-    gui_data.Clickable = ReadBool(self, "Clickable");
-    gui_data.Height = ReadInt(self, "Height");
-    gui_data.Left = ReadInt(self, "Left");
-    gui_data.Top = ReadInt(self, "Top");
-    gui_data.Width = ReadInt(self, "Width");
-    gui_data.Transparency = ReadInt(self, "Transparency");
-    gui_data.Visible = ReadBool(self, "Visible");
-    gui_data.BackgroundColor = ReadInt(self, "BackgroundColor");
-    gui_data.BackgroundImage = ReadInt(self, "BackgroundImage");
-    gui_data.BorderColor = ReadInt(self, "BorderColor");
-    gui_data.OnClick = ReadString(self, "OnClick");
-    gui_data.ScriptModule = ReadString(self, "ScriptModule");
-    gui_data.PopupStyle = ReadGuiPopupStyle(ReadString(self, "PopupStyle"));
-    gui_data.ZOrder = ReadInt(self, "ZOrder");
-    gui_data.PopupYPos = ReadInt(self, "PopupYPos");
-    gui_data.Padding = ReadInt(self, "Padding", TEXTWINDOW_PADDING_DEFAULT);
-    gui_data.TextColor = ReadInt(self, "TextColor");
+    ReadFields(self, gui_data, kGuiMainFields, UnknownElements::Report);
 }
 
 DocElem GUIMain::GetNormalGUI(DocElem elem)
@@ -633,209 +744,295 @@ String GUIControl::ReadType(DocElem elem)
     return "GUIControl";
 }
 
-void GUIControl::ReadAllData(DocElem elem, DataUtil::GUIControlData& data)
+static FrameAlignment ReadTopCenterAlignment(const String &value)
 {
-    data.Clickable = ReadBool(elem, "Clickable");
-    data.Height = ReadInt(elem, "Height");
-    data.Left = ReadInt(elem, "Left");
-    data.Top = ReadInt(elem, "Top");
-    data.Width = ReadInt(elem, "Width");
-    data.Enabled = ReadBool(elem, "Enabled");
-    data.Visible = ReadBool(elem, "Visible");
-    data.Translated = ReadBool(elem, "Translated", true);
-    data.ShowBorder = ReadBool(elem, "ShowBorder");
-    data.SolidBackground = ReadBool(elem, "SolidBackground");
-    data.ZOrder = ReadInt(elem, "ZOrder");
-    data.BackgroundColor = ReadInt(elem, "BackgroundColor");
-    data.BorderColor = ReadInt(elem, "BorderColor");
-    data.BorderWidth = ReadInt(elem, "BorderWidth");
-    data.PaddingX = ReadInt(elem, "PaddingX");
-    data.PaddingY = ReadInt(elem, "PaddingY");
+    return ReadFrameAlignment(value, kAlignTopCenter);
 }
 
-void GUIControl::ReadButtonData(DocElem elem, DataUtil::GUIButtonData& data)
+static FrameAlignment ReadTopLeftAlignment(const String &value)
 {
-    data.ClickAction = ReadString(elem, "ClickAction");
-    data.ClipImage = ReadBool(elem, "ClipImage");
-    data.WrapText = ReadBool(elem, "WrapText");
-    data.Font = ReadInt(elem, "Font");
-    data.Image = ReadInt(elem, "Image");
-    data.MouseoverImage = ReadInt(elem, "MouseoverImage");
-    data.NewModeNumber = ReadInt(elem, "NewModeNumber");
-    data.OnClick = ReadString(elem, "OnClick");
-    data.PushedImage = ReadInt(elem, "PushedImage");
-    data.Text = ReadString(elem, "Text");
-    data.TextAlignment = ReadFrameAlignment(ReadString(elem, "TextAlignment"), kAlignTopCenter);
-    data.TextColor = ReadInt(elem, "TextColor");
-    data.ColorStyle = ReadButtonColorStyle(ReadString(elem, "ColorStyle"));
-    data.BorderShadeColor = ReadInt(elem, "BorderShadeColor");
-    data.MouseOverBackgroundColor = ReadInt(elem, "MouseOverBackgroundColor");
-    data.PushedBackgroundColor = ReadInt(elem, "PushedBackgroundColor");
-    data.MouseOverBorderColor = ReadInt(elem, "MouseOverBorderColor");
-    data.PushedBorderColor = ReadInt(elem, "PushedBorderColor");
-    data.MouseOverTextColor = ReadInt(elem, "MouseOverTextColor");
-    data.PushedTextColor = ReadInt(elem, "PushedTextColor");
-    data.TextOutlineColor = ReadInt(elem, "TextOutlineColor");
+    return ReadFrameAlignment(value, kAlignTopLeft);
 }
 
-void GUIControl::ReadLabelData(DocElem elem, DataUtil::GUILabelData& data)
+static HorAlignment ReadLeftHorAlignment(const String &value)
 {
-    data.Font = ReadInt(elem, "Font");
-    data.Text = ReadString(elem, "Text");
-    data.TextAlignment = ReadFrameAlignment(ReadString(elem, "TextAlignment"), kAlignTopLeft);
-    data.TextColor = ReadInt(elem, "TextColor");
-    data.TextOutlineColor = ReadInt(elem, "TextOutlineColor");
+    return ReadHorizontalAlignment(value, kHAlignLeft);
 }
 
-void GUIControl::ReadSliderData(DocElem elem, DataUtil::GUISliderData& data)
+static int ReadBlendModeName(const String &value)
 {
-    data.BackgroundImage = ReadInt(elem, "BackgroundImage");
-    data.HandleImage = ReadInt(elem, "HandleImage");
-    data.HandleOffset = ReadInt(elem, "HandleOffset");
-    data.MaxValue = ReadInt(elem, "MaxValue");
-    data.MinValue = ReadInt(elem, "MinValue");
-    data.OnChange = ReadString(elem, "OnChange");
-    data.Value = ReadInt(elem, "Value");
-    data.HandleColor = ReadInt(elem, "HandleColor");
-    data.BorderShadeColor = ReadInt(elem, "BorderShadeColor");
+    int mode = 0;
+    ParseBlendMode(value.GetCStr(), mode);
+    return mode;
 }
 
-void GUIControl::ReadInventoryData(DocElem elem, DataUtil::GUIInventoryData& data)
+static const XmlField<DataUtil::GUIControlData> kGuiControlFields[] = {
+    {"BackgroundColor", XML_READ(&DataUtil::GUIControlData::BackgroundColor)},
+    {"BorderColor", XML_READ(&DataUtil::GUIControlData::BorderColor)},
+    {"BorderWidth", XML_READ(&DataUtil::GUIControlData::BorderWidth)},
+    {"BlendMode", XML_READ_CONVERTED(&DataUtil::GUIControlData::BlendMode, ReadBlendModeName)},
+    {"Clickable", XML_READ(&DataUtil::GUIControlData::Clickable)},
+    {"Enabled", XML_READ(&DataUtil::GUIControlData::Enabled)},
+    {"Height", XML_READ(&DataUtil::GUIControlData::Height)},
+    {"ID", nullptr}, // the entity reference
+    {"Left", XML_READ(&DataUtil::GUIControlData::Left)},
+    {"Locked", nullptr}, // editor only
+    {"Transparency", XML_READ(&DataUtil::GUIControlData::Transparency)},
+    {"PaddingX", XML_READ(&DataUtil::GUIControlData::PaddingX)},
+    {"PaddingY", XML_READ(&DataUtil::GUIControlData::PaddingY)},
+    {"Properties", XML_READ_ELEMENT(&DataUtil::GUIControlData::Properties, ReadPropertyList)},
+    {"ScriptName", nullptr}, // the entity reference
+    {"ShowBorder", XML_READ(&DataUtil::GUIControlData::ShowBorder)},
+    {"SolidBackground", XML_READ(&DataUtil::GUIControlData::SolidBackground)},
+    {"Top", XML_READ(&DataUtil::GUIControlData::Top)},
+    {"Translated", XML_READ(&DataUtil::GUIControlData::Translated)},
+    {"Visible", XML_READ(&DataUtil::GUIControlData::Visible)},
+    {"Width", XML_READ(&DataUtil::GUIControlData::Width)},
+    {"ZOrder", XML_READ(&DataUtil::GUIControlData::ZOrder)},
+};
+
+// Tells the elements that every control has, which kGuiControlFields reads
+static bool IsCommonControlElement(const char *element)
 {
-    data.CharacterID = ReadInt(elem, "CharacterID");
-    data.ItemHeight = ReadInt(elem, "ItemHeight");
-    data.ItemWidth = ReadInt(elem, "ItemWidth");
+    return IsListed(kGuiControlFields, element);
 }
 
-void GUIControl::ReadTextBoxData(DocElem elem, DataUtil::GUITextBoxData& data)
+void GUIControl::ReadAllData(DocElem elem, DataUtil::GUIControlData &data)
 {
-    data.Font = ReadInt(elem, "Font");
-    data.OnActivate = ReadString(elem, "OnActivate");
-    data.ShowBorder = ReadBool(elem, "ShowBorder");
-    data.Text = ReadString(elem, "Text");
-    data.TextAlignment = ReadFrameAlignment(ReadString(elem, "TextAlignment"), kAlignTopLeft);
-    data.TextColor = ReadInt(elem, "TextColor");
-    data.TextOutlineColor = ReadInt(elem, "TextOutlineColor");
+    // The control's own table reports the unknown elements, after this one
+    ReadFields(elem, data, kGuiControlFields, UnknownElements::Skip);
 }
 
-void GUIControl::ReadListBoxData(DocElem elem, DataUtil::GUIListBoxData& data)
+static const XmlField<DataUtil::GUIButtonData> kGuiButtonFields[] = {
+    {"BorderShadeColor", XML_READ(&DataUtil::GUIButtonData::BorderShadeColor)},
+    {"ClickAction", XML_READ(&DataUtil::GUIButtonData::ClickAction)},
+    {"ClipImage", XML_READ(&DataUtil::GUIButtonData::ClipImage)},
+    {"ColorStyle", XML_READ_CONVERTED(&DataUtil::GUIButtonData::ColorStyle, ReadButtonColorStyle)},
+    {"Font", XML_READ(&DataUtil::GUIButtonData::Font)},
+    {"Image", XML_READ(&DataUtil::GUIButtonData::Image)},
+    {"MouseOverBackgroundColor", XML_READ(&DataUtil::GUIButtonData::MouseOverBackgroundColor)},
+    {"MouseOverBorderColor", XML_READ(&DataUtil::GUIButtonData::MouseOverBorderColor)},
+    {"MouseOverTextColor", XML_READ(&DataUtil::GUIButtonData::MouseOverTextColor)},
+    {"MouseoverImage", XML_READ(&DataUtil::GUIButtonData::MouseoverImage)},
+    {"NewModeNumber", XML_READ(&DataUtil::GUIButtonData::NewModeNumber)},
+    {"OnClick", XML_READ(&DataUtil::GUIButtonData::OnClick)},
+    {"OnFrameEvent", XML_READ(&DataUtil::GUIButtonData::OnFrameEvent)},
+    {"PushedBackgroundColor", XML_READ(&DataUtil::GUIButtonData::PushedBackgroundColor)},
+    {"PushedBorderColor", XML_READ(&DataUtil::GUIButtonData::PushedBorderColor)},
+    {"PushedImage", XML_READ(&DataUtil::GUIButtonData::PushedImage)},
+    {"PushedTextColor", XML_READ(&DataUtil::GUIButtonData::PushedTextColor)},
+    {"Text", XML_READ(&DataUtil::GUIButtonData::Text)},
+    {"TextAlignment", XML_READ_CONVERTED(&DataUtil::GUIButtonData::TextAlignment, ReadTopCenterAlignment)},
+    {"TextColor", XML_READ(&DataUtil::GUIButtonData::TextColor)},
+    {"TextOutlineColor", XML_READ(&DataUtil::GUIButtonData::TextOutlineColor)},
+    {"WrapText", XML_READ(&DataUtil::GUIButtonData::WrapText)},
+};
+
+void GUIControl::ReadButtonData(DocElem elem, DataUtil::GUIButtonData &data)
 {
-    data.Font = ReadInt(elem, "Font");
-    data.OnSelectionChanged = ReadString(elem, "OnSelectionChanged");
-    data.SelectedBackgroundColor = ReadInt(elem, "SelectedBackgroundColor");
-    data.SelectedTextColor = ReadInt(elem, "SelectedTextColor");
-    data.ShowBorder = ReadBool(elem, "ShowBorder");
-    data.ShowScrollArrows = ReadBool(elem, "ShowScrollArrows");
-    data.TextAlignment = ReadHorizontalAlignment(ReadString(elem, "TextAlignment"), kHAlignLeft);
-    data.TextColor = ReadInt(elem, "TextColor");
-    data.TextOutlineColor = ReadInt(elem, "TextOutlineColor");
+    ReadFields(elem, data, kGuiButtonFields, UnknownElements::Report, IsCommonControlElement);
 }
+
+static const XmlField<DataUtil::GUILabelData> kGuiLabelFields[] = {
+    {"Font", XML_READ(&DataUtil::GUILabelData::Font)},
+    {"Text", XML_READ(&DataUtil::GUILabelData::Text)},
+    {"TextAlignment", XML_READ_CONVERTED(&DataUtil::GUILabelData::TextAlignment, ReadTopLeftAlignment)},
+    {"TextColor", XML_READ(&DataUtil::GUILabelData::TextColor)},
+    {"TextOutlineColor", XML_READ(&DataUtil::GUILabelData::TextOutlineColor)},
+};
+
+void GUIControl::ReadLabelData(DocElem elem, DataUtil::GUILabelData &data)
+{
+    ReadFields(elem, data, kGuiLabelFields, UnknownElements::Report, IsCommonControlElement);
+}
+
+static const XmlField<DataUtil::GUISliderData> kGuiSliderFields[] = {
+    {"BackgroundImage", XML_READ(&DataUtil::GUISliderData::BackgroundImage)},
+    {"BorderShadeColor", XML_READ(&DataUtil::GUISliderData::BorderShadeColor)},
+    {"HandleColor", XML_READ(&DataUtil::GUISliderData::HandleColor)},
+    {"HandleImage", XML_READ(&DataUtil::GUISliderData::HandleImage)},
+    {"HandleOffset", XML_READ(&DataUtil::GUISliderData::HandleOffset)},
+    {"MaxValue", XML_READ(&DataUtil::GUISliderData::MaxValue)},
+    {"MinValue", XML_READ(&DataUtil::GUISliderData::MinValue)},
+    {"OnChange", XML_READ(&DataUtil::GUISliderData::OnChange)},
+    {"Value", XML_READ(&DataUtil::GUISliderData::Value)},
+};
+
+void GUIControl::ReadSliderData(DocElem elem, DataUtil::GUISliderData &data)
+{
+    ReadFields(elem, data, kGuiSliderFields, UnknownElements::Report, IsCommonControlElement);
+}
+
+static const XmlField<DataUtil::GUIInventoryData> kGuiInventoryFields[] = {
+    {"CharacterID", XML_READ(&DataUtil::GUIInventoryData::CharacterID)},
+    {"ItemHeight", XML_READ(&DataUtil::GUIInventoryData::ItemHeight)},
+    {"ItemWidth", XML_READ(&DataUtil::GUIInventoryData::ItemWidth)},
+};
+
+void GUIControl::ReadInventoryData(DocElem elem, DataUtil::GUIInventoryData &data)
+{
+    ReadFields(elem, data, kGuiInventoryFields, UnknownElements::Report, IsCommonControlElement);
+}
+
+static const XmlField<DataUtil::GUITextBoxData> kGuiTextBoxFields[] = {
+    {"Font", XML_READ(&DataUtil::GUITextBoxData::Font)},
+    {"OnActivate", XML_READ(&DataUtil::GUITextBoxData::OnActivate)},
+    {"Text", XML_READ(&DataUtil::GUITextBoxData::Text)},
+    {"TextAlignment", XML_READ_CONVERTED(&DataUtil::GUITextBoxData::TextAlignment, ReadTopLeftAlignment)},
+    {"TextColor", XML_READ(&DataUtil::GUITextBoxData::TextColor)},
+    {"TextOutlineColor", XML_READ(&DataUtil::GUITextBoxData::TextOutlineColor)},
+};
+
+void GUIControl::ReadTextBoxData(DocElem elem, DataUtil::GUITextBoxData &data)
+{
+    ReadFields(elem, data, kGuiTextBoxFields, UnknownElements::Report, IsCommonControlElement);
+}
+
+static const XmlField<DataUtil::GUIListBoxData> kGuiListBoxFields[] = {
+    {"Font", XML_READ(&DataUtil::GUIListBoxData::Font)},
+    {"OnSelectionChanged", XML_READ(&DataUtil::GUIListBoxData::OnSelectionChanged)},
+    {"SelectedBackgroundColor", XML_READ(&DataUtil::GUIListBoxData::SelectedBackgroundColor)},
+    {"SelectedTextColor", XML_READ(&DataUtil::GUIListBoxData::SelectedTextColor)},
+    {"ShowScrollArrows", XML_READ(&DataUtil::GUIListBoxData::ShowScrollArrows)},
+    {"TextAlignment", XML_READ_CONVERTED(&DataUtil::GUIListBoxData::TextAlignment, ReadLeftHorAlignment)},
+    {"TextColor", XML_READ(&DataUtil::GUIListBoxData::TextColor)},
+    {"TextOutlineColor", XML_READ(&DataUtil::GUIListBoxData::TextOutlineColor)},
+};
+
+void GUIControl::ReadListBoxData(DocElem elem, DataUtil::GUIListBoxData &data)
+{
+    ReadFields(elem, data, kGuiListBoxFields, UnknownElements::Report, IsCommonControlElement);
+}
+
+static const XmlField<DataUtil::CustomPropertySchemaItem> kCustomPropertySchemaFields[] = {
+    {"AppliesToAudioClips", nullptr}, // the schema in game data does not tell what a property applies to
+    {"AppliesToCharacters", XML_READ(&DataUtil::CustomPropertySchemaItem::AppliesToCharacters)},
+    {"AppliesToDialogs", nullptr},
+    {"AppliesToGUIControls", nullptr},
+    {"AppliesToGUIs", nullptr},
+    {"AppliesToHotspots", XML_READ(&DataUtil::CustomPropertySchemaItem::AppliesToHotspots)},
+    {"AppliesToInvItems", XML_READ(&DataUtil::CustomPropertySchemaItem::AppliesToInvItems)},
+    {"AppliesToObjects", XML_READ(&DataUtil::CustomPropertySchemaItem::AppliesToObjects)},
+    {"AppliesToRegions", nullptr},
+    {"AppliesToRooms", XML_READ(&DataUtil::CustomPropertySchemaItem::AppliesToRooms)},
+    {"AppliesToWalkableAreas", nullptr},
+    {"DefaultValue", XML_READ(&DataUtil::CustomPropertySchemaItem::DefaultValue)},
+    {"Description", XML_READ(&DataUtil::CustomPropertySchemaItem::Description)},
+    {"Name", XML_READ(&DataUtil::CustomPropertySchemaItem::Name)},
+    {"Translated", XML_READ(&DataUtil::CustomPropertySchemaItem::Translated)},
+    {"Type", XML_READ_CONVERTED(&DataUtil::CustomPropertySchemaItem::Type, ReadCustomPropertyType)},
+};
 
 void CustomPropertySchemaItem::ReadAllData(DocElem elem, DataUtil::CustomPropertySchemaItem &data)
 {
-    data.Name = ReadString(elem, "Name");
-    data.Description = ReadString(elem, "Description");
-    data.DefaultValue = ReadString(elem, "DefaultValue");
-    data.Type = ReadCustomPropertyType(ReadString(elem, "Type"));
-    data.AppliesToCharacters = ReadBool(elem, "AppliesToCharacters", true);
-    data.AppliesToHotspots = ReadBool(elem, "AppliesToHotspots", true);
-    data.AppliesToObjects = ReadBool(elem, "AppliesToObjects", true);
-    data.AppliesToInvItems = ReadBool(elem, "AppliesToInvItems", true);
-    data.AppliesToRooms = ReadBool(elem, "AppliesToRooms", true);
-    data.Translated = ReadBool(elem, "Translated");
+    ReadFields(elem, data, kCustomPropertySchemaFields, UnknownElements::Report);
 }
 
-void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings& s)
+static const XmlField<DataUtil::GameSettings> kGameSettingsFields[] = {
+    {"AllowRelativeAssetResolutions", XML_READ(&DataUtil::GameSettings::AllowRelativeAssetResolutions)},
+    {"AlwaysDisplayTextAsSpeech", XML_READ(&DataUtil::GameSettings::AlwaysDisplayTextAsSpeech)},
+    {"AndroidAppVersionCode", XML_READ(&DataUtil::GameSettings::AndroidAppVersionCode)},
+    {"AndroidAppVersionName", XML_READ(&DataUtil::GameSettings::AndroidAppVersionName)},
+    {"AndroidApplicationId", XML_READ(&DataUtil::GameSettings::AndroidApplicationId)},
+    {"AndroidBuildFormat", XML_READ_CONVERTED(&DataUtil::GameSettings::AndroidBuildFormat, ReadAndroidBuildFormat)},
+    {"AntiAliasFonts", XML_READ(&DataUtil::GameSettings::AntiAliasFonts)},
+    {"AntiGlideMode", XML_READ(&DataUtil::GameSettings::AntiGlideMode)},
+    {"AttachDataToExe", XML_READ(&DataUtil::GameSettings::AttachDataToExe)},
+    {"AudioIndexer", XML_READ(&DataUtil::GameSettings::AudioIndexer)},
+    {"AutoMoveInWalkMode", XML_READ(&DataUtil::GameSettings::AutoMoveInWalkMode)},
+    {"BackwardsText", XML_READ(&DataUtil::GameSettings::BackwardsText)},
+    {"BuildTargets", XML_READ(&DataUtil::GameSettings::BuildTargets)},
+    {"ClipGUIControls", XML_READ(&DataUtil::GameSettings::ClipGUIControls)},
+    {"ColorDepth", XML_READ_CONVERTED(&DataUtil::GameSettings::ColorDepth, ReadGameColorDepth)},
+    {"CompressSpritesType", XML_READ_CONVERTED(&DataUtil::GameSettings::CompressSpritesType, ReadSpriteCompression)},
+    {"CursorEventIndexer", nullptr}, // the editor allocates cursor events
+    {"CustomDataDir", XML_READ(&DataUtil::GameSettings::CustomDataDir)},
+    {"CustomResolution", XML_READ(&DataUtil::GameSettings::CustomResolution)},
+    {"DebugMode", XML_READ(&DataUtil::GameSettings::DebugMode)},
+    {"DefaultRoomMaskResolution", XML_READ(&DataUtil::GameSettings::DefaultRoomMaskResolution)},
+    {"Description", XML_READ(&DataUtil::GameSettings::Description)},
+    {"DeveloperErrorText", XML_READ(&DataUtil::GameSettings::DeveloperErrorText)},
+    {"DeveloperName", XML_READ(&DataUtil::GameSettings::DeveloperName)},
+    {"DeveloperURL", XML_READ(&DataUtil::GameSettings::DeveloperURL)},
+    {"DialogOptionsBackwards", XML_READ(&DataUtil::GameSettings::DialogOptionsBackwards)},
+    {"DialogOptionsBullet", XML_READ(&DataUtil::GameSettings::DialogOptionsBullet)},
+    {"DialogOptionsGUI", XML_READ(&DataUtil::GameSettings::DialogOptionsGUI)},
+    {"DialogOptionsGap", XML_READ(&DataUtil::GameSettings::DialogOptionsGap)},
+    {"DialogScriptNarrateFunction", XML_READ(&DataUtil::GameSettings::DialogScriptNarrateFunction)},
+    {"DialogScriptSayFunction", XML_READ(&DataUtil::GameSettings::DialogScriptSayFunction)},
+    {"DisplayMultipleInventory", XML_READ(&DataUtil::GameSettings::DisplayMultipleInventory)},
+    {"DisplaySingleDialogOption", XML_READ(&DataUtil::GameSettings::DisplaySingleDialogOption)},
+    {"EnforceNewAudio", XML_READ(&DataUtil::GameSettings::EnforceNewAudio)},
+    {"EnforceNewStrings", XML_READ(&DataUtil::GameSettings::EnforceNewStrings)},
+    {"EnforceObjectBasedScript", XML_READ(&DataUtil::GameSettings::EnforceObjectBasedScript)},
+    {"FaceDirectionRatio", XML_READ(&DataUtil::GameSettings::FaceDirectionRatio)},
+    {"GUIDAsString", XML_READ(&DataUtil::GameSettings::GUIDAsString)},
+    {"GUIHandleOnlyLeftMouseButton", XML_READ(&DataUtil::GameSettings::GUIHandleOnlyLeftMouseButton)},
+    {"GameFPS", XML_READ(&DataUtil::GameSettings::GameFPS)},
+    {"GameFileName", XML_READ(&DataUtil::GameSettings::GameFileName)},
+    {"GameName", XML_READ(&DataUtil::GameSettings::GameName)},
+    {"GameTextEncoding", XML_READ(&DataUtil::GameSettings::GameTextEncoding)},
+    {"GameTextLanguage", XML_READ(&DataUtil::GameSettings::GameTextLanguage)},
+    {"Genre", XML_READ(&DataUtil::GameSettings::Genre)},
+    {"GlobalSpeechAnimationDelay", XML_READ(&DataUtil::GameSettings::GlobalSpeechAnimationDelay)},
+    {"HandleInvClicksInScript", XML_READ(&DataUtil::GameSettings::HandleInvClicksInScript)},
+    {"InventoryCursors", XML_READ(&DataUtil::GameSettings::InventoryCursors)},
+    {"InventoryHotspotMarkerCrosshairColor", XML_READ(&DataUtil::GameSettings::InventoryHotspotMarkerCrosshairColor)},
+    {"InventoryHotspotMarkerDotColor", XML_READ(&DataUtil::GameSettings::InventoryHotspotMarkerDotColor)},
+    {"InventoryHotspotMarkerSprite", XML_READ(&DataUtil::GameSettings::InventoryHotspotMarkerSprite)},
+    {"InventoryHotspotMarkerStyle",
+     XML_READ_CONVERTED(&DataUtil::GameSettings::InventoryHotspotMarkerStyle, ReadInventoryHotspotMarkerStyle)},
+    {"LeftToRightPrecedence", XML_READ(&DataUtil::GameSettings::LeftToRightPrecedence)},
+    {"LetterboxMode", XML_READ(&DataUtil::GameSettings::LetterboxMode)},
+    {"MaximumScore", XML_READ(&DataUtil::GameSettings::MaximumScore)},
+    {"MouseWheelEnabled", XML_READ(&DataUtil::GameSettings::MouseWheelEnabled)},
+    {"NumberDialogOptions", XML_READ_CONVERTED(&DataUtil::GameSettings::NumberDialogOptions, ReadDialogOptionsNumbering)},
+    {"OptimizeSpriteStorage", XML_READ(&DataUtil::GameSettings::OptimizeSpriteStorage)},
+    {"PixelPerfect", XML_READ(&DataUtil::GameSettings::PixelPerfect)},
+    {"PlaySoundOnScore", XML_READ(&DataUtil::GameSettings::PlaySoundOnScore)},
+    {"ReleaseDate", XML_READ(&DataUtil::GameSettings::ReleaseDate)},
+    {"RenderAtScreenResolution",
+     XML_READ_CONVERTED(&DataUtil::GameSettings::RenderAtScreenResolution, ReadRenderAtScreenResolution)},
+    {"RoomTransition", XML_READ_CONVERTED(&DataUtil::GameSettings::RoomTransition, ReadRoomTransition)},
+    {"RunGameLoopsWhileDialogOptionsDisplayed", XML_READ(&DataUtil::GameSettings::RunGameLoopsWhileDialogOptionsDisplayed)},
+    {"SaveGameFileExtension", XML_READ(&DataUtil::GameSettings::SaveGameFileExtension)},
+    {"SaveGameFolderName", XML_READ(&DataUtil::GameSettings::SaveGameFolderName)},
+    {"SaveScreenshots", XML_READ(&DataUtil::GameSettings::SaveScreenshots)},
+    {"ScaleCharacterSpriteOffsets", XML_READ(&DataUtil::GameSettings::ScaleCharacterSpriteOffsets)},
+    {"ScaleMovementSpeedWithMaskResolution", XML_READ(&DataUtil::GameSettings::ScaleMovementSpeedWithMaskResolution)},
+    {"ScriptAPIVersion", XML_READ(&DataUtil::GameSettings::ScriptAPIVersion)},
+    {"ScriptCompatLevel", XML_READ(&DataUtil::GameSettings::ScriptCompatLevel)},
+    {"ScriptCompiler", nullptr}, // agscc is the compiler it was built with
+    {"SkipSpeech", XML_READ_CONVERTED(&DataUtil::GameSettings::SkipSpeech, ReadSkipSpeech)},
+    {"SpeechPortraitSide", XML_READ_CONVERTED(&DataUtil::GameSettings::SpeechPortraitSide, ReadSpeechPortraitSide)},
+    {"SpeechStyle", XML_READ_CONVERTED(&DataUtil::GameSettings::SpeechStyle, ReadSpeechStyle)},
+    {"SplitResources", XML_READ(&DataUtil::GameSettings::SplitResources)},
+    {"TTFHeightDefinedBy", XML_READ_CONVERTED(&DataUtil::GameSettings::TTFHeightDefinedBy, ReadFontHeightDefinition)},
+    {"TTFMetricsFixup", XML_READ_CONVERTED(&DataUtil::GameSettings::TTFMetricsFixup, ReadFontMetricsFixup)},
+    {"TextBoxKeyClaimStyle", XML_READ_CONVERTED(&DataUtil::GameSettings::TextBoxKeyClaimStyle, ReadTextBoxKeyClaimStyle)},
+    {"TextWindowGUI", XML_READ(&DataUtil::GameSettings::TextWindowGUI)},
+    {"ThoughtGUI", XML_READ(&DataUtil::GameSettings::ThoughtGUI)},
+    {"TranslateTextParser", nullptr},            // translation source files are made by the editor
+    {"TranslationExcludeFunctionCall", nullptr}, // same
+    {"TranslationExcludeScriptPrefix", nullptr}, // same
+    {"TranslationIncludeScriptPrefix", nullptr}, // same
+    {"TurnBeforeFacing", XML_READ(&DataUtil::GameSettings::TurnBeforeFacing)},
+    {"TurnBeforeWalking", XML_READ(&DataUtil::GameSettings::TurnBeforeWalking)},
+    {"TurnOrderPriority", XML_READ_CONVERTED(&DataUtil::GameSettings::TurnOrderPriority, ReadTurnOrderPriority)},
+    {"UniqueID", XML_READ(&DataUtil::GameSettings::UniqueID)},
+    {"UseGlobalSpeechAnimationDelay", XML_READ(&DataUtil::GameSettings::UseGlobalSpeechAnimationDelay)},
+    {"UseLowResCoordinatesInScript", XML_READ(&DataUtil::GameSettings::UseLowResCoordinatesInScript)},
+    {"UseOldCustomDialogOptionsAPI", XML_READ(&DataUtil::GameSettings::UseOldCustomDialogOptionsAPI)},
+    {"UseOldKeyboardHandling", XML_READ(&DataUtil::GameSettings::UseOldKeyboardHandling)},
+    {"UseOldVoiceClipNaming", XML_READ(&DataUtil::GameSettings::UseOldVoiceClipNaming)},
+    {"Version", XML_READ(&DataUtil::GameSettings::Version)},
+    {"WalkInLookMode", XML_READ(&DataUtil::GameSettings::WalkInLookMode)},
+    {"WhenInterfaceDisabled", XML_READ_CONVERTED(&DataUtil::GameSettings::WhenInterfaceDisabled, ReadGuiDisableStyle)},
+};
+
+void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings &s)
 {
-    s.AllowRelativeAssetResolutions = ReadBool(elem, "AllowRelativeAssetResolutions");
-    s.AlwaysDisplayTextAsSpeech = ReadBool(elem, "AlwaysDisplayTextAsSpeech");
-    s.AndroidAppVersionCode = ReadInt(elem, "AndroidAppVersionCode");
-    s.AndroidAppVersionName = ReadString(elem, "AndroidAppVersionName");
-    s.AndroidApplicationId = ReadString(elem, "AndroidApplicationId");
-    s.AndroidBuildFormat = ReadAndroidBuildFormat(ReadString(elem, "AndroidBuildFormat"));
-    s.AntiAliasFonts = ReadBool(elem, "AntiAliasFonts");
-    s.AntiGlideMode = ReadBool(elem, "AntiGlideMode");
-    s.AttachDataToExe = ReadBool(elem, "AttachDataToExe");
-    s.AudioIndexer = ReadInt(elem, "AudioIndexer");
-    s.AutoMoveInWalkMode = ReadBool(elem, "AutoMoveInWalkMode");
-    s.BackwardsText = ReadBool(elem, "BackwardsText");
-    s.BuildTargets = ReadString(elem, "BuildTargets");
-    s.ClipGUIControls = ReadBool(elem, "ClipGUIControls");
-    s.ColorDepth = ReadGameColorDepth(ReadString(elem, "ColorDepth"));
-    s.CompressSpritesType = ReadSpriteCompression(ReadString(elem, "CompressSpritesType"));
-    s.CustomDataDir = ReadString(elem, "CustomDataDir");
-    s.CustomResolution = ReadString(elem, "CustomResolution");
-    s.DebugMode = ReadBool(elem, "DebugMode");
-    s.DefaultRoomMaskResolution = ReadInt(elem, "DefaultRoomMaskResolution");
-    s.Description = ReadString(elem, "Description");
-    s.DeveloperName = ReadString(elem, "DeveloperName");
-    s.DeveloperURL = ReadString(elem, "DeveloperURL");
-    s.DialogOptionsBackwards = ReadBool(elem, "DialogOptionsBackwards");
-    s.DialogOptionsBullet = ReadInt(elem, "DialogOptionsBullet");
-    s.DialogOptionsGUI = ReadInt(elem, "DialogOptionsGUI");
-    s.DialogOptionsGap = ReadInt(elem, "DialogOptionsGap");
-    s.DialogScriptNarrateFunction = ReadString(elem, "DialogScriptNarrateFunction");
-    s.DialogScriptSayFunction = ReadString(elem, "DialogScriptSayFunction");
-    s.DisplayMultipleInventory = ReadBool(elem, "DisplayMultipleInventory");
-    s.DisplaySingleDialogOption = ReadBool(elem, "DisplaySingleDialogOption");
-    s.EnforceNewAudio = ReadBool(elem, "EnforceNewAudio");
-    s.EnforceNewStrings = ReadBool(elem, "EnforceNewStrings");
-    s.EnforceObjectBasedScript = ReadBool(elem, "EnforceObjectBasedScript");
-    s.GUIHandleOnlyLeftMouseButton = ReadBool(elem, "GUIHandleOnlyLeftMouseButton");
-    s.GUIDAsString = ReadString(elem, "GUIDAsString");
-    s.GameFileName = ReadString(elem, "GameFileName");
-    s.GameName = ReadString(elem, "GameName");
-    s.GameFPS = ReadInt(elem, "GameFPS", 40);
-    s.GameTextEncoding = ReadString(elem, "GameTextEncoding");
-    s.GameTextLanguage = ReadString(elem, "GameTextLanguage");
-    s.Genre = ReadString(elem, "Genre");
-    s.GlobalSpeechAnimationDelay = ReadInt(elem, "GlobalSpeechAnimationDelay");
-    s.HandleInvClicksInScript = ReadBool(elem, "HandleInvClicksInScript");
-    s.InventoryCursors = ReadBool(elem, "InventoryCursors");
-    s.InventoryHotspotMarkerCrosshairColor = ReadInt(elem, "InventoryHotspotMarkerCrosshairColor");
-    s.InventoryHotspotMarkerDotColor = ReadInt(elem, "InventoryHotspotMarkerDotColor");
-    s.InventoryHotspotMarkerSprite = ReadInt(elem, "InventoryHotspotMarkerSprite");
-    s.InventoryHotspotMarkerStyle = ReadInventoryHotspotMarkerStyle(ReadString(elem, "InventoryHotspotMarkerStyle"));
-    s.LeftToRightPrecedence = ReadBool(elem, "LeftToRightPrecedence");
-    s.LetterboxMode = ReadBool(elem, "LetterboxMode");
-    s.MaximumScore = ReadInt(elem, "MaximumScore");
-    s.MouseWheelEnabled = ReadBool(elem, "MouseWheelEnabled");
-    s.NumberDialogOptions = ReadDialogOptionsNumbering(ReadString(elem, "NumberDialogOptions"));
-    s.OptimizeSpriteStorage = ReadBool(elem, "OptimizeSpriteStorage");
-    s.PixelPerfect = ReadBool(elem, "PixelPerfect");
-    s.PlaySoundOnScore = ReadInt(elem, "PlaySoundOnScore");
-    s.ReleaseDate = ReadString(elem, "ReleaseDate");
-    s.RenderAtScreenResolution = ReadRenderAtScreenResolution(ReadString(elem, "RenderAtScreenResolution"));
-    s.RoomTransition = ReadRoomTransition(ReadString(elem, "RoomTransition"));
-    s.RunGameLoopsWhileDialogOptionsDisplayed = ReadBool(elem, "RunGameLoopsWhileDialogOptionsDisplayed");
-    s.SaveGameFileExtension = ReadString(elem, "SaveGameFileExtension");
-    s.SaveGameFolderName = ReadString(elem, "SaveGameFolderName");
-    s.SaveScreenshots = ReadBool(elem, "SaveScreenshots");
-    s.ScaleCharacterSpriteOffsets = ReadBool(elem, "ScaleCharacterSpriteOffsets");
-    s.ScaleMovementSpeedWithMaskResolution = ReadBool(elem, "ScaleMovementSpeedWithMaskResolution");
-    s.ScriptAPIVersion = ReadString(elem, "ScriptAPIVersion");
-    s.ScriptCompatLevel = ReadString(elem, "ScriptCompatLevel");
-    s.SkipSpeech = ReadSkipSpeech(ReadString(elem, "SkipSpeech"));
-    s.SpeechPortraitSide = ReadSpeechPortraitSide(ReadString(elem, "SpeechPortraitSide"));
-    s.SpeechStyle = ReadSpeechStyle(ReadString(elem, "SpeechStyle"));
-    s.SplitResources = ReadString(elem, "SplitResources");
-    s.TTFHeightDefinedBy = ReadFontHeightDefinition(ReadString(elem, "TTFHeightDefinedBy"));
-    s.TTFMetricsFixup = ReadFontMetricsFixup(ReadString(elem, "TTFMetricsFixup"));
-    s.TextWindowGUI = ReadInt(elem, "TextWindowGUI");
-    s.ThoughtGUI = ReadInt(elem, "ThoughtGUI");
-    s.TurnBeforeFacing = ReadBool(elem, "TurnBeforeFacing");
-    s.TurnBeforeWalking = ReadBool(elem, "TurnBeforeWalking");
-    s.UniqueID = ReadInt(elem, "UniqueID");
-    s.UseGlobalSpeechAnimationDelay = ReadBool(elem, "UseGlobalSpeechAnimationDelay");
-    s.UseLowResCoordinatesInScript = ReadBool(elem, "UseLowResCoordinatesInScript");
-    s.UseOldCustomDialogOptionsAPI = ReadBool(elem, "UseOldCustomDialogOptionsAPI");
-    s.UseOldKeyboardHandling = ReadBool(elem, "UseOldKeyboardHandling");
-    s.UseOldVoiceClipNaming = ReadBool(elem, "UseOldVoiceClipNaming");
-    s.TurnOrderPriority = ReadTurnOrderPriority(ReadString(elem, "TurnOrderPriority"));
-    s.TextBoxKeyClaimStyle = ReadTextBoxKeyClaimStyle(ReadString(elem, "TextBoxKeyClaimStyle"));
-    s.Version = ReadString(elem, "Version");
-    s.WalkInLookMode = ReadBool(elem, "WalkInLookMode");
-    s.WhenInterfaceDisabled = ReadGuiDisableStyle(ReadString(elem, "WhenInterfaceDisabled"));
+    ReadFields(elem, s, kGameSettingsFields, UnknownElements::Report);
 }
 
 void GlobalVariables::GetAll(DocElem root, std::vector<DocElem> &elems)
@@ -865,36 +1062,40 @@ void CustomPropertySchema::GetAll(DocElem root, std::vector<DocElem> &elems)
     }
 }
 
+static const XmlField<DataUtil::RuntimeSetup> kRuntimeSetupFields[] = {
+    {"AAScaledSprites", XML_READ(&DataUtil::RuntimeSetup::AAScaledSprites)},
+    {"AutoLockMouse", XML_READ(&DataUtil::RuntimeSetup::AutoLockMouse)},
+    {"CompressSaves", XML_READ(&DataUtil::RuntimeSetup::CompressSaves)},
+    {"CustomAppDataPath", XML_READ(&DataUtil::RuntimeSetup::CustomAppDataPath)},
+    {"CustomSavePath", XML_READ(&DataUtil::RuntimeSetup::CustomSavePath)},
+    {"DigitalSound", XML_READ(&DataUtil::RuntimeSetup::AudioDriver)},
+    {"FullscreenDesktop", XML_READ(&DataUtil::RuntimeSetup::FullscreenDesktop)},
+    {"FullscreenGameScaling", XML_READ(&DataUtil::RuntimeSetup::FullscreenGameScaling)},
+    {"GameScaling", XML_READ(&DataUtil::RuntimeSetup::WindowGameScaling)},
+    {"GameScalingMultiplier", XML_READ(&DataUtil::RuntimeSetup::GameScalingMultiplier)},
+    {"GraphicsDriver", XML_READ(&DataUtil::RuntimeSetup::GraphicsDriver)},
+    {"GraphicsFilter", XML_READ(&DataUtil::RuntimeSetup::GraphicsFilter)},
+    {"MouseSpeed", XML_READ(&DataUtil::RuntimeSetup::MouseSpeed)},
+    {"RenderAtScreenResolution", XML_READ(&DataUtil::RuntimeSetup::RenderAtScreenResolution)},
+    {"Rotation", XML_READ(&DataUtil::RuntimeSetup::Rotation)},
+    {"ShowFPS", XML_READ(&DataUtil::RuntimeSetup::ShowFPS)},
+    {"SoundCacheSize", XML_READ(&DataUtil::RuntimeSetup::SoundCacheSize)},
+    {"SpriteCacheSize", XML_READ(&DataUtil::RuntimeSetup::SpriteCacheSize)},
+    {"TextureCacheSize", XML_READ(&DataUtil::RuntimeSetup::TextureCacheSize)},
+    {"TitleText", XML_READ(&DataUtil::RuntimeSetup::TitleText)},
+    {"TouchToMouseEmulation", XML_READ(&DataUtil::RuntimeSetup::TouchToMouseEmulation)},
+    {"TouchToMouseMotionMode", XML_READ(&DataUtil::RuntimeSetup::TouchToMouseMotionMode)},
+    {"Translation", XML_READ(&DataUtil::RuntimeSetup::Translation)},
+    {"UseCustomAppDataPath", XML_READ(&DataUtil::RuntimeSetup::UseCustomAppDataPath)},
+    {"UseCustomSavePath", XML_READ(&DataUtil::RuntimeSetup::UseCustomSavePath)},
+    {"UseVoicePack", XML_READ(&DataUtil::RuntimeSetup::UseVoicePack)},
+    {"VSync", XML_READ(&DataUtil::RuntimeSetup::VSync)},
+    {"Windowed", XML_READ(&DataUtil::RuntimeSetup::Windowed)},
+};
+
 void RuntimeSetup::ReadAllData(DocElem elem, DataUtil::RuntimeSetup &setup)
 {
-    setup.AAScaledSprites = ReadBool(elem, "AAScaledSprites");
-    setup.AutoLockMouse = ReadBool(elem, "AutoLockMouse");
-    setup.CompressSaves = ReadBool(elem, "CompressSaves");
-    setup.CustomAppDataPath = ReadString(elem, "CustomAppDataPath");
-    setup.CustomSavePath = ReadString(elem, "CustomSavePath");
-    setup.AudioDriver = ReadString(elem, "DigitalSound");
-    setup.FullscreenDesktop = ReadBool(elem, "FullscreenDesktop");
-    setup.FullscreenGameScaling = ReadString(elem, "FullscreenGameScaling");
-    setup.WindowGameScaling = ReadString(elem, "GameScaling");
-    setup.GameScalingMultiplier = ReadInt(elem, "GameScalingMultiplier");
-    setup.GraphicsDriver = ReadString(elem, "GraphicsDriver");
-    setup.GraphicsFilter = ReadString(elem, "GraphicsFilter");
-    setup.MouseSpeed = ReadFloat(elem, "MouseSpeed");
-    setup.RenderAtScreenResolution = ReadBool(elem, "RenderAtScreenResolution");
-    setup.Rotation = ReadString(elem, "Rotation");
-    setup.ShowFPS = ReadBool(elem, "ShowFPS");
-    setup.SoundCacheSize = ReadInt(elem, "SoundCacheSize");
-    setup.SpriteCacheSize = ReadInt(elem, "SpriteCacheSize");
-    setup.TextureCacheSize = ReadInt(elem, "TextureCacheSize");
-    setup.TitleText = ReadString(elem, "TitleText");
-    setup.TouchToMouseEmulation = ReadString(elem, "TouchToMouseEmulation");
-    setup.TouchToMouseMotionMode = ReadString(elem, "TouchToMouseMotionMode");
-    setup.Translation = ReadString(elem, "Translation");
-    setup.UseCustomAppDataPath = ReadBool(elem, "UseCustomAppDataPath");
-    setup.UseCustomSavePath = ReadBool(elem, "UseCustomSavePath");
-    setup.UseVoicePack = ReadBool(elem, "UseVoicePack");
-    setup.VSync = ReadBool(elem, "VSync");
-    setup.Windowed = ReadBool(elem, "Windowed");
+    ReadFields(elem, setup, kRuntimeSetupFields, UnknownElements::Report);
 }
 
 DocElem Game::GetSettings(DocElem elem)
@@ -906,6 +1107,129 @@ DocElem Game::GetDefaultSetup(DocElem elem)
 {
     return elem->FirstChildElement("RuntimeSetup");
 }
+
+struct ScriptXml
+{
+    String FileName;
+    bool IsHeader = false;
+};
+
+static const XmlField<ScriptXml> kScriptFields[] = {
+    {"Author", nullptr},      // the editor shows these in the script's properties
+    {"Description", nullptr}, // same
+    {"FileName", XML_READ(&ScriptXml::FileName)},
+    {"IsHeader", XML_READ(&ScriptXml::IsHeader)},
+    {"Key", nullptr},     // the editor's own id
+    {"Name", nullptr},    // same as the author
+    {"Version", nullptr}, // same as the author
+};
+
+static ScriptXml ReadScriptXml(DocElem elem)
+{
+    ScriptXml script;
+    ReadFields(elem, script, kScriptFields, UnknownElements::Report);
+    return script;
+}
+
+bool ScriptElem::IsHeader(DocElem elem)
+{
+    return ReadScriptXml(elem).IsHeader;
+}
+
+String ScriptElem::ReadFilename(DocElem elem)
+{
+    return ReadScriptXml(elem).FileName;
+}
+
+struct ScriptAndHeaderXml
+{
+};
+
+static const XmlField<ScriptAndHeaderXml> kScriptAndHeaderFields[] = {
+    {"ScriptAndHeader_Header", nullptr}, // see ScriptWithHeader::GetHeader
+    {"ScriptAndHeader_Script", nullptr}, // see ScriptWithHeader::GetBody
+};
+
+struct PluginXml
+{
+    String Data;
+    String FileName;
+};
+
+static const XmlField<PluginXml> kPluginFields[] = {
+    {"Data", XML_READ(&PluginXml::Data)},
+    {"FileName", XML_READ(&PluginXml::FileName)},
+};
+
+static PluginXml ReadPluginXml(DocElem elem)
+{
+    PluginXml plugin;
+    ReadFields(elem, plugin, kPluginFields, UnknownElements::Report);
+    return plugin;
+}
+
+String Plugin::ReadFileName(DocElem elem)
+{
+    return ReadPluginXml(elem).FileName;
+}
+
+String Plugin::ReadData(DocElem elem)
+{
+    return ReadPluginXml(elem).Data;
+}
+
+struct UnloadedRoomXml
+{
+    String Description;
+    int Number = -1;
+};
+
+static const XmlField<UnloadedRoomXml> kUnloadedRoomFields[] = {
+    {"Description", XML_READ(&UnloadedRoomXml::Description)},
+    {"Number", XML_READ(&UnloadedRoomXml::Number)},
+};
+
+static UnloadedRoomXml ReadUnloadedRoomXml(DocElem elem)
+{
+    UnloadedRoomXml room;
+    ReadFields(elem, room, kUnloadedRoomFields, UnknownElements::Report);
+    return room;
+}
+
+int Room::ReadNumber(DocElem elem)
+{
+    return ReadUnloadedRoomXml(elem).Number;
+}
+
+String Room::ReadDescription(DocElem elem)
+{
+    return ReadUnloadedRoomXml(elem).Description;
+}
+
+struct TranslationXml
+{
+    String Name;
+};
+
+static const XmlField<TranslationXml> kTranslationFields[] = {
+    {"Name", XML_READ(&TranslationXml::Name)},
+};
+
+String Translation::ReadName(DocElem elem)
+{
+    TranslationXml translation;
+    ReadFields(elem, translation, kTranslationFields, UnknownElements::Report);
+    return translation.Name;
+}
+
+struct FontFileXml
+{
+    String FileName;
+};
+
+static const XmlField<FontFileXml> kFontFileFields[] = {
+    {"FileName", XML_READ(&FontFileXml::FileName)}, {"SourceFilename", nullptr}, // where the editor copied the font from
+};
 
 DocElem ScriptWithHeader::GetHeader(DocElem elem)
 {
@@ -977,6 +1301,7 @@ static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
             control.ReadButtonData(el, *data);
             if (strcmp(el->Name(), "GUITextWindowEdge") == 0)
             {
+                data->IsTextWindowEdge = true;
                 data->ClickAction = "RunScript";
                 data->MouseoverImage = -1;
                 data->PushedImage = -1;
@@ -1026,23 +1351,96 @@ static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
     }
 }
 
-static void ReadDialog(DataUtil::DialogRef &dialog, AGF::DocElem elem)
+static const XmlField<DataUtil::DialogOptionData> kDialogOptionFields[] = {
+    {"ID", nullptr}, // options are numbered by their order
+    {"Say", XML_READ(&DataUtil::DialogOptionData::Say)},
+    {"Show", XML_READ(&DataUtil::DialogOptionData::Show)},
+    {"Text", XML_READ(&DataUtil::DialogOptionData::Text)},
+};
+
+static HError ReadDialogOptions(const tinyxml2::XMLElement *list, std::vector<DataUtil::DialogOptionData> &options)
+{
+    return ReadList(list, "DialogOption", options, kDialogOptionFields, SIZE_MAX, UnknownElements::Report);
+}
+
+// The dialog's entry in Game.agf only names it; the rest is in Dialogs/<name>.xml (see GetDialogData)
+static const XmlField<DataUtil::DialogRef> kDialogRefFields[] = {
+    {"ID", nullptr},
+    {"ScriptName", nullptr},
+};
+
+static const XmlField<DataUtil::DialogRef> kDialogFields[] = {
+    {"DialogOptions", XML_READ_ELEMENT(&DataUtil::DialogRef::Options, ReadDialogOptions)},
+    {"ID", nullptr}, // the entity reference
+    {"Properties", XML_READ_ELEMENT(&DataUtil::DialogRef::Properties, ReadPropertyList)},
+    {"ScriptName", nullptr}, // the entity reference
+    {"ShowTextParser", XML_READ(&DataUtil::DialogRef::ShowTextParser)},
+};
+
+static void ReadDialog(DataUtil::DialogRef &dialog, AGFReader &reader, AGF::DocElem dialog_ref)
 {
     AGF::Dialog p_dialog;
-    ReadEntityRef(dialog, p_dialog, elem);
-    dialog.ShowTextParser = ValueParser::ReadBool(elem, "ShowTextParser");
-
-    DocElem options = elem->FirstChildElement("DialogOptions");
-    for (DocElem option = options ? options->FirstChildElement("DialogOption") : nullptr;
-         option; option = option->NextSiblingElement("DialogOption"))
-    {
-        DataUtil::DialogOptionData data;
-        data.Text = ValueParser::ReadString(option, "Text");
-        data.Say = ValueParser::ReadBool(option, "Say", true);
-        data.Show = ValueParser::ReadBool(option, "Show", true);
-        dialog.Options.push_back(data);
-    }
+    ReadEntityRef(dialog, p_dialog, dialog_ref);
+    DocElem elem = reader.GetDialogData(dialog_ref);
+    if (!elem)
+        return;
+    ReadFields(elem, dialog, kDialogFields, UnknownElements::Report);
     dialog.OptionCount = static_cast<int>(dialog.Options.size());
+}
+
+struct GlobalVariableXml
+{
+    int ArraySize = 0;
+    int ArrayType = DataUtil::kVariable_Single;
+    String DefaultValue;
+    String Name;
+    String Type;
+};
+
+static bool ParseVariableArrayType(const char *text, int &value)
+{
+    static const char *const kNames[] = {"None", "Array", "DynamicArray"};
+    return ParseXmlEnum(text, kNames, std::size(kNames), value);
+}
+
+static const XmlField<GlobalVariableXml> kGlobalVariableFields[] = {
+    {"ArraySize", XML_READ(&GlobalVariableXml::ArraySize)},
+    {"ArrayType", XML_READ_WITH(&GlobalVariableXml::ArrayType, ParseVariableArrayType)},
+    {"DefaultValue", XML_READ(&GlobalVariableXml::DefaultValue)},
+    {"Name", XML_READ(&GlobalVariableXml::Name)},
+    {"Type", XML_READ(&GlobalVariableXml::Type)},
+};
+
+static GlobalVariableXml ReadGlobalVariableXml(DocElem elem)
+{
+    GlobalVariableXml var;
+    ReadFields(elem, var, kGlobalVariableFields, UnknownElements::Report);
+    return var;
+}
+
+String GlobalVariable::ReadType(DocElem elem)
+{
+    return ReadGlobalVariableXml(elem).Type;
+}
+
+String GlobalVariable::ReadScriptName(DocElem elem)
+{
+    return ReadGlobalVariableXml(elem).Name;
+}
+
+String GlobalVariable::ReadDefaultValue(DocElem elem)
+{
+    return ReadGlobalVariableXml(elem).DefaultValue;
+}
+
+DataUtil::VariableArrayType GlobalVariable::ReadArrayType(DocElem elem)
+{
+    return static_cast<DataUtil::VariableArrayType>(ReadGlobalVariableXml(elem).ArrayType);
+}
+
+int GlobalVariable::ReadArraySize(DocElem elem)
+{
+    return ReadGlobalVariableXml(elem).ArraySize;
 }
 
 void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root)
@@ -1060,6 +1458,8 @@ void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root)
         var.Type = glvar.ReadType(el);
         var.Name = glvar.ReadScriptName(el);
         var.Value = glvar.ReadDefaultValue(el);
+        var.ArrayType = glvar.ReadArrayType(el);
+        var.ArraySize = glvar.ReadArraySize(el);
         vars.push_back(var);
     }
 }
@@ -1177,25 +1577,15 @@ static DataUtil::PaletteColourType ReadColourType(const String &value)
     }
 }
 
-static void ReadProperties(DocElem elem, std::vector<DataUtil::CustomPropertyValue> &props)
-{
-    DocElem list = elem ? elem->FirstChildElement("Properties") : nullptr;
-    for (DocElem prop = list ? list->FirstChildElement("CustomProperty") : nullptr;
-         prop; prop = prop->NextSiblingElement("CustomProperty"))
-    {
-        DataUtil::CustomPropertyValue value;
-        value.Name = ValueParser::ReadString(prop, "Name");
-        value.Value = ValueParser::ReadString(prop, "Value");
-        props.push_back(value);
-    }
-}
-
 static void ReadInteractions(DocElem elem, String &script_module, std::vector<String> &events)
 {
+    // The entity's own ScriptModule (Character.ScriptModule, InventoryItem.ScriptModule) sets the
+    // interactions' module; older formats kept one inside <Interactions>, which then wins
+    script_module = ValueParser::ReadString(elem, "ScriptModule", script_module.GetCStr());
     DocElem interactions = elem ? elem->FirstChildElement("Interactions") : nullptr;
     if (!interactions)
         return;
-    script_module = ValueParser::ReadString(interactions, "ScriptModule");
+    script_module = ValueParser::ReadString(interactions, "ScriptModule", script_module.GetCStr());
     for (DocElem event = interactions->FirstChildElement("Event");
          event; event = event->NextSiblingElement("Event"))
     {
@@ -1208,31 +1598,71 @@ static void ReadInteractions(DocElem elem, String &script_module, std::vector<St
     }
 }
 
+// What an audio clip has in its element, before it is merged with the defaults of its folders
+struct AudioClipXml
+{
+    int Index = 0;
+    String SourceFileName;
+    DataUtil::AudioFileBundlingType BundlingType = ReadAudioBundlingType("");
+    int Type = 0;
+    DataUtil::AudioClipFileType FileType = ReadAudioFileType("");
+    String DefaultRepeat = "Inherit";
+    String DefaultPriority = "Inherit";
+    int DefaultVolume = -1;
+    std::vector<DataUtil::CustomPropertyValue> Properties;
+};
+
+static const XmlField<AudioClipXml> kAudioClipFields[] = {
+    {"BundlingType", XML_READ_CONVERTED(&AudioClipXml::BundlingType, ReadAudioBundlingType)},
+    {"DefaultPriority", XML_READ(&AudioClipXml::DefaultPriority)},
+    {"DefaultRepeat", XML_READ(&AudioClipXml::DefaultRepeat)},
+    {"DefaultVolume", XML_READ(&AudioClipXml::DefaultVolume)},
+    {"FileLastModifiedDate", nullptr}, // the editor checks if the source has changed
+    {"FileType", XML_READ_CONVERTED(&AudioClipXml::FileType, ReadAudioFileType)},
+    {"ID", nullptr}, // the entity reference
+    {"Index", XML_READ(&AudioClipXml::Index)},
+    {"Properties", XML_READ_ELEMENT(&AudioClipXml::Properties, ReadPropertyList)},
+    {"ScriptName", nullptr}, // the entity reference
+    {"SourceFileName", XML_READ(&AudioClipXml::SourceFileName)},
+    {"Type", XML_READ(&AudioClipXml::Type)},
+};
+
 void AudioClip::ReadAllData(DocElem elem, DataUtil::AudioClipData &data)
 {
-    data.Index = ReadInt(elem, "Index");
-    data.SourceFileName = ReadString(elem, "SourceFileName");
+    AudioClipXml clip;
+    ReadFields(elem, clip, kAudioClipFields, UnknownElements::Report);
+    data.Index = clip.Index;
+    data.SourceFileName = clip.SourceFileName;
     const char *dot = std::strrchr(data.SourceFileName.GetCStr(), '.');
     data.CacheFileName = String::FromFormat("au%06X%s", data.Index, dot ? dot : "");
-    data.BundlingType = ReadAudioBundlingType(ReadString(elem, "BundlingType"));
-    data.Type = ReadInt(elem, "Type");
-    data.FileType = ReadAudioFileType(ReadString(elem, "FileType"));
+    data.BundlingType = clip.BundlingType;
+    data.Type = clip.Type;
+    data.FileType = clip.FileType;
 
-    int repeat = ReadInheritableBool(ReadString(elem, "DefaultRepeat", "Inherit"));
-    int priority = ReadAudioPriority(ReadString(elem, "DefaultPriority", "Inherit"));
-    int volume = ReadInt(elem, "DefaultVolume", -1);
+    // The clip may inherit its repeat, priority and volume from its folders
+    int repeat = ReadInheritableBool(clip.DefaultRepeat);
+    int priority = ReadAudioPriority(clip.DefaultPriority);
+    int volume = clip.DefaultVolume;
     for (XMLNode *node = elem->Parent(); node && (repeat < 0 || priority < 0 || volume < 0);
          node = node->Parent())
     {
         DocElem folder = node->ToElement();
         if (!folder || strcmp(folder->Name(), "AudioClipFolder") != 0) continue;
-        if (repeat < 0) repeat = ReadInheritableBool(ReadString(folder, "DefaultRepeat", "Inherit"));
-        if (priority < 0) priority = ReadAudioPriority(ReadString(folder, "DefaultPriority", "Inherit"));
-        if (volume < 0) volume = ReadInt(folder, "DefaultVolume", -1);
+        // The folder's own settings are in a child element of the same name (AudioClipFolder(XmlNode))
+        DocElem settings = folder->FirstChildElement("AudioClipFolder");
+        if (!settings)
+            continue;
+        if (repeat < 0)
+            repeat = ReadInheritableBool(ReadString(settings, "DefaultRepeat", "Inherit"));
+        if (priority < 0)
+            priority = ReadAudioPriority(ReadString(settings, "DefaultPriority", "Inherit"));
+        if (volume < 0)
+            volume = ReadInt(settings, "DefaultVolume", -1);
     }
     data.Repeat = repeat > 0;
     data.Priority = priority < 0 ? 50 : priority;
     data.Volume = volume < 0 ? 100 : volume;
+    data.Properties = std::move(clip.Properties);
 }
 
 String AudioType::ReadScriptName(DocElem elem)
@@ -1240,73 +1670,149 @@ String AudioType::ReadScriptName(DocElem elem)
     return BuildAudioTypePrefixedScriptID(ReadString(elem, "Name"));
 }
 
+static const XmlField<DataUtil::AudioTypeData> kAudioTypeFields[] = {
+    {"BackwardsCompatibilityType", nullptr}, // protects the type from deletion in the editor
+    {"CrossfadeClips", XML_READ_CONVERTED(&DataUtil::AudioTypeData::Crossfade, ReadCrossfadeSpeed)},
+    {"MaxChannels", XML_READ(&DataUtil::AudioTypeData::MaxChannels)},
+    {"Name", XML_READ(&DataUtil::AudioTypeData::Name)}, // the AudioClipType name
+    {"TypeID", nullptr},                            // the entity reference
+    {"VolumeReductionWhileSpeechPlaying", XML_READ(&DataUtil::AudioTypeData::VolumeReductionWhileSpeechPlaying)},
+};
+
 void AudioType::ReadAllData(DocElem elem, DataUtil::AudioTypeData &data)
 {
-    data.Name = ReadString(elem, "Name"); // This is AudioCliptType Name
-    data.MaxChannels = ReadInt(elem, "MaxChannels");
-    data.VolumeReductionWhileSpeechPlaying = ReadInt(elem, "VolumeReductionWhileSpeechPlaying");
-    data.Crossfade = ReadCrossfadeSpeed(ReadString(elem, "CrossfadeClips"));
+    ReadFields(elem, data, kAudioTypeFields, UnknownElements::Report);
 }
+
+static const XmlField<DataUtil::CustomPropertyValue> kCustomPropertyFields[] = {
+    {"Name", XML_READ(&DataUtil::CustomPropertyValue::Name)},
+    {"Value", XML_READ(&DataUtil::CustomPropertyValue::Value)},
+};
+
+// <Properties> element into a list of name/value pairs
+static HError ReadPropertyList(const tinyxml2::XMLElement *list, std::vector<DataUtil::CustomPropertyValue> &props)
+{
+    return ReadList(list, "CustomProperty", props, kCustomPropertyFields, SIZE_MAX, UnknownElements::Report);
+}
+
+// Rectangle "x,y,width,height" into the character's blocking rectangle
+static HError ReadBlockingRect(const tinyxml2::XMLElement *elem, DataUtil::CharacterData &data)
+{
+    XmlRect r;
+    if (!ParseXmlValue(XmlDetail::ElementText(elem), r))
+        return XmlDetail::InvalidValue(elem);
+    data.BlockingX = r.X;
+    data.BlockingY = r.Y;
+    data.BlockingWidth = r.Width;
+    data.BlockingHeight = r.Height;
+    return HError::None();
+}
+
+static const XmlField<DataUtil::CharacterData> kCharacterFields[] = {
+    {"AdjustSpeedWithScaling", XML_READ(&DataUtil::CharacterData::AdjustSpeedWithScaling)},
+    {"AdjustVolumeWithScaling", XML_READ(&DataUtil::CharacterData::AdjustVolumeWithScaling)},
+    {"AnimationDelay", XML_READ(&DataUtil::CharacterData::AnimationDelay)},
+    {"Baseline", XML_READ(&DataUtil::CharacterData::Baseline)},
+    {"BlendMode", XML_READ_WITH(&DataUtil::CharacterData::BlendMode, ParseBlendMode)},
+    {"BlinkingView", XML_READ(&DataUtil::CharacterData::BlinkingView)},
+    {"BlockingRectangle", ReadBlockingRect},
+    {"Clickable", XML_READ(&DataUtil::CharacterData::Clickable)},
+    {"DiagonalLoops", XML_READ(&DataUtil::CharacterData::DiagonalLoops)},
+    {"DisplayName", XML_READ(&DataUtil::CharacterData::RealName)},
+    {"Enabled", XML_READ(&DataUtil::CharacterData::Enabled)},
+    {"GraphicAnchor", XML_READ_WITH(&DataUtil::CharacterData::GraphicAnchor, ParseGraphicAnchor)},
+    {"GraphicOffset", XML_READ(&DataUtil::CharacterData::GraphicOffset)},
+    {"IdleAnimationDelay", XML_READ(&DataUtil::CharacterData::IdleAnimationDelay)},
+    {"IdleDelay", XML_READ(&DataUtil::CharacterData::IdleDelay)},
+    {"ID", nullptr}, // the entity reference
+    {"IdleView", XML_READ(&DataUtil::CharacterData::IdleView)},
+    {"Interactions", nullptr}, // see ReadInteractions
+    {"MovementLinkedToAnimation", XML_READ(&DataUtil::CharacterData::MovementLinkedToAnimation)},
+    {"MovementSpeed", XML_READ(&DataUtil::CharacterData::MovementSpeed)},
+    {"MovementSpeedX", XML_READ(&DataUtil::CharacterData::MovementSpeedX)},
+    {"MovementSpeedY", XML_READ(&DataUtil::CharacterData::MovementSpeedY)},
+    {"NormalView", XML_READ(&DataUtil::CharacterData::NormalView)},
+    {"OnAnyClick", XML_READ(&DataUtil::CharacterData::OnAnyClick)},
+    {"OnFrameEvent", XML_READ(&DataUtil::CharacterData::OnFrameEvent)},
+    {"Transparency", XML_READ(&DataUtil::CharacterData::Transparency)},
+    {"Properties", XML_READ_ELEMENT(&DataUtil::CharacterData::Properties, ReadPropertyList)},
+    {"ScriptModule", nullptr}, // see ReadInteractions
+    {"ScriptName", nullptr},   // the entity reference
+    {"Solid", XML_READ(&DataUtil::CharacterData::Solid)},
+    {"SpeechAnimationDelay", XML_READ(&DataUtil::CharacterData::SpeechAnimationDelay)},
+    {"SpeechColor", XML_READ(&DataUtil::CharacterData::SpeechColor)},
+    {"SpeechView", XML_READ(&DataUtil::CharacterData::SpeechView)},
+    {"StartX", XML_READ(&DataUtil::CharacterData::StartX)},
+    {"StartY", XML_READ(&DataUtil::CharacterData::StartY)},
+    {"StartingRoom", XML_READ(&DataUtil::CharacterData::StartingRoom)},
+    {"ThinkingView", XML_READ(&DataUtil::CharacterData::ThinkingView)},
+    {"TurnBeforeWalking", XML_READ(&DataUtil::CharacterData::TurnBeforeWalking)},
+    {"TurnWhenFacing", XML_READ(&DataUtil::CharacterData::TurnWhenFacing)},
+    {"UniformMovementSpeed", XML_READ(&DataUtil::CharacterData::UniformMovementSpeed)},
+    {"UseRoomAreaLighting", XML_READ(&DataUtil::CharacterData::UseRoomAreaLighting)},
+    {"UseRoomAreaScaling", XML_READ(&DataUtil::CharacterData::UseRoomAreaScaling)},
+    {"Visible", XML_READ(&DataUtil::CharacterData::Visible)},
+};
 
 void Character::ReadAllData(DocElem elem, DataUtil::CharacterData &data)
 {
-    data.AdjustSpeedWithScaling = ValueParser::ReadBool(elem, "AdjustSpeedWithScaling");
-    data.AdjustVolumeWithScaling = ValueParser::ReadBool(elem, "AdjustVolumeWithScaling");
-    data.AnimationDelay = ValueParser::ReadInt(elem, "AnimationDelay");
-    data.Baseline = ValueParser::ReadInt(elem, "Baseline");
-    data.BlinkingView = ValueParser::ReadInt(elem, "BlinkingView");
-    std::sscanf(ValueParser::ReadString(elem, "BlockingRectangle", "0,0,0,0"), "%d,%d,%d,%d",
-        &data.BlockingX, &data.BlockingY, &data.BlockingWidth, &data.BlockingHeight);
-    data.Clickable = ValueParser::ReadBool(elem, "Clickable", true);
-    data.DiagonalLoops = ValueParser::ReadBool(elem, "DiagonalLoops", true);
-    data.IdleAnimationDelay = ValueParser::ReadInt(elem, "IdleAnimationDelay");
-    data.IdleDelay = ValueParser::ReadInt(elem, "IdleDelay");
-    data.IdleView = ValueParser::ReadInt(elem, "IdleView");
-    data.MovementLinkedToAnimation = ValueParser::ReadBool(elem, "MovementLinkedToAnimation");
-    data.MovementSpeed = ValueParser::ReadInt(elem, "MovementSpeed");
-    data.MovementSpeedX = ValueParser::ReadInt(elem, "MovementSpeedX");
-    data.MovementSpeedY = ValueParser::ReadInt(elem, "MovementSpeedY");
-    data.NormalView = ValueParser::ReadInt(elem, "NormalView");
-    data.RealName = ValueParser::ReadString(elem, "RealName");
-    data.Solid = ValueParser::ReadBool(elem, "Solid", true);
-    data.SpeechAnimationDelay = ValueParser::ReadInt(elem, "SpeechAnimationDelay");
-    data.SpeechColor = ValueParser::ReadInt(elem, "SpeechColor");
-    data.SpeechView = ValueParser::ReadInt(elem, "SpeechView");
-    data.StartX = ValueParser::ReadInt(elem, "StartX");
-    data.StartY = ValueParser::ReadInt(elem, "StartY");
-    data.StartingRoom = ValueParser::ReadInt(elem, "StartingRoom", -1);
-    data.ThinkingView = ValueParser::ReadInt(elem, "ThinkingView");
-    data.Transparency = ValueParser::ReadInt(elem, "Transparency");
-    data.TurnBeforeWalking = ValueParser::ReadBool(elem, "TurnBeforeWalking", true);
-    data.TurnWhenFacing = ValueParser::ReadBool(elem, "TurnWhenFacing", true);
-    data.UniformMovementSpeed = ValueParser::ReadBool(elem, "UniformMovementSpeed", true);
-    data.UseRoomAreaLighting = ValueParser::ReadBool(elem, "UseRoomAreaLighting", true);
-    data.UseRoomAreaScaling = ValueParser::ReadBool(elem, "UseRoomAreaScaling", true);
-    ReadProperties(elem, data.Properties);
+    ReadFields(elem, data, kCharacterFields, UnknownElements::Report);
     ReadInteractions(elem, data.ScriptModule, data.InteractionEvents);
 }
 
+static const CstrArr<4> kSpriteFlipStyleNames = {{"None", "Horizontal", "Vertical", "Both"}};
+
+static bool ParseSpriteFlipStyle(const char *text, int &value)
+{
+    return ParseXmlEnum(text, kSpriteFlipStyleNames, value);
+}
+
+// ViewFrame.Image is never negative
+static bool ParseFrameImage(const char *text, int &value)
+{
+    if (!ParseXmlValue(text, value))
+        return false;
+    value = std::max(value, 0);
+    return true;
+}
+
+static const XmlField<DataUtil::ViewFrameData> kViewFrameFields[] = {
+    {"Delay", XML_READ(&DataUtil::ViewFrameData::Delay)},
+    {"EventName", XML_READ(&DataUtil::ViewFrameData::EventName)},
+    {"Flip", XML_READ_WITH(&DataUtil::ViewFrameData::Flip, ParseSpriteFlipStyle)},
+    {"Flipped", nullptr}, // obsolete; the editor ignores it
+    {"ID", nullptr},      // the frame's index in its loop
+    {"Image", XML_READ_WITH(&DataUtil::ViewFrameData::Image, ParseFrameImage)},
+    {"Sound", XML_READ(&DataUtil::ViewFrameData::Sound)},
+    {"XOffset", XML_READ(&DataUtil::ViewFrameData::XOffset)},
+    {"YOffset", XML_READ(&DataUtil::ViewFrameData::YOffset)},
+};
+
+static HError ReadViewFrames(const tinyxml2::XMLElement *frames, std::vector<DataUtil::ViewFrameData> &list)
+{
+    return ReadList(frames, "ViewFrame", list, kViewFrameFields, SIZE_MAX, UnknownElements::Report);
+}
+
+static const XmlField<DataUtil::ViewLoopData> kViewLoopFields[] = {
+    {"Frames", XML_READ_ELEMENT(&DataUtil::ViewLoopData::Frames, ReadViewFrames)},
+    {"ID", nullptr}, // the loop's index in its view
+    {"RunNextLoop", XML_READ(&DataUtil::ViewLoopData::RunNextLoop)},
+};
+
+static HError ReadViewLoops(const tinyxml2::XMLElement *loops, std::vector<DataUtil::ViewLoopData> &list)
+{
+    return ReadList(loops, "Loop", list, kViewLoopFields, SIZE_MAX, UnknownElements::Report);
+}
+
+static const XmlField<DataUtil::ViewData> kViewFields[] = {
+    {"ID", nullptr}, // the entity reference
+    {"Loops", XML_READ_ELEMENT(&DataUtil::ViewData::Loops, ReadViewLoops)},
+    {"ScriptName", nullptr}, // the entity reference
+};
+
 void View::ReadAllData(DocElem elem, DataUtil::ViewData &data)
 {
-    DocElem loops = elem->FirstChildElement("Loops");
-    for (DocElem loop = loops ? loops->FirstChildElement("Loop") : nullptr;
-         loop; loop = loop->NextSiblingElement("Loop"))
-    {
-        DataUtil::ViewLoopData loop_data;
-        loop_data.RunNextLoop = ValueParser::ReadBool(loop, "RunNextLoop");
-        DocElem frames = loop->FirstChildElement("Frames");
-        for (DocElem frame = frames ? frames->FirstChildElement("ViewFrame") : nullptr;
-             frame; frame = frame->NextSiblingElement("ViewFrame"))
-        {
-            DataUtil::ViewFrameData frame_data;
-            frame_data.Delay = ValueParser::ReadInt(frame, "Delay");
-            frame_data.Flipped = ValueParser::ReadBool(frame, "Flipped");
-            frame_data.Image = ValueParser::ReadInt(frame, "Image");
-            frame_data.Sound = ValueParser::ReadInt(frame, "Sound");
-            loop_data.Frames.push_back(frame_data);
-        }
-        data.Loops.push_back(loop_data);
-    }
+    ReadFields(elem, data, kViewFields, UnknownElements::Report);
 }
 
 String Font::ReadScriptName(DocElem elem)
@@ -1314,21 +1820,27 @@ String Font::ReadScriptName(DocElem elem)
     return BuildFontPrefixedScriptID(ReadString(elem, "Name"));
 }
 
+static const XmlField<DataUtil::FontData> kFontFields[] = {
+    {"AutoOutlineStyle", XML_READ_CONVERTED(&DataUtil::FontData::AutoOutlineStyle, ReadFontAutoOutlineStyle)},
+    {"AutoOutlineThickness", XML_READ(&DataUtil::FontData::AutoOutlineThickness)},
+    {"CharacterSpacing", XML_READ(&DataUtil::FontData::CharacterSpacing)},
+    {"CustomHeightValue", XML_READ(&DataUtil::FontData::CustomHeightValue)},
+    {"FontFileName", XML_READ(&DataUtil::FontData::FontFileName)},
+    {"HeightDefinedBy", XML_READ_CONVERTED(&DataUtil::FontData::HeightDefinedBy, ReadFontHeightDefinition)},
+    {"ID", nullptr}, // the entity reference
+    {"LineSpacing", XML_READ(&DataUtil::FontData::LineSpacing)},
+    {"Name", XML_READ(&DataUtil::FontData::Name)}, // the Font name
+    {"OutlineFont", XML_READ(&DataUtil::FontData::OutlineFont)},
+    {"OutlineStyle", XML_READ_CONVERTED(&DataUtil::FontData::OutlineStyle, ReadFontOutlineStyle)},
+    {"PointSize", XML_READ(&DataUtil::FontData::PointSize)},
+    {"SizeMultiplier", XML_READ(&DataUtil::FontData::SizeMultiplier)},
+    {"TTFMetricsFixup", XML_READ_CONVERTED(&DataUtil::FontData::MetricsFixup, ReadFontMetricsFixup)},
+    {"VerticalOffset", XML_READ(&DataUtil::FontData::VerticalOffset)},
+};
+
 void Font::ReadAllData(DocElem elem, DataUtil::FontData &data)
 {
-    data.Name = ReadString(elem, "Name"); // This is Font Name
-    data.AutoOutlineThickness = ValueParser::ReadInt(elem, "AutoOutlineThickness");
-    data.AutoOutlineStyle = ReadFontAutoOutlineStyle(ValueParser::ReadString(elem, "AutoOutlineStyle"));
-    data.CharacterSpacing = ValueParser::ReadInt(elem, "CharacterSpacing");
-    data.CustomHeightValue = ValueParser::ReadInt(elem, "CustomHeightValue");
-    data.HeightDefinedBy = ReadFontHeightDefinition(ValueParser::ReadString(elem, "HeightDefinedBy"));
-    data.LineSpacing = ValueParser::ReadInt(elem, "LineSpacing");
-    data.OutlineFont = ValueParser::ReadInt(elem, "OutlineFont");
-    data.OutlineStyle = ReadFontOutlineStyle(ValueParser::ReadString(elem, "OutlineStyle"));
-    data.PointSize = ValueParser::ReadInt(elem, "PointSize");
-    data.SizeMultiplier = ValueParser::ReadInt(elem, "SizeMultiplier", 1);
-    data.MetricsFixup = ReadFontMetricsFixup(ValueParser::ReadString(elem, "TTFMetricsFixup"));
-    data.VerticalOffset = ValueParser::ReadInt(elem, "VerticalOffset");
+    ReadFields(elem, data, kFontFields, UnknownElements::Report);
 }
 
 static void CollectElements(DocElem elem, const char *name, std::vector<DocElem> &result)
@@ -1368,9 +1880,38 @@ static void SortByID(std::vector<T> &items)
     std::sort(items.begin(), items.end(), [](const T &a, const T &b) { return a.ID < b.ID; });
 }
 
+static const XmlField<DataUtil::GameRef> kGameFields[] = {
+    // The lists are read by their own functions, see ReadGameData
+    {"AudioClipTypes", nullptr},
+    {"AudioClips", nullptr},
+    {"Characters", nullptr},
+    {"Cursors", nullptr},
+    {"DeletedViews", nullptr}, // the editor keeps views you may undelete
+    {"Dialogs", nullptr},
+    {"FontFiles", nullptr},
+    {"Fonts", nullptr},
+    {"GUIs", nullptr},
+    {"GlobalMessages", nullptr}, // older projects
+    {"GlobalVariables", nullptr},
+    {"InventoryItems", nullptr},
+    {"LipSync", nullptr},
+    {"Palette", nullptr},
+    {"PlayerCharacter", XML_READ(&DataUtil::GameRef::PlayerCharacter)},
+    {"Plugins", nullptr},
+    {"PropertyDefinitions", nullptr},
+    {"Rooms", nullptr},
+    {"RuntimeSetup", nullptr},
+    {"Scripts", nullptr},
+    {"Settings", nullptr},
+    {"Sprites", nullptr},
+    {"TextParser", nullptr},
+    {"Translations", nullptr},
+    {"Views", nullptr},
+};
+
 static void ReadGameCommon(DataUtil::GameRef &game, DocElem root)
 {
-    game.PlayerCharacter = ValueParser::ReadInt(root, "PlayerCharacter", -1);
+    ReadFields(root, game, kGameFields, UnknownElements::Report);
     ReadRoomList(game.Rooms, root);
     ReadGlobalVariables(game.GlobalVars, root);
     ReadCustomPropertySchema(game.PropertySchema, root);
@@ -1395,6 +1936,38 @@ void ReadGamePalette(std::vector<DataUtil::PaletteEntryData> &pal_data, DocElem 
     }
 }
 
+static bool ParseSpriteImportColorDepth(const char *text, int &value)
+{
+    static const char *const kNames[] = {"GameDefault", "", "", "", "", "", "", "", "Indexed8Bit"};
+    return ParseXmlEnum(text, kNames, std::size(kNames), value);
+}
+
+static const XmlField<DataUtil::SpriteData> kSpriteSourceFields[] = {
+    {"FileName", XML_READ(&DataUtil::SpriteData::SourceFile)},
+    {"Frame", XML_READ(&DataUtil::SpriteData::ImportFrame)},
+    {"ImportAlphaChannel", XML_READ(&DataUtil::SpriteData::ImportAlphaChannel)}, // older projects
+    {"ImportAsTile", XML_READ(&DataUtil::SpriteData::ImportAsTile)},
+    {"ImportColorDepth", XML_READ_WITH(&DataUtil::SpriteData::ImportColorDepth, ParseSpriteImportColorDepth)},
+    {"ImportHeight", XML_READ(&DataUtil::SpriteData::ImportHeight)},
+    {"ImportMethod", XML_READ_CONVERTED(&DataUtil::SpriteData::TransparentColour, ReadSpriteImportTransparency)},
+    {"ImportWidth", XML_READ(&DataUtil::SpriteData::ImportWidth)},
+    {"OffsetX", XML_READ(&DataUtil::SpriteData::ImportOffsetX)},
+    {"OffsetY", XML_READ(&DataUtil::SpriteData::ImportOffsetY)},
+    {"RemapToGamePalette", XML_READ(&DataUtil::SpriteData::RemapToGamePalette)},
+    {"RemapToRoomPalette", XML_READ(&DataUtil::SpriteData::RemapToRoomPalette)},
+    {"TransparentColorIndex", XML_READ(&DataUtil::SpriteData::TransparentColourIndex)},
+};
+
+static HError ReadSpriteSource(const tinyxml2::XMLElement *elem, DataUtil::SpriteData &data)
+{
+    return ReadFields(elem, data, kSpriteSourceFields, UnknownElements::Report);
+}
+
+// The sprite's slot, size and so on are attributes; the import settings are in its Source element
+static const XmlField<DataUtil::SpriteData> kSpriteFields[] = {
+    {"Source", ReadSpriteSource},
+};
+
 static void GetAllSprites(std::vector<DataUtil::SpriteData> &sprites, DocElem root)
 {
     std::vector<DocElem> elems;
@@ -1409,25 +1982,35 @@ static void GetAllSprites(std::vector<DataUtil::SpriteData> &sprites, DocElem ro
         data.Resolution = ReadSpriteImportResolution(ValueParser::ReadAttributeString(sprite, "Resolution", "Real"));
         data.AlphaChannel = ValueParser::ReadAttributeBool(sprite, "AlphaChannel");
         data.ColoursLockedToRoom = ValueParser::ReadAttributeInt(sprite, "ColoursLockedToRoom", 0);
-        DocElem source = sprite->FirstChildElement("Source");
-        if (source)
-        {
-            data.SourceFile = ValueParser::ReadString(source, "FileName");
-            data.ImportOffsetX = ValueParser::ReadInt(source, "OffsetX");
-            data.ImportOffsetY = ValueParser::ReadInt(source, "OffsetY");
-            data.ImportFrame = ValueParser::ReadInt(source, "Frame");
-            data.RemapToGamePalette = ValueParser::ReadBool(source, "RemapToGamePalette");
-            data.RemapToRoomPalette = ValueParser::ReadBool(source, "RemapToRoomPalette");
-            data.TransparentColour = ReadSpriteImportTransparency(ValueParser::ReadString(source, "ImportMethod", "LeaveAsIs"));
-            data.ImportAlphaChannel = ValueParser::ReadBool(source, "ImportAlphaChannel");
-            data.ImportWidth = ValueParser::ReadInt(source, "ImportWidth");
-            data.ImportHeight = ValueParser::ReadInt(source, "ImportHeight");
-            data.ImportAsTile = ValueParser::ReadBool(source, "ImportAsTile");
-            data.TransparentColourIndex = ValueParser::ReadInt(source, "TransparentColorIndex");
-        }
+        ReadFields(sprite, data, kSpriteFields, UnknownElements::Report);
         sprites.push_back(data);
     }
 }
+
+static const XmlField<DataUtil::TextParserWordData> kTextParserWordFields[] = {
+    {"Type", nullptr}, // the editor's own grouping
+    {"Word", XML_READ(&DataUtil::TextParserWordData::Word)},
+    {"WordGroup", XML_READ(&DataUtil::TextParserWordData::WordGroup)},
+};
+
+// <Frames> element: the characters that make each lip sync frame
+static HError ReadCharsForFrame(const tinyxml2::XMLElement *list, std::vector<String> &frames)
+{
+    frames.clear();
+    for (const tinyxml2::XMLElement *frame = list->FirstChildElement(); frame; frame = frame->NextSiblingElement())
+    {
+        if (strcmp(frame->Name(), "CharsForFrame") != 0)
+            return XmlDetail::UnknownElement(list, frame);
+        frames.push_back(XmlDetail::ElementText(frame));
+    }
+    return HError::None();
+}
+
+static const XmlField<DataUtil::GameData> kLipSyncFields[] = {
+    {"DefaultFrame", XML_READ(&DataUtil::GameData::LipSyncDefaultFrame)},
+    {"Frames", XML_READ_ELEMENT(&DataUtil::GameData::LipSyncFrames, ReadCharsForFrame)},
+    {"Type", XML_READ_CONVERTED(&DataUtil::GameData::LipSync, ReadLipSyncType)},
+};
 
 void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
 {
@@ -1504,7 +2087,7 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
         for (const auto &el : elems)
         {
             DataUtil::DialogRef dialog;
-            ReadDialog(dialog, el);
+            ReadDialog(dialog, reader, el);
             game.Dialogs.push_back(dialog);
         }
     }
@@ -1537,6 +2120,7 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
             ReadGUI(gui_data, el);
             game.GUI.push_back(gui_data);
         }
+        SortByID(game.GUI); // folders may list them in another order
     }
     // Inventory items
     {
@@ -1549,7 +2133,6 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
             DataUtil::InventoryItemData data;
             ReadEntityRef(data, invitem, el);
             invitem.ReadAllData(el, data);
-            ReadProperties(el, data.Properties);
             ReadInteractions(el, data.ScriptModule, data.InteractionEvents);
             game.Inventory.push_back(data);
         }
@@ -1582,18 +2165,12 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
     for (DocElem elem : elems)
     {
         DataUtil::TextParserWordData word;
-        word.Word = ValueParser::ReadString(elem, "Word");
-        word.WordGroup = ValueParser::ReadInt(elem, "WordGroup");
+        ReadFields(elem, word, kTextParserWordFields, UnknownElements::Report);
         game.ParserWords.push_back(word);
     }
 
-    DocElem lipsync = root->FirstChildElement("LipSync");
-    game.LipSyncDefaultFrame = ValueParser::ReadInt(lipsync, "DefaultFrame");
-    game.LipSync = ReadLipSyncType(ValueParser::ReadString(lipsync, "Type"));
-    DocElem frames = lipsync ? lipsync->FirstChildElement("Frames") : nullptr;
-    for (DocElem frame = frames ? frames->FirstChildElement("CharsForFrame") : nullptr;
-         frame; frame = frame->NextSiblingElement("CharsForFrame"))
-        game.LipSyncFrames.push_back(frame->GetText() ? frame->GetText() : "");
+    if (DocElem lipsync = root->FirstChildElement("LipSync"))
+        ReadFields(lipsync, game, kLipSyncFields, UnknownElements::Report);
 
     game.GlobalMessages.resize(500);
     DocElem messages = root->FirstChildElement("GlobalMessages");
@@ -1610,12 +2187,13 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
     GetAllSprites(game.Sprites, root);
 
     DocElem plugins = root->FirstChildElement("Plugins");
-    for (DocElem plugin = plugins ? plugins->FirstChildElement("Plugin") : nullptr;
-         plugin; plugin = plugin->NextSiblingElement("Plugin"))
+    AGF::Plugin plugin_parser;
+    for (DocElem plugin = plugins ? plugins->FirstChildElement("Plugin") : nullptr; plugin;
+         plugin = plugin->NextSiblingElement("Plugin"))
     {
         DataUtil::PluginData data;
-        data.Name = ValueParser::ReadString(plugin, "FileName");
-        data.Data = DecodeBase64(ValueParser::ReadString(plugin, "Data"));
+        data.Name = plugin_parser.ReadFileName(plugin);
+        data.Data = DecodeBase64(plugin_parser.ReadData(plugin).GetCStr());
         game.Plugins.push_back(data);
     }
 }
@@ -1662,7 +2240,7 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
         for (DocElem elem : elems)
         {
             DataUtil::DialogRef dialog;
-            ReadDialog(dialog, elem);
+            ReadDialog(dialog, reader, elem);
             game.Dialogs.push_back(dialog);
         }
     }
@@ -1689,6 +2267,7 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
             ReadAllEntityRefs(gui.Controls, control_list, control_parser, elem);
             game.GUI.push_back(gui);
         }
+        SortByID(game.GUI); // folders may list them in another order
     }
 
     {
@@ -1767,6 +2346,19 @@ void ReadFontList(std::vector<int> &font_list, DocElem root)
     }
 }
 
+void ReadFontFileList(std::vector<String> &font_files, DocElem root)
+{
+    DocElem list = root ? root->FirstChildElement("FontFiles") : nullptr;
+    for (DocElem file = list ? list->FirstChildElement("FontFile") : nullptr; file;
+         file = file->NextSiblingElement("FontFile"))
+    {
+        FontFileXml font_file;
+        ReadFields(file, font_file, kFontFileFields, UnknownElements::Report);
+        if (!font_file.FileName.IsEmpty())
+            font_files.push_back(font_file.FileName);
+    }
+}
+
 void ReadPluginList(std::vector<String> &plugin_list, DocElem root)
 {
     AGF::Plugins plugins;
@@ -1789,6 +2381,10 @@ void ReadRoomList(std::vector<std::pair<int, String>> &room_list, DocElem root)
     {
         room_list.push_back(std::make_pair(room.ReadNumber(r), room.ReadDescription(r)));
     }
+    // by number, as the editor lists them, whatever the folders
+    std::stable_sort(room_list.begin(), room_list.end(),
+                     [](const std::pair<int, String> &a, const std::pair<int, String> &b)
+                     { return a.first < b.first; });
 }
 
 void ReadScriptList(std::vector<String> &script_list, DocElem root)
@@ -1836,6 +2432,79 @@ void ReadTranslationList(std::vector<String> &trs_list, DocElem root)
     {
         trs_list.push_back(translation.ReadName(t));
     }
+}
+
+template <typename T, size_t N>
+static void AppendElements(std::vector<const char *> &names, const XmlField<T> (&fields)[N])
+{
+    for (const auto &field : fields)
+        names.push_back(field.Element);
+}
+
+template <typename T, size_t N>
+static void AddKnown(std::vector<KnownElements> &list, const char *class_name, const XmlField<T> (&fields)[N])
+{
+    KnownElements entry{class_name, {}};
+    AppendElements(entry.Elements, fields);
+    list.push_back(std::move(entry));
+}
+
+// GUI controls read the common table first, then their own
+template <typename T, size_t N>
+static void AddKnownControl(std::vector<KnownElements> &list, const char *class_name,
+                            const XmlField<T> (&own_fields)[N])
+{
+    KnownElements entry{class_name, {}};
+    AppendElements(entry.Elements, kGuiControlFields);
+    AppendElements(entry.Elements, own_fields);
+    list.push_back(std::move(entry));
+}
+
+const std::vector<KnownElements> &GetKnownElements()
+{
+    static const std::vector<KnownElements> known = []
+    {
+        std::vector<KnownElements> list;
+        AddKnown(list, "AudioClip", kAudioClipFields);
+        AddKnown(list, "AudioClipType", kAudioTypeFields);
+        AddKnown(list, "Character", kCharacterFields);
+        AddKnown(list, "CustomProperty", kCustomPropertyFields);
+        AddKnown(list, "CustomPropertySchemaItem", kCustomPropertySchemaFields);
+        AddKnown(list, "Dialog", kDialogFields);
+        AddKnown(list, "DialogOption", kDialogOptionFields);
+        AddKnown(list, "DialogRef", kDialogRefFields);
+        AddKnown(list, "FontFile", kFontFileFields);
+        AddKnown(list, "Game", kGameFields);
+        AddKnown(list, "GlobalVariable", kGlobalVariableFields);
+        AddKnown(list, "LipSync", kLipSyncFields);
+        AddKnown(list, "NormalGUI", kGuiMainFields);
+        AddKnown(list, "Plugin", kPluginFields);
+        AddKnown(list, "Script", kScriptFields);
+        AddKnown(list, "ScriptAndHeader", kScriptAndHeaderFields);
+        AddKnown(list, "Sprite", kSpriteFields);
+        AddKnown(list, "Sprite.Source", kSpriteSourceFields);
+        AddKnown(list, "TextParserWord", kTextParserWordFields);
+        AddKnown(list, "TextWindowGUI", kGuiMainFields);
+        AddKnown(list, "Translation", kTranslationFields);
+        AddKnown(list, "UnloadedRoom", kUnloadedRoomFields);
+        AddKnown(list, "Font", kFontFields);
+        AddKnownControl(list, "GUIButton", kGuiButtonFields);
+        AddKnownControl(list, "GUIInventory", kGuiInventoryFields);
+        AddKnownControl(list, "GUILabel", kGuiLabelFields);
+        AddKnownControl(list, "GUIListBox", kGuiListBoxFields);
+        AddKnownControl(list, "GUISlider", kGuiSliderFields);
+        AddKnownControl(list, "GUITextBox", kGuiTextBoxFields);
+        AddKnownControl(list, "GUITextWindowEdge", kGuiButtonFields);
+        AddKnown(list, "InventoryItem", kInventoryItemFields);
+        AddKnown(list, "MouseCursor", kCursorFields);
+        AddKnown(list, "RuntimeSetup", kRuntimeSetupFields);
+        AddKnown(list, "Settings", kGameSettingsFields);
+        AddKnown(list, "View", kViewFields);
+        AddKnown(list, "ViewFrame", kViewFrameFields);
+        AddKnown(list, "ViewLoop", kViewLoopFields);
+        return list;
+    }();
+    return known;
 }
 
 } // namespace AGF

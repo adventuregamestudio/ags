@@ -97,7 +97,8 @@ set(NEW_COMPILER_TEST_SOURCES
         test2/cc_parser_test_lib.cpp
         test2/cc_parser_test_lib.h
         test2/cc_scanner_test.cpp
-        test2/cc_symboltable_test.cpp)
+        test2/cc_symboltable_test.cpp
+        test/preprocessor_test.cpp) # the preprocessor is shared by both compilers
 
 if(AGS_BUILD_LEGACY_COMPILER)
     target_compile_definitions(compiler PRIVATE

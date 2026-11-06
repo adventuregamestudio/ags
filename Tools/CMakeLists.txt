@@ -144,8 +144,12 @@ target_sources(libtools
         data/include_utils.h
         data/mfl_utils.cpp
         data/mfl_utils.h
+        data/room_build.cpp
+        data/room_build.h
         data/room_utils.cpp
         data/room_utils.h
+        data/room_xml.cpp
+        data/room_xml.h
         data/script_utils.cpp
         data/script_utils.h
         data/scriptgen.cpp
@@ -154,6 +158,8 @@ target_sources(libtools
         data/sprite_utils.h
         data/tra_utils.cpp
         data/tra_utils.h
+        data/xml_fields.cpp
+        data/xml_fields.h
         ${TOOLS_COMMON_SOURCES}
         ${TOOLS_MINIMAL_ALLEGRO_SOURCES}
         )
@@ -214,6 +220,14 @@ set_target_properties(agspak PROPERTIES
         )
 target_link_libraries(agspak PUBLIC libtools)
 
+#----- crmbuild -----------------------------------------------
+add_executable(crmbuild crmbuild/main.cpp)
+set_target_properties(crmbuild PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        )
+target_link_libraries(crmbuild PUBLIC libtools)
+
 #----- crmpak -------------------------------------------------
 add_executable(crmpak crmpak/main.cpp
         crmpak/commands.h
@@ -260,6 +274,7 @@ list(APPEND TOOLS_TARGETS
         agfexport
         agsbuild
         agspak
+        crmbuild
         crmpak
         spriteimport
         spritepak
@@ -314,7 +329,10 @@ if(AGS_TESTS)
       test/data_file_writer_test.cpp
       agsbuild/pipedprocess.cpp
       test/include_utils_test.cpp
+      test/mfl_utils_test.cpp
       test/pipedprocess_test.cpp
+      test/room_build_test.cpp
+      test/xml_fields_test.cpp
       test/spriteimport_test.cpp
       test/gtest_main.cc # need to use our own, cannot link one from gtest
    )
@@ -336,6 +354,7 @@ if(AGS_TESTS)
        target_link_libraries(tools_test gtest)
    endif()
 
+   target_compile_definitions(tools_test PRIVATE AGF_ELEMENTS_FILE="${CMAKE_CURRENT_SOURCE_DIR}/data/agf_elements.txt")
    include(GoogleTest)
    gtest_add_tests(TARGET tools_test)
 endif()

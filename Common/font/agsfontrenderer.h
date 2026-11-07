@@ -126,6 +126,8 @@ public:
     virtual void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) = 0;
     // Sets additional character spacing, in pixels (can be positive or negative)
     virtual void SetCharacterSpacing(int fontNumber, int spacing) = 0;
+    // Enable or disable rendering text as a solid-color outline stencil.
+    virtual void SetStencilMode(bool enabled) = 0;
 
 protected:
     IAGSFontRendererInternal() = default;

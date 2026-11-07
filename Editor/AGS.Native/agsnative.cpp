@@ -1003,9 +1003,13 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
 
     const int grid_width = col_count * (cell_w + cell_space_x) + cell_space_x;
     const int grid_height = row_count * (cell_h + cell_space_y) + cell_space_y;
-    std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(grid_width, grid_height, 8));
+    const bool is_4bit_wfn = get_wfn_font_bits_per_pixel(fontnum) == 4;
+    std::unique_ptr<AGSBitmap> tempblock(
+        BitmapHelper::CreateBitmap(grid_width, grid_height, is_4bit_wfn ? 32 : 8));
     tempblock->Fill(0);
-    const color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
+    const color_t text_color = is_4bit_wfn ?
+        makeacol32(136, 136, 136, 255) :
+        tempblock->GetCompatibleColor(15); // fixed white color
     const int old_uformat = get_uformat();
     const int want_uformat = ansi_mode ? U_ASCII : U_UTF8;
     if (old_uformat != want_uformat)
@@ -1093,10 +1097,26 @@ void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum, bool right
     }
 
     const int linespacing = get_font_linespacing(fontnum);
-    std::unique_ptr<AGSBitmap> tempblock(BitmapHelper::CreateBitmap(ds_width, ds_height, 8));
-    tempblock->Fill(0);
-    color_t text_color = tempblock->GetCompatibleColor(15); // fixed white color
-    color_t outline_color = tempblock->GetCompatibleColor(8); // fixed dark grey color
+    const bool is_wfn = get_wfn_font_bits_per_pixel(fontnum) > 0;
+    const bool use_32bit_preview = is_wfn ||
+        (!is_bitmap_font(fontnum) && ShouldAntiAliasText());
+
+    std::unique_ptr<AGSBitmap> tempblock(
+        BitmapHelper::CreateBitmap(ds_width, ds_height, use_32bit_preview ? 32 : 8));
+
+    // Dark-gray background for the text sample.
+    tempblock->Fill(use_32bit_preview ?
+        makeacol32(85, 85, 85, 255) :
+        tempblock->GetCompatibleColor(8));
+
+    color_t text_color = use_32bit_preview ?
+        (get_wfn_font_bits_per_pixel(fontnum) == 4 ?
+            makeacol32(136, 136, 136, 255) : makeacol32(255, 255, 255, 255)) :
+        tempblock->GetCompatibleColor(15); // fixed white color
+
+    color_t outline_color = use_32bit_preview ?
+        makeacol32(0, 0, 0, 255) :
+        tempblock->GetCompatibleColor(16); // fixed black color
     AGS::Common::GUI::DrawTextLinesAligned(tempblock.get(), lines.GetVector(), lines.Count(), fontnum, linespacing, text_color, outline_color,
         RectWH(text_atx, text_aty, max_width, dc_height - (dc_aty + text_aty)), right_to_left ? kAlignTopRight : kAlignTopLeft, false);
 

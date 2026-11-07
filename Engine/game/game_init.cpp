@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <array>
 #include <vector>
 #include "ac/character.h"
 #include "ac/dialog.h"
@@ -298,7 +299,16 @@ HError InitAndRegisterGameEntities(GameSetupStruct &game)
 void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
 {
     set_gamedata_version(data_ver);
-    for (int i = 0; i < game.numfonts; ++i) 
+
+    // Supply eligible palette entries for 8-bit WFN grayscale rendering.
+    std::array<bool, 256> wfn_palette_eligible = {};
+
+    for (int i = 0; i < 256; ++i)
+        wfn_palette_eligible[i] = (game.paluses[i] == PAL_GAMEWIDE);
+
+    set_wfn_palette_eligibility(wfn_palette_eligible);
+
+    for (int i = 0; i < game.numfonts; ++i)
     {
         if (load_game_font(i, game.fonts[i], data_ver))
         {

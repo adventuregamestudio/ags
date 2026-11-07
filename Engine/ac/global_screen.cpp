@@ -149,8 +149,8 @@ void ShakeScreenBackground (int delay, int amount, int length) {
 }
 
 void TintScreen(int red, int grn, int blu) {
-    if ((red < 0) || (grn < 0) || (blu < 0) || (red > 100) || (grn > 100) || (blu > 100))
-        quit("!TintScreen: RGB values must be 0-100");
+    if ((red < 0) || (grn < 0) || (blu < 0) || (red > 255) || (grn > 255) || (blu > 255))
+        quit("!TintScreen: RGB values must be 0-255");
 
     invalidate_screen();
 
@@ -158,9 +158,6 @@ void TintScreen(int red, int grn, int blu) {
         play.screen_tint = -1;
         return;
     }
-    red = GfxDef::Value100ToValue250(red);
-    grn = GfxDef::Value100ToValue250(grn);
-    blu = GfxDef::Value100ToValue250(blu);
     play.screen_tint = red + (grn << 8) + (blu << 16);
 }
 

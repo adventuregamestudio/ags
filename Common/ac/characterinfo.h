@@ -127,7 +127,8 @@ enum CharacterSvgVersion
     kCharSvgVersion_400_28  = 4000028, // sync with kCharSvgVersion_36310
     kCharSvgVersion_400_29  = 4000029, // rotation pivot
     kCharSvgVersion_400_33  = 4000033, // removed MAX_INV
-    kCharSvgVersion_Current = kCharSvgVersion_400_33
+    kCharSvgVersion_400_34  = 4000034, // opacity instead of transparency, full tint and light ranges
+    kCharSvgVersion_Current = kCharSvgVersion_400_34
 };
 
 // Character event indexes
@@ -156,7 +157,7 @@ struct CharacterInfo
     // delay in seconds to wait before switching to idle animation (0 = continuous idling)
     int16_t idledelay    = 0;
     int16_t idleleft    = 0; // time in seconds left before switching to idle animation
-    int16_t transparency = 0; // "incorrect" alpha (in legacy 255-range units)
+    int16_t opacity     = 255;
     int16_t baseline    = -1;
     int     activeinv   = -1; // selected inventory item
     int     talkcolor   = 0;

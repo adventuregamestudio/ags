@@ -37,6 +37,7 @@
 #include "debug/out.h"
 #include "game/savegame_internal.h"
 #include "gfx/bitmap.h"
+#include "gfx/gfx_def.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
@@ -696,6 +697,21 @@ HSaveError ReadCharacters(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Pr
                 chex.SetTurning(true, turn_ccw, turns);
             }
             chi.walking = chi.walking % LEGACY_CHAR_TURNING_AROUND;
+        }
+
+        // Upgrade legacy transparency, tint and light ranges
+        if (svg_ver < kCharSvgVersion_400_34)
+        {
+            chi.opacity = static_cast<int16_t>(GfxDef::LegacyTrans255ToAlpha255(chi.opacity));
+            if (chi.has_explicit_tint())
+            {
+                chex.tint_level = static_cast<short>(GfxDef::Value100ToValue255(chex.tint_level));
+                chex.tint_light = static_cast<short>(GfxDef::Value250ToValue255(chex.tint_light));
+            }
+            else if (chi.has_explicit_light())
+            {
+                chex.tint_light = static_cast<short>(GfxDef::Value100ToValue255(chex.tint_light));
+            }
         }
     }
     return err;
@@ -1741,6 +1757,12 @@ HSaveError ReadThisRoom(Stream *in, int32_t cmp_ver, soff_t /*cmp_size*/, const 
     {
         r_data.RoomLightLevels[i] = in->ReadInt32();
         r_data.RoomTintLevels[i] = in->ReadInt32();
+        if (cmp_ver < kRoomStatSvgVersion_40034)
+        {
+            int light = r_data.RoomLightLevels[i];
+            RoomRegion::UpgradeLegacyLight(light, r_data.RoomTintLevels[i]);
+            r_data.RoomLightLevels[i] = static_cast<short>(light);
+        }
     }
     for (int i = 0; i < MAX_WALK_AREAS; ++i)
     {

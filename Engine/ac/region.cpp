@@ -94,8 +94,8 @@ ScriptRegion *Region_GetByName(const char *name)
 void SetAreaLightLevel(int area, int brightness) {
     if ((area < 0) || (area > MAX_ROOM_REGIONS))
         quit("!SetAreaLightLevel: invalid region");
-    if (brightness < -100) brightness = -100;
-    if (brightness > 100) brightness = 100;
+    if (brightness < -255) brightness = -255;
+    if (brightness > 255) brightness = 255;
     // Set light level and disable RGB tint for this area
     if (thisroom.Regions[area].Light != brightness || thisroom.Regions[area].Tint != 0)
     {
@@ -149,7 +149,7 @@ int Region_GetTintLuminance(ScriptRegion *srr)
     return thisroom.GetRegionTintLuminance(srr->id);
 }
 
-void SetRegionTint(int area, int red, int green, int blue, int amount, int luminance = 100)
+void SetRegionTint(int area, int red, int green, int blue, int amount, int luminance = 255)
 {
     if ((area < 0) || (area >= MAX_ROOM_REGIONS))
         quit("!SetRegionTint: invalid region");
@@ -159,13 +159,13 @@ void SetRegionTint(int area, int red, int green, int blue, int amount, int lumin
         quit("!SetRegionTint: RGB values must be 0-255");
     }
 
-    if ((amount < 0) || (amount > 100))
-        quit("!SetRegionTint: amount must be 0-100");
-    if ((luminance < 0) || (luminance > 100))
-        quit("!SetRegionTint: luminance must be 0-100");
+    if ((amount < 0) || (amount > 255))
+        quit("!SetRegionTint: amount must be 0-255");
+    if ((luminance < 0) || (luminance > 255))
+        quit("!SetRegionTint: luminance must be 0-255");
 
     const int tint = (amount > 0) ? (red & 0xFF) | ((green & 0xFF) << 8) | ((blue & 0XFF) << 16) | ((amount & 0xFF) << 24) : 0;
-    const int light = (amount > 0) ? GfxDef::Value100ToValue250(luminance) : 0;
+    const int light = (amount > 0) ? luminance : 0;
 
     if ((thisroom.Regions[area].Tint != tint) || (thisroom.Regions[area].Light != light))
     {

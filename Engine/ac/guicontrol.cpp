@@ -29,6 +29,7 @@
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
+#include "gfx/gfx_def.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;
@@ -348,15 +349,27 @@ void GUIControl_SetTranslated(GUIControl *guio, bool is_translated)
     guio->SetTranslated(is_translated);
 }
 
+int GUIControl_GetOpacity(GUIControl *guio)
+{
+    return guio->GetOpacity();
+}
+
+void GUIControl_SetOpacity(GUIControl *guio, int alpha) {
+    if ((alpha < 0) | (alpha > 255))
+        quit("!GUIControl.Opacity: alpha value must be between 0 and 255");
+    guio->SetOpacity(alpha);
+}
+
+// [OBSOLETE] Transparency of AGS 4.0, kept for the compiled 4.0 games
 int GUIControl_GetTransparency(GUIControl *guio)
 {
-    return GfxDef::LegacyTrans255ToTrans100(guio->GetTransparency());
+    return GfxDef::OpacityToTrans100(guio->GetOpacity());
 }
 
 void GUIControl_SetTransparency(GUIControl *guio, int trans) {
     if ((trans < 0) | (trans > 100))
         quit("!SetGUITransparency: transparency value must be between 0 and 100");
-    guio->SetTransparency(GfxDef::Trans100ToLegacyTrans255(trans));
+    guio->SetOpacity(GfxDef::Trans100ToOpacity(trans));
 }
 
 int GUIControl_GetBlendMode(GUIControl *guio) {
@@ -670,11 +683,23 @@ RuntimeScriptValue Sc_GUIControl_SetTranslated(void *self, const RuntimeScriptVa
     API_OBJCALL_VOID_PBOOL(GUIControl, GUIControl_SetTranslated);
 }
 
+RuntimeScriptValue Sc_GUIControl_GetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(GUIControl, GUIControl_GetOpacity);
+}
+
+RuntimeScriptValue Sc_GUIControl_SetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetOpacity);
+}
+
+// int (GUIControl *)
 RuntimeScriptValue Sc_GUIControl_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(GUIControl, GUIControl_GetTransparency);
 }
 
+// void (GUIControl *, int trans)
 RuntimeScriptValue Sc_GUIControl_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUIControl, GUIControl_SetTransparency);
@@ -845,6 +870,9 @@ void RegisterGUIControlAPI()
         { "GUIControl::set_ZOrder",       API_FN_PAIR(GUIControl_SetZOrder) },
         { "GUIControl::get_Translated",   API_FN_PAIR(GUIControl_GetTranslated) },
         { "GUIControl::set_Translated",   API_FN_PAIR(GUIControl_SetTranslated) },
+        { "GUIControl::get_Opacity",      API_FN_PAIR(GUIControl_GetOpacity) },
+        { "GUIControl::set_Opacity",      API_FN_PAIR(GUIControl_SetOpacity) },
+        // [OBSOLETE] Transparency => Opacity
         { "GUIControl::get_Transparency", API_FN_PAIR(GUIControl_GetTransparency) },
         { "GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency) },
 

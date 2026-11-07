@@ -23,6 +23,7 @@
 #include "ac/viewframe.h"
 #include "ac/dynobj/cc_object.h"
 #include "debug/debug_log.h"
+#include "gfx/gfx_def.h"
 #include "main/update.h"
 #include "script/script.h"
 #include "util/stream.h"
@@ -39,7 +40,7 @@ extern RoomStruct thisroom;
 RoomObject::RoomObject()
 {
     x = y = 0;
-    transparent = 0;
+    opacity = 255;
     tint_r = tint_g = 0;
     tint_b = tint_level = 0;
     tint_light = 0;
@@ -159,7 +160,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
 {
     x = in->ReadInt32();
     y = in->ReadInt32();
-    transparent = in->ReadInt32();
+    opacity = in->ReadInt32();
     tint_r = in->ReadInt16();
     tint_g = in->ReadInt16();
     tint_b = in->ReadInt16();
@@ -329,6 +330,21 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         anim_dir_current = anim_dir_initial;
     }
 
+    // Upgrade legacy transparency, tint and light ranges
+    if (cmp_ver < kRoomStatSvgVersion_40034)
+    {
+        opacity = GfxDef::LegacyTrans255ToAlpha255(opacity);
+        if (has_explicit_tint())
+        {
+            tint_level = static_cast<int16_t>(GfxDef::Value100ToValue255(tint_level));
+            tint_light = static_cast<int16_t>(GfxDef::Value250ToValue255(tint_light));
+        }
+        else if (has_explicit_light())
+        {
+            tint_light = static_cast<int16_t>(GfxDef::Value100ToValue255(tint_light));
+        }
+    }
+
     anim = ViewAnimateParams(anim_flow, anim_dir_initial, anim_dir_current, anim_delay, cur_audio_volume);
     spr_width = width;
     spr_height = height;
@@ -339,7 +355,7 @@ void RoomObject::WriteToSavegame(Stream *out) const
 {
     out->WriteInt32(x);
     out->WriteInt32(y);
-    out->WriteInt32(transparent);
+    out->WriteInt32(opacity);
     out->WriteInt16(tint_r);
     out->WriteInt16(tint_g);
     out->WriteInt16(tint_b);

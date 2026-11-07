@@ -1206,7 +1206,7 @@ DataUtil::GUIData MakeGui()
     gui.BorderColor = 26;
     gui.Clickable = true;
     gui.Visible = true;
-    gui.Transparency = 35;
+    gui.Opacity = 35;
     gui.ZOrder = 4;
     return gui;
 }
@@ -1299,8 +1299,7 @@ TEST(DataFileWriter, RoundTripGuiMain)
     EXPECT_EQ(gui.BorderColor, actual.GetFgColor());
     EXPECT_TRUE(actual.IsClickable());
     EXPECT_TRUE(actual.IsVisible());
-    EXPECT_EQ(GfxDef::Trans100ToLegacyTrans255(gui.Transparency),
-        actual.GetTransparency());
+    EXPECT_EQ(gui.Opacity, actual.GetOpacity());
     EXPECT_EQ(gui.ZOrder, actual.GetZOrder());
     // ReadGUI restores serialized references; runtime control pointers are
     // connected later by GUI::RebuildGUI() during game initialization.

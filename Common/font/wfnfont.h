@@ -37,6 +37,44 @@
 // know the number of supported characters for certain, and the size of the
 // data (file) is used to determine that.
 //
+//-----------------------------------------------------------------------------
+//
+// Extended WFN format:
+//
+// - signature                ( 15 ) "WGT Font File 2"
+// - header size              (  4 )
+// - flags                    (  4 ) currently must be 0
+// - bits per pixel           (  4 ) currently supports 4
+// - glyph table address      (  4 )
+// - glyph table size         (  4 )
+// - character table address  (  4 )
+// - character table size     (  4 )
+// - base shade index         (  4 ) nominal range 1-15
+//
+// The header size is measured in bytes, excluding the 15-byte signature.
+// Additional header fields may be appended in future versions.
+//
+// Glyph table (variable size):
+// - glyph width              (  2 )
+// - glyph height             (  2 )
+// - pixel data               ( ceil(width * bits_per_pixel / 8) * height )
+//
+// Character table (8 bytes per entry):
+// - character code           (  4 )
+// - glyph offset             (  4 )
+//
+// All addresses are relative to the beginning of the WFN data.
+// Glyph offsets are relative to the beginning of the glyph table.
+//
+// The character table maps character codes to glyph offsets, allowing sparse
+// character indexes and multiple characters to reference the same glyph.
+// Character entries need not be stored in character-code order.
+// AGS currently supports character codes from 0 to 65535.
+//
+// In 4-bit fonts, each pixel stores a shade index from 0 to 15.
+// The base shade index represents the exact requested text color.
+// Index 0 is transparent; indices 1-15 represent visible shades.
+//
 //=============================================================================
 
 #ifndef __AGS_CN_FONT__WFNFONT_H

@@ -1001,11 +1001,11 @@ void DrawFontAt(HDC hdc, int fontnum, bool ansi_mode, bool only_valid_chars,
 
     const int grid_width = col_count * (cell_w + cell_space_x) + cell_space_x;
     const int grid_height = row_count * (cell_h + cell_space_y) + cell_space_y;
-    const bool is_4bit_wfn = get_wfn_font_bits_per_pixel(fontnum) == 4;
+    const bool is_shaded_wfn = get_wfn_font_bits_per_pixel(fontnum) > 1;
     std::unique_ptr<AGSBitmap> tempblock(
-        BitmapHelper::CreateBitmap(grid_width, grid_height, is_4bit_wfn ? 32 : 8));
+        BitmapHelper::CreateBitmap(grid_width, grid_height, is_shaded_wfn ? 32 : 8));
     tempblock->Fill(0);
-    const color_t text_color = is_4bit_wfn ?
+    const color_t text_color = is_shaded_wfn ?
         makeacol32(136, 136, 136, 255) :
         tempblock->GetCompatibleColor(15); // fixed white color
     const int old_uformat = get_uformat();
@@ -1102,19 +1102,23 @@ void DrawTextUsingFontAt(HDC hdc, const AGSString &text, int fontnum, bool right
     std::unique_ptr<AGSBitmap> tempblock(
         BitmapHelper::CreateBitmap(ds_width, ds_height, use_32bit_preview ? 32 : 8));
 
-    // Dark-gray background for the text sample.
-    tempblock->Fill(use_32bit_preview ?
-        makeacol32(85, 85, 85, 255) :
-        tempblock->GetCompatibleColor(8));
+    const bool is_shaded_wfn = get_wfn_font_bits_per_pixel(fontnum) > 1;
+    const bool has_auto_outline = use_outline &&
+        thisgame.fonts[fontnum].Outline == FONT_OUTLINE_AUTO;
+
+    tempblock->Fill(is_shaded_wfn && has_auto_outline ?
+        makeacol32(85, 85, 85, 255) : 0);
 
     color_t text_color = use_32bit_preview ?
-        (get_wfn_font_bits_per_pixel(fontnum) == 4 ?
+        (get_wfn_font_bits_per_pixel(fontnum) > 1 ?
             makeacol32(136, 136, 136, 255) : makeacol32(255, 255, 255, 255)) :
         tempblock->GetCompatibleColor(15); // fixed white color
 
     color_t outline_color = use_32bit_preview ?
-        makeacol32(0, 0, 0, 255) :
-        tempblock->GetCompatibleColor(16); // fixed black color
+        (is_shaded_wfn && has_auto_outline ?
+            makeacol32(0, 0, 0, 255) :
+            makeacol32(85, 85, 85, 255)) :
+        tempblock->GetCompatibleColor(8); // fixed dark grey color
     AGS::Common::GUI::DrawTextLinesAligned(tempblock.get(), lines.GetVector(), lines.Count(), fontnum, linespacing, text_color, outline_color,
         RectWH(text_atx, text_aty, max_width, dc_height - (dc_aty + text_aty)), right_to_left ? kAlignTopRight : kAlignTopLeft, false);
 

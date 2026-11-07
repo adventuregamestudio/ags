@@ -84,8 +84,7 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
         globalDynamicArray.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, ScriptUserObject::TypeName) == 0) {
-        ScriptUserObject *suo = new ScriptUserObject();
-        suo->Unserialize(index, &mems, data_sz);
+        globalDynamicStruct.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "GUIObject") == 0 || // old historical name
              strcmp(objectType, "GUIControl") == 0) {

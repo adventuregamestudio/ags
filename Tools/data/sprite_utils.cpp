@@ -328,16 +328,16 @@ static void Convert8BitToHiColor(const BitmapData &src, const Palette &src_pal, 
 // TODO: this should be a part of PixelOp::CopyConvert
 static void Convert8BitARGBTo32(const BitmapData &src, const Palette &src_pal, PixelBuffer &dst)
 {
-    assert(dst.GetBytesPerPixel() == 32);
+    assert(dst.GetColorDepth() == 32);
     const uint8_t *src_buf = src.GetData();
     const uint8_t *src_end = src.GetData() + src.GetStride() * src.GetHeight();
-    uint32_t *dst_buf = reinterpret_cast<uint32_t*>(dst.GetData());
+    uint8_t *dst_buf = dst.GetData();
     const uint32_t src_width = src.GetWidth();
     const size_t src_stride = src.GetStride();
     const size_t dst_stride = dst.GetStride();
     for (; src_buf < src_end; src_buf += src_stride, dst_buf += dst_stride)
     {
-        uint32_t *dst_ptr = dst_buf;
+        uint32_t *dst_ptr = reinterpret_cast<uint32_t*>(dst_buf);
         for (const uint8_t *src_ptr = src_buf; src_ptr < src_buf + src_width; ++src_ptr, ++dst_ptr)
         {
             const RGB &pal_color = src_pal[*src_ptr];

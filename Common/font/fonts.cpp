@@ -15,7 +15,6 @@
 #include <cstdio>
 #include <vector>
 #include "ac/common.h" // set_our_eip
-#include "ac/gamestructdefines.h"
 #include "debug/out.h"
 #include "font/fonts.h"
 #include "font/ttffontrenderer.h"
@@ -79,6 +78,12 @@ void init_font_renderer(AssetManager *amgr)
 {
     ttfRenderer.reset(new TTFFontRenderer(amgr));
     wfnRenderer.reset(new WFNFontRenderer(amgr));
+}
+
+void set_wfn_palette_eligibility(const std::array<bool, 256>& palette_eligible)
+{
+    if (wfnRenderer)
+        wfnRenderer->SetPaletteEligibility(palette_eligible);
 }
 
 void set_gamedata_version(GameDataVersion data_ver)
@@ -250,6 +255,24 @@ bool is_bitmap_font(int font_number)
     if (!assert_font_number(font_number) || !fonts[font_number].RendererInt)
         return false;
     return fonts[font_number].RendererInt->IsBitmapFont();
+}
+
+bool set_font_stencil_mode(int font_number, bool enabled)
+{
+    if (!assert_font_number(font_number) || !fonts[font_number].RendererInt)
+        return false;
+
+    fonts[font_number].RendererInt->SetStencilMode(enabled);
+    return true;
+}
+
+int get_wfn_font_bits_per_pixel(int font_number)
+{
+    if (!assert_font_renderer(font_number) ||
+        fonts[font_number].Renderer != wfnRenderer.get())
+        return 0;
+
+    return wfnRenderer->GetFontBitsPerPixel(font_number);
 }
 
 bool font_supports_extended_characters(int font_number)
@@ -745,14 +768,12 @@ void wouttextxy(Bitmap *ds, int x, int y, int font_number, color_t text_color, c
     wouttextxy(ds, x, y, font_number, text_color, kBlend_Normal, text);
 }
 
-void woutprintf(Bitmap *ds, int x, int y, int font_number, color_t text_color, AGS_FORMAT_STRING_ARG const char *fmt, ...)
+void wouttextxy_stencil(Bitmap* ds, int x, int y, int font_number, color_t text_color, BlendMode blend_mode, const char* texx)
 {
-    if (!assert_font_renderer(font_number))
-        return;
+    const bool stencil_mode = set_font_stencil_mode(font_number, true);
 
-    va_list ap;
-    va_start(ap, fmt);
-    String text = String::FromFormatV(fmt, ap);
-    va_end(ap);
-    wouttextxy(ds, x, y, font_number, text_color, text.GetCStr());
+    wouttextxy(ds, x, y, font_number, text_color, blend_mode, texx);
+
+    if (stencil_mode)
+        set_font_stencil_mode(font_number, false);
 }

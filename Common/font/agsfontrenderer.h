@@ -130,6 +130,8 @@ public:
     virtual void SetCharacterSpacing(int fontNumber, int spacing) = 0;
     // Set blend mode which will be applied to all the following text renders
     virtual void SetBlendMode(AGS::Common::BlendMode blend_mode) = 0;
+    // Enable or disable rendering text as a solid-color outline stencil.
+    virtual void SetStencilMode(bool enabled) = 0;
 
 protected:
     IAGSFontRendererInternal() = default;

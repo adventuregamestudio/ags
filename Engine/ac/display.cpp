@@ -650,34 +650,6 @@ bool ShouldAntiAliasText()
     return (game.GetColorDepth() >= 24) && (game.options[OPT_ANTIALIASFONTS] != 0);
 }
 
-#if defined (AGS_FONTOUTLINE_MOREOPAQUE)
-// TODO: was suggested by fernewelten, but it's unclear whether is necessary
-// Make semi-transparent bits much more opaque
-void wouttextxy_AutoOutline_Semitransparent2Opaque(Bitmap *map)
-{
-    if (map->GetColorDepth() < 32)
-        return; // such maps don't feature partial transparency
-    size_t const width = map->GetWidth();
-    size_t const height = map->GetHeight();
-
-    for (size_t y = 0; y < height; y++)
-    {
-        int32 *sc_line = reinterpret_cast<int32 *>(map->GetScanLineForWriting(y));
-        for (size_t x = 0; x < width; x++)
-        {
-            int32 &px = sc_line[x];
-            int const transparency = geta(px);
-            if (0 < transparency && transparency < 255)
-                px = makeacol32(
-                    getr32(px), 
-                    getg32(px), 
-                    getb32(px), 
-                    std::min(85 + transparency * 2, 255));
-        }
-    }
-}
-#endif
-
 // Draw outline that is calculated from the text font, not derived from an outline font
 static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, BlendMode blend_mode, const char *text, int &x, int &y)
 {
@@ -716,10 +688,8 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
     // and y off, in case some font's glyphs exceed font's ascender
     // NOTE: t_xoff here will only fix the outline, but this won't resolve e.g. parts
     // of leftmost glyph positioned outside of a gui control or an overlay.
-    wouttextxy(texx_stencil, -t_xoff, -t_yoff, font, color, blend_mode, text);
-#if defined (AGS_FONTOUTLINE_MOREOPAQUE)
-    wouttextxy_AutoOutline_Semitransparent2Opaque(texx_stencil);
-#endif
+    // Render the outline stencil using the font renderer's solid-color mode.
+    wouttextxy_stencil(texx_stencil, -t_xoff, -t_yoff, font, color, blend_mode, text);
     // Anti-aliased TTFs require to be alpha-blended, not blit,
     // or the alpha values will be plain copied and final image will be broken.
     void(Bitmap::*pfn_drawstencil)(const Bitmap *src, int dst_x, int dst_y);

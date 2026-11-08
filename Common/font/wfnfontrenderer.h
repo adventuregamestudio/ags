@@ -14,11 +14,13 @@
 #ifndef __AC_WFNFONTRENDERER_H
 #define __AC_WFNFONTRENDERER_H
 
+#include <array>
 #include <map>
+#include <memory>
+#include "platform/types.h"
 #include "data/assetmanager.h"
 #include "font/agsfontrenderer.h"
-
-class WFNFont;
+#include "font/wfnfont.h"
 
 class WFNFontRenderer : public IAGSFontRendererInternal {
 public:
@@ -49,23 +51,35 @@ public:
   void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
   void SetCharacterSpacing(int fontNumber, int spacing) override;
   void SetBlendMode(AGS::Common::BlendMode blend_mode) override;
+  // Enable or disable solid-color stencil rendering.
+  void SetStencilMode(bool enabled) override { _stencilMode = enabled; }
+
+  int GetFontBitsPerPixel(int fontNumber) const;
+  // Set eligible palette entries for 8-bit WFN grayscale shading.
+  void SetPaletteEligibility(const std::array<bool, 256>& palette_eligible);
 
   WFNFontRenderer(AGS::Common::AssetManager *mgr)
       : _amgr(mgr) {}
   virtual ~WFNFontRenderer() = default;
 
 private:
-  void FillMetrics(const WFNFont *font, FontMetrics *metrics);
+  void RenderTextInternal(const char* text, int fontNumber, BITMAP* destination,
+      int x, int y, int colour, bool silhouette);
+
+  void BuildPaletteShadeColors(int colour, int base_shade, color_t shade_colors[16]) const;
 
   struct FontData
   {
-    WFNFont         *Font;
+    std::unique_ptr<WFNFont> Font;
     FontRenderParams Params;
     int              CharacterSpacing;
   };
   std::map<int, FontData> _fontData;
-  AGS::Common::AssetManager *_amgr = nullptr;
+  AGS::Common::AssetManager* _amgr = nullptr;
   AGS::Common::BlendMode _blendMode = AGS::Common::kBlend_Normal;
+  std::array<bool, 256> _paletteEligible = {};
+  bool _hasPaletteEligibility = false;
+  bool _stencilMode = false;
 };
 
 #endif // __AC_WFNFONTRENDERER_H

@@ -26,6 +26,9 @@
     <Filter Include="tinyxml">
       <UniqueIdentifier>{1d881862-6fc0-43f5-a907-206932f12a23}</UniqueIdentifier>
     </Filter>
+    <Filter Include="miniz_ex">
+      <UniqueIdentifier>{ec2e960b-111c-478b-addd-9189a603c869}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\ac\spritefile.cpp">
@@ -160,6 +163,9 @@
     <ClCompile Include="..\..\Common\gfx\sprite_data_fmt.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libsrc\miniz_ex\miniz_ex.c">
+      <Filter>miniz_ex</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Common\script\cc_reflect.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -266,6 +272,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_reflect.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\miniz_ex\miniz_ex.h">
+      <Filter>miniz_ex</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

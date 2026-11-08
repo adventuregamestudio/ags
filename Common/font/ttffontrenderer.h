@@ -50,6 +50,8 @@ public:
   void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
   void SetCharacterSpacing(int fontNumber, int spacing) override;
   void SetBlendMode(AGS::Common::BlendMode blend_mode) override;
+  // TTF rendering already uses the supplied color and preserves glyph coverage.
+  void SetStencilMode(bool /*enabled*/) override { /* no additional action needed */ }
 
   TTFFontRenderer(AGS::Common::AssetManager *amgr);
   virtual ~TTFFontRenderer();

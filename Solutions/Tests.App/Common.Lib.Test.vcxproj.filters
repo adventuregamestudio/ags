@@ -49,6 +49,9 @@
     <ClCompile Include="..\..\Common\test\common_stubs.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\test\resourcecache_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Common\test\splitline_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>

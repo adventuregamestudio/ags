@@ -352,7 +352,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -372,7 +372,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_ASAN|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -393,7 +393,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -413,7 +413,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_ASAN|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
@@ -432,7 +432,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_XP|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -453,7 +453,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_XP|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -474,7 +474,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -494,7 +494,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -515,7 +515,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -536,7 +536,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -557,7 +557,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -577,7 +577,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -597,7 +597,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_MD|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -617,7 +617,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_MD|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\libsrc\sdl_ttf;..\..\libsrc\freetype\include;..\..\libsrc\glm;..\..\libsrc\allegro\include;..\..\libsrc\miniz;..\..\libsrc\miniz_ex;..\..\libsrc\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;FT2_BUILD_LIBRARY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -829,6 +829,7 @@
     <ClCompile Include="..\..\libsrc\allegro\src\vtable8.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\win\gdi.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
+    <ClCompile Include="..\..\libsrc\miniz_ex\miniz_ex.c" />
     <ClCompile Include="..\..\libsrc\stb\stb_image.c" />
     <ClCompile Include="..\..\libsrc\sdl_ttf\SDL_ttf.c" />
   </ItemGroup>
@@ -968,6 +969,7 @@
     <ClInclude Include="..\..\libsrc\allegro\src\c\cgfx.h" />
     <ClInclude Include="..\..\libsrc\allegro\src\c\cspr.h" />
     <ClInclude Include="..\..\libsrc\miniz\miniz.h" />
+    <ClInclude Include="..\..\libsrc\miniz_ex\miniz_ex.h" />
     <ClInclude Include="..\..\libsrc\stb\stb_image.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

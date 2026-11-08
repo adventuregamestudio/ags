@@ -22,6 +22,7 @@
 #include "data/assetmanager.h"
 #include "gfx/bitmap.h"
 #include "util/string.h"
+#include <array>
 
 // TODO: we need to make some kind of TextManager class of this module
 
@@ -34,6 +35,8 @@ struct FontMetrics;
 
 void init_font_renderer(AGS::Common::AssetManager *amgr);
 void set_gamedata_version(GameDataVersion data_ver);
+// Supply palette usage flags for 8-bit WFN grayscale rendering.
+void set_wfn_palette_eligibility(const std::array<bool, 256>& palette_eligible);
 void shutdown_font_renderer();
 void adjust_y_coordinate_for_text(int* ypos, int font_number);
 IAGSFontRenderer* font_replace_renderer(int font_number, IAGSFontRenderer* renderer);
@@ -42,6 +45,11 @@ void font_recalc_metrics(int font_number);
 bool is_any_font_loaded();
 bool is_font_loaded(int font_number);
 bool is_bitmap_font(int font_number);
+// Enables or disables stencil mode for the specified font.
+// Returns false if the font number is invalid or no internal renderer is available.
+bool set_font_stencil_mode(int font_number, bool enabled);
+// Returns 1 or 4 for WFN fonts, or 0 for other fonts.
+int get_wfn_font_bits_per_pixel(int font_number);
 bool font_supports_extended_characters(int font_number);
 // Gets font's topmost available char code;
 // returns -1 if this information is not available
@@ -137,8 +145,9 @@ void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t 
 // Outputs a single line of text, using blend mode
 void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number,
                 color_t text_color, AGS::Common::BlendMode blend_mode, const char *text);
-// FIXME: review this function, used only in AGS.Native (editor)
-void woutprintf(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color, AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(6);
+// Renders text as a solid-color stencil when supported by the font renderer.
+void wouttextxy_stencil(AGS::Common::Bitmap* ds, int x, int y, int font_number,
+                color_t text_color, AGS::Common::BlendMode blend_mode, const char* texx);
 
 // Tells if the text should be antialiased when possible
 bool ShouldAntiAliasText();

@@ -77,7 +77,7 @@ void WFNFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 
 int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
-    const WFNFont* font = _fontData[fontNumber].Font;
+    const WFNFont *font = _fontData[fontNumber].Font.get();
     const FontRenderParams &params = _fontData[fontNumber].Params;
     const int char_spacing = _fontData[fontNumber].CharacterSpacing;
     int text_width = 0;
@@ -97,7 +97,7 @@ int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
 
 int WFNFontRenderer::GetTextHeight(const char *text, int fontNumber)
 {
-    const WFNFont* font = _fontData[fontNumber].Font;
+    const WFNFont *font = _fontData[fontNumber].Font.get();
     const FontRenderParams &params = _fontData[fontNumber].Params;
     int max_height = 0;
 
@@ -254,7 +254,7 @@ void WFNFontRenderer::RenderTextInternal(const char* text, int fontNumber, BITMA
     int oldeip = get_our_eip();
     set_our_eip(415);
 
-    const WFNFont* font = _fontData[fontNumber].Font;
+    const WFNFont *font = _fontData[fontNumber].Font.get();
     const FontRenderParams& params = _fontData[fontNumber].Params;
     // NOTE: we do NOT scale global character spacing with SizeMultiplier
     const int char_spacing = _fontData[fontNumber].CharacterSpacing;
@@ -393,7 +393,7 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const Str
   if (!ffi)
     return false;
 
-  WFNFont *font = new WFNFont();
+  std::unique_ptr<WFNFont> font(new WFNFont());
   WFNError err = font->ReadFromFile(ffi.get());
   if (err == kWFNErr_HasBadCharacters)
   {
@@ -401,10 +401,17 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const Str
   }
   else if (err != kWFNErr_NoError)
   {
-    delete font;
     return false;
   }
-  _fontData[fontNumber].Font = font;
+
+  // Only 1-bit and 4-bit glyphs are currently supported by the WFN renderer.
+  if (font->GetBitsPerPixel() != 1 && font->GetBitsPerPixel() != 4)
+  {
+    Debug::Printf(kDbgMsg_Error, "WFNFontRenderer: unsupported font pixel depth: %u", font->GetBitsPerPixel());
+    return false;
+  }
+
+  _fontData[fontNumber].Font = std::move(font);
   _fontData[fontNumber].Params = params ? *params : FontRenderParams();
   _fontData[fontNumber].CharacterSpacing = 0;
   if (src_filename)
@@ -416,7 +423,7 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const Str
 
 void WFNFontRenderer::GetFontMetrics(int fontNumber, FontMetrics *metrics)
 {
-    const WFNFont *font = _fontData[fontNumber].Font;
+    const WFNFont *font = _fontData[fontNumber].Font.get();
     const int size_mult = _fontData[fontNumber].Params.SizeMultiplier;
     // Use this magic string to calculate a "nominal height" for WFN.
     // This is very silly, but has to be done for compatibility reasons.
@@ -445,7 +452,7 @@ void WFNFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char
 
 void WFNFontRenderer::GetValidCharCodes(int fontNumber, std::vector<int> &char_codes)
 {
-    const WFNFont *font = _fontData[fontNumber].Font;
+    const WFNFont *font = _fontData[fontNumber].Font.get();
     for (size_t i = 0; i < font->GetCharCount(); ++i)
     {
         if (font->GetChar(i).IsValid())
@@ -455,7 +462,6 @@ void WFNFontRenderer::GetValidCharCodes(int fontNumber, std::vector<int> &char_c
 
 void WFNFontRenderer::FreeMemory(int fontNumber)
 {
-  delete _fontData[fontNumber].Font;
   _fontData.erase(fontNumber);
 }
 

@@ -104,10 +104,9 @@ void WFNFont::Clear()
     _pixelData.clear();
     _height = 0;
     _bbox = Rect();
-    _baseShadeIndex = 8;
-    _bitsPerPixel = 1;
+    _baseShadeIndex = 0;
+    _bitsPerPixel = 0;
 }
-
 
 WFNError WFNFont::ReadExtendedFromFile(Stream* in, const soff_t used_data_size)
 {
@@ -120,13 +119,6 @@ WFNError WFNFont::ReadExtendedFromFile(Stream* in, const soff_t used_data_size)
     if (header.BitsPerPixel == 0 || header.BitsPerPixel > UINT8_MAX)
     {
         Debug::Printf(kDbgMsg_Error, "\tWFN: invalid extended font pixel depth: %u", header.BitsPerPixel);
-        return kWFNErr_BadHeader;
-    }
-
-    // Only 4-bit glyph data is currently supported by the extended WFN renderer.
-    if (header.BitsPerPixel != 4)
-    {
-        Debug::Printf(kDbgMsg_Error, "\tWFN: unsupported extended font pixel depth: %u", header.BitsPerPixel);
         return kWFNErr_BadHeader;
     }
 
@@ -418,6 +410,9 @@ WFNError WFNFont::ReadClassicFromFile(Stream* in, const soff_t used_data_size)
             }
         }
     }
+
+    // Setup default values for fields that are not part of the Classic format
+    _bitsPerPixel = 1;
 
     return err;
 }

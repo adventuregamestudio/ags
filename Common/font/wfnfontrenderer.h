@@ -14,13 +14,13 @@
 #ifndef __AC_WFNFONTRENDERER_H
 #define __AC_WFNFONTRENDERER_H
 
+#include <array>
 #include <map>
+#include <memory>
 #include "platform/types.h"
 #include "data/assetmanager.h"
 #include "font/agsfontrenderer.h"
-#include <array>
-
-class WFNFont;
+#include "font/wfnfont.h"
 
 class WFNFontRenderer : public IAGSFontRendererInternal {
 public:
@@ -62,8 +62,6 @@ public:
   virtual ~WFNFontRenderer() = default;
 
 private:
-  void FillMetrics(const WFNFont *font, FontMetrics *metrics);
-
   void RenderTextInternal(const char* text, int fontNumber, BITMAP* destination,
       int x, int y, int colour, bool silhouette);
 
@@ -71,7 +69,7 @@ private:
 
   struct FontData
   {
-    WFNFont         *Font;
+    std::unique_ptr<WFNFont> Font;
     FontRenderParams Params;
     int              CharacterSpacing;
   };

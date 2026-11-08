@@ -43,13 +43,13 @@
 //
 // - signature                ( 15 ) "WGT Font File 2"
 // - header size              (  4 )
-// - flags                    (  4 ) currently must be 0
-// - bits per pixel           (  4 ) currently supports 4
+// - flags                    (  4 ) reserved, must be 0
+// - bits per pixel           (  4 )
 // - glyph table address      (  4 )
 // - glyph table size         (  4 )
 // - character table address  (  4 )
 // - character table size     (  4 )
-// - base shade index         (  4 ) nominal range 1-15
+// - base shade index         (  4 ) range is 1-N, where N is max in bpp.
 //
 // The header size is measured in bytes, excluding the 15-byte signature.
 // Additional header fields may be appended in future versions.

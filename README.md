@@ -20,15 +20,15 @@ Please be aware that, unlike the runtime engine, AGS Editor is only supported on
 
 The [`master`][master-br] branch is where the next planned version is being developed. It may temporarily contain unstable or untested code.
 
-Currently, `master` corresponds to 3.\* generation of the engine/IDE and maintains backward compatibility with previous releases - see also [Compatibility](#ags-game-compatibility). According to current plans, this branch should only receive improvements to the backend, system support, and performance. Changes to data formats and game script should be kept to a strict minimum necessary to fill in the critical gaps in the engine's functionality.
+Currently, `master` corresponds to 3.\* generation of the engine/IDE and maintains backward compatibility with previous releases - see also [Compatibility](#ags-game-compatibility). According to current plans, this branch should only receive improvements to the backend, tools, system support, and performance. No new game features or script features are to be planned for 3.x version.
 
 There's an [`ags4`][ags4-br] branch also active where we develop a future version AGS 4.0. There we introduce greater changes and cut much of the old version support.
 
-According to our plans, in the future `master` branch will be merged with `ags4`, while the backward compatible generation will remain as the `ags3` branch and only receive fixes and minor enhancements. But there's still some work to do in AGS 3.\*, so the exact moment that happens is unknown.
+According to our plans, in the nearby future the `master` branch will be switched to `ags4`, while the backward compatible generation will remain as the `ags3` branch and only receive fixes and minor enhancements. The timing of this switch depends primarily on the state of `ags4` branch.
 
-For "official" releases we create `release-X.X.X` branches, that is to prepare the code for the final release and continue making patches to that release if a need arises. 
+For "official" releases we create `release-X.X.X` branches, that is to prepare the code for the final release and continue making patches to that release if a need arises.
 
-Because of the low number of active developers we tend to only update the one latest release branch. If bugs are found in one of the older versions, then we advise you to update to the latest version first.
+Because of the low number of active developers we try to only update the one latest release branch. Older release branches are patched only in case of critical bugs that cannot be worked around, or if there are regressions introduced by previous patches. In any case, older versions do not receive any game feature additions when patched, only fixes to existing functionality.
 
 Please note that while the `master` branch may contain changes to game data format and new script functions, we cannot guarantee that these will remain unchanged until the actual release. We only support data formats and script APIs that are in published releases. For that reason, it's best to use one of the actual releases if you'd like to make your own game with this tool.
 
@@ -70,13 +70,13 @@ This repository now holds two generations of AGS, referred to as "AGS 3" and "AG
 
 - If you try to run an unsupported game, you will receive an error message reporting the original version of AGS it was made in and data format index, which may be used for reference e.g. when reporting the problem.
 
-- Game saves are compatible between the different platforms if they are created with the same version of the engine. Latest 3.\* engine should normally read saves made by engine 3.2.0 and above, but that has not been tested for a while.
+- Game saves are compatible between the different platforms if they are created with the same version of the engine. Latest 3.\* engine should normally read saves made by engine 3.5.0 and above.
 
 - Certain games may require engine plugins. If there's no plugin version for a particular platform or a platform-independent replacement, then the game will not load on that platform.
 
 - As of AGS 3.6.0 the Windows engine no longer supports playing **AVI/MPG videos**. The decision to drop this feature was made while moving to a new SDL2 backend, primarily because its implementation was based on using DirectShow interface (Windows-only) and relied on codecs installed on player's system. Other ports were not supporting this ever. If the game tries to play such video, it will simply be skipped. The existing workaround is to convert the avi/mpg video file to OGV, while keeping the full original filename (*including the extension!*): then this file will be instead opened by the integrated OGV player.
 
-**The 4th generation** is found in [`ags4`][ags4-br] branch. It formally supports importing games made with AGS 3.4.1 and above, but only if these do not use any legacy features. The 4.x engine should be able to read saves made with the 3.5.0 engine and above.
+**The 4th generation** is found in [`ags4`][ags4-br] branch. It formally supports importing games made with AGS 3.6.0 and above, but only if these do not use any legacy features. The 4.x engine should be able to read saves made with the 3.5.0 engine and above.
 
 
 ## Other repositories

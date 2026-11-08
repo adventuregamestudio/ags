@@ -33,6 +33,7 @@
 #ifndef __AGS_TOOL_DATA__AGFREADER_H
 #define __AGS_TOOL_DATA__AGFREADER_H
 
+#include <map>
 #include <memory>
 #include "data/game_utils.h"
 #include "util/error.h"
@@ -67,10 +68,26 @@ public:
     inline DocElem GetGameRoot() const { return _gameRoot; }
     inline const String &GetEditorVersion() const { return _editorVersion; }
 
+    // AGS 4 projects keep each dialog's data and script in their own files,
+    // Dialogs/<name>.xml and Dialogs/<name>.dasc; the <Dialog> elements in
+    // Game.agf only tell the ID and script name.
+    // Returns the <Dialog> element of the dialog's data file, or null if it cannot be read.
+    DocElem GetDialogData(DocElem dialog_ref);
+    // Reads the dialog's script; returns an empty string if there is none
+    String ReadDialogScript(DocElem dialog_ref);
+
+    // The folder of the dialog files, relative to the project's directory
+    static const char *const DialogsDir;
+
 private:
+    // The base name of the dialog's files (Dialog.DialogFileNameBase)
+    String GetDialogFileBase(DocElem dialog_ref) const;
+
     std::unique_ptr<Document> _doc;
     DocElem _gameRoot;
     String _editorVersion;
+    String _projectDir;
+    std::map<String, std::unique_ptr<Document>> _dialogDocs;
 };
 
 // Helper class, providing static methods for reading values from a doc element
@@ -365,6 +382,8 @@ public:
     String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
 
     String ReadDefaultValue(DocElem elem) { return ReadString(elem, "DefaultValue"); }
+    DataUtil::VariableArrayType ReadArrayType(DocElem elem);
+    int ReadArraySize(DocElem elem) { return ReadInt(elem, "ArraySize"); }
 };
 
 class GlobalVariables : public EntityListParser
@@ -527,6 +546,8 @@ void ReadCustomDataDirectories(std::vector<String> &dirs, DocElem root);
 // Reads a list of font IDs.
 // In 3.x AGS project the font items do not provide explicit filenames, so one has to rely on IDs.
 void ReadFontList(std::vector<int> &font_list, DocElem root);
+// Reads the names of the font files, which AGS 4 projects keep in the Fonts folder
+void ReadFontFileList(std::vector<String> &font_files, DocElem root);
 // Reads a list of plugins registered for this game project.
 void ReadPluginList(std::vector<String> &plugin_list, DocElem root);
 // Reads a list of room ID and descriptions found in the game document.

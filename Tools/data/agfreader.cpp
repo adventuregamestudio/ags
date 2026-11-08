@@ -16,6 +16,9 @@
 #include <cstdio>
 #include <tinyxml2.h>
 #include "debug/out.h"
+#include "util/file.h"
+#include "util/math.h"
+#include "util/path.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 
@@ -162,6 +165,30 @@ static const CstrArr<3> kTextBoxKeyClaimStyleNames = {{
     "All", "Handled", "TextOnly"
 }};
 
+static const CstrArr<13> kBlendModeNames = {{
+    "Normal", "Add", "Darken", "Lighten", "Multiply", "Screen", "Burn",
+    "Subtract", "Exclusion", "Dodge", "Copy", "CopyRGB", "CopyAlpha"
+}};
+
+// in the order of GraphicFlip
+static const CstrArr<4> kSpriteFlipStyleNames = {{
+    "None", "Horizontal", "Vertical", "Both"
+}};
+
+static const CstrArr<3> kGlobalVariableArrayTypeNames = {{
+    "None", "Array", "DynamicArray"
+}};
+
+static const std::array<std::pair<const char*, CursorRole>, 7> kCursorRoleNames = {{
+    { "None", kCursorRole_None }, { "Walk", kCursorRole_Walk }, { "Look", kCursorRole_Look },
+    { "Interact", kCursorRole_Interact }, { "UseInv", kCursorRole_UseInv },
+    { "Pointer", kCursorRole_Pointer }, { "Wait", kCursorRole_Wait }
+}};
+
+static const std::array<std::pair<const char*, int>, 2> kSpriteImportColorDepthNames = {{
+    { "GameDefault", 0 }, { "Indexed8Bit", 8 }
+}};
+
 // Compares "X.Y.Z.W" version strings numerically (missing parts count as 0);
 // returns a negative, zero or positive value like strcmp
 int CompareXmlVersions(const char *a, const char *b)
@@ -219,6 +246,7 @@ HError AGFReader::Open(const char *filename)
         return new Error("Game.agf format version is missing");
     const char *attr_editorver = _doc->RootElement()->Attribute(XML_ATTRIBUTE_EDITOR_VERSION);
     _editorVersion = attr_editorver ? attr_editorver : "";
+    _projectDir = Path::GetParent(Path::MakeAbsolutePath(filename));
     Debug::Printf("AGFReader: opened %s,\n format: %s\n saved by AGS %s", filename, attr_filever,
                   attr_editorver ? attr_editorver : "unknown");
 
@@ -246,6 +274,41 @@ void AGFReader::Close()
     _doc.reset();
     _gameRoot = nullptr;
     _editorVersion.Empty();
+    _projectDir.Empty();
+    _dialogDocs.clear();
+}
+
+const char *const AGFReader::DialogsDir = "Dialogs";
+
+String AGFReader::GetDialogFileBase(DocElem dialog_ref) const
+{
+    const String name = ValueParser::ReadString(dialog_ref, "ScriptName");
+    // a dialog without a script name uses its ID, after a '@' that a script name cannot have
+    return name.IsEmpty() ? String::FromFormat("@dialog%d", ValueParser::ReadInt(dialog_ref, "ID")) : name;
+}
+
+DocElem AGFReader::GetDialogData(DocElem dialog_ref)
+{
+    const String base = GetDialogFileBase(dialog_ref);
+    auto it = _dialogDocs.find(base);
+    if (it == _dialogDocs.end())
+    {
+        std::unique_ptr<Document> doc(new Document());
+        const String filename =
+            Path::ConcatPaths(_projectDir, String::FromFormat("%s/%s.xml", DialogsDir, base.GetCStr()));
+        if (doc->LoadFile(filename.GetCStr()) != XML_SUCCESS)
+            doc.reset();
+        it = _dialogDocs.insert(std::make_pair(base, std::move(doc))).first;
+    }
+    return it->second ? it->second->FirstChildElement("Dialog") : nullptr;
+}
+
+String AGFReader::ReadDialogScript(DocElem dialog_ref)
+{
+    const String filename = Path::ConcatPaths(_projectDir,
+        String::FromFormat("%s/%s.dasc", DialogsDir, GetDialogFileBase(dialog_ref).GetCStr()));
+    auto in = File::OpenFileRead(filename);
+    return in ? String::FromStream(in.get(), SIZE_MAX) : String();
 }
 
 //-----------------------------------------------------------------------------
@@ -335,14 +398,23 @@ int ValueParser::ReadInt(DocElem elem, const char *field, int def_value)
         return def_value;
     DocElem name_f = elem->FirstChildElement(field);
     if (name_f && name_f->GetText())
-        return StrUtil::StringToInt(name_f->GetText(), def_value);
+    {
+        // 64-bit parsing takes both the negative values and the hexadecimal colours
+        // above 0x7FFFFFFF ("0xFFA8A8A8"), which are stored as negative 32-bit values
+        const int64_t value = StrUtil::StringToInt64(name_f->GetText(), INT64_MAX);
+        if (value < INT32_MIN || value > UINT32_MAX)
+            return def_value;
+        return static_cast<int>(static_cast<uint32_t>(value));
+    }
     return def_value;
 }
 
 float ValueParser::ReadFloat(DocElem elem, const char *field, float def_value)
 {
+    if (!elem)
+        return def_value;
     DocElem name_f = elem->FirstChildElement(field);
-    if (name_f)
+    if (name_f && name_f->GetText())
         return StrUtil::StringToFloat(name_f->GetText(), def_value);
     return def_value;
 }
@@ -553,6 +625,31 @@ static HorAlignment ReadHorizontalAlignment(const String &value, HorAlignment de
     return def_value;
 }
 
+static CursorRole ReadCursorRole(const String &value)
+{
+    return StrUtil::ParseEnumOptions(value, kCursorRoleNames, kCursorRole_None);
+}
+
+static BlendMode ReadBlendMode(const String &value)
+{
+    return StrUtil::ParseEnum(value, kBlendModeNames, kBlend_Normal);
+}
+
+// AGS.Types GraphicAnchorTypeConverter: "x, y", each clamped to 0-1
+static Pointf ReadGraphicAnchor(const String &value, const Pointf &def_value)
+{
+    std::vector<String> parts = value.Split(',');
+    if (parts.size() != 2)
+        return def_value;
+    parts[0].Trim();
+    parts[1].Trim();
+    const float x = StrUtil::StringToFloat(parts[0], 0.f);
+    const float y = StrUtil::StringToFloat(parts[1], 0.f);
+    return Pointf(Math::Clamp(x, 0.f, 1.f), Math::Clamp(y, 0.f, 1.f));
+}
+
+static void ReadProperties(DocElem elem, std::vector<DataUtil::CustomPropertyValue> &props);
+
 String Cursor::ReadScriptName(DocElem elem)
 {
     return BuildMouseCursorPrefixedScriptID(ReadString(elem, "Name"));
@@ -570,16 +667,20 @@ void Cursor::ReadAllData(DocElem elem, DataUtil::CursorData &data)
     data.AnimateOnlyWhenMoving = ReadBool(elem, "AnimateOnlyWhenMoving");
     data.StandardMode = ReadBool(elem, "StandardMode");
     data.AnimationDelay = ReadInt(elem, "AnimationDelay", 5);
+    data.CreateEvent = ReadBool(elem, "CreateEvent");
+    data.StandardRole = ReadCursorRole(ReadString(elem, "StandardRole"));
 }
 
 void InventoryItem::ReadAllData(DocElem elem, DataUtil::InventoryItemData &data)
 {
-    data.Description = ReadString(elem, "Description");
+    data.Description = ReadString(elem, "DisplayName");
     data.Image = ReadInt(elem, "Image");
     data.CursorImage = ReadInt(elem, "CursorImage");
     data.HotspotX = ReadInt(elem, "HotspotX");
     data.HotspotY = ReadInt(elem, "HotspotY");
+    data.HotspotAlignment = ReadFrameAlignment(ReadString(elem, "HotspotAlignment"), kAlignNone);
     data.PlayerStartsWith = ReadBool(elem, "PlayerStartsWithItem");
+    data.OnAnyClick = ReadString(elem, "OnAnyClick");
 }
 
 int GUIMain::ReadID(DocElem elem)
@@ -629,6 +730,8 @@ void GUIMain::ReadAllData(DocElem elem, DataUtil::GUIData& gui_data)
     gui_data.PopupYPos = ReadInt(self, "PopupYPos");
     gui_data.Padding = ReadInt(self, "Padding", TEXTWINDOW_PADDING_DEFAULT);
     gui_data.TextColor = ReadInt(self, "TextColor");
+    gui_data.BlendMode = ReadBlendMode(ReadString(self, "BlendMode"));
+    ReadProperties(self, gui_data.Properties);
 }
 
 DocElem GUIMain::GetNormalGUI(DocElem elem)
@@ -677,6 +780,9 @@ void GUIControl::ReadAllData(DocElem elem, DataUtil::GUIControlData& data)
     data.BorderWidth = ReadInt(elem, "BorderWidth");
     data.PaddingX = ReadInt(elem, "PaddingX");
     data.PaddingY = ReadInt(elem, "PaddingY");
+    data.Transparency = ReadInt(elem, "Transparency");
+    data.BlendMode = ReadBlendMode(ReadString(elem, "BlendMode"));
+    ReadProperties(elem, data.Properties);
 }
 
 void GUIControl::ReadButtonData(DocElem elem, DataUtil::GUIButtonData& data)
@@ -689,6 +795,7 @@ void GUIControl::ReadButtonData(DocElem elem, DataUtil::GUIButtonData& data)
     data.MouseoverImage = ReadInt(elem, "MouseoverImage");
     data.NewModeNumber = ReadInt(elem, "NewModeNumber");
     data.OnClick = ReadString(elem, "OnClick");
+    data.OnFrameEvent = ReadString(elem, "OnFrameEvent");
     data.PushedImage = ReadInt(elem, "PushedImage");
     data.Text = ReadString(elem, "Text");
     data.TextAlignment = ReadFrameAlignment(ReadString(elem, "TextAlignment"), kAlignTopCenter);
@@ -794,6 +901,7 @@ void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings& s)
     s.DebugMode = ReadBool(elem, "DebugMode");
     s.DefaultRoomMaskResolution = ReadInt(elem, "DefaultRoomMaskResolution");
     s.Description = ReadString(elem, "Description");
+    s.DeveloperErrorText = ReadString(elem, "DeveloperErrorText");
     s.DeveloperName = ReadString(elem, "DeveloperName");
     s.DeveloperURL = ReadString(elem, "DeveloperURL");
     s.DialogOptionsBackwards = ReadBool(elem, "DialogOptionsBackwards");
@@ -807,6 +915,7 @@ void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings& s)
     s.EnforceNewAudio = ReadBool(elem, "EnforceNewAudio");
     s.EnforceNewStrings = ReadBool(elem, "EnforceNewStrings");
     s.EnforceObjectBasedScript = ReadBool(elem, "EnforceObjectBasedScript");
+    s.FaceDirectionRatio = ReadFloat(elem, "FaceDirectionRatio");
     s.GUIHandleOnlyLeftMouseButton = ReadBool(elem, "GUIHandleOnlyLeftMouseButton");
     s.GUIDAsString = ReadString(elem, "GUIDAsString");
     s.GameFileName = ReadString(elem, "GameFileName");
@@ -862,6 +971,11 @@ void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings& s)
     s.Version = ReadString(elem, "Version");
     s.WalkInLookMode = ReadBool(elem, "WalkInLookMode");
     s.WhenInterfaceDisabled = ReadGuiDisableStyle(ReadString(elem, "WhenInterfaceDisabled"));
+}
+
+DataUtil::VariableArrayType GlobalVariable::ReadArrayType(DocElem elem)
+{
+    return StrUtil::ParseEnum(ReadString(elem, "ArrayType"), kGlobalVariableArrayTypeNames, DataUtil::kVariable_Single);
 }
 
 void GlobalVariables::GetAll(DocElem root, std::vector<DocElem> &elems)
@@ -1003,6 +1117,7 @@ static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
             control.ReadButtonData(el, *data);
             if (strcmp(el->Name(), "GUITextWindowEdge") == 0)
             {
+                data->IsTextWindowEdge = true;
                 data->ClickAction = "RunScript";
                 data->MouseoverImage = -1;
                 data->PushedImage = -1;
@@ -1052,11 +1167,16 @@ static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
     }
 }
 
-static void ReadDialog(DataUtil::DialogRef &dialog, AGF::DocElem elem)
+static void ReadDialog(DataUtil::DialogRef &dialog, AGFReader &reader, AGF::DocElem dialog_ref)
 {
     AGF::Dialog p_dialog;
-    ReadEntityRef(dialog, p_dialog, elem);
+    ReadEntityRef(dialog, p_dialog, dialog_ref);
+    // Dialog(XmlNode), read from Dialogs/<name>.xml
+    DocElem elem = reader.GetDialogData(dialog_ref);
+    if (!elem)
+        return;
     dialog.ShowTextParser = ValueParser::ReadBool(elem, "ShowTextParser");
+    ReadProperties(elem, dialog.Properties);
 
     DocElem options = elem->FirstChildElement("DialogOptions");
     for (DocElem option = options ? options->FirstChildElement("DialogOption") : nullptr;
@@ -1086,6 +1206,8 @@ void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root)
         var.Type = glvar.ReadType(el);
         var.Name = glvar.ReadScriptName(el);
         var.Value = glvar.ReadDefaultValue(el);
+        var.ArrayType = glvar.ReadArrayType(el);
+        var.ArraySize = glvar.ReadArraySize(el);
         vars.push_back(var);
     }
 }
@@ -1218,10 +1340,12 @@ static void ReadProperties(DocElem elem, std::vector<DataUtil::CustomPropertyVal
 
 static void ReadInteractions(DocElem elem, String &script_module, std::vector<String> &events)
 {
+    // The entity's own ScriptModule (Character.ScriptModule, InventoryItem.ScriptModule)
+    // is the module of its interactions
+    script_module = ValueParser::ReadString(elem, "ScriptModule", "GlobalScript.asc");
     DocElem interactions = elem ? elem->FirstChildElement("Interactions") : nullptr;
     if (!interactions)
         return;
-    script_module = ValueParser::ReadString(interactions, "ScriptModule");
     for (DocElem event = interactions->FirstChildElement("Event");
          event; event = event->NextSiblingElement("Event"))
     {
@@ -1266,6 +1390,7 @@ void AudioClip::ReadAllData(DocElem elem, DataUtil::AudioClipData &data)
     data.Repeat = repeat > 0;
     data.Priority = priority < 0 ? 50 : priority;
     data.Volume = volume < 0 ? 100 : volume;
+    ReadProperties(elem, data.Properties);
 }
 
 String AudioType::ReadScriptName(DocElem elem)
@@ -1287,11 +1412,17 @@ void Character::ReadAllData(DocElem elem, DataUtil::CharacterData &data)
     data.AdjustVolumeWithScaling = ValueParser::ReadBool(elem, "AdjustVolumeWithScaling");
     data.AnimationDelay = ValueParser::ReadInt(elem, "AnimationDelay");
     data.Baseline = ValueParser::ReadInt(elem, "Baseline");
+    data.BlendMode = ReadBlendMode(ValueParser::ReadString(elem, "BlendMode"));
     data.BlinkingView = ValueParser::ReadInt(elem, "BlinkingView");
     std::sscanf(ValueParser::ReadString(elem, "BlockingRectangle", "0,0,0,0"), "%d,%d,%d,%d",
         &data.BlockingX, &data.BlockingY, &data.BlockingWidth, &data.BlockingHeight);
     data.Clickable = ValueParser::ReadBool(elem, "Clickable", true);
     data.DiagonalLoops = ValueParser::ReadBool(elem, "DiagonalLoops", true);
+    data.RealName = ValueParser::ReadString(elem, "DisplayName");
+    data.Enabled = ValueParser::ReadBool(elem, "Enabled", true);
+    data.GraphicAnchor = ReadGraphicAnchor(ValueParser::ReadString(elem, "GraphicAnchor"), Pointf(0.5f, 1.f));
+    std::sscanf(ValueParser::ReadString(elem, "GraphicOffset", "0,0"), "%d,%d",
+        &data.GraphicOffset.X, &data.GraphicOffset.Y);
     data.IdleAnimationDelay = ValueParser::ReadInt(elem, "IdleAnimationDelay");
     data.IdleDelay = ValueParser::ReadInt(elem, "IdleDelay");
     data.IdleView = ValueParser::ReadInt(elem, "IdleView");
@@ -1300,7 +1431,8 @@ void Character::ReadAllData(DocElem elem, DataUtil::CharacterData &data)
     data.MovementSpeedX = ValueParser::ReadInt(elem, "MovementSpeedX");
     data.MovementSpeedY = ValueParser::ReadInt(elem, "MovementSpeedY");
     data.NormalView = ValueParser::ReadInt(elem, "NormalView");
-    data.RealName = ValueParser::ReadString(elem, "RealName");
+    data.OnAnyClick = ValueParser::ReadString(elem, "OnAnyClick");
+    data.OnFrameEvent = ValueParser::ReadString(elem, "OnFrameEvent");
     data.Solid = ValueParser::ReadBool(elem, "Solid", true);
     data.SpeechAnimationDelay = ValueParser::ReadInt(elem, "SpeechAnimationDelay");
     data.SpeechColor = ValueParser::ReadInt(elem, "SpeechColor");
@@ -1315,6 +1447,7 @@ void Character::ReadAllData(DocElem elem, DataUtil::CharacterData &data)
     data.UniformMovementSpeed = ValueParser::ReadBool(elem, "UniformMovementSpeed", true);
     data.UseRoomAreaLighting = ValueParser::ReadBool(elem, "UseRoomAreaLighting", true);
     data.UseRoomAreaScaling = ValueParser::ReadBool(elem, "UseRoomAreaScaling", true);
+    data.Visible = ValueParser::ReadBool(elem, "Visible", true);
     ReadProperties(elem, data.Properties);
     ReadInteractions(elem, data.ScriptModule, data.InteractionEvents);
 }
@@ -1333,9 +1466,13 @@ void View::ReadAllData(DocElem elem, DataUtil::ViewData &data)
         {
             DataUtil::ViewFrameData frame_data;
             frame_data.Delay = ValueParser::ReadInt(frame, "Delay");
-            frame_data.Flipped = ValueParser::ReadBool(frame, "Flipped");
-            frame_data.Image = ValueParser::ReadInt(frame, "Image");
+            frame_data.EventName = ValueParser::ReadString(frame, "EventName");
+            frame_data.Flip =
+                StrUtil::ParseEnum(ValueParser::ReadString(frame, "Flip"), kSpriteFlipStyleNames, kFlip_None);
+            frame_data.Image = std::max(0, ValueParser::ReadInt(frame, "Image")); // ViewFrame.Image is never negative
             frame_data.Sound = ValueParser::ReadInt(frame, "Sound");
+            frame_data.XOffset = ValueParser::ReadInt(frame, "XOffset");
+            frame_data.YOffset = ValueParser::ReadInt(frame, "YOffset");
             loop_data.Frames.push_back(frame_data);
         }
         data.Loops.push_back(loop_data);
@@ -1354,6 +1491,7 @@ void Font::ReadAllData(DocElem elem, DataUtil::FontData &data)
     data.AutoOutlineStyle = ReadFontAutoOutlineStyle(ValueParser::ReadString(elem, "AutoOutlineStyle"));
     data.CharacterSpacing = ValueParser::ReadInt(elem, "CharacterSpacing");
     data.CustomHeightValue = ValueParser::ReadInt(elem, "CustomHeightValue");
+    data.FontFileName = ValueParser::ReadString(elem, "FontFileName");
     data.HeightDefinedBy = ReadFontHeightDefinition(ValueParser::ReadString(elem, "HeightDefinedBy"));
     data.LineSpacing = ValueParser::ReadInt(elem, "LineSpacing");
     data.OutlineFont = ValueParser::ReadInt(elem, "OutlineFont");
@@ -1456,6 +1594,8 @@ static void GetAllSprites(std::vector<DataUtil::SpriteData> &sprites, DocElem ro
             data.ImportWidth = ValueParser::ReadInt(source, "ImportWidth");
             data.ImportHeight = ValueParser::ReadInt(source, "ImportHeight");
             data.ImportAsTile = ValueParser::ReadBool(source, "ImportAsTile");
+            data.ImportColorDepth = StrUtil::ParseEnumOptions(ValueParser::ReadString(source, "ImportColorDepth"),
+                kSpriteImportColorDepthNames, 0);
             data.TransparentColourIndex = ValueParser::ReadInt(source, "TransparentColorIndex");
         }
         sprites.push_back(data);
@@ -1537,7 +1677,7 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
         for (const auto &el : elems)
         {
             DataUtil::DialogRef dialog;
-            ReadDialog(dialog, el);
+            ReadDialog(dialog, reader, el);
             game.Dialogs.push_back(dialog);
         }
     }
@@ -1696,7 +1836,7 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
         for (DocElem elem : elems)
         {
             DataUtil::DialogRef dialog;
-            ReadDialog(dialog, elem);
+            ReadDialog(dialog, reader, elem);
             game.Dialogs.push_back(dialog);
         }
     }
@@ -1799,6 +1939,18 @@ void ReadFontList(std::vector<int> &font_list, DocElem root)
     for (const auto &t : font_els)
     {
         font_list.push_back(font.ReadID(t));
+    }
+}
+
+void ReadFontFileList(std::vector<String> &font_files, DocElem root)
+{
+    DocElem list = root->FirstChildElement("FontFiles");
+    for (DocElem file = list ? list->FirstChildElement("FontFile") : nullptr;
+        file; file = file->NextSiblingElement("FontFile"))
+    {
+        const String name = ValueParser::ReadString(file, "FileName");
+        if (!name.IsEmpty())
+            font_files.push_back(name);
     }
 }
 

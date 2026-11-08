@@ -17,6 +17,7 @@
 #include <tinyxml2.h>
 #include "gtest/gtest.h"
 #include "data/agfreader.h"
+#include "data/scriptgen.h"
 
 using namespace AGS;
 
@@ -172,4 +173,127 @@ TEST(AGFReader, EnumReadLipSyncType)
         AGF::ReadLipSyncType("PamelaVoiceFiles"));
     EXPECT_EQ(DataUtil::kLipSync_None,
         AGF::ReadLipSyncType("NotARealValue"));
+}
+
+TEST(AGFReader, GlobalVariablesMayBeArrays)
+{
+    tinyxml2::XMLDocument doc;
+    ASSERT_EQ(tinyxml2::XML_SUCCESS, doc.Parse(
+        "<Game><GlobalVariables><Variables>"
+        "<GlobalVariable><ArraySize>0</ArraySize><ArrayType>None</ArrayType><DefaultValue>True</DefaultValue>"
+        "<Name>flag</Name><Type>bool</Type></GlobalVariable>"
+        "<GlobalVariable><ArraySize>5</ArraySize><ArrayType>Array</ArrayType><DefaultValue></DefaultValue>"
+        "<Name>list</Name><Type>int</Type></GlobalVariable>"
+        "<GlobalVariable><ArraySize>0</ArraySize><ArrayType>DynamicArray</ArrayType><DefaultValue>x</DefaultValue>"
+        "<Name>names</Name><Type>String</Type></GlobalVariable>"
+        "</Variables></GlobalVariables></Game>"));
+    std::vector<DataUtil::Variable> vars;
+    AGF::ReadGlobalVariables(vars, doc.RootElement());
+    ASSERT_EQ(3u, vars.size());
+
+    // as the editor's GlobalVariablesComponent writes them
+    EXPECT_STREQ("import bool flag;\nimport int list[5];\nimport String names[];\n",
+        DataUtil::MakeVariablesScriptHeader(vars).GetCStr());
+    EXPECT_STREQ("bool flag = true;\nexport flag;\nint list[5];\nexport list;\nString names[];\nexport names;\n"
+        "function game_start() {\n}\n",
+        DataUtil::MakeVariablesScriptBody(vars).GetCStr());
+}
+
+TEST(AGFReader, CharacterAGS4Properties)
+{
+    tinyxml2::XMLDocument doc;
+    ASSERT_EQ(tinyxml2::XML_SUCCESS, doc.Parse(
+        "<Characters>"
+        "<Character><BlendMode>Add</BlendMode><DisplayName>Ego</DisplayName><Enabled>False</Enabled>"
+        "<GraphicAnchor>0.25, 2</GraphicAnchor><GraphicOffset>3, -4</GraphicOffset><ID>0</ID>"
+        "<Interactions><Event Index=\"0\">cEgo_Look</Event></Interactions><OnAnyClick>cEgo_AnyClick</OnAnyClick>"
+        "<ScriptModule>Ego.asc</ScriptModule><ScriptName>cEgo</ScriptName><SpeechColor>0xFFA8A8A8</SpeechColor>"
+        "<Visible>False</Visible></Character>"
+        "<Character><ID>1</ID><ScriptName>cOther</ScriptName></Character>"
+        "</Characters>"));
+    AGF::Character parser;
+    DataUtil::CharacterData ego;
+    parser.ReadAllData(doc.RootElement()->FirstChildElement("Character"), ego);
+    EXPECT_STREQ("Ego", ego.RealName.GetCStr());
+    EXPECT_FALSE(ego.Enabled);
+    EXPECT_FALSE(ego.Visible);
+    EXPECT_EQ(Common::kBlend_Add, ego.BlendMode);
+    EXPECT_FLOAT_EQ(0.25f, ego.GraphicAnchor.X);
+    EXPECT_FLOAT_EQ(1.f, ego.GraphicAnchor.Y); // clamped to 0-1
+    EXPECT_EQ(3, ego.GraphicOffset.X);
+    EXPECT_EQ(-4, ego.GraphicOffset.Y);
+    EXPECT_STREQ("cEgo_AnyClick", ego.OnAnyClick.GetCStr());
+    // the colour has all 32 bits, as Convert.ToInt32(s, 16) reads it
+    EXPECT_EQ(static_cast<int>(0xFFA8A8A8u), ego.SpeechColor);
+    // the character's own script module is the module of its interactions
+    EXPECT_STREQ("Ego.asc", ego.ScriptModule.GetCStr());
+    ASSERT_EQ(1u, ego.InteractionEvents.size());
+    EXPECT_STREQ("cEgo_Look", ego.InteractionEvents[0].GetCStr());
+
+    // the editor's defaults
+    DataUtil::CharacterData other;
+    parser.ReadAllData(doc.RootElement()->LastChildElement("Character"), other);
+    EXPECT_TRUE(other.Enabled);
+    EXPECT_TRUE(other.Visible);
+    EXPECT_FLOAT_EQ(0.5f, other.GraphicAnchor.X);
+    EXPECT_FLOAT_EQ(1.f, other.GraphicAnchor.Y);
+    EXPECT_STREQ("GlobalScript.asc", other.ScriptModule.GetCStr());
+}
+
+TEST(AGFReader, OtherEntitiesAGS4Properties)
+{
+    tinyxml2::XMLDocument doc;
+    ASSERT_EQ(tinyxml2::XML_SUCCESS, doc.Parse(
+        "<Game>"
+        "<MouseCursor><CreateEvent>True</CreateEvent><ID>4</ID><Name>Use</Name><StandardRole>UseInv</StandardRole>"
+        "</MouseCursor>"
+        "<InventoryItem><DisplayName>Key</DisplayName><HotspotAlignment>BottomRight</HotspotAlignment><ID>1</ID>"
+        "<OnAnyClick>iKey_AnyClick</OnAnyClick><ScriptName>iKey</ScriptName></InventoryItem>"
+        "<View><ID>1</ID><Loops><Loop><Frames>"
+        "<ViewFrame><Delay>2</Delay><EventName>step</EventName><Flip>Both</Flip><Image>-1</Image>"
+        "<XOffset>2</XOffset><YOffset>-3</YOffset></ViewFrame>"
+        "</Frames></Loop></Loops><ScriptName>VEGO</ScriptName></View>"
+        "<Sprites><Sprite Slot=\"1\"><Source><ImportColorDepth>Indexed8Bit</ImportColorDepth></Source></Sprite>"
+        "<Sprite Slot=\"2\"><Source><ImportColorDepth>GameDefault</ImportColorDepth></Source></Sprite></Sprites>"
+        "<Font><FontFileName>Fonts/Arial.ttf</FontFileName><ID>3</ID><Name>Arial</Name></Font>"
+        "<FontFiles><FontFile><FileName>Fonts/Arial.ttf</FileName><SourceFilename>C:/Arial.ttf</SourceFilename>"
+        "</FontFile><FontFile><FileName /></FontFile></FontFiles>"
+        "</Game>"));
+    AGF::DocElem root = doc.RootElement();
+
+    DataUtil::CursorData cursor;
+    AGF::Cursor().ReadAllData(root->FirstChildElement("MouseCursor"), cursor);
+    EXPECT_TRUE(cursor.CreateEvent);
+    EXPECT_EQ(kCursorRole_UseInv, cursor.StandardRole);
+
+    DataUtil::InventoryItemData item;
+    AGF::InventoryItem().ReadAllData(root->FirstChildElement("InventoryItem"), item);
+    EXPECT_STREQ("Key", item.Description.GetCStr());
+    EXPECT_EQ(kAlignBottomRight, item.HotspotAlignment);
+    EXPECT_STREQ("iKey_AnyClick", item.OnAnyClick.GetCStr());
+
+    DataUtil::ViewData view;
+    AGF::View().ReadAllData(root->FirstChildElement("View"), view);
+    ASSERT_EQ(1u, view.Loops.size());
+    ASSERT_EQ(1u, view.Loops[0].Frames.size());
+    const DataUtil::ViewFrameData &frame = view.Loops[0].Frames[0];
+    EXPECT_EQ(0, frame.Image); // never negative
+    EXPECT_EQ(Common::kFlip_Both, frame.Flip);
+    EXPECT_EQ(2, frame.XOffset);
+    EXPECT_EQ(-3, frame.YOffset);
+    EXPECT_STREQ("step", frame.EventName.GetCStr());
+
+    std::vector<DataUtil::SpriteData> sprites;
+    AGF::ReadSpriteList(sprites, root);
+    ASSERT_EQ(2u, sprites.size());
+    EXPECT_EQ(8, sprites[0].ImportColorDepth);
+    EXPECT_EQ(0, sprites[1].ImportColorDepth);
+
+    DataUtil::FontData font;
+    AGF::Font().ReadAllData(root->FirstChildElement("Font"), font);
+    EXPECT_STREQ("Fonts/Arial.ttf", font.FontFileName.GetCStr());
+    std::vector<Common::String> font_files;
+    AGF::ReadFontFileList(font_files, root);
+    ASSERT_EQ(1u, font_files.size());
+    EXPECT_STREQ("Fonts/Arial.ttf", font_files[0].GetCStr());
 }

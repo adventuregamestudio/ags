@@ -385,6 +385,12 @@ bool Export_Ash(const RoomDataExt &room, const String &filename)
     for (const auto &o : room.Objects)
         if (!o.ScriptName.IsEmpty())
             names.ObjectNames.push_back(o.ScriptName);
+    for (uint32_t i = 0; i < room.RegionCount; ++i)
+        names.RegionNames.push_back(room.Regions[i].ScriptName);
+    for (uint32_t i = 0; i < room.WalkAreaCount; ++i)
+        names.WalkableAreaNames.push_back(room.WalkAreas[i].ScriptName);
+    for (uint32_t i = 0; i < room.WalkBehindCount; ++i)
+        names.WalkBehindNames.push_back(room.WalkBehinds[i].ScriptName);
     return SaveTextFile(DataUtil::MakeRoomScriptHeader(names), filename);
 }
 

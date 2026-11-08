@@ -66,6 +66,11 @@ namespace DataUtil
     HError ConvertSpriteForGame(PixelBuffer &image, const Palette *pal,
         PixelBuffer &dst_image, const GameColorSettings &game_color_opts,
         const RoomPaletteCache *room_cache, const SpriteData &sprite);
+    // Converts a room background image to the game's color depth (in bits), opaque, as the editor
+    // does when it compiles a room (AGS.Native SetNativeRoomBackground). For an indexed image, pal is
+    // its palette; dst_pal receives the palette converted to the game format.
+    HError ConvertRoomBackgroundForGame(PixelBuffer &image, const Palette *pal, PixelBuffer &dst_image, Palette &dst_pal,
+                                        int game_color_depth);
 
 } // namespace DataUtil
 } // namespace AGS

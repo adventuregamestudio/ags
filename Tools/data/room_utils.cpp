@@ -24,29 +24,23 @@ namespace DataUtil
 // Room.ash
 //-----------------------------------------------------------------------------
 
+static void DeclareNames(String &header, const char *type_name, const std::vector<String> &names)
+{
+    for (const auto &name : names)
+    {
+        if (!name.IsEmpty())
+            header.AppendFmt("import readonly %s *%s;\n", type_name, name.GetCStr());
+    }
+}
+
 String MakeRoomScriptHeader(const RoomScriptNames &data)
 {
     String header;
-    // Room Object names
-    for (const auto &obj : data.ObjectNames)
-    {
-        if (!obj.IsEmpty())
-        {
-            header.Append("import Object ");
-            header.Append(obj);
-            header.Append(";\n");
-        }
-    }
-    // Hotspot names
-    for (const auto &hot : data.HotspotNames)
-    {
-        if (!hot.IsEmpty())
-        {
-            header.Append("import Hotspot ");
-            header.Append(hot);
-            header.Append(";\n");
-        }
-    }
+    DeclareNames(header, "Object", data.ObjectNames);
+    DeclareNames(header, "Hotspot", data.HotspotNames);
+    DeclareNames(header, "Region", data.RegionNames);
+    DeclareNames(header, "WalkableArea", data.WalkableAreaNames);
+    DeclareNames(header, "Walkbehind", data.WalkBehindNames);
     return header;
 }
 

@@ -520,6 +520,13 @@ public:
 // Convert serialized (string) enum names to their internal values (ints).
 DataUtil::SkipSpeechStyle ReadSkipSpeech(const String &value);
 DataUtil::LipSyncType ReadLipSyncType(const String &value);
+// shared with the room reader (room_xml.h)
+Common::BlendMode ReadBlendMode(const String &value);
+// AGS.Types GraphicAnchorTypeConverter: "x, y", each clamped to 0-1
+Pointf ReadGraphicAnchor(const String &value, const Pointf &def_value);
+// Compares "X.Y.Z.W" version strings numerically (missing parts count as 0);
+// returns a negative, zero or positive value like strcmp
+int CompareXmlVersions(const char *a, const char *b);
 
 // Read entity reference data using given parser from the given doc element
 void ReadEntityRef(DataUtil::EntityRef &ent, EntityParser &parser, DocElem elem);

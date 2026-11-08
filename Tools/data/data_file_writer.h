@@ -53,6 +53,8 @@ void WritePropertySchemaBlock(Stream *out,
     const std::vector<DataUtil::CustomPropertySchemaItem> &schema);
 void WritePropertyValues(Stream *out,
     const std::vector<DataUtil::CustomPropertyValue> &properties);
+// Returns the code page of the game text encoding setting ("UTF-8" or "ANSI")
+int ParseGameTextEncodingCodePage(const Common::String &value);
 
 // Block-level writers used by WriteGameData28. These are exposed separately so
 // that their count, ordering and reserved-slot framing may be unit-tested.

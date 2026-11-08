@@ -469,6 +469,29 @@ Display(""test"");
         }
 
         [Test]
+        public void ModuleDirective()
+        {
+            // "#module <name>" adds the module name to the new-script marker;
+            // only the first one counts, and the directive line itself becomes blank
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+            string script = $@"
+#module ags
+int i;
+#module other
+";
+            string res = preprocessor.Preprocess(script, "ScriptName");
+            Assert.That(preprocessor.Results.Count == 0);
+            string script_res = $@"""__NEWSCRIPTSTART_ScriptName;ags""
+
+
+int i;
+
+";
+
+            AssertStringEqual(res, script_res);
+        }
+
+        [Test]
         public void NonLatinUnicodeComment()
         {
             // Non-latin unicode characters in comments raises no error, as comments are removed

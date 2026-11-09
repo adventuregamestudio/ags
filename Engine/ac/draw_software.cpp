@@ -427,14 +427,36 @@ void update_invalid_region(Bitmap *ds, Bitmap *src, const DirtyRects &rects, boo
             // do the fast memory copy
             for (int i = 0; i < surf_height; i++)
             {
-                const uint8_t *src_scanline = src->GetScanLine(i + src_y);
-                uint8_t *dst_scanline = ds->GetScanLineForWriting(i + dst_y);
-                const IRRow &dirty_row = dirtyRow[i];
+                const int source_y = i + src_y;
+                const int destination_y = i + dst_y;
+
+                if (source_y < 0 || source_y >= src->GetHeight() ||
+                    destination_y < 0 || destination_y >= ds->GetHeight())
+                    continue;
+
+                const IRRow& dirty_row = dirtyRow[i];
+                if (dirty_row.numSpans == 0)
+                    continue;
+
+                const uint8_t* src_scanline = src->GetScanLine(source_y);
+                uint8_t* dst_scanline = ds->GetScanLineForWriting(destination_y);
                 for (int k = 0; k < dirty_row.numSpans; k++)
                 {
                     int tx1 = dirty_row.span[k].x1;
                     int tx2 = dirty_row.span[k].x2;
-                    memcpy(&dst_scanline[(tx1 + dst_x) * bypp], &src_scanline[(tx1 + src_x) * bypp], ((tx2 - tx1) + 1) * bypp);
+
+                    // Restrict the copy to valid source and destination coordinates.
+                    tx1 = std::max(tx1, std::max(-src_x, -dst_x));
+                    tx2 = std::min(tx2, std::min(
+                        src->GetWidth() - 1 - src_x,
+                        ds->GetWidth() - 1 - dst_x));
+
+                    if (tx1 > tx2)
+                        continue;
+
+                    memcpy(&dst_scanline[(tx1 + dst_x) * bypp],
+                        &src_scanline[(tx1 + src_x) * bypp],
+                        ((tx2 - tx1) + 1) * bypp);
                 }
             }
         }
@@ -454,7 +476,28 @@ void update_invalid_region(Bitmap *ds, Bitmap *src, const DirtyRects &rects, boo
                 {
                     int tx1 = dirty_row.span[k].x1;
                     int tx2 = dirty_row.span[k].x2;
-                    ds->Blit(src, tx1 + src_x, i + src_y, tx1 + dst_x, i + dst_y, (tx2 - tx1) + 1, rowsInOne);
+
+                    // Restrict the horizontal range to both bitmap boundaries.
+                    tx1 = std::max(tx1, std::max(-src_x, -dst_x));
+                    tx2 = std::min(tx2, std::min(
+                        src->GetWidth() - 1 - src_x,
+                        ds->GetWidth() - 1 - dst_x));
+
+                    // Restrict the vertical range to both bitmap boundaries.
+                    const int source_y = i + src_y;
+                    const int destination_y = i + dst_y;
+
+                    const int first_row = std::max(0, std::max(-source_y, -destination_y));
+                    const int last_row = std::min(rowsInOne, std::min(
+                        src->GetHeight() - source_y,
+                        ds->GetHeight() - destination_y));
+
+                    if (tx1 > tx2 || first_row >= last_row)
+                        continue;
+
+                    ds->Blit(src, tx1 + src_x, source_y + first_row,
+                        tx1 + dst_x, destination_y + first_row,
+                        (tx2 - tx1) + 1, last_row - first_row);
                 }
             }
         }

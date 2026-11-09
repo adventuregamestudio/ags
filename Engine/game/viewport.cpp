@@ -62,12 +62,6 @@ void Camera::SetSize(const Size cam_size)
 // Puts room camera to the new location in the room
 void Camera::SetAt(int x, int y)
 {
-    int cw = _position.GetWidth();
-    int ch = _position.GetHeight();
-    int room_width = data_to_game_coord(thisroom.Width);
-    int room_height = data_to_game_coord(thisroom.Height);
-    x = Math::Clamp(x, 0, room_width - cw);
-    y = Math::Clamp(y, 0, room_height - ch);
     if (_position.Left == x && _position.Top == y)
         return;
     _position.MoveTo(Point(x, y));

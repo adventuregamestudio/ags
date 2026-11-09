@@ -111,7 +111,9 @@ void UpdateCharacterMoveAndAnim(CharacterInfo *chi, CharacterExtras *chex, std::
     bool is_turning = UpdateCharacterTurning(chi, chex);
     // Fixup character's loop and frame prior to any further logic updates;
     // but don't fixup "bad" loops if animated by command, as that leads to confusing behavior.
-    FixupCharacterLoopAndFrame(chi, !chi->is_animating());
+    // (<= 3.6.2.12 games should still have this fixup, as users often made mistakes in script)
+    FixupCharacterLoopAndFrame(chi,
+        (loaded_game_file_version <= kGameVersion_362_12) || !chi->is_animating());
     if (is_turning)
         return; // still turning, break
 

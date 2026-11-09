@@ -555,8 +555,12 @@ int run_dialog_script(int dialogID, int offse, int optionIndex)
     }
   }
 
+  // Changed room while running the dialog: close the dialog immediately
   if (in_new_room != kEnterRoom_None)
+  {
+    schedule_dialog_stop();
     return RUN_DIALOG_STOP_DIALOG;
+  }
 
   if (said_speech_line > 0) {
     // the line below fixes the problem with the close-up face remaining on the
@@ -1798,7 +1802,7 @@ private:
     std::stack<int> _topicHist;
     int _executedOption = -1; // option which is currently run (or -1)
     bool _areOptionsDisplayed = false; // if dialog options are displayed on screen
-    int _doRunDialog = -1; // scheduled goto dialog
+    int _doRunDialog = RUN_DIALOG_STAY; // scheduled goto dialog
     bool _doStop = false; // scheduled stop
 
     // A position in script saved by certain API function calls in "dialog_request" callback;

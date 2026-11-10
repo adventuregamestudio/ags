@@ -20,6 +20,7 @@
 
 #include <functional>
 #include <vector>
+#include "ac/gamestructdefines.h"
 #include "util/string.h"
 #include "util/stream.h"
 
@@ -27,6 +28,26 @@ namespace AGS
 {
 namespace Common
 {
+    // Names of the script API levels as the game source has them: the values of
+    // ScriptAPIVersion and ScriptCompatLevel in Game.agf (AGS.Types.ScriptAPIVersion
+    // in the Editor), and the SCRIPT_API_* and SCRIPT_COMPAT_* macros of the scripts;
+    // in ascending order. These are used by the tools that read the game source;
+    // the names for the user are returned by GetScriptAPIName().
+    // Extend this list together with the ScriptAPIVersion enum.
+    struct ScriptAPISourceName
+    {
+        ScriptAPIVersion Version;
+        const char *Name;
+    };
+
+    constexpr ScriptAPISourceName kScriptAPISourceNames[] = {
+        {kScriptAPI_v321, "v321"},       {kScriptAPI_v330, "v330"},       {kScriptAPI_v334, "v334"},
+        {kScriptAPI_v335, "v335"},       {kScriptAPI_v340, "v340"},       {kScriptAPI_v341, "v341"},
+        {kScriptAPI_v350, "v350"},       {kScriptAPI_v3507, "v3507"},     {kScriptAPI_v351, "v351"},
+        {kScriptAPI_v360, "v360"},       {kScriptAPI_v36026, "v36026"},   {kScriptAPI_v361, "v361"},
+        {kScriptAPI_v362, "v362"},       {kScriptAPI_v363, "v363"},
+    };
+
     // This *double escapes *an escaped '[' character(old - style linebreak,
     // which must be escaped by user if they want a literal '[' in text).
     // This is required before doing standard unescaping for this line,

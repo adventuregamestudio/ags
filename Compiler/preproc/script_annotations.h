@@ -26,11 +26,8 @@ namespace Preprocessor {
 namespace ScriptAnnotations {
 
     Common::String MakeNewScriptMarker(const Common::String &scriptName);
-
     Common::String MakeNewScriptMarker(const Common::String &scriptName, const Common::String &moduleName);
-
     bool ParseNewScriptMarker(const Common::String &marker, Common::String &scriptName);
-
     bool ParseNewScriptMarker(const Common::String &marker, Common::String &scriptName, Common::String &moduleName);
 
 } // ScriptAnnotations

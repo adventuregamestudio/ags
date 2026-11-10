@@ -105,8 +105,7 @@ void CompilerOptions::PrintToStdout() const {
     if (Flags.EnforceNewStrings) printf("EnforceNewStrings; ");
     if (Flags.EnforceNewAudio) printf("EnforceNewAudio; ");
     if (Flags.UseOldCustomDialogOptionsAPI) printf("UseOldCustomDialogOptionsAPI; ");
-    if (Flags.UseOldKeyboardHandling)
-        printf("UseOldKeyboardHandling; ");
+    if (Flags.UseOldKeyboardHandling) printf("UseOldKeyboardHandling; ");
     printf("\n");
     if (DebugMode) printf("DebugMode\n");
     if (UnicodeMode) printf("Unicode mode\n");
@@ -162,15 +161,18 @@ int Compile(const CompilerOptions& comp_opts)
     {
         pp.DefineMacro("UNICODE", "1");
     }
-#ifndef LEGACY_COMPILER
     // Tell the scripts which language extensions the compiler has, as the editor does
     // (AGSEditor.DefineMacrosAccordingToGameSettings); agsdefns.sh tests these
-    // ccGetExtensions2 is the new compiler's list (script2/cs_compiler.h), ccGetExtensions the legacy one's
+    // ccGetExtensions is the legacy compiler's list (script/cs_compiler.h),
+    // ccGetExtensions2 the new compiler's (script2/cs_compiler.h)
     std::vector<std::string> extensions;
+#ifdef LEGACY_COMPILER
+    ccGetExtensions(extensions);
+#else
     ccGetExtensions2(extensions);
+#endif
     for (const auto &ext : extensions)
         pp.DefineMacro(("SCRIPT_EXT_" + ext).c_str(), "1");
-#endif
     // Set Script API macros (starting from lowest and until the highest requested)
     for(int i=0; i<ScriptAPIs.size()-1; i++)
     {
@@ -220,9 +222,12 @@ int Compile(const CompilerOptions& comp_opts)
             (comp_opts.Flags.ExportAll ? SCOPT_EXPORTALL : 0) |
             (comp_opts.Flags.LineNumbers ? SCOPT_LINENUMBERS : 0) |
             (comp_opts.Flags.EnforceNewStrings ? 0 : SCOPT_OLDSTRINGS) |
-            (comp_opts.UnicodeMode ? SCOPT_UTF8 : 0) | SCOPT_RTTI | SCOPT_RTTIOPS |
+            (comp_opts.UnicodeMode ? SCOPT_UTF8 : 0) |
+            SCOPT_RTTI |
+            SCOPT_RTTIOPS |
             // the editor adds the script table of contents to debug builds
-            (comp_opts.DebugMode ? SCOPT_SCRIPT_TOC : 0);
+            (comp_opts.DebugMode ? SCOPT_SCRIPT_TOC : 0) |
+            0;
 #endif
 
     //-----------------------------------------------------------------------//

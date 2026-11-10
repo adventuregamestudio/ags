@@ -478,7 +478,7 @@ int ParseScriptApiVersion(const String &value)
     if (value.CompareNoCase("Highest") == 0)
         return kScriptAPI_Current;
 
-    for (const auto &api : kScriptAPINames)
+    for (const auto &api : kScriptAPISourceNames)
     {
         if (value.CompareNoCase(api.Name) == 0)
             return api.Version;

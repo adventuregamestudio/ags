@@ -17,6 +17,7 @@
 //=============================================================================
 #include <functional>
 #include <vector>
+#include "ac/gamestructdefines.h"
 #include "game/scripteventtable.h"
 #include "util/error.h"
 #include "util/stream.h"
@@ -26,6 +27,29 @@ namespace AGS
 {
 namespace Common
 {
+    // Names of the script API levels as the game source has them: the values of
+    // ScriptAPIVersion and ScriptCompatLevel in Game.agf (AGS.Types.ScriptAPIVersion
+    // in the Editor), and the SCRIPT_API_* and SCRIPT_COMPAT_* macros of the scripts;
+    // in ascending order. These are used by the tools that read the game source;
+    // the names for the user are returned by GetScriptAPIName().
+    // Extend this list together with the ScriptAPIVersion enum.
+    struct ScriptAPISourceName
+    {
+        ScriptAPIVersion Version;
+        const char *Name;
+    };
+
+    constexpr ScriptAPISourceName kScriptAPISourceNames[] = {
+        {kScriptAPI_v321, "v321"},       {kScriptAPI_v330, "v330"},       {kScriptAPI_v334, "v334"},
+        {kScriptAPI_v335, "v335"},       {kScriptAPI_v340, "v340"},       {kScriptAPI_v341, "v341"},
+        {kScriptAPI_v350, "v350"},       {kScriptAPI_v3507, "v3507"},     {kScriptAPI_v351, "v351"},
+        {kScriptAPI_v360, "v360"},       {kScriptAPI_v36026, "v36026"},   {kScriptAPI_v361, "v361"},
+        {kScriptAPI_v362, "v362"},       {kScriptAPI_v363, "v363"},       {kScriptAPI_v399, "v399"},
+        {kScriptAPI_v400, "v400"},       {kScriptAPI_v400_07, "v400_07"}, {kScriptAPI_v400_14, "v400_14"},
+        {kScriptAPI_v400_16, "v400_16"}, {kScriptAPI_v400_18, "v400_18"}, {kScriptAPI_v400_24, "v400_24"},
+        {kScriptAPI_v400_33, "v400_33"},
+    };
+
     inline bool ReadAndAssertCount(Stream *in, const char *objname, uint32_t expected, HError &err)
     {
         uint32_t count = in->ReadInt32();

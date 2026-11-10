@@ -26,12 +26,6 @@ const char *XML_ATTRIBUTE_EDITOR_VERSION = "EditorVersion";
 // Up to 4.0.0.19 the Editor wrote this fixed tag plus a VersionIndex; since 4.0.0.20 it writes the
 // project format version itself (AGSEditor.LATEST_XML_VERSION in the Editor).
 const char *LEGACY_XML_VERSION_TAG = "3.0.3.2";
-// The tools read only project formats that need no upgrade step; older projects must be opened
-// and saved in the Editor first, so the upgrade code exists only there. 4.0.0.33 moved the dialogs
-// out of Game.agf into their own files, so nothing older reads as is.
-const char *OLDEST_READABLE_XML_VERSION = "4.0.0.33";
-// The newest project format these tools know: keep in step with AGSEditor.LATEST_XML_VERSION.
-const char *LATEST_XML_VERSION = "4.0.0.33";
 
 using namespace AGS::Common;
 using namespace tinyxml2;
@@ -189,6 +183,13 @@ namespace AGS
 {
 namespace AGF
 {
+
+// The tools read only project formats that need no upgrade step; older projects must be opened
+// and saved in the Editor first, so the upgrade code exists only there. 4.0.0.33 moved the dialogs
+// out of Game.agf into their own files, so nothing older reads as is.
+const char *const OLDEST_READABLE_XML_VERSION = "4.0.0.33";
+// The newest project format these tools know: keep in step with AGSEditor.LATEST_XML_VERSION.
+const char *const LATEST_XML_VERSION = "4.0.0.33";
 
 AGFReader::AGFReader()
     : _gameRoot(nullptr)

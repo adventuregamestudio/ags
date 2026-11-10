@@ -48,6 +48,11 @@ using AGS::Common::String;
 typedef tinyxml2::XMLDocument Document;
 typedef tinyxml2::XMLElement* DocElem;
 
+// The oldest and the newest project format AGFReader opens,
+// as the Version attribute of Game.agf names them
+extern const char *const OLDEST_READABLE_XML_VERSION;
+extern const char *const LATEST_XML_VERSION;
+
 // AGFReader opens AGF document and checks it for validity.
 // Provides a Game data root node.
 class AGFReader

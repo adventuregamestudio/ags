@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <memory>
 #include <utility>
 #include <iostream>
 
@@ -316,7 +317,7 @@ int Compile(const CompilerOptions& comp_opts)
     // Compile script
     //-----------------------------------------------------------------------//
 #ifdef LEGACY_COMPILER
-    ccScript* script = ccCompileText(script_pp.GetCStr(), script_name.GetCStr());
+    std::unique_ptr<ccScript> script(ccCompileText(script_pp.GetCStr(), script_name.GetCStr()));
     if ((script == nullptr) || (cc_has_error()))
     {
         const auto &error = cc_get_error();
@@ -331,7 +332,7 @@ int Compile(const CompilerOptions& comp_opts)
         all_the_script.Append(head.first);
     all_the_script.Append(script_pp);
     AGS::MessageHandler mh;
-    ccScript *script = ccCompileText2(all_the_script.GetCStr(), script_name.GetCStr(), cc_options, mh);
+    std::unique_ptr<ccScript> script(ccCompileText2(all_the_script.GetCStr(), script_name.GetCStr(), cc_options, mh));
     auto compiler_messages = mh.GetMessages();
     bool error = false;
     for(const auto &msg : compiler_messages)

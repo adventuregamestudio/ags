@@ -61,24 +61,24 @@ int break_on_next_script_step = 0;
 volatile int game_paused_in_debugger = 0;
 
 #if AGS_PLATFORM_OS_WINDOWS
-
 #include "platform/windows/debug/namedpipesagsdebugger.h"
-
 HWND editor_window_handle = 0;
-
-IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
-{
-    return new NamedPipesAGSDebugger(instanceToken);
-}
-
-#else   // AGS_PLATFORM_OS_WINDOWS
-
-IAGSEditorDebugger *GetEditorDebugger(const char* /*instanceToken*/)
-{
-    return nullptr;
-}
-
 #endif
+#include "debug/filebasedagsdebugger.h"
+
+IAGSEditorDebugger *GetEditorDebugger(const String &comm_type, const String &comm_config)
+{
+    if (comm_type.CompareNoCase("file") == 0)
+        return new FileBasedAGSDebugger(comm_config);
+#if AGS_PLATFORM_OS_WINDOWS
+    if (comm_type.IsEmpty() || comm_type.CompareNoCase("pipe") == 0)
+        return new NamedPipesAGSDebugger(comm_config);
+#else
+    if (comm_type.IsEmpty())
+        return new FileBasedAGSDebugger(comm_config);
+#endif
+    return nullptr; // not supported on this platform
+}
 
 int debug_flags=0;
 
@@ -435,15 +435,14 @@ bool send_state_to_debugger(const char *msg)
 
 bool init_editor_debugging(const ConfigTree &cfg) 
 {
-#if AGS_PLATFORM_OS_WINDOWS
-    editor_debugger = GetEditorDebugger(editor_debugger_instance_token);
-#else
-    // Editor isn't ported yet
-    editor_debugger = nullptr;
-#endif
+    const String comm_type = CfgReadString(cfg, "debugger", "comm_type");
+    const String comm_config = CfgReadString(cfg, "debugger", "comm_config");
+    Debug::Printf("init_editor_debugging: comm type: %s, config: %s", comm_type.GetCStr(), comm_config.GetCStr());
+
+    editor_debugger = GetEditorDebugger(comm_type, comm_config);
 
     if (editor_debugger == nullptr)
-        quit("editor_debugger is NULL but debugger enabled");
+        quitprintf("Editor debugger communication '%s' is not supported on this platform", comm_type.GetCStr());
 
     if (editor_debugger->Initialize())
     {
@@ -570,11 +569,12 @@ DebuggerResponse check_for_messages_from_debugger()
 
 bool send_exception_to_debugger(const char *qmsg)
 {
-#if AGS_PLATFORM_OS_WINDOWS
     want_exit = false;
+#if AGS_PLATFORM_OS_WINDOWS
     // allow the editor to break with the error message
     if (editor_window_handle != NULL)
         SetForegroundWindow(editor_window_handle);
+#endif
 
     if (!send_state_to_debugger("ERROR", qmsg))
         return false;
@@ -585,22 +585,19 @@ bool send_exception_to_debugger(const char *qmsg)
     {
         platform->Delay(10);
     }
-#else
-    (void)qmsg;
-#endif
     return true;
 }
 
 
 void break_into_debugger() 
 {
-#if AGS_PLATFORM_OS_WINDOWS
-
     if (!send_state_to_debugger("BREAK"))
         return;
 
+#if AGS_PLATFORM_OS_WINDOWS
     if (editor_window_handle != NULL)
         SetForegroundWindow(editor_window_handle);
+#endif
 
     game_paused_in_debugger = 1;
 
@@ -609,8 +606,6 @@ void break_into_debugger()
         update_polled_stuff();
         platform->YieldCPU();
     }
-
-#endif
 }
 
 int scrDebugWait = 0;

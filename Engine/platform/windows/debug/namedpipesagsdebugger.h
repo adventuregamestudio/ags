@@ -33,7 +33,7 @@
 class NamedPipesAGSDebugger : public IAGSEditorDebugger
 {
 public:
-    NamedPipesAGSDebugger(const AGS::Common::String &instanceToken);
+    NamedPipesAGSDebugger(const AGS::Common::String &config);
 
     bool Initialize() override;
     void Shutdown() override;

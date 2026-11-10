@@ -17,12 +17,20 @@
 #include <stdio.h> // sprintf
 #include "platform/windows/debug/namedpipesagsdebugger.h"
 #include "util/stdio_compat.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
-NamedPipesAGSDebugger::NamedPipesAGSDebugger(const String &instanceToken)
+NamedPipesAGSDebugger::NamedPipesAGSDebugger(const String &config)
 {
-    _instanceToken = instanceToken;
+    String instance_token;
+    for (const auto &opt : StrUtil::SplitPreservingDoublequoted(config, ','))
+    {
+        const auto kv = StrUtil::GetKeyValue(opt, ':');
+        if (kv.first == "token")
+            instance_token = kv.second;
+    }
+    _instanceToken = instance_token;
 }
 
 bool NamedPipesAGSDebugger::Initialize()

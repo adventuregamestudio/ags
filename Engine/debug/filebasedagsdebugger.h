@@ -25,7 +25,9 @@
 class FileBasedAGSDebugger : public IAGSEditorDebugger
 {
 public:
-    FileBasedAGSDebugger(const AGS::Common::String &instance_token);
+    // config is a comma-separated list of key:value pairs:
+    //   dir - folder for the files (current directory by default)
+    FileBasedAGSDebugger(const AGS::Common::String &config);
 
     bool Initialize() override;
     void Shutdown() override;

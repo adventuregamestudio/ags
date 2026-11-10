@@ -16,11 +16,12 @@
 #include <limits>
 #include <string.h>
 #include "debug/filebasedagsdebugger.h"
+#include "platform/base/agsplatformdriver.h"
 #include "util/file.h"
 #include "util/path.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 #include "util/textstreamwriter.h"
-#include "platform/base/agsplatformdriver.h"
 
 using namespace AGS::Common;
 
@@ -28,9 +29,18 @@ const char *FileBasedAGSDebugger::SentMessageFileName = "dbgrecv_%s.tmp";
 const char *FileBasedAGSDebugger::SentMessagePartFileName = "dbgrecv_%s.part";
 const char *FileBasedAGSDebugger::ReceivedMessageFileName = "dbgsend_%s.tmp";
 
-FileBasedAGSDebugger::FileBasedAGSDebugger(const String &instance_token)
+FileBasedAGSDebugger::FileBasedAGSDebugger(const String &config)
 {
-    String directory = "./";
+    String instance_token;
+    String directory;
+    for (const auto &opt : StrUtil::SplitPreservingDoublequoted(config, ','))
+    {
+        const auto kv = StrUtil::GetKeyValue(opt, ':');
+        if (kv.first == "token")
+            instance_token = kv.second;
+        else if (kv.first == "dir")
+            directory = kv.second;
+    }
     _sentMessageFile = Path::ConcatPaths(directory, String::FromFormat(SentMessageFileName, instance_token.GetCStr()));
     _sentMessagePartFile = Path::ConcatPaths(directory, String::FromFormat(SentMessagePartFileName, instance_token.GetCStr()));
     _receivedMessageFile = Path::ConcatPaths(directory, String::FromFormat(ReceivedMessageFileName, instance_token.GetCStr()));

@@ -471,17 +471,16 @@ DebuggerResponse check_for_messages_from_debugger()
 {
     if (editor_debugger->IsMessageAvailable())
     {
-        char *msg = editor_debugger->GetNextMessage();
-        if (msg == nullptr)
+        const String msg = editor_debugger->GetNextMessage();
+        if (msg.IsEmpty())
         {
             return kDbgResponse_Empty;
         }
 
-        if (strncmp(msg, "<Engine Command=\"", 17) != 0) 
+        if (strncmp(msg.GetCStr(), "<Engine Command=\"", 17) != 0)
         {
             Debug::Printf(kDbgMsg_Warn, "Debugger: faulty message received:");
-            Debug::Printf(kDbgMsg_Warn, "Debugger: %s", msg);
-            free(msg);
+            Debug::Printf(kDbgMsg_Warn, "Debugger: %s", msg.GetCStr());
             return kDbgResponse_Empty;
         }
 
@@ -560,7 +559,6 @@ DebuggerResponse check_for_messages_from_debugger()
             response = kDbgResponse_Exit;
         }
 
-        free(msg);
         return response;
     }
 

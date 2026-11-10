@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <memory>
 #include <utility>
 #include <iostream>
 
@@ -276,7 +277,7 @@ int Compile(const CompilerOptions& comp_opts)
     //-----------------------------------------------------------------------//
     // Compile script
     //-----------------------------------------------------------------------//
-    ccScript* script = ccCompileText(script_pp.GetCStr(), script_name.GetCStr());
+    std::unique_ptr<ccScript> script(ccCompileText(script_pp.GetCStr(), script_name.GetCStr()));
     if ((script == nullptr) || (cc_has_error()))
     {
         const auto &error = cc_get_error();

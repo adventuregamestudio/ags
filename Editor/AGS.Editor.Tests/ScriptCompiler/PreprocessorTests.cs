@@ -492,6 +492,30 @@ int i;
         }
 
         [Test]
+        public void NoModuleDirective()
+        {
+            // without "#module" the new-script marker has the script name alone
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+            string res = preprocessor.Preprocess("int i;\n", "ScriptName");
+            Assert.That(preprocessor.Results.Count == 0);
+            Assert.That(res.StartsWith("\"__NEWSCRIPTSTART_ScriptName\"\r\n") ||
+                res.StartsWith("\"__NEWSCRIPTSTART_ScriptName\"\n"));
+        }
+
+        [Test]
+        public void MarkerWithModuleSetsScriptName()
+        {
+            // A script that already contains a marker with a module (scripts are concatenated)
+            // must report errors under the script name alone, without the ";module" part
+            IPreprocessor preprocessor = CompilerFactory.CreatePreprocessor(AGS.Types.Version.AGS_EDITOR_VERSION);
+            string script = "\"__NEWSCRIPTSTART_Other;ags\"\n#error here\n";
+            preprocessor.Preprocess(script, "ScriptName");
+            Assert.That(preprocessor.Results.Count, Is.EqualTo(1));
+            Assert.That(preprocessor.Results[0].Code, Is.EqualTo(ErrorCode.UserDefinedError));
+            Assert.That(preprocessor.Results[0].ScriptName, Is.EqualTo("Other"));
+        }
+
+        [Test]
         public void NonLatinUnicodeComment()
         {
             // Non-latin unicode characters in comments raises no error, as comments are removed

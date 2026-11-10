@@ -398,9 +398,9 @@ void fade_interpolate(AL_CONST PALETTE source, AL_CONST PALETTE dest, PALETTE ou
    ASSERT(to >= 0 && to < PAL_SIZE);
 
    for (c=from; c<=to; c++) { 
-      output[c].r = ((int)source[c].r * (63-pos) + (int)dest[c].r * pos) / 64;
-      output[c].g = ((int)source[c].g * (63-pos) + (int)dest[c].g * pos) / 64;
-      output[c].b = ((int)source[c].b * (63-pos) + (int)dest[c].b * pos) / 64;
+      output[c].r = ((int)source[c].r * (64-pos) + (int)dest[c].r * pos) / 64;
+      output[c].g = ((int)source[c].g * (64-pos) + (int)dest[c].g * pos) / 64;
+      output[c].b = ((int)source[c].b * (64-pos) + (int)dest[c].b * pos) / 64;
    }
 }
 

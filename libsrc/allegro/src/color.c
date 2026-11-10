@@ -346,21 +346,6 @@ static void bestfit_init(void)
    }
 }
 
-/* bestfit_init_compat:
-*  allegro 6bit version of bestfit_init
-*/
-static void bestfit_init_compat(void)
-{
-  int i;
-
-  for (i = 1; i<64; i++) {
-    int k = i * i;
-    col_diff[0 + i] = col_diff[0 + 128 - i] = k * (59 * 59);
-    col_diff[128 + i] = col_diff[128 + 128 - i] = k * (30 * 30);
-    col_diff[256 + i] = col_diff[256 + 128 - i] = k * (11 * 11);
-  }
-}
-
 /* bestfit_color:
  *  Searches a palette for the color closest to the requested R, G, B value.
  */
@@ -591,7 +576,7 @@ void rgb_to_hsv(int r, int g, int b, float *h, float *s, float *v)
  *  times better than normal 256*32000 tests so the calculation time
  *  is now less than one second at all computers I tested.
  */
-void create_rgb_table(RGB_MAP *table, AL_CONST PALETTE pal8, void (*callback)(int pos))
+void create_rgb_table(RGB_MAP *table, AL_CONST PALETTE pal, void (*callback)(int pos))
 {
    #define UNUSED 65535
    #define LAST 65532
@@ -608,18 +593,18 @@ void create_rgb_table(RGB_MAP *table, AL_CONST PALETTE pal8, void (*callback)(in
 
    /* calculates distance between two colors */
    #define dist(a1, a2, a3, b1, b2, b3) \
-		     (col_diff[ ((a2) - (b2)) & 0x7F] + \
-		     (col_diff + 128)[((a1) - (b1)) & 0x7F] + \
-		     (col_diff + 256)[((a3) - (b3)) & 0x7F])
+		     (col_diff[ ((a2) - (b2)) & 0x1FF] + \
+		     (col_diff + 512)[((a1) - (b1)) & 0x1FF] + \
+		     (col_diff + 1024)[((a3) - (b3)) & 0x1FF])
 
    /* converts r,g,b to position in array and back */
    #define pos(r, g, b) \
-		     (((r) / 2) * 32 * 32 + ((g) / 2) * 32 + ((b) / 2))
+		     (((r) >> 3) * 32 * 32 + ((g) >> 3) * 32 + ((b) >> 3))
 
    #define depos(pal, r, g, b) \
-		     ((b) = ((pal) & 31) * 2, \
-		      (g) = (((pal) >> 5) & 31) * 2, \
-		      (r) = (((pal) >> 10) & 31) * 2)
+		     ((b) = ((pal) & 31) * 8, \
+		      (g) = (((pal) >> 5) & 31) * 8, \
+		      (r) = (((pal) >> 10) & 31) * 8)
 
    /* is current color better than pal1? */
    #define better(r1, g1, b1, pal1) \
@@ -628,19 +613,19 @@ void create_rgb_table(RGB_MAP *table, AL_CONST PALETTE pal8, void (*callback)(in
 
    /* checking of position */
    #define dopos(rp, gp, bp, ts) \
-      if ((rp > -1 || r > 0) && (rp < 1 || r < 61) && \
-	  (gp > -1 || g > 0) && (gp < 1 || g < 61) && \
-	  (bp > -1 || b > 0) && (bp < 1 || b < 61)) { \
+      if ((rp > -1 || r > 0) && (rp < 1 || r < 248) && \
+	  (gp > -1 || g > 0) && (gp < 1 || g < 248) && \
+	  (bp > -1 || b > 0) && (bp < 1 || b < 248)) { \
 	 i = first + rp * 32 * 32 + gp * 32 + bp; \
          if (!data[i]) { \
 	    data[i] = val; \
 	    add1(i); \
 	 } \
 	 else if ((ts) && (data[i] != val)) { \
-	    dist2 = (rp ? (col_diff+128)[(r+2*rp-pal[val].r) & 0x7F] : r2) + \
-		    (gp ? (col_diff    )[(g+2*gp-pal[val].g) & 0x7F] : g2) + \
-		    (bp ? (col_diff+256)[(b+2*bp-pal[val].b) & 0x7F] : b2); \
-	    if (better((r+2*rp), (g+2*gp), (b+2*bp), pal[data[i]])) { \
+	    dist2 = (rp ? (col_diff+512 )[(r+8*rp-pal[val].r) & 0x1FF] : r2) + \
+		    (gp ? (col_diff     )[(g+8*gp-pal[val].g) & 0x1FF] : g2) + \
+		    (bp ? (col_diff+1024)[(b+8*bp-pal[val].b) & 0x1FF] : b2); \
+	    if (better((r+8*rp), (g+8*gp), (b+8*bp), pal[data[i]])) { \
 	       data[i] = val; \
 	       add1(i); \
 	    } \
@@ -658,16 +643,8 @@ void create_rgb_table(RGB_MAP *table, AL_CONST PALETTE pal8, void (*callback)(in
 
    #define AVERAGE_COUNT   18000
 
-   // color conversion to 6bit for compatibility
-   PALETTE pal;
-   for (i = 0; i < 256; ++i) {
-      pal[i].r = pal8[i].r / 4;
-      pal[i].g = pal8[i].g / 4;
-      pal[i].b = pal8[i].b / 4;
-   }
-
    if (col_diff[1] == 0)
-     bestfit_init_compat();
+      bestfit_init();
 
    memset(next, 255, sizeof(next));
    memset(table->data, 0, sizeof(char)*32*32*32);
@@ -689,9 +666,9 @@ void create_rgb_table(RGB_MAP *table, AL_CONST PALETTE pal8, void (*callback)(in
 
       /* calculate distance of current color */
       val = data[first];
-      r2 = (col_diff+128)[((pal[val].r)-(r)) & 0x7F];
-      g2 = (col_diff    )[((pal[val].g)-(g)) & 0x7F];
-      b2 = (col_diff+256)[((pal[val].b)-(b)) & 0x7F];
+      r2 = (col_diff+512 )[((pal[val].r)-(r)) & 0x1FF];
+      g2 = (col_diff     )[((pal[val].g)-(g)) & 0x1FF];
+      b2 = (col_diff+1024)[((pal[val].b)-(b)) & 0x1FF];
 
       /* try to grow to all directions */
       dopos( 0, 0, 1, 1); 
@@ -703,9 +680,9 @@ void create_rgb_table(RGB_MAP *table, AL_CONST PALETTE pal8, void (*callback)(in
 
       /* faster growing of blue direction */
       if ((b > 0) && (data[first-1] == val)) { 
-	 b -= 2;
+	 b -= 8;
 	 first--;
-	 b2 = (col_diff+256)[((pal[val].b)-(b)) & 0x7F];
+	 b2 = (col_diff+1024)[((pal[val].b)-(b)) & 0x1FF];
 
 	 dopos(-1, 0, 0, 0);
 	 dopos( 1, 0, 0, 0);
@@ -725,9 +702,9 @@ void create_rgb_table(RGB_MAP *table, AL_CONST PALETTE pal8, void (*callback)(in
 	 depos(first, r, g, b);
 
 	 val = data[first];
-	 r2 = (col_diff+128)[((pal[val].r)-(r)) & 0x7F];
-	 g2 = (col_diff    )[((pal[val].g)-(g)) & 0x7F];
-	 b2 = (col_diff+256)[((pal[val].b)-(b)) & 0x7F];
+	 r2 = (col_diff+512 )[((pal[val].r)-(r)) & 0x1FF];
+	 g2 = (col_diff     )[((pal[val].g)-(g)) & 0x1FF];
+	 b2 = (col_diff+1024)[((pal[val].b)-(b)) & 0x1FF];
 
 	 dopos( 0, 0, 1, 1);
 	 dopos( 0, 0,-1, 1);
@@ -736,10 +713,10 @@ void create_rgb_table(RGB_MAP *table, AL_CONST PALETTE pal8, void (*callback)(in
 	 dopos( 0, 1, 0, 1);
 	 dopos( 0,-1, 0, 1);
 
-	 if ((b < 61) && (data[first + 1] == val)) {
-	    b += 2;
+	 if ((b < 248) && (data[first + 1] == val)) {
+	    b += 8;
 	    first++;
-	    b2 = (col_diff+256)[((pal[val].b)-(b)) & 0x7f];
+	    b2 = (col_diff+1024)[((pal[val].b)-(b)) & 0x1FF];
 
 	    dopos(-1, 0, 0, 0);
 	    dopos( 1, 0, 0, 0);
@@ -765,7 +742,7 @@ void create_rgb_table(RGB_MAP *table, AL_CONST PALETTE pal8, void (*callback)(in
    }
 
    /* only the transparent (pink) color can be mapped to index 0 */
-   if ((pal[0].r == 63) && (pal[0].g == 0) && (pal[0].b == 63))
+   if ((pal[0].r == 255) && (pal[0].g == 0) && (pal[0].b == 255))
       table->data[31][0][31] = 0;
 
    if (callback)
@@ -779,7 +756,7 @@ void create_rgb_table(RGB_MAP *table, AL_CONST PALETTE pal8, void (*callback)(in
  *  Constructs a lighting color table for the specified palette. At light
  *  intensity 255 the table will produce the palette colors directly, and
  *  at level 0 it will produce the specified R, G, B value for all colors
- *  (this is specified in 0-63 VGA format). If the callback function is 
+ *  (this is specified in 0-255 format). If the callback function is
  *  not NULL, it will be called 256 times during the calculation, allowing
  *  you to display a progress indicator.
  */
@@ -859,7 +836,7 @@ void create_color_table(COLOR_MAP *table, AL_CONST PALETTE pal, void (*blend)(AL
 	 blend(pal, x, y, &c);
 
 	 if (rgb_map)
-	    table->data[x][y] = rgb_map->data[c.r>>1][c.g>>1][c.b>>1];
+	    table->data[x][y] = rgb_map->data[c.r>>3][c.g>>3][c.b>>3];
 	 else
 	    table->data[x][y] = bestfit_color(pal, c.r, c.g, c.b);
       }

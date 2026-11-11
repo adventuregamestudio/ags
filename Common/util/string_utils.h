@@ -93,8 +93,13 @@ namespace StrUtil
     // returns def_val on failure
     float           StringToFloat(const String &s, float def_val = 0.f);
 
-    // A simple unescape string implementation, unescapes "\\x" into '\x'.
+    // A simple unescape string implementation, unescapes "\\x" into '\x',
+    // and "\\NNN" (up to 3 octal digits) into a character with this code.
     String          Unescape(const String &s);
+    // Escapes a string for the use in a string literal: the reverse of Unescape.
+    // Escapes a backslash, a double quote and control characters; the control
+    // characters that do not have a letter are written as 3 octal digits.
+    String          Escape(const String &s);
     // Converts a classic wildcard search pattern into C++11 compatible regex pattern
     String          WildcardToRegex(const String &wildcard);
 

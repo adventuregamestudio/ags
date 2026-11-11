@@ -316,6 +316,7 @@
     <ClCompile Include="..\..\Compiler\script\cs_compiler.cpp" />
     <ClCompile Include="..\..\Compiler\script\cs_parser.cpp" />
     <ClCompile Include="..\..\Compiler\preproc\preprocessor.cpp" />
+    <ClCompile Include="..\..\Compiler\preproc\script_annotations.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\script\cc_common.h" />
@@ -337,6 +338,7 @@
     <ClInclude Include="..\..\Compiler\script\cs_parser.h" />
     <ClInclude Include="..\..\Compiler\script\cs_parser_common.h" />
     <ClInclude Include="..\..\Compiler\preproc\preprocessor.h" />
+    <ClInclude Include="..\..\Compiler\preproc\script_annotations.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -48,6 +48,9 @@ namespace Preprocessor {
         MacroTable _macros = MacroTable();
         int _lineNumber = 0;
         String _scriptName;
+        // ModuleName is used when generating a script marker,
+        // as an optional definition of a "module", a group containing types and imports.
+        String _moduleName;
         Version _applicationVersion;
         // Conditional statement stack remembers the results of all the nested conditions
         // that we have entered.

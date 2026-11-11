@@ -34,12 +34,14 @@
     <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
     <ClCompile Include="..\..\Tools\data\data_file_writer.cpp" />
     <ClCompile Include="..\..\Tools\data\include_utils.cpp" />
+    <ClCompile Include="..\..\Tools\data\scriptgen.cpp" />
     <ClCompile Include="..\..\Tools\data\sprite_utils.cpp" />
     <ClCompile Include="..\..\Tools\test\agfreader_test.cpp" />
     <ClCompile Include="..\..\Tools\test\data_file_writer_test.cpp" />
     <ClCompile Include="..\..\Tools\test\gtest_main.cc" />
     <ClCompile Include="..\..\Tools\test\include_utils_test.cpp" />
     <ClCompile Include="..\..\Tools\test\pipedprocess_test.cpp" />
+    <ClCompile Include="..\..\Tools\test\scriptgen_test.cpp" />
     <ClCompile Include="..\..\Tools\test\spriteimport_test.cpp" />
     <ClCompile Include="..\..\Common\game\scripteventtable.cpp" />
     <ClCompile Include="..\..\Common\test\sdl2_stubs.c" />
@@ -72,6 +74,7 @@
     <ClInclude Include="..\..\Tools\data\data_file_writer.h" />
     <ClInclude Include="..\..\Tools\data\game_utils.h" />
     <ClInclude Include="..\..\Tools\data\include_utils.h" />
+    <ClInclude Include="..\..\Tools\data\scriptgen.h" />
     <ClInclude Include="..\..\Tools\data\sprite_utils.h" />
     <ClInclude Include="..\..\Tools\test\spriteimport_env.h" />
     <ClInclude Include="..\..\Common\game\scripteventtable.h" />

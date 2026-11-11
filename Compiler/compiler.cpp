@@ -11,6 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include <memory>
 #include <utility>
 #include <iostream>
 
@@ -29,6 +30,7 @@
 #include "util/path.h"
 #include "util/textstreamreader.h"
 #include "util/string_compat.h"
+#include "data/data_helpers.h"
 #include "preproc/preprocessor.h"
 #include "compiler.h"
 
@@ -51,21 +53,17 @@ String cc_get_callstack(int max_lines)
 
 const char* PREFIX_SCRIPT_COMPAT = "SCRIPT_COMPAT_";
 const char* PREFIX_SCRIPT_API = "SCRIPT_API_";
-std::vector<const char *> ScriptAPIs = {"v321",
-                                        "v330",
-                                        "v334",
-                                        "v335",
-                                        "v340",
-                                        "v341",
-                                        "v350",
-                                        "v3507",
-                                        "v351",
-                                        "v360",
-                                        "v36026",
-                                        "v361",
-                                        "v362",
-                                        "v363",
-                                        HIGHEST_SCRIPT_API};
+// All script API levels in ascending order (shared with agf2dta), then "Highest"
+static std::vector<const char *> MakeScriptAPIList()
+{
+    std::vector<const char *> apis;
+    for (const auto &api : kScriptAPISourceNames)
+        apis.push_back(api.Name);
+    apis.push_back(HIGHEST_SCRIPT_API);
+    return apis;
+}
+
+std::vector<const char *> ScriptAPIs = MakeScriptAPIList();
 
 std::vector<const char *> GetScriptAPIs()
 {
@@ -107,6 +105,7 @@ void CompilerOptions::PrintToStdout() const {
     if (Flags.EnforceNewStrings) printf("EnforceNewStrings; ");
     if (Flags.EnforceNewAudio) printf("EnforceNewAudio; ");
     if (Flags.UseOldCustomDialogOptionsAPI) printf("UseOldCustomDialogOptionsAPI; ");
+    if (Flags.UseOldKeyboardHandling) printf("UseOldKeyboardHandling; ");
     printf("\n");
     if (DebugMode) printf("DebugMode\n");
     if (UnicodeMode) printf("Unicode mode\n");
@@ -154,6 +153,26 @@ int Compile(const CompilerOptions& comp_opts)
     {
         pp.DefineMacro("NEW_DIALOGOPTS_API", "1");
     }
+    if (!comp_opts.Flags.UseOldKeyboardHandling)
+    {
+        pp.DefineMacro("NEW_KEYINPUT_API", "1");
+    }
+    if (comp_opts.UnicodeMode)
+    {
+        pp.DefineMacro("UNICODE", "1");
+    }
+    // Tell the scripts which language extensions the compiler has, as the editor does
+    // (AGSEditor.DefineMacrosAccordingToGameSettings); agsdefns.sh tests these
+    // ccGetExtensions is the legacy compiler's list (script/cs_compiler.h),
+    // ccGetExtensions2 the new compiler's (script2/cs_compiler.h)
+    std::vector<std::string> extensions;
+#ifdef LEGACY_COMPILER
+    ccGetExtensions(extensions);
+#else
+    ccGetExtensions2(extensions);
+#endif
+    for (const auto &ext : extensions)
+        pp.DefineMacro(("SCRIPT_EXT_" + ext).c_str(), "1");
     // Set Script API macros (starting from lowest and until the highest requested)
     for(int i=0; i<ScriptAPIs.size()-1; i++)
     {
@@ -203,9 +222,11 @@ int Compile(const CompilerOptions& comp_opts)
             (comp_opts.Flags.ExportAll ? SCOPT_EXPORTALL : 0) |
             (comp_opts.Flags.LineNumbers ? SCOPT_LINENUMBERS : 0) |
             (comp_opts.Flags.EnforceNewStrings ? 0 : SCOPT_OLDSTRINGS) |
-            (comp_opts.Flags.UnicodeMode ? SCOPT_UTF8 : 0) |
+            (comp_opts.UnicodeMode ? SCOPT_UTF8 : 0) |
             SCOPT_RTTI |
             SCOPT_RTTIOPS |
+            // the editor adds the script table of contents to debug builds
+            (comp_opts.DebugMode ? SCOPT_SCRIPT_TOC : 0) |
             0;
 #endif
 
@@ -274,7 +295,8 @@ int Compile(const CompilerOptions& comp_opts)
     //-----------------------------------------------------------------------//
     String script_pp = nullptr;
     String filename = Path::GetFilename(comp_opts.InputScriptFile.c_str());
-    String script_name = filename; // with extension, like the AGS editor (see headername above)
+    // with extension, like the AGS editor (see headername above)
+    String script_name = comp_opts.ScriptName.empty() ? filename : String(comp_opts.ScriptName.c_str());
 
     script_pp = pp.Preprocess(script_input,script_name);
     if ((script_pp == nullptr) || (cc_has_error()))
@@ -300,7 +322,7 @@ int Compile(const CompilerOptions& comp_opts)
     // Compile script
     //-----------------------------------------------------------------------//
 #ifdef LEGACY_COMPILER
-    ccScript* script = ccCompileText(script_pp.GetCStr(), script_name.GetCStr());
+    std::unique_ptr<ccScript> script(ccCompileText(script_pp.GetCStr(), script_name.GetCStr()));
     if ((script == nullptr) || (cc_has_error()))
     {
         const auto &error = cc_get_error();
@@ -308,8 +330,14 @@ int Compile(const CompilerOptions& comp_opts)
         return -1;
     }
 #else
+    // The new compiler has no default headers: like the Editor, it is given the headers and
+    // the script as one text, each part starting with its new-script marker
+    String all_the_script;
+    for (const auto &head : preprocessed_heads)
+        all_the_script.Append(head.first);
+    all_the_script.Append(script_pp);
     AGS::MessageHandler mh;
-    ccScript* script = ccCompileText2(script_pp.GetCStr(), script_name.GetCStr(), cc_options, mh);
+    std::unique_ptr<ccScript> script(ccCompileText2(all_the_script.GetCStr(), script_name.GetCStr(), cc_options, mh));
     auto compiler_messages = mh.GetMessages();
     bool error = false;
     for(const auto &msg : compiler_messages)

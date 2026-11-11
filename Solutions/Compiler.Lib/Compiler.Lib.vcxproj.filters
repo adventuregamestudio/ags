@@ -56,6 +56,9 @@
     <ClCompile Include="..\..\Compiler\preproc\preprocessor.cpp">
       <Filter>Source Files\preproc</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Compiler\preproc\script_annotations.cpp">
+      <Filter>Source Files\preproc</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Common\script\cc_script.cpp">
       <Filter>Source Files\script</Filter>
     </ClCompile>
@@ -79,6 +82,9 @@
       <Filter>Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Compiler\preproc\preprocessor.h">
+      <Filter>Header Files\preproc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Compiler\preproc\script_annotations.h">
       <Filter>Header Files\preproc</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\script\cc_reflect.h">

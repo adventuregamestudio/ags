@@ -48,6 +48,11 @@ using AGS::Common::String;
 typedef tinyxml2::XMLDocument Document;
 typedef tinyxml2::XMLElement* DocElem;
 
+// The oldest and the newest project format AGFReader opens,
+// as the Version attribute of Game.agf names them
+extern const char *const OLDEST_READABLE_XML_VERSION;
+extern const char *const LATEST_XML_VERSION;
+
 // AGFReader opens AGF document and checks it for validity.
 // Provides a Game data root node.
 class AGFReader
@@ -185,7 +190,7 @@ class Dialog : public EntityParser
 public:
     String ReadType(DocElem elem) override { return "Dialog"; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName"); }
 
     int ReadOptionCount(DocElem elem);
     String ReadScript(DocElem elem) { return ReadString(elem, "Script"); }
@@ -207,7 +212,7 @@ class GUIControl : public EntityParser
 public:
     String ReadType(DocElem elem) override;
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName"); }
     void ReadAllData(DocElem elem, DataUtil::GUIControlData& data);
     void ReadButtonData(DocElem elem, DataUtil::GUIButtonData& data);
     void ReadLabelData(DocElem elem, DataUtil::GUILabelData& data);
@@ -237,7 +242,7 @@ class InventoryItem : public EntityParser
 public:
     String ReadType(DocElem elem) override { return "InventoryItem"; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName"); }
     void ReadAllData(DocElem elem, DataUtil::InventoryItemData &data);
 };
 
@@ -247,7 +252,7 @@ class View : public EntityParser
 public:
     String ReadType(DocElem elem) override { return ""; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+    String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName"); }
     void ReadAllData(DocElem elem, DataUtil::ViewData &data);
 };
 

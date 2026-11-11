@@ -41,7 +41,11 @@ const char *HELP_STRING = R"EOS(Usage: agscc [options] <INPUT.asc>
 -fforcenewstrings[=0]        Enforce new strings                    (default:1)
 -fforcenewaudio[=0]          Enforce new audio system               (default:1)
 -foldcustomdialogopt[=0]     Use old custom dialog API
--g                           Generate debug information
+-foldkeyinput[=0]            Use old keyboard handling API
+-g                           Generate debug information, and the script TOC
+--name <NAME>                Name of the script in the compiled code and in
+                             messages, like "Rooms\1\room1.asc" (default:
+                             the input file name)
 -o <OUT.o>, --output <OUT.o> Place output in specified file.  (default:INPUT.o)
 --override-version <VERSION> Overrides editor version
 --tell-api-versions          Returns supported Script API Versions
@@ -174,6 +178,12 @@ ParsedOptions parser_to_compiler_opts(const ParseResult& parseResult)
             continue;
         }
 
+        if (opt_with_value.first == "--name")
+        {
+            compilerOptions.ScriptName = opt_with_value.second.GetCStr();
+            continue;
+        }
+
         if(opt_with_value.first == "--override-version")
         {
             compilerOptions.Version = opt_with_value.second.GetCStr();
@@ -234,6 +244,11 @@ ParsedOptions parser_to_compiler_opts(const ParseResult& parseResult)
                 compilerOptions.Flags.EnforceNewAudio = flag_value;
                 continue;
             }
+            if (flag_name == "oldkeyinput")
+            {
+                compilerOptions.Flags.UseOldKeyboardHandling = flag_value;
+                continue;
+            }
             if(flag_name == "oldcustomdialogopt") {
                 compilerOptions.Flags.UseOldCustomDialogOptionsAPI = flag_value;
                 continue;
@@ -267,7 +282,8 @@ Copyright (c) 2026 AGS Team and contributors
 )EOS"
     );
 
-    ParseResult parseResult = Parse(argc,argv,{"-D", "-H", "--Headers", "-A", "-C", "-f", "-o", "--output", "--override-version"});
+    ParseResult parseResult = Parse(
+        argc, argv, {"-D", "-H", "--Headers", "-A", "-C", "-f", "-o", "--output", "--override-version", "--name"});
     ParsedOptions parsedOptions = parser_to_compiler_opts(parseResult);
 
     if(parsedOptions.Exit) return parsedOptions.ErrorCode;

@@ -38,6 +38,13 @@ HError WriteTRS(const Translation &tra, std::unique_ptr<Stream> &&out);
 // Write a compiled translation file from Translation object.
 HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out);
 
+// Parses a PO format (the translation source of AGS 4 projects) and fills Translation data;
+// obsolete and untranslated entries are skipped
+HError ReadPO(Translation &tra, std::unique_ptr<Stream> &&in);
+// Generates a PO translation source based on compiled Translation object, in the layout of
+// the Editor's PO; the Text Parser's words get placeholder texts, the TRA has no game words
+HError WritePO(const Translation &tra, std::unique_ptr<Stream> &&out);
+
 } // namespace DataUtil
 } // namespace AGS
 

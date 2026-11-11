@@ -1,0 +1,115 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{eadadb9c-903a-4a50-8db9-a82dbf36b434}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="data">
+      <UniqueIdentifier>{ebea7864-de2f-48c8-b3d2-51eb82b7a045}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="po2tra">
+      <UniqueIdentifier>{731e5dde-24bd-46ed-ae96-82f7baf41d3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="allegro">
+      <UniqueIdentifier>{4a235b06-0e77-402b-903c-b3ed85e54722}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\file.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\filestream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\stream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\string.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\stdio_compat.c">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\string_compat.c">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\string_utils.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\tra_utils.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\textstreamreader.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\po2tra\main.cpp">
+      <Filter>po2tra</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\path.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_ext.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\tra_file.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\textstreamwriter.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
+      <Filter>allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\data\data_helpers.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Tools\data\tra_utils.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\textstreamreader.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\tra_file.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\cmdlineopts.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\textstreamwriter.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\data\data_helpers.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\wordsdictionary.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

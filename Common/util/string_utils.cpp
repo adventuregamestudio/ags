@@ -169,7 +169,7 @@ String StrUtil::Unescape(const String &s)
     size_t at = s.FindChar('\\');
     if (at == String::NoIndex)
         return s; // no unescaping necessary, return original string
-    char *buf = new char[s.GetLength()];
+    char *buf = new char[s.GetLength() + 1];
     strncpy(buf, s.GetCStr(), at);
     char *pb = buf + at;
     for (const char *ptr = s.GetCStr() + at; *ptr; ++ptr)
@@ -181,6 +181,26 @@ String StrUtil::Unescape(const String &s)
         }
 
         char next = *(++ptr);
+        if (next == 0)
+        {
+            *(pb++) = '\\'; // a backslash at the end of the string stays
+            break;
+        }
+        if (next >= '0' && next < '8')
+        {
+            // up to 3 octal digits, max value 255; a zero code is not unescaped
+            int code = next - '0';
+            const char *last = ptr;
+            for (int n = 0; n < 2 && last[1] >= '0' && last[1] < '8' && (code * 8 + (last[1] - '0')) <= 255; ++n)
+                code = code * 8 + (*(++last) - '0');
+            if (code > 0)
+            {
+                *(pb++) = static_cast<char>(code);
+                ptr = last;
+                continue;
+            }
+        }
+
         switch (next)
         {
         case 'a':  *(pb++) = '\a'; break;
@@ -200,6 +220,34 @@ String StrUtil::Unescape(const String &s)
     *pb = 0;
     String dst(buf);
     delete [] buf;
+    return dst;
+}
+
+String StrUtil::Escape(const String &s)
+{
+    String dst;
+    for (size_t i = 0; i < s.GetLength(); ++i)
+    {
+        const char c = s[i];
+        switch (c)
+        {
+        case '\a':  dst.Append("\\a"); break;
+        case '\b':  dst.Append("\\b"); break;
+        case '\f':  dst.Append("\\f"); break;
+        case '\n':  dst.Append("\\n"); break;
+        case '\r':  dst.Append("\\r"); break;
+        case '\t':  dst.Append("\\t"); break;
+        case '\v':  dst.Append("\\v"); break;
+        case '\\': dst.Append("\\\\"); break;
+        case '\"': dst.Append("\\\""); break;
+        default:
+            if (static_cast<unsigned char>(c) < ' ')
+                dst.AppendFmt("\\%03o", static_cast<unsigned char>(c));
+            else
+                dst.AppendChar(c);
+            break;
+        }
+    }
     return dst;
 }
 

@@ -28,6 +28,33 @@ TEST(StrUtil, Unescape) {
 
     s = "Text\\rText";
     ASSERT_TRUE(StrUtil::Unescape(s) == "Text\rText");
+
+    // up to 3 octal digits, max value 255
+    s = "\\101\\1\\0012 \\400";
+    ASSERT_TRUE(StrUtil::Unescape(s) == "A\x01\x01" "2  0");
+    // a zero code is not unescaped
+    s = "\\0 \\00";
+    ASSERT_TRUE(StrUtil::Unescape(s) == "0 00");
+    // unknown sequence loses its backslash
+    s = "\\[\\x41";
+    ASSERT_TRUE(StrUtil::Unescape(s) == "[x41");
+    // a backslash at the end of the string stays
+    s = "Text\\";
+    ASSERT_TRUE(StrUtil::Unescape(s) == "Text\\");
+    s = "\\";
+    ASSERT_TRUE(StrUtil::Unescape(s) == "\\");
+}
+
+TEST(StrUtil, Escape) {
+    String s = "Text";
+    ASSERT_TRUE(StrUtil::Escape(s) == "Text");
+
+    s = "Back\\slash \"quoted\"\r\n\t\x01 end";
+    ASSERT_TRUE(StrUtil::Escape(s) == "Back\\\\slash \\\"quoted\\\"\\r\\n\\t\\001 end");
+
+    // Unescape is the reverse
+    s = "a\\b \"c\"\a\b\f\n\r\t\v\x01\x1F d";
+    ASSERT_TRUE(StrUtil::Unescape(StrUtil::Escape(s)) == s);
 }
 
 TEST(StrUtil, GetKeyValue)

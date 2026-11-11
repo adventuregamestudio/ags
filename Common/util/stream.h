@@ -404,7 +404,7 @@ public:
     size_t ReadArrayOfUInt24(uint8_t *buffer, size_t count)
     {
 #if defined (BITBYTE_BIG_ENDIAN)
-        return ReadAndConvertArrayOfInt24(buffer, count);
+        return ReadAndConvertArrayOfUInt24(buffer, count);
 #else
         return ReadArray(buffer, sizeof(uint8_t) * 3, count);
 #endif

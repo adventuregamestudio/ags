@@ -104,7 +104,7 @@ namespace AGS.Types
 
 		[Description("The file location that this sprite was imported from")]
 		[Category("Import")]
-        [EditorAttribute(typeof(PropertyGridExtras.SpriteFileNameEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteFileNameEditor, EditorTypeNames.UITypeEditor)]
 		public string SourceFile
 		{
 			get { return _sourceFile; }

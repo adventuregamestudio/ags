@@ -8,7 +8,7 @@ using System.Drawing;
 namespace AGS.Types
 {
     [Serializable]
-    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [PropertyTab(EditorTypeNames.PropertyTabEvents, PropertyTabScope.Component)]
     [DefaultProperty("StartingRoom")]
     public class Character : IHasID, ICustomTypeDescriptor, IToXml, IComparable<Character>, ICloneable
     {
@@ -91,7 +91,7 @@ namespace AGS.Types
 
         [Description("The full name of the character")]
         [Category("Design")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string DisplayName
         {
             get { return _displayName; }
@@ -108,7 +108,7 @@ namespace AGS.Types
 
         [Description("The normal walking view for the character")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(ViewUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ViewUIEditor, EditorTypeNames.UITypeEditor)]
         public int NormalView
         {
             get { return _view; }
@@ -117,7 +117,7 @@ namespace AGS.Types
 
         [Description("The talking view for the character")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(ViewUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ViewUIEditor, EditorTypeNames.UITypeEditor)]
         public int SpeechView
         {
             get { return _speechView; }
@@ -126,7 +126,7 @@ namespace AGS.Types
 
         [Description("The idle view for the character")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(ViewUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ViewUIEditor, EditorTypeNames.UITypeEditor)]
         public int IdleView
         {
             get { return _idleView; }
@@ -152,7 +152,7 @@ namespace AGS.Types
 
         [Description("The thinking view for the character")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(ViewUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ViewUIEditor, EditorTypeNames.UITypeEditor)]
         public int ThinkingView
         {
             get { return _thinkingView; }
@@ -161,7 +161,7 @@ namespace AGS.Types
 
         [Description("The blinking view for the character")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(ViewUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ViewUIEditor, EditorTypeNames.UITypeEditor)]
         public int BlinkingView
         {
             get { return _blinkingView; }
@@ -328,7 +328,7 @@ namespace AGS.Types
 
         [Description("Color of character's speech text")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int SpeechColor
@@ -504,7 +504,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
         [ScriptFunction("AnyClick", "Character *theCharacter, CursorMode mode")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnAnyClick
         {
             get { return _onAnyClick; }
@@ -516,7 +516,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
         [ScriptFunction("OnFrameEvent", "Character *theCharacter, int view, int loop, int frame, String eventName")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnFrameEvent
         {
             get { return _onFrameEvent; }

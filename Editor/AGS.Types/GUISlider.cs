@@ -7,7 +7,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [Serializable]
-    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [PropertyTab(EditorTypeNames.PropertyTabEvents, PropertyTabScope.Component)]
     [DefaultProperty("HandleImage")]
     public class GUISlider : GUIControl
     {
@@ -50,7 +50,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty(), AGSDefaultEventProperty()]
         [ScriptFunction("OnChange", "GUIControl *control")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnChange
         {
             get { return _onChange; }
@@ -59,7 +59,7 @@ namespace AGS.Types
 
         [Description("Colour of the slider's handle")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int HandleColor
@@ -70,7 +70,7 @@ namespace AGS.Types
 
         [Description("Colour of the border shadow used by slider")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int BorderShadeColor
@@ -81,7 +81,7 @@ namespace AGS.Types
 
         [Description("Image to use for the grabbable handle on the slider")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
         public int HandleImage
         {
             get { return _handleImage; }
@@ -98,7 +98,7 @@ namespace AGS.Types
 
         [Description("Tile this image as the background for the slider")]
         [Category("Appearance")]
-		[EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+		[EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
 		public int BackgroundImage
         {
             get { return _backgroundImage; }

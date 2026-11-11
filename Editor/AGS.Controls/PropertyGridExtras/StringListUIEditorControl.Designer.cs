@@ -1,4 +1,4 @@
-﻿namespace AGS.Types
+﻿namespace AGS.Controls
 {
     partial class StringListUIEditorControl
     {

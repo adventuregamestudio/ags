@@ -38,7 +38,7 @@ namespace AGS.Types
             set { _type = value; }
         }
 
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string DefaultValue
         {
             get { return _defaultValue; }

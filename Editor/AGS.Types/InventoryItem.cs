@@ -5,7 +5,7 @@ using System.Xml;
 namespace AGS.Types
 {
     [Serializable]
-    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [PropertyTab(EditorTypeNames.PropertyTabEvents, PropertyTabScope.Component)]
     [DefaultProperty("Image")]
     public class InventoryItem : IHasID, IToXml, IComparable<InventoryItem>, ICloneable
     {
@@ -81,7 +81,7 @@ namespace AGS.Types
 
         [Description("Sprite used as the mouse cursor when this item is the active cursor")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
         public int CursorImage
         {
             get { return _cursorImage; }
@@ -90,7 +90,7 @@ namespace AGS.Types
 
         [Description("Sprite used to display the inventory item")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
         public int Image
         {
             get { return _image; }
@@ -99,7 +99,7 @@ namespace AGS.Types
 
         [Description("Description of the item")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string DisplayName
         {
             get { return _displayName; }
@@ -187,7 +187,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
         [ScriptFunction("AnyClick", "InventoryItem *theItem, CursorMode mode")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnAnyClick
         {
             get { return _onAnyClick; }

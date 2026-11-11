@@ -441,6 +441,14 @@ namespace AGS.Types
         }
 
         /// <summary>
+        /// Separators used in the strings that hold a list of values (such as build targets).
+        /// </summary>
+        public static string[] StringListSeparators
+        {
+            get { return new string[] { ", ", "," }; }
+        }
+
+        /// <summary>
         /// Paints a block of color (rectangular shape) over a checkered background (meant for demonstrating alpha value).
         /// </summary>
         public static void PaintColorBlock(Color color, Graphics g, Rectangle rect)

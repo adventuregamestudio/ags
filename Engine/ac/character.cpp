@@ -2164,7 +2164,8 @@ void start_character_turning(CharacterInfo *chinf, int useloop, bool use_diagloo
         case kScTurnOrder_Clockwise: clock_order = 1; break;
         case kScTurnOrder_CounterClockwise: clock_order = -1; break;
         case kScTurnOrder_Random: clock_order = (rand() % 2) == 0 ? 1 : -1; break;
-        case kScTurnOrder_FaceDown: clock_order = is_loop_in_left_half(fromidx) ? 1 : -1 ; break;
+        // turnlooporder runs Down, DownLeft, Left, UpLeft, Up, ...: from a left-half loop the way through Down is -1
+        case kScTurnOrder_FaceDown: clock_order = is_loop_in_left_half(turnlooporder[fromidx]) ? -1 : 1; break;
         default: break;
         }
     }

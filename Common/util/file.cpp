@@ -256,7 +256,7 @@ std::unique_ptr<Stream> File::OpenFile(const String &filename, FileOpenMode open
     if (!fs)
         return nullptr;
     // Create a BufferedStream instance, wrapping the selected device impl
-    return std::make_unique<Stream>(std::make_unique<BufferedStream>(std::move(fs)));
+    return AsStream<BufferedStream>(std::move(fs));
 }
 
 std::unique_ptr<Stream> File::OpenFile(const String &filename, soff_t start_off, soff_t end_off)
@@ -265,7 +265,7 @@ std::unique_ptr<Stream> File::OpenFile(const String &filename, soff_t start_off,
     if (!fs)
         return nullptr;
     // Create a BufferedStream instance, wrapping the selected device impl
-    return std::make_unique<Stream>(std::make_unique<BufferedStream>(std::move(fs), start_off, end_off));
+    return AsStream<BufferedStream>(std::move(fs), start_off, end_off);
 }
 
 std::unique_ptr<Stream> File::CreateTempFile()
@@ -274,22 +274,22 @@ std::unique_ptr<Stream> File::CreateTempFile()
     if (!file)
         return nullptr;
     // Create a BufferedStream instance, wrapping the selected device impl
-    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::OwnHandle(file, kStream_ReadWrite)));
+    return AsStream<BufferedStream>(FileStream::OwnHandle(file, kStream_ReadWrite));
 }
 
 std::unique_ptr<Stream> File::OpenStdin()
 {
-    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::WrapHandle(stdin, kStream_Read)));
+    return AsStream<BufferedStream>(FileStream::WrapHandle(stdin, kStream_Read));
 }
 
 std::unique_ptr<Stream> File::OpenStdout()
 {
-    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::WrapHandle(stdout, kStream_Write)));
+    return AsStream<BufferedStream>(FileStream::WrapHandle(stdout, kStream_Write));
 }
 
 std::unique_ptr<Stream> File::OpenStderr()
 {
-    return std::make_unique<Stream>(std::make_unique<BufferedStream>(FileStream::WrapHandle(stderr, kStream_Write)));
+    return AsStream<BufferedStream>(FileStream::WrapHandle(stderr, kStream_Write));
 }
 
 String File::FindFileCI(const String &base_dir, const String &file_name,

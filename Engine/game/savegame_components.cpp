@@ -2093,7 +2093,7 @@ HSaveError ReadComponent(Stream *in, SvgCmpReadHelper &hlp, ComponentInfo &info)
         if ((info.Flags & kSvgCmp_Deflate) != 0)
         {
             auto deflate_s = std::make_unique<DeflateStream>(in->ReleaseStreamBase(), info.DataOffset, info.DataOffset + info.DataSize);
-            auto deflate_in = std::make_unique<Stream>(std::move(deflate_s));
+            auto deflate_in = AsStream(std::move(deflate_s));
 
             HSaveError err = pfn_read(deflate_in.get(), info.Version, info.UncompressedDataSize, hlp.PP, hlp.RData);
             if (!err)
@@ -2209,7 +2209,7 @@ HSaveError WriteComponent(Stream *out, ComponentHandler &hdlr, bool compress)
     if (compress)
     {
         auto deflate_s = std::make_unique<DeflateStream>(out->ReleaseStreamBase(), kStream_Write);
-        auto deflate_out = std::make_unique<Stream>(std::move(deflate_s));
+        auto deflate_out = AsStream(std::move(deflate_s));
         HSaveError err = hdlr.Serialize(deflate_out.get());
         if (!err)
             return err;

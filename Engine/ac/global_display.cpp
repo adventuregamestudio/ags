@@ -80,7 +80,7 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
     // for the text: keep the text's.
     // FIXME: refactor source_text_length and get rid of this ugly hack!
     const int text_source_length = source_text_length;
-    const TopBarSettings topbar(get_translation(title), FONT_NORMAL, height);
+    const TopBarSettings topbar(get_translation(title), font, height);
     source_text_length = text_source_length;
 
     // DisplaySpeech normally sets this up, but since we're not going via it...

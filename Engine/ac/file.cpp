@@ -360,7 +360,8 @@ float File_ReadFloat(sc_File *fil) {
 }
 
 int File_ReadRawChar(sc_File *fil) {
-  return FileReadRawChar(fil->handle);
+  Stream *in = get_file_stream(fil->handle, "File.ReadRawChar");
+  return in->ReadByte();
 }
 
 int File_ReadRawInt(sc_File *fil) {

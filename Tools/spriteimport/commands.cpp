@@ -297,7 +297,7 @@ HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_spri
     // TODO: this is a quick and clumsy solution for now, revise this later
     std::map<sprkey_t, sprkey_t> out_sprite_order;
     {
-        auto proxy_out = std::make_unique<Stream>(std::make_unique<StreamSection>(temp_s->GetStreamBase(), 0, temp_s->GetStreamBase()->GetLength()));
+        auto proxy_out = AsStream<StreamSection>(temp_s->GetStreamBase(), 0, temp_s->GetStreamBase()->GetLength());
         std::unique_ptr<SpriteFileWriter> sf_writer(new SpriteFileWriter(std::move(proxy_out)));
         SpriteWriter writer(std::move(sf_writer), opts.StorageFlags, opts.Compress, true);
         HError err = ImportSpritesImpl(source_to_sprite, game_color_opts, room_cache, writer, &out_sprite_order, verbose);

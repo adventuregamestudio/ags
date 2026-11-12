@@ -1179,8 +1179,7 @@ HSaveError ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_s
                 // Allocate enough to read data_size, but then trim if read less
                 plugin_data.resize(data_size);
                 plugin_data.resize(in->Read(plugin_data.data(), data_size));
-                auto guard_stream = std::make_unique<Stream>(
-                    std::make_unique<VectorStream>(plugin_data, kStream_Read));
+                auto guard_stream = AsStream<VectorStream>(plugin_data, kStream_Read);
                 int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
                 pl_run_plugin_hook_by_name(pl_name, kPluginEvt_RestoreGame, fhandle);
                 close_file_stream(fhandle, "RestoreGame");
@@ -1205,8 +1204,7 @@ HSaveError ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_s
         {
             try
             {
-                auto guard_stream = std::make_unique<Stream>(
-                    std::make_unique<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos));
+                auto guard_stream = AsStream<StreamSection>(in->GetStreamBase(), in->GetPosition(), end_pos);
                 int32_t fhandle = add_file_stream(std::move(guard_stream), "RestoreGame");
                 pl_run_plugin_hook_by_index(pl_index, kPluginEvt_RestoreGame, fhandle);
                 close_file_stream(fhandle, "RestoreGame");
@@ -1248,8 +1246,7 @@ HSaveError WritePluginSaveData(Stream *out)
 
         try
         {
-            auto guard_stream = std::make_unique<Stream>(
-                std::make_unique<VectorStream>(plugin_data, kStream_Write));
+            auto guard_stream = AsStream<VectorStream>(plugin_data, kStream_Write);
             int32_t fhandle = add_file_stream(std::move(guard_stream), "SaveGame");
             pl_run_plugin_hook_by_index(pl_index, kPluginEvt_SaveGame, fhandle);
             close_file_stream(fhandle, "SaveGame");

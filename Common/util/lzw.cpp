@@ -161,8 +161,7 @@ bool lzwcompress(Stream *lzw_in, Stream *out)
     if (len++ >= run) {
       if (match >= THRESHOLD) {
         buf[0] |= mask;
-        // possible fix: change int* to short* ??
-        *(short *)(buf + size) = static_cast<short>(((match - 3) << 12) | ((i - pos - 1) & (N - 1)));
+        Memory::WriteInt16LE(buf + size, static_cast<int16_t>(((match - 3) << 12) | ((i - pos - 1) & (N - 1))));
         size += 2;
         len -= match;
       } else {

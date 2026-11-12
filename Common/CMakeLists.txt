@@ -247,6 +247,7 @@ if(AGS_TESTS)
     add_executable(common_test
         test/cmdlineopts_test.cpp
         test/common_stubs.cpp
+        test/compress_test.cpp
         test/datahelpers_test.cpp
         test/deflatestream_test.cpp
         test/gfxdef_test.cpp

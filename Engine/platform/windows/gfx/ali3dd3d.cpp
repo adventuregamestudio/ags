@@ -1941,9 +1941,15 @@ size_t D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch, size_t 
 
 void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
 {
+    // Render target size, depends on whether this batch will render to a
+    // intermediate texture, or the final surface of _srcRect size.
+    const Size rt_size = desc.RenderTarget ?
+        Size(desc.RenderTarget->GetWidth(), desc.RenderTarget->GetHeight())
+      : _srcRect.GetSize();
+
     // Create transformation matrix for this batch
-    const float pivotx = -_srcRect.GetWidth() * 0.5f + desc.SizeRef.Width * desc.Transform.Pivot.X;
-    const float pivoty = -_srcRect.GetHeight() * 0.5f + desc.SizeRef.Height * desc.Transform.Pivot.Y;
+    const float pivotx = -rt_size.Width * 0.5f + desc.SizeRef.Width * desc.Transform.Pivot.X;
+    const float pivoty = -rt_size.Height * 0.5f + desc.SizeRef.Height * desc.Transform.Pivot.Y;
 
     // Inverse transformation, because it should affect the textures drawn within this batch,
     // and these should be transitioned opposite to the scene's transition.
@@ -1952,8 +1958,8 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         desc.Transform.ScaleX, desc.Transform.ScaleY,
         Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
     // Translate scaled node into Top-Left screen coordinates
-    const float scaled_offx = _srcRect.GetWidth() * ((1.f - desc.Transform.ScaleX) * 0.5f);
-    const float scaled_offy = _srcRect.GetHeight() * ((1.f - desc.Transform.ScaleY) * 0.5f);
+    const float scaled_offx = rt_size.Width * ((1.f - desc.Transform.ScaleX) * 0.5f);
+    const float scaled_offy = rt_size.Height * ((1.f - desc.Transform.ScaleY) * 0.5f);
     glm::mat4 model = glmex::translate(-scaled_offx, -(-scaled_offy));
     model = model * msrt;
 
@@ -1978,8 +1984,8 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
         desc.Transform.ScaleX, desc.Transform.ScaleY,
         Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
     glm::mat4 vp_flip_off = glmex::translate(
-        _srcRect.GetWidth() * ((1.f - flip_sx) * 0.5f),
-        _srcRect.GetHeight() * ((1.f - flip_sy) * 0.5f));
+        rt_size.Width * ((1.f - flip_sx) * 0.5f),
+        rt_size.Height * ((1.f - flip_sy) * 0.5f));
     mat_viewport = mflip * mat_viewport;
     mat_viewport = vp_flip_off * mat_viewport;
 
@@ -2008,9 +2014,7 @@ void D3DGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     }
     else if (viewport.IsEmpty())
     {
-        viewport = desc.RenderTarget ?
-            RectWH(0, 0, desc.RenderTarget->GetWidth(), desc.RenderTarget->GetHeight()) :
-            _srcRect;
+        viewport = RectWH(rt_size);
     }
 
     // Assign the new spritebatch

@@ -2957,11 +2957,10 @@ static void construct_roomview_hw(const Viewport *viewport)
     }
     else
     {
-        const Rect view_p = view_rc;
         const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
         const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
-        const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
-        const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
+        const SpriteTransform view_trans(view_rc.Left, view_rc.Top, 1.f, 1.f);
+        const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, view_sx, view_sy,
             camera->GetRotation(), camera->GetEffectivePivot());
 
         gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);

@@ -2167,17 +2167,18 @@ size_t D3D11GraphicsDriver::RenderSpriteBatch(const D3D11SpriteBatch& batch, siz
 void D3D11GraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc& desc)
 {
     // Create transformation matrix for this batch
-    float pivotx = -_srcRect.GetWidth() * 0.5f + desc.SizeRef.Width * desc.Transform.ScaleX * desc.Transform.Pivot.X;
-    float pivoty = -_srcRect.GetHeight() * 0.5f + desc.SizeRef.Height * desc.Transform.ScaleY * desc.Transform.Pivot.Y;
+    const float pivotx = -_srcRect.GetWidth() * 0.5f + desc.SizeRef.Width * desc.Transform.Pivot.X;
+    const float pivoty = -_srcRect.GetHeight() * 0.5f + desc.SizeRef.Height * desc.Transform.Pivot.Y;
 
-    // Inverse transformation, because it should affect the textures drawn within this batch
-    glm::mat4 msrt = glmex::make_inv_transform2d(
+    // Inverse transformation, because it should affect the textures drawn within this batch,
+    // and these should be transitioned opposite to the scene's transition.
+    const glm::mat4 msrt = glmex::make_inv_transform2d(
         (float)desc.Transform.X, (float)-desc.Transform.Y,
         desc.Transform.ScaleX, desc.Transform.ScaleY,
         Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
     // Translate scaled node into Top-Left screen coordinates
-    float scaled_offx = _srcRect.GetWidth() * ((1.f - desc.Transform.ScaleX) * 0.5f);
-    float scaled_offy = _srcRect.GetHeight() * ((1.f - desc.Transform.ScaleY) * 0.5f);
+    const float scaled_offx = _srcRect.GetWidth() * ((1.f - desc.Transform.ScaleX) * 0.5f);
+    const float scaled_offy = _srcRect.GetHeight() * ((1.f - desc.Transform.ScaleY) * 0.5f);
     glm::mat4 model = glmex::translate(-scaled_offx, -(-scaled_offy));
     model = model * msrt;
 

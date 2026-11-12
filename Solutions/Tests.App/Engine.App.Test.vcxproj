@@ -30,6 +30,7 @@
     <ClCompile Include="..\..\Engine\script\systemimports.cpp" />
     <ClCompile Include="..\..\Engine\test\game_test.cpp" />
     <ClCompile Include="..\..\Engine\test\scsprintf_test.cpp" />
+    <ClCompile Include="..\..\Engine\test\stubs.cpp" />
     <ClCompile Include="..\..\Engine\test\systemimports_test.cpp" />
     <ClCompile Include="..\..\libsrc\allegro\src\allegro.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\unicode.c" />

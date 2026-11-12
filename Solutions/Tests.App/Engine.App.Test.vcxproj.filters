@@ -10,6 +10,9 @@
     <ClCompile Include="..\..\Engine\test\scsprintf_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\test\stubs.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Engine\script\script_api.cpp">
       <Filter>Engine</Filter>
     </ClCompile>

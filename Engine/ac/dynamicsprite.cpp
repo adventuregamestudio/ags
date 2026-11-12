@@ -85,15 +85,30 @@ int DynamicSprite_GetGraphic(ScriptDynamicSprite *sds) {
 }
 
 int DynamicSprite_GetWidth(ScriptDynamicSprite *sds) {
+    if (sds->slot == 0)
+    {
+        debug_script_warn("DynamicSprite.Width: sprite has been deleted");
+        return 0;
+    }
     return game_to_data_coord(game.SpriteInfos[sds->slot].Width);
 }
 
 int DynamicSprite_GetHeight(ScriptDynamicSprite *sds) {
+    if (sds->slot == 0)
+    {
+        debug_script_warn("DynamicSprite.Height: sprite has been deleted");
+        return 0;
+    }
     return game_to_data_coord(game.SpriteInfos[sds->slot].Height);
 }
 
 int DynamicSprite_GetColorDepth(ScriptDynamicSprite *sds) {
-    // Dynamic sprite ensures the sprite exists always
+    if (sds->slot == 0)
+    {
+        debug_script_warn("DynamicSprite.ColorDepth: sprite has been deleted");
+        return 0;
+    }
+    // A dynamic sprite that was not deleted always has its image
     int depth = spriteset[sds->slot]->GetColorDepth();
     if (depth == 15)
         depth = 16;

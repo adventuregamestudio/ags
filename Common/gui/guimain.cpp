@@ -19,6 +19,7 @@
 #include "data/data_helpers.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "gfx/gfx_def.h"
 #include "gui/guibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guilabel.h"
@@ -326,7 +327,7 @@ void GUIMain::DrawControls(Bitmap *ds)
         const int objy = objToDraw->GetY();
 
         // Depending on draw properties - draw directly on the gui surface, or use a buffer
-        if (objToDraw->GetTransparency() == 0 && objToDraw->GetBlendMode() == kBlend_Normal
+        if (objToDraw->GetOpacity() == 255 && objToDraw->GetBlendMode() == kBlend_Normal
             && objToDraw->GetScale() == Pointf(1.f, 1.f) && objToDraw->GetRotation() == 0.f)
         {
             objToDraw->Draw(ds, objx, objy);
@@ -358,7 +359,7 @@ void GUIMain::DrawControls(Bitmap *ds)
             Point obj_at = objToDraw->GetGraphicSpace().AABB().GetLT();
             draw_gui_sprite(ds, obj_at.X, obj_at.Y,
                 src_bmp, objToDraw->GetBlendMode(),
-                GfxDef::LegacyTrans255ToAlpha255(objToDraw->GetTransparency()));
+                objToDraw->GetOpacity());
         }
 
         const bool is_highlighted = _highlightCtrl == _ctrlDrawOrder[ctrl_index];
@@ -641,7 +642,7 @@ void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
     _bgImage       = in->ReadInt32();
     _fgColor       = in->ReadInt32();
     _flags         = in->ReadInt32();
-    _transparency  = in->ReadInt32();
+    _opacity       = in->ReadInt32();
     _zOrder        = in->ReadInt32();
     _id            = in->ReadInt32();
     _padding       = in->ReadInt32();
@@ -676,7 +677,7 @@ void GUIMain::WriteToFile(Stream *out) const
     out->WriteInt32(_bgImage);
     out->WriteInt32(_fgColor);
     out->WriteInt32(_flags);
-    out->WriteInt32(_transparency);
+    out->WriteInt32(_opacity);
     out->WriteInt32(_zOrder);
     out->WriteInt32(_id);
     out->WriteInt32(_padding);
@@ -696,7 +697,9 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
     _width = in->ReadInt32();
     _height = in->ReadInt32();
     _bgImage = in->ReadInt32();
-    _transparency = in->ReadInt32();
+    _opacity = in->ReadInt32();
+    if (svg_ver < kGuiSvgVersion_40034)
+        _opacity = GfxDef::LegacyTrans255ToAlpha255(_opacity);
     _zOrder = in->ReadInt32();
 
     if (svg_ver >= kGuiSvgVersion_350)
@@ -833,7 +836,7 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(_width);
     out->WriteInt32(_height);
     out->WriteInt32(_bgImage);
-    out->WriteInt32(_transparency);
+    out->WriteInt32(_opacity);
     out->WriteInt32(_zOrder);
     out->WriteInt32(_bgColor);
     out->WriteInt32(_fgColor);

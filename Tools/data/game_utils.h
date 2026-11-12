@@ -257,7 +257,7 @@ struct CharacterData : EntityRef
     int StartY{};
     int StartingRoom{};
     int ThinkingView{};
-    int Transparency{};
+    int Opacity = 255;
     bool TurnBeforeWalking{};
     bool TurnWhenFacing{};
     bool UniformMovementSpeed{};
@@ -508,7 +508,7 @@ struct GUIData : EntityRef
     GUIPopupStyle PopupStyle = kGUIPopupStyle_Normal;
     int PopupYPos{};
     int Top{};
-    int Transparency{};
+    int Opacity = 255;
     int Visible{};
     int Width{};
     int ZOrder{};

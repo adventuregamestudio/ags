@@ -35,7 +35,7 @@ namespace AGS.Types
         private int _popupYPos;
         private int _zorder;
 		private int _bordercol;
-        private int _transparency = 0;
+        private int _opacity = 255;
 		private string _onClick = string.Empty;
 
         /// <summary>
@@ -184,18 +184,26 @@ namespace AGS.Types
 			set { _bordercol = value; }
 		}
 
-        [Description("Transparency of the GUI, from 0% (solid) to 100% (invisible). Does not work with 8-bit colour games.")]
-        [Category("Appearance")]
+        [Obsolete]
+        [Browsable(false)]
         public int Transparency
         {
-            get { return _transparency; }
+            get { return TypesHelper.Alpha255ToTrans100(Opacity); }
+            set { Opacity = TypesHelper.Trans100ToAlpha255(value); }
+        }
+
+        [Description("Opacity of the GUI, from 0 (invisible) to 255 (solid). Does not work with 8-bit colour games.")]
+        [Category("Appearance")]
+        public int Opacity
+        {
+            get { return _opacity; }
             set
             {
-                if ((value < 0) || (value > 100))
+                if ((value < 0) || (value > 255))
                 {
-                    throw new ArgumentException("Transparency must be 0-100%");
+                    throw new ArgumentException("Opacity must be 0-255");
                 }
-                _transparency = value;
+                _opacity = value;
             }
         }
 

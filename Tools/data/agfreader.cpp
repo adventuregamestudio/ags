@@ -796,7 +796,7 @@ void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings& s)
     s.GUIDAsString = ReadString(elem, "GUIDAsString");
     s.GameFileName = ReadString(elem, "GameFileName");
     s.GameName = ReadString(elem, "GameName");
-    s.GameFPS = ReadInt(elem, "GameFPS", 40);
+    s.GameFPS = ReadInt(elem, "GameFPS", 60);
     s.GameTextEncoding = ReadString(elem, "GameTextEncoding");
     s.GameTextLanguage = ReadString(elem, "GameTextLanguage");
     s.Genre = ReadString(elem, "Genre");

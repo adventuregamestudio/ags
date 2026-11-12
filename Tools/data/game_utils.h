@@ -568,7 +568,7 @@ struct GameSettings
     String GUIDAsString;
     String GameFileName;
     String GameName;
-    int GameFPS = 40;
+    int GameFPS = 60;
     String GameTextEncoding;
     String GameTextLanguage;
     String Genre;

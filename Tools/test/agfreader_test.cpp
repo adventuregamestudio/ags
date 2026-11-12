@@ -77,6 +77,7 @@ TEST(AGFReader, GameSettingsDefaultConstructed)
     EXPECT_TRUE(s->EnforceNewStrings);
     EXPECT_TRUE(s->EnforceObjectBasedScript);
     EXPECT_FALSE(s->GUIHandleOnlyLeftMouseButton);
+    EXPECT_EQ(60, s->GameFPS);
     EXPECT_EQ(5, s->GlobalSpeechAnimationDelay);
     EXPECT_TRUE(s->HandleInvClicksInScript);
     EXPECT_TRUE(s->InventoryCursors);

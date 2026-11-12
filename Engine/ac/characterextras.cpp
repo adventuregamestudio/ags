@@ -120,6 +120,10 @@ void CharacterExtras::ReadFromSavegame(Stream *in, CharacterSvgVersion save_ver)
         in->ReadInt32();
         in->ReadInt32();
     }
+    else
+    {
+        audio_speed = 1000; // default: normal speed
+    }
 }
 
 void CharacterExtras::WriteToSavegame(Stream *out) const

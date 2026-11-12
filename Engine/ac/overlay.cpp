@@ -228,7 +228,7 @@ void Overlay_SetHeight(ScriptOverlay *scover, int height)
         if (height > 0)
             over->SetScaledSize(over->GetScaledWidth(), data_to_game_coord(height));
         else
-            debug_script_warn("Overlay.SetWidth: invalid height %d", height);
+            debug_script_warn("Overlay.SetHeight: invalid height %d", height);
     }
 }
 

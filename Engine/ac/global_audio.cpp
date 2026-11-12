@@ -416,7 +416,7 @@ void PlaySilentMIDI (int mnum) {
 }
 
 void SetSpeechVolume(int newvol) {
-    if ((newvol<0) | (newvol>255))
+    if ((newvol<0) || (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
     auto* ch = AudioChans::GetChannel(SCHAN_SPEECH);

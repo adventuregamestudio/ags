@@ -37,13 +37,25 @@ extern GameSetupStruct game;
 
 // *** LIST BOX FUNCTIONS
 
+// The list box item limit of the games made before 3.5.0
+#define LEGACY_MAX_LISTBOX_ITEMS 200
+
+// Tells if the list box is at the old item limit, in a game made when adding an item failed there
+static bool IsLegacyListBoxFull(const GUIListBox *lbb)
+{
+  return (loaded_game_file_version < kGameVersion_350) && (lbb->GetItemCount() >= LEGACY_MAX_LISTBOX_ITEMS);
+}
+
 int ListBox_AddItem(GUIListBox *lbb, const char *text) {
-  if (lbb->AddItem(text) < 0)
+  if (IsLegacyListBoxFull(lbb))
     return 0;
+  lbb->AddItem(text);
   return 1;
 }
 
 int ListBox_InsertItemAt(GUIListBox *lbb, int index, const char *text) {
+  if (IsLegacyListBoxFull(lbb))
+    return 0;
   if (lbb->InsertItem(index, text) < 0)
     return 0;
   return 1;

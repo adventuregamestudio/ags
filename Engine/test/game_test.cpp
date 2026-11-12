@@ -25,7 +25,7 @@ using namespace AGS::Common;
 const int GameNumItems = 100;
 int PlayerInvQ[GameNumItems];
 int GlobalInts[MAXGSVALUES];
-String replace_message_tokens(const String &text)
+static String replace_message_tokens(const String &text)
 {
     std::function<bool(const String&, String&)> fn_resolve = [](const String &macro, String &result)->bool
         { 

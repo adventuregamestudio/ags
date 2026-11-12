@@ -327,6 +327,12 @@ uint64_t AGSWin32::GetDiskFreeSpaceMB(const String &path)
              (PULARGE_INTEGER)&i64FreeBytesToCaller,
              (PULARGE_INTEGER)&i64Unused1,
              (PULARGE_INTEGER)&i64Unused2);
+  if (!fResult)
+  {
+    // Unknown: report plenty, as the other platforms' placeholders do (the callers refuse
+    // to save below 2 MB); a write that really fails is reported by the write itself
+    return 100;
+  }
 
   i64FreeBytesToCaller /= 1000000;
   return static_cast<uint64_t>(i64FreeBytesToCaller);

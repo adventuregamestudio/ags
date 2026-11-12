@@ -29,7 +29,7 @@ uint32_t BitmapData::GetPixel(int x, int y) const
     switch (_bitsPerPixel)
     {
     case 1: return (line[x / 8] >> (7 - x % 8)) & 0x1;
-    case 4: return (line[x / 2] >> (1 - x % 2)) & 0x4;
+    case 4: return (line[x / 2] >> ((1 - x % 2) * 4)) & 0xF;
     case 8: return line[x];
     case 15: /* same as 16 */
     case 16: return *reinterpret_cast<const uint16_t*>(&line[x * 2]);

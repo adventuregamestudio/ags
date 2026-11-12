@@ -403,8 +403,9 @@ private:
     void RenderToSurface(BackbufferState *state, bool clearDrawListAfterwards);
     // Set current backbuffer state, which properties are used when refering to backbuffer
     void SetBackbufferState(BackbufferState *state, bool clear);
-    // Sets a Direct3D viewport for the current render target.
-    void SetD3DViewport(const Rect &rc);
+    // Sets a Direct3D viewport for the current render target, and the half-pixel
+    // offset for rendering rend_sz units (projection size) on this viewport.
+    void SetD3DViewport(const Rect &rc, const Size &rend_sz);
     // Sets the scissor (render clip), clip rect is passed in the "native" coordinates.
     // Optionally pass render_on_texture if the rendering is done to texture, in native coords,
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.

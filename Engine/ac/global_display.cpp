@@ -60,10 +60,6 @@ void DisplayMB(const char *text)
 
 void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const char *text)
 {
-    // FIXME: refactor source_text_length and get rid of this ugly hack!
-    const int real_text_sourcelen = source_text_length;
-    source_text_length = real_text_sourcelen;
-
     if (ypos > 0)
         play.top_bar_ypos = ypos;
     if (ttexcol > 0)
@@ -80,7 +76,12 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
     int height = get_font_height_outlined(font)
         + data_to_game_coord(play.top_bar_borderwidth) * 2 + get_fixed_pixel_size(1);
 
+    // get_translation sets source_text_length, which GetTextDisplayTime below reads
+    // for the text: keep the text's.
+    // FIXME: refactor source_text_length and get rid of this ugly hack!
+    const int text_source_length = source_text_length;
     const TopBarSettings topbar(get_translation(title), FONT_NORMAL, height);
+    source_text_length = text_source_length;
 
     // DisplaySpeech normally sets this up, but since we're not going via it...
     if (play.speech_skip_style & SKIP_AUTOTIMER)

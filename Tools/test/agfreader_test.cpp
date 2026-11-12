@@ -13,6 +13,7 @@
 //=============================================================================
 #include <cstring>
 #include <new>
+#include <tinyxml2.h>
 #include "gtest/gtest.h"
 #include "data/agfreader.h"
 
@@ -107,4 +108,33 @@ TEST(AGFReader, GameSettingsDefaultConstructed)
     EXPECT_FALSE(s->UseOldVoiceClipNaming);
     EXPECT_FALSE(s->WalkInLookMode);
     s->~GameSettings();
+}
+
+TEST(AGFReader, GameSettingsAbsentElementsGiveEditorDefaults)
+{
+    tinyxml2::XMLDocument doc;
+    ASSERT_EQ(tinyxml2::XML_SUCCESS, doc.Parse("<Game><Settings /></Game>"));
+    DataUtil::GameSettings s;
+    AGF::ReadGameSettings(s, doc.RootElement());
+    EXPECT_TRUE(s.PixelPerfect);
+    EXPECT_TRUE(s.DebugMode);
+    EXPECT_TRUE(s.AntiGlideMode);
+    EXPECT_TRUE(s.LeftToRightPrecedence);
+    EXPECT_EQ(60, s.GameFPS);
+    EXPECT_EQ(5, s.GlobalSpeechAnimationDelay);
+    EXPECT_EQ(1, s.AudioIndexer);
+    // Settings.FromXml sets these two to false before reading, so the Editor does not turn them on
+    // in a project from before the settings existed
+    EXPECT_FALSE(s.EnforceNewAudio);
+    EXPECT_FALSE(s.RunGameLoopsWhileDialogOptionsDisplayed);
+
+    // present elements override the defaults
+    tinyxml2::XMLDocument doc2;
+    ASSERT_EQ(tinyxml2::XML_SUCCESS, doc2.Parse(
+        "<Game><Settings><PixelPerfect>False</PixelPerfect><GameFPS>30</GameFPS></Settings></Game>"));
+    DataUtil::GameSettings s2;
+    AGF::ReadGameSettings(s2, doc2.RootElement());
+    EXPECT_FALSE(s2.PixelPerfect);
+    EXPECT_EQ(30, s2.GameFPS);
+    EXPECT_TRUE(s2.DebugMode);
 }

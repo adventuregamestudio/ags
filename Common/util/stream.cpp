@@ -28,7 +28,7 @@ namespace Common
 size_t Stream::ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count)
 {
     count = ReadArray(buffer, sizeof(int16_t), count);
-    for (size_t i = 0; i < count; ++i, ++buffer)
+    for (size_t i = 0; i < count && !EOS(); ++i, ++buffer)
     {
         *buffer = BBOp::SwapBytesInt16(*buffer);
     }
@@ -38,7 +38,7 @@ size_t Stream::ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count)
 size_t Stream::ReadAndConvertArrayOfInt32(int32_t *buffer, size_t count)
 {
     count = ReadArray(buffer, sizeof(int32_t), count);
-    for (size_t i = 0; i < count; ++i, ++buffer)
+    for (size_t i = 0; i < count && !EOS(); ++i, ++buffer)
     {
         *buffer = BBOp::SwapBytesInt32(*buffer);
     }
@@ -48,7 +48,7 @@ size_t Stream::ReadAndConvertArrayOfInt32(int32_t *buffer, size_t count)
 size_t Stream::ReadAndConvertArrayOfInt64(int64_t *buffer, size_t count)
 {
     count = ReadArray(buffer, sizeof(int64_t), count);
-    for (size_t i = 0; i < count; ++i, ++buffer)
+    for (size_t i = 0; i < count && !EOS(); ++i, ++buffer)
     {
         *buffer = BBOp::SwapBytesInt64(*buffer);
     }
@@ -59,7 +59,7 @@ size_t Stream::ReadAndConvertArrayOfUInt24(uint8_t *buffer, size_t count)
 {
     // NOTE: count is number of 3-byte elements
     count = ReadArray(buffer, sizeof(uint8_t) * 3, count);
-    for (size_t i = 0; i < count; ++i, buffer += 3)
+    for (size_t i = 0; i < count && !EOS(); ++i, buffer += 3)
     {
         uint8_t temp = buffer[0];
         buffer[0] = buffer[3];
@@ -71,7 +71,7 @@ size_t Stream::ReadAndConvertArrayOfUInt24(uint8_t *buffer, size_t count)
 size_t Stream::ReadAndConvertArrayOfFloat32(float *buffer, size_t count)
 {
     count = ReadArray(buffer, sizeof(float), count);
-    for (size_t i = 0; i < count; ++i, ++buffer)
+    for (size_t i = 0; i < count && !EOS(); ++i, ++buffer)
     {
         *buffer = BBOp::SwapBytesFloat32(*buffer);
     }
@@ -81,7 +81,7 @@ size_t Stream::ReadAndConvertArrayOfFloat32(float *buffer, size_t count)
 size_t Stream::WriteAndConvertArrayOfInt16(const int16_t *buffer, size_t count)
 {
     size_t elem;
-    for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
+    for (elem = 0; elem < count; ++elem, ++buffer)
     {
         int16_t val = *buffer;
         val = BBOp::SwapBytesInt16(val);
@@ -96,7 +96,7 @@ size_t Stream::WriteAndConvertArrayOfInt16(const int16_t *buffer, size_t count)
 size_t Stream::WriteAndConvertArrayOfInt32(const int32_t *buffer, size_t count)
 {
     size_t elem;
-    for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
+    for (elem = 0; elem < count; ++elem, ++buffer)
     {
         int32_t val = *buffer;
         val = BBOp::SwapBytesInt32(val);
@@ -111,7 +111,7 @@ size_t Stream::WriteAndConvertArrayOfInt32(const int32_t *buffer, size_t count)
 size_t Stream::WriteAndConvertArrayOfInt64(const int64_t *buffer, size_t count)
 {
     size_t elem;
-    for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
+    for (elem = 0; elem < count; ++elem, ++buffer)
     {
         int64_t val = *buffer;
         val = BBOp::SwapBytesInt64(val);
@@ -128,7 +128,7 @@ size_t Stream::WriteAndConvertArrayOfUInt24(const uint8_t *buffer, size_t count)
     size_t elem;
     uint8_t elem_buf[3];
     // NOTE: count is number of 3-byte elements
-    for (elem = 0; elem < count && !EOS(); ++elem, buffer += 3)
+    for (elem = 0; elem < count; ++elem, buffer += 3)
     {
         elem_buf[0] = buffer[2];
         elem_buf[1] = buffer[1];
@@ -144,7 +144,7 @@ size_t Stream::WriteAndConvertArrayOfUInt24(const uint8_t *buffer, size_t count)
 size_t Stream::WriteAndConvertArrayOfFloat32(const float *buffer, size_t count)
 {
     size_t elem;
-    for (elem = 0; elem < count && !EOS(); ++elem, ++buffer)
+    for (elem = 0; elem < count; ++elem, ++buffer)
     {
         float val = *buffer;
         val = BBOp::SwapBytesFloat32(val);

@@ -25,6 +25,7 @@
 #include "ac/lipsync.h"
 #include "ac/movelist.h"
 #include "ac/parser.h"
+#include "ac/speech.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
 #include "ac/dynobj/all_dynamicclasses.h"
@@ -47,6 +48,7 @@
 #include "script/exports.h"
 #include "script/script.h"
 #include "script/script_runtime.h"
+#include "util/path.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
 
@@ -323,7 +325,13 @@ enum LipsyncDatVersion
 
 void LoadLipsyncData()
 {
-    auto speechsync = AssetMgr->OpenAsset("syncdata.dat", "voice");
+    splipsync.clear();
+    numLipLines = 0;
+    curLipLine = -1;
+
+    // The sync data lies in the voice pack's own folder, like the voice clips
+    auto speechsync = AssetMgr->OpenAsset(
+        Path::ConcatPaths(get_voice_assetpath(), "syncdata.dat"), "voice");
     if (!speechsync)
         return;
     // this game has voice lip sync

@@ -25,4 +25,14 @@ struct SpeechLipSyncLine
     short numPhonemes;
 };
 
+namespace AGS
+{
+namespace Engine
+{
+// Replaces the lip-sync lines with the ones from the "syncdata.dat" of the voice pack in use
+// (none if the pack has no such file)
+void LoadLipsyncData();
+} // namespace Engine
+} // namespace AGS
+
 #endif // __AC_LIPSYNC_H

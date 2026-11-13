@@ -85,7 +85,7 @@ namespace AGS.Types
             set { ScriptName = value; }
         }
 
-        [Description("The player will walk to this spot when the hotspot is activated")]
+        [Description("Optional position, may be used in script to walk player character when the hotspot is interacted with")]
         [Category("Design")]
         public Point WalkToPoint
         {

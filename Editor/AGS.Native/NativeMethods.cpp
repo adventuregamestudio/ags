@@ -793,7 +793,6 @@ namespace AGS
             if (name->Equals("FFLG_LOGICALNOMINALHEIGHT")) return FFLG_LOGICALNOMINALHEIGHT;
             if (name->Equals("FFLG_LOGICALCUSTOMHEIGHT")) return FFLG_LOGICALCUSTOMHEIGHT;
             if (name->Equals("OPT_DEBUGMODE")) return safe_cast<Object^>(OPT_DEBUGMODE);
-            if (name->Equals("OPT_WALKONLOOK")) return OPT_WALKONLOOK;
             if (name->Equals("OPT_DIALOGIFACE")) return OPT_DIALOGIFACE;
             if (name->Equals("OPT_ANTIGLIDE")) return OPT_ANTIGLIDE;
             if (name->Equals("OPT_TWCUSTOM")) return OPT_TWCUSTOM;

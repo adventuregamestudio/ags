@@ -154,7 +154,6 @@ struct GamePlayState
     int  screenshot_height = 0;
     int  top_bar_font = 0;
     HorAlignment speech_text_align = kHAlignNone;
-    int  auto_use_walkto_points = 0;
     int  inventory_greys_out = 0;
     int  skip_speech_specific_key = 0;
     int  abort_key = 0;

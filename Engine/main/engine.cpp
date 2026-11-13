@@ -811,7 +811,6 @@ void engine_init_game_settings()
     play.top_bar_font = -1;
     play.screenshot_width = 160;
     play.screenshot_height = 100;
-    play.auto_use_walkto_points = 1;
     play.inventory_greys_out = 0;
     play.skip_speech_specific_key = 0;
     play.abort_key = 324;  // Alt+X

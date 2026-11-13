@@ -137,8 +137,13 @@ namespace AGS.Editor
         {
             TThing thing;
             if (id != null && RoomItemRefs.TryGetValue(id, out thing))
-                return GetNavbarItemTitle(thing);
+                return GetTreeItemTitle(thing);
             return null;
+        }
+
+        public RoomLayerItemState GetItemState(string id)
+        {
+            return RoomLayerItemState.Normal;
         }
 
         public void SelectItem(string id)
@@ -490,9 +495,9 @@ namespace AGS.Editor
         /// </summary>
         protected abstract string GetPropertyGridItemTitle(TThing obj);
         /// <summary>
-        /// Forms a object's label for the Navigation bar.
+        /// Forms a object's label for the layer tree.
         /// </summary>
-        protected abstract string GetNavbarItemTitle(TThing obj);
+        protected abstract string GetTreeItemTitle(TThing obj);
 
         /// <summary>
         /// React to the new object selected in the properties grid list.

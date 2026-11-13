@@ -100,7 +100,11 @@
     <Compile Include="Editor\ColorThemes\Controls\ComboBoxCustomTests.cs" />
     <Compile Include="Editor\BuildTargets\BuildTargetBaseTests.cs" />
     <Compile Include="Editor\ConvertToNative\NativeRoomTests.cs" />
+    <Compile Include="Editor\Panes\FakeRoomLayer.cs" />
     <Compile Include="Editor\Panes\FreePanControlTests.cs" />
+    <Compile Include="Editor\Panes\RoomAreaUsageTests.cs" />
+    <Compile Include="Editor\Panes\RoomLayerTreeTests.cs" />
+    <Compile Include="Editor\Panes\RoomLayerTreeViewTests.cs" />
     <Compile Include="Editor\Translations\TranslationTests.cs" />
     <Compile Include="Editor\UpgradeGame\UpgradeGameTests.cs" />
     <Compile Include="Editor\Utilities\IncludeUtilsTests.cs" />

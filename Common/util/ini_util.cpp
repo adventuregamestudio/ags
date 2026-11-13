@@ -259,7 +259,7 @@ void IniUtil::Write(std::unique_ptr<Stream> &&out, const ConfigTree &tree)
             const String &item_key   = keyval->first;
             const String &item_value = keyval->second;
 
-            writer.WriteFormat("%s = %s", item_key.GetCStr(), item_value.GetCStr());
+            writer.WriteFormat("%s=%s", item_key.GetCStr(), item_value.GetCStr());
             writer.WriteLineBreak();
         }
     }
@@ -286,7 +286,7 @@ void IniUtil::WriteToString(String &s, const ConfigTree &tree)
             s.Append(String::FromFormat("[%s]\n", sec_key.GetCStr()));
         // write all items
         for (StrStrOIter keyval = sec_tree.begin(); keyval != sec_tree.end(); ++keyval)
-            s.Append(String::FromFormat("%s = %s\n", keyval->first.GetCStr(), keyval->second.GetCStr()));
+            s.Append(String::FromFormat("%s=%s\n", keyval->first.GetCStr(), keyval->second.GetCStr()));
     }
 }
 

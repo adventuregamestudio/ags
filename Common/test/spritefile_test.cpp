@@ -45,7 +45,7 @@ TEST(SpriteFileWriter, WriteAndIndex) {
 	{
 		std::vector<uint8_t> storage;
 		auto sfw = std::make_unique<SpriteFileWriter>(
-			std::make_unique<Stream>(std::make_unique<VectorStream>(storage, kStream_Write)));
+			AsStream<VectorStream>(storage, kStream_Write));
 		WriteSpriteFile(sfw.get());
 		index = sfw->GetIndex();
 	}
@@ -83,13 +83,13 @@ TEST(SpriteFileWriter, WriteAndReadMetrics) {
 	std::vector<uint8_t> storage;
 	{
 		auto sfw = std::make_unique<SpriteFileWriter>(
-			std::make_unique<Stream>(std::make_unique<VectorStream>(storage, kStream_Write)));
+			AsStream<VectorStream>(storage, kStream_Write));
 		WriteSpriteFile(sfw.get());
 	}
 
 	std::vector<GraphicResolution> metrics;
 	auto sf = std::make_unique<SpriteFile>();
-	HError err = sf->OpenFile(std::make_unique<Stream>(std::make_unique<VectorStream>(storage)), nullptr, metrics);
+	HError err = sf->OpenFile(AsStream<VectorStream>(storage), nullptr, metrics);
 
 	ASSERT_TRUE(err);
 	ASSERT_EQ(sf->GetSpriteCount(), 3); // valid count

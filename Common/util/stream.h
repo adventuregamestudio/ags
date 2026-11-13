@@ -29,6 +29,7 @@
 
 #include <memory>
 #include "util/bbop.h"
+#include "util/memory_compat.h"
 #include "util/string.h"
 
 namespace AGS
@@ -403,11 +404,11 @@ public:
     }
     size_t ReadArrayOfUInt24(uint8_t *buffer, size_t count)
     {
-#if defined (BITBYTE_BIG_ENDIAN)
-        return ReadAndConvertArrayOfInt24(buffer, count);
-#else
+    #if defined (BITBYTE_BIG_ENDIAN)
+        return ReadAndConvertArrayOfUInt24(buffer, count);
+    #else
         return ReadArray(buffer, sizeof(uint8_t) * 3, count);
-#endif
+    #endif
     }
     size_t ReadArrayOfFloat32(float *buffer, size_t count)
     {
@@ -452,11 +453,11 @@ public:
     }
     size_t WriteArrayOfUInt24(const uint8_t *buffer, size_t count)
     {
-#if defined (BITBYTE_BIG_ENDIAN)
+    #if defined (BITBYTE_BIG_ENDIAN)
         return WriteAndConvertArrayOfUInt24(buffer, count);
-#else
+    #else
         return WriteArray(buffer, sizeof(uint8_t) * 3, count);
-#endif
+    #endif
     }
     size_t WriteArrayOfFloat32(const float *buffer, size_t count)
     {
@@ -542,6 +543,19 @@ private:
     soff_t _end = 0;
     soff_t _position = 0;
 };
+
+
+template<typename TStreamBase>
+inline std::unique_ptr<Stream> AsStream(std::unique_ptr<TStreamBase> &&stream_base)
+{
+    return std::make_unique<Stream>(std::move(stream_base));
+}
+
+template<typename TStreamBase, typename... Args>
+inline std::unique_ptr<Stream> AsStream(Args&& ...args)
+{
+    return std::make_unique<Stream>(std::make_unique<TStreamBase>(std::forward<Args>(args)...));
+}
 
 
 // Copies all found contents from one stream into another using IStreamBase objects;

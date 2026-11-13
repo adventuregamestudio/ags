@@ -51,8 +51,7 @@ String DialogScriptConverter::Convert()
     _lineNumber = 0;
 
     // TODO: TextStreamReader now deletes stream in dtor, which is a design mistake
-    auto mems = std::make_unique<Stream>(
-        std::make_unique<MemoryStream>((uint8_t*)_dlgScript.GetCStr(), _dlgScript.GetLength()));
+    auto mems = AsStream<MemoryStream>((uint8_t*)_dlgScript.GetCStr(), _dlgScript.GetLength());
     TextStreamReader sr(std::move(mems));
 
     String ags_script =

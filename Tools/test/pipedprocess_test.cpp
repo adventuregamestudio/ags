@@ -47,7 +47,7 @@ size_t RunChatty(int lines)
     String exe, params;
     GetChattyCommand(lines, exe, params);
     std::vector<uint8_t> log_buf;
-    TextStreamWriter log(std::make_unique<Stream>(std::make_unique<VectorStream>(log_buf, kStream_Write)));
+    TextStreamWriter log(AsStream<VectorStream>(log_buf, kStream_Write));
     std::vector<uint8_t> out;
     PipedProcess proc(exe, params, &log);
     HError err = proc.RunSync(&out);

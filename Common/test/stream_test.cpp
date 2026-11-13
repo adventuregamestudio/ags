@@ -31,8 +31,7 @@ TEST(Stream, Common) {
 
     //-------------------------------------------------------------------------
     // Write data
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(membuf, kStream_Write));
+    auto out = AsStream<VectorStream>(membuf, kStream_Write);
 
     out->WriteInt16(10);
     out->WriteInt64(-20202);
@@ -45,8 +44,7 @@ TEST(Stream, Common) {
 
     //-------------------------------------------------------------------------
     // Read data back
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(membuf));
+    auto in = AsStream<VectorStream>(membuf);
 
     int16_t int16val = in->ReadInt16();
     int64_t int64val = in->ReadInt64();

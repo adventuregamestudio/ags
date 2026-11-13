@@ -749,7 +749,8 @@ jobs:
       - name: Run build inside container
         run: |
           TAG_NAME=${{ env.BASE_BRANCH }}-${{ matrix.platform.arch }}
-          IMAGE="ghcr.io/${{ github.repository_owner }}/ags-linux-builder-image:$TAG_NAME"
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/$OWNER/ags-linux-builder-image:$TAG_NAME"
           if [ "${{matrix.platform.rpath}}" = "true" ]; then
             PREFIX=lib
           else
@@ -873,7 +874,8 @@ jobs:
       - name: Run build inside container ${{ matrix.platform.archname }}
         run: |
           TAG_NAME=${{ env.BASE_BRANCH }}-${{ matrix.platform.arch }}
-          IMAGE="ghcr.io/${{ github.repository_owner }}/ags-linux-builder-image:$TAG_NAME"
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/$OWNER/ags-linux-builder-image:$TAG_NAME"
 
           docker run --rm \
             -v "$PWD:/workspace" \

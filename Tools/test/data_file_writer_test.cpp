@@ -49,8 +49,7 @@ std::vector<uint8_t> WriteGameBlock(const DataUtil::GameData &game,
     GameBlockWriter writer)
 {
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     writer(game, out.get());
     out.reset();
     return buffer;
@@ -60,8 +59,7 @@ std::vector<uint8_t> WriteExtensionPayload(const DataUtil::GameData &game,
     DataFileWriter::ExtensionWriter writer)
 {
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     writer(out.get(), game);
     out.reset();
     return buffer;
@@ -90,12 +88,10 @@ struct LoadedAudioBlock
 LoadedAudioBlock RoundTripAudioBlock(const DataUtil::GameData &game)
 {
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteAudioBlock(game, out.get());
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     LoadedAudioBlock loaded;
     loaded.Types.resize(in->ReadInt32());
@@ -138,14 +134,12 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     game.GlobalMessages[3] = "message";
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     soff_t extension_offset_pos = 0;
     DataFileWriter::WriteGameSetupStructBase(game, out.get(), extension_offset_pos);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
     GameSetupStructBase loaded;
     GameSetupStructBase::SerializeInfo info;
     loaded.ReadFromFile(in.get(), kGameVersion_Current, info);
@@ -184,15 +178,13 @@ TEST(DataFileWriter, RoundTripGlobalMessagesBounds)
     game.GlobalMessages[MAXGLOBALMES - 1] = "last valid message";
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     soff_t extension_offset_pos = 0;
     DataFileWriter::WriteGameSetupStructBase(game, out.get(), extension_offset_pos);
     DataFileWriter::WriteGlobalMessagesBlock(game, out.get());
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
     GameSetupStructBase loaded;
     GameSetupStructBase::SerializeInfo info;
     loaded.ReadFromFile(in.get(), kGameVersion_Current, info);
@@ -248,13 +240,11 @@ TEST(DataFileWriter, RoundTripCharacter)
     character.AdjustSpeedWithScaling = true;
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteCharacter(out.get(), game, character, 0);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
     CharacterInfo loaded;
     CharacterInfo2 loaded_ext;
     loaded.ReadFromFile(loaded_ext, in.get(), kGameVersion_Current);
@@ -286,13 +276,11 @@ TEST(DataFileWriter, RoundTripInventoryItem)
     item.PlayerStartsWith = true;
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteInventoryItem(out.get(), item);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
     InventoryItemInfo loaded{};
     loaded.ReadFromFile(in.get(), kGameVersion_Current);
 
@@ -316,12 +304,10 @@ TEST(DataFileWriter, RoundTripInventoryBlock)
     game.Inventory = { key, coin };
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteInventoryBlock(game, out.get());
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     InventoryItemInfo loaded[3]{};
     for (auto &item : loaded)
@@ -349,13 +335,11 @@ TEST(DataFileWriter, RoundTripCursor)
     cursor.StandardMode = true;
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteCursor(out.get(), cursor);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
     MouseCursor loaded;
     loaded.ReadFromFile(in.get());
 
@@ -381,12 +365,10 @@ TEST(DataFileWriter, RoundTripCursorBlock)
     game.Cursors = { walk, look };
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteCursorBlock(game, out.get());
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     MouseCursor loaded[2];
     for (auto &cursor : loaded)
@@ -405,13 +387,11 @@ TEST(DataFileWriter, RoundTripTextParserDictionary)
     game.ParserWords.push_back({ "inventory", 20 });
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteTextParserDictionary(game, out.get());
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
     WordsDictionary loaded;
     loaded.ReadFromFile(in.get());
 
@@ -441,13 +421,11 @@ TEST(DataFileWriter, RoundTripView)
     view.Loops.push_back(loop);
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteView(out.get(), game, view);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
     ViewStruct loaded;
     loaded.ReadFromFile(in.get());
 
@@ -475,12 +453,10 @@ TEST(DataFileWriter, RoundTripViewsBlock)
     game.Views = { first, second };
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteViewsBlock(game, out.get());
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     ViewStruct loaded[2];
     for (auto &view : loaded)
@@ -505,12 +481,10 @@ TEST(DataFileWriter, RoundTripCharactersBlock)
     game.Characters = { first, second };
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteCharactersBlock(game, out.get());
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     CharacterInfo loaded[2];
     CharacterInfo2 loaded_ext[2];
@@ -532,13 +506,11 @@ TEST(DataFileWriter, RoundTripAudioType)
     type.Crossfade = DataUtil::kCrossfade_Medium;
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteAudioType(out.get(), type, 4);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
     AudioClipType loaded;
     loaded.ReadFromFile(in.get());
 
@@ -562,13 +534,11 @@ TEST(DataFileWriter, RoundTripAudioClip)
     clip.Volume = 80;
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteAudioClip(out.get(), clip, 0);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
     ScriptAudioClip loaded;
     loaded.ReadFromFile(in.get());
 
@@ -640,13 +610,11 @@ TEST(DataFileWriter, RoundTripExt363Dialogs)
     game.Dialogs.push_back(dialog);
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteExt363Dialogs(out.get(), game);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
     ASSERT_EQ(1, in->ReadInt32());
     DialogTopic loaded;
     loaded.ReadFromFile_v363(in.get());
@@ -665,16 +633,14 @@ TEST(DataFileWriter, RoundTripExtensionFraming)
 {
     DataUtil::GameData game;
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteExtension(out.get(), "small", game,
         WriteSmallExtensionPayload);
     DataFileWriter::WriteExtension(out.get(), "large", game,
         WriteLargeExtensionPayload);
     out.reset();
 
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
     char id[17] = {};
     EXPECT_EQ(0, in->ReadInt8());
     in->Read(id, 16);
@@ -712,13 +678,11 @@ TEST(DataFileWriter, RoundTripCustomProperties)
     std::vector<DataUtil::CustomPropertySchemaItem> schema = { schema_item };
 
     std::vector<uint8_t> schema_buffer;
-    auto schema_out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(schema_buffer, kStream_Write));
+    auto schema_out = AsStream<VectorStream>(schema_buffer, kStream_Write);
     DataFileWriter::WritePropertySchemaBlock(schema_out.get(), schema);
     schema_out.reset();
 
-    auto schema_in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(schema_buffer));
+    auto schema_in = AsStream<VectorStream>(schema_buffer);
     PropertySchema loaded_schema;
     ASSERT_EQ(kPropertyErr_NoError,
         Properties::ReadSchema(loaded_schema, schema_in.get()));
@@ -735,13 +699,11 @@ TEST(DataFileWriter, RoundTripCustomProperties)
         { "String2", "Test escaped \\[ square bracket" }, { "String3", "Test escaped\\nline-break" },
     };
     std::vector<uint8_t> values_buffer;
-    auto values_out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(values_buffer, kStream_Write));
+    auto values_out = AsStream<VectorStream>(values_buffer, kStream_Write);
     DataFileWriter::WritePropertyValues(values_out.get(), values);
     values_out.reset();
 
-    auto values_in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(values_buffer));
+    auto values_in = AsStream<VectorStream>(values_buffer);
     StringIMap loaded_values;
     ASSERT_EQ(kPropertyErr_NoError,
         Properties::ReadValues(loaded_values, values_in.get()));
@@ -781,12 +743,10 @@ TEST(DataFileWriter, RoundTripCustomPropertiesBlock)
     game.Inventory = { first_item, second_item };
 
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteCustomPropertiesBlock(game, out.get());
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     PropertySchema schema;
     ASSERT_EQ(kPropertyErr_NoError, Properties::ReadSchema(schema, in.get()));
@@ -832,8 +792,7 @@ TEST(DataFileWriter, RoundTripFontBlock)
 
     std::vector<uint8_t> buffer = WriteGameBlock(game,
         DataFileWriter::WriteFontBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     FontInfo loaded[2];
     for (int i = 0; i < 2; ++i)
@@ -872,8 +831,7 @@ TEST(DataFileWriter, RoundTripSpriteFlags)
 
     std::vector<uint8_t> buffer = WriteGameBlock(game,
         DataFileWriter::WriteSpriteFlags);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
     const int count = in->ReadInt32();
     ASSERT_EQ(4, count);
     std::vector<uint8_t> flags(count);
@@ -895,8 +853,7 @@ TEST(DataFileWriter, RoundTripInteractionScriptsBlock)
     game.Inventory.resize(2);
     std::vector<uint8_t> buffer = WriteGameBlock(game,
         DataFileWriter::WriteInteractionScriptsBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     // GameSetupStruct reads two characters, then inventory slots 1 and 2;
     // unused inventory slot 0 has no v361 record in this block.
@@ -917,8 +874,7 @@ TEST(DataFileWriter, RoundTripLipSyncBlock)
     game.LipSyncFrames = { "A", "BCD" };
     std::vector<uint8_t> buffer = WriteGameBlock(game,
         DataFileWriter::WriteLipSyncBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     char frames[MAXLIPSYNCFRAMES][50] = {{ 0 }};
     in->ReadArray(&frames[0][0], MAXLIPSYNCFRAMES, 50);
@@ -938,8 +894,7 @@ TEST(DataFileWriter, RoundTripSaveGameInfo)
     game.Settings.SaveGameFolderName = "Round Trip Saves";
     std::vector<uint8_t> buffer = WriteGameBlock(game,
         DataFileWriter::WriteSaveGameInfo);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     char guid[MAX_GUID_LENGTH] = {};
     char extension[MAX_SG_EXT_LENGTH] = {};
@@ -968,8 +923,7 @@ TEST(DataFileWriter, RoundTripLegacyScriptNamesBlock)
     game.Inventory = { key, coin };
     std::vector<uint8_t> buffer = WriteGameBlock(game,
         DataFileWriter::WriteLegacyScriptNamesBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     EXPECT_STREQ("vFirst", String::FromStream(in.get()).GetCStr());
     EXPECT_STREQ("SecondView", String::FromStream(in.get()).GetCStr());
@@ -989,8 +943,7 @@ TEST(DataFileWriter, RoundTripPluginsBlock)
     };
     std::vector<uint8_t> buffer = WriteGameBlock(game,
         DataFileWriter::WritePluginsBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     EXPECT_EQ(1, in->ReadInt32());
     ASSERT_EQ(2, in->ReadInt32());
@@ -1012,8 +965,7 @@ TEST(DataFileWriter, RoundTripRoomNamesBlock)
     game.Rooms = { { 1, "Hall" }, { 42, "Secret room" } };
     std::vector<uint8_t> buffer = WriteGameBlock(game,
         DataFileWriter::WriteRoomNamesBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     ASSERT_EQ(2, in->ReadInt32());
     EXPECT_EQ(1, in->ReadInt32());
@@ -1042,8 +994,7 @@ TEST(DataFileWriter, RoundTripExt360Fonts)
     game.Fonts = { first, second };
     std::vector<uint8_t> buffer = WriteExtensionPayload(game,
         DataFileWriter::WriteExt360Fonts);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     for (const auto &font : game.Fonts)
     {
@@ -1067,8 +1018,7 @@ TEST(DataFileWriter, RoundTripExt360Cursors)
     game.Cursors = { first, second };
     std::vector<uint8_t> buffer = WriteExtensionPayload(game,
         DataFileWriter::WriteExt360Cursors);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     for (const auto &cursor : game.Cursors)
     {
@@ -1101,8 +1051,7 @@ TEST(DataFileWriter, RoundTripExt361ObjNames)
     game.AudioClips.push_back(clip);
     std::vector<uint8_t> buffer = WriteExtensionPayload(game,
         DataFileWriter::WriteExt361ObjNames);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     EXPECT_STREQ("Extended Game", StrUtil::ReadString(in.get()).GetCStr());
     EXPECT_STREQ("Extended Saves", StrUtil::ReadString(in.get()).GetCStr());
@@ -1140,8 +1089,7 @@ TEST(DataFileWriter, RoundTripExt362Interactions)
     game.GUI.push_back(gui);
     std::vector<uint8_t> buffer = WriteExtensionPayload(game,
         DataFileWriter::WriteExt362Interactions);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     EXPECT_TRUE(StrUtil::ReadString(in.get()).IsEmpty()); // global script asset
     EXPECT_TRUE(StrUtil::ReadString(in.get()).IsEmpty()); // dialog script asset
@@ -1190,8 +1138,7 @@ TEST(DataFileWriter, RoundTripExt363GameInfo)
     game.Settings.GameTextLanguage = "pt-BR";
     std::vector<uint8_t> buffer = WriteExtensionPayload(game,
         DataFileWriter::WriteExt363GameInfo);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     StringMap info;
     StrUtil::ReadStringMap(info, in.get());
@@ -1227,8 +1174,7 @@ LoadedGuiBlock ReadGuiBlock(const DataUtil::GameData &game)
 {
     std::vector<uint8_t> buffer = WriteGameBlock(game,
         DataFileWriter::WriteGuiBlock);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     LoadedGuiBlock loaded;
     GUIRefCollection refs(loaded.Objects);
@@ -1541,12 +1487,10 @@ TEST(DataFileWriter, RoundTripGuiControlLooks363)
     DataUtil::GUIControlData control;
     SetControlLooks(control, 60);
     std::vector<uint8_t> buffer;
-    auto out = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer, kStream_Write));
+    auto out = AsStream<VectorStream>(buffer, kStream_Write);
     DataFileWriter::WriteGuiControlLooks363(out.get(), control);
     out.reset();
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     GUIObject loaded;
     loaded.ReadFromFile_Ext363(in.get(), kGuiVersion_Current);
@@ -1593,8 +1537,7 @@ TEST(DataFileWriter, RoundTripExt363GuiControls)
     game.GUI.push_back(gui);
     std::vector<uint8_t> buffer = WriteExtensionPayload(game,
         DataFileWriter::WriteExt363GuiControls);
-    auto in = std::make_unique<Stream>(
-        std::make_unique<VectorStream>(buffer));
+    auto in = AsStream<VectorStream>(buffer);
 
     ASSERT_EQ(1, in->ReadInt32());
     GUIButton loaded_button;

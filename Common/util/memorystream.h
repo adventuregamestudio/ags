@@ -19,6 +19,8 @@
 //
 // VectorStream is a specialized implementation that works with std::vector.
 // Unlike base MemoryStream provides continiously resizing buffer for writing.
+// 
+// TODO: expansion/wrapper of VectorStream that holds vector container itself?
 // TODO: separate StringStream for reading & writing String object?
 //
 //=============================================================================

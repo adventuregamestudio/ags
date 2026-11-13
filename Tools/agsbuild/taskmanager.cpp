@@ -90,7 +90,7 @@ Task::Task(const String &name, ITaskManager *mgr)
     : _name(name.Clone())
     , _mgr(mgr)
 {
-    _logWriter.reset(new TextStreamWriter(std::make_unique<Stream>(std::make_unique<VectorStream>(_logBuffer, kStream_Write))));
+    _logWriter.reset(new TextStreamWriter(AsStream<VectorStream>(_logBuffer, kStream_Write)));
 }
 
 Task::Task(const String &name, ITaskManager *mgr, const std::vector<TaskInput> &input_tasks)
@@ -99,7 +99,7 @@ Task::Task(const String &name, ITaskManager *mgr, const std::vector<TaskInput> &
     , _inputs(Clone(input_tasks))
 {
     _inputData.resize(_inputs.size());
-    _logWriter.reset(new TextStreamWriter(std::make_unique<Stream>(std::make_unique<VectorStream>(_logBuffer, kStream_Write))));
+    _logWriter.reset(new TextStreamWriter(AsStream<VectorStream>(_logBuffer, kStream_Write)));
 }
 
 TaskState Task::GetState() const

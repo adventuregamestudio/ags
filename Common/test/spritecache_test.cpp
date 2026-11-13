@@ -66,7 +66,7 @@ TEST(SpriteCache, SaveToFileOnlyMemoryBitmaps) {
 
 	std::vector<uint8_t> storage;
 	SpriteFileIndex index;
-	HError err = sc->SaveToFile(std::make_unique<Stream>(std::make_unique<VectorStream>(storage, kStream_Write)),
+	HError err = sc->SaveToFile(AsStream<VectorStream>(storage, kStream_Write),
 		0, kSprCompress_None, index);
 
 	ASSERT_TRUE(err);
@@ -107,13 +107,13 @@ TEST(SpriteCache, SaveToFileAndInitBack) {
 		auto sc_temp = std::make_unique<SpriteCache>(spr_infos_temp, SpriteCache::Callbacks());
 		FillSpriteCache(sc_temp.get());
 		SpriteFileIndex index;
-		sc_temp->SaveToFile(std::make_unique<Stream>(std::make_unique<VectorStream>(storage, kStream_Write)),
+		sc_temp->SaveToFile(AsStream<VectorStream>(storage, kStream_Write),
 			0, kSprCompress_None, index);
 	}
 
 	std::vector<SpriteInfo> spr_infos;
 	auto sc = std::make_unique<SpriteCache>(spr_infos, SpriteCache::Callbacks());
-	HError err = sc->InitFile(std::make_unique<Stream>(std::make_unique<VectorStream>(storage)), nullptr);
+	HError err = sc->InitFile(AsStream<VectorStream>(storage), nullptr);
 
 	ASSERT_TRUE(err);
 	ASSERT_EQ(sc->GetSpriteSlotCount(), 11);
@@ -142,17 +142,17 @@ TEST(SpriteCache, SaveToFileUsingInputFile) {
 		auto sc_temp = std::make_unique<SpriteCache>(spr_infos_temp, SpriteCache::Callbacks());
 		FillSpriteCache(sc_temp.get());
 		SpriteFileIndex index;
-		sc_temp->SaveToFile(std::make_unique<Stream>(std::make_unique<VectorStream>(storage1, kStream_Write)),
+		sc_temp->SaveToFile(AsStream<VectorStream>(storage1, kStream_Write),
 			0, kSprCompress_None, index);
 	}
 	
 	std::vector<SpriteInfo> spr_infos;
 	auto sc = std::make_unique<SpriteCache>(spr_infos, SpriteCache::Callbacks());
-	sc->InitFile(std::make_unique<Stream>(std::make_unique<VectorStream>(storage1)), nullptr);
+	sc->InitFile(AsStream<VectorStream>(storage1), nullptr);
 	FillSpriteCache2(sc.get());
 
 	SpriteFileIndex index;
-	HError err = sc->SaveToFile(std::make_unique<Stream>(std::make_unique<VectorStream>(storage2, kStream_Write)),
+	HError err = sc->SaveToFile(AsStream<VectorStream>(storage2, kStream_Write),
 		0, kSprCompress_None, index);
 
 	ASSERT_TRUE(err);

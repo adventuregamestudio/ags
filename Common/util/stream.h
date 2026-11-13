@@ -403,11 +403,11 @@ public:
     }
     size_t ReadArrayOfUInt24(uint8_t *buffer, size_t count)
     {
-#if defined (BITBYTE_BIG_ENDIAN)
+    #if defined (BITBYTE_BIG_ENDIAN)
         return ReadAndConvertArrayOfUInt24(buffer, count);
-#else
+    #else
         return ReadArray(buffer, sizeof(uint8_t) * 3, count);
-#endif
+    #endif
     }
     size_t ReadArrayOfFloat32(float *buffer, size_t count)
     {
@@ -452,11 +452,11 @@ public:
     }
     size_t WriteArrayOfUInt24(const uint8_t *buffer, size_t count)
     {
-#if defined (BITBYTE_BIG_ENDIAN)
+    #if defined (BITBYTE_BIG_ENDIAN)
         return WriteAndConvertArrayOfUInt24(buffer, count);
-#else
+    #else
         return WriteArray(buffer, sizeof(uint8_t) * 3, count);
-#endif
+    #endif
     }
     size_t WriteArrayOfFloat32(const float *buffer, size_t count)
     {

@@ -56,7 +56,6 @@ String appDirectory; // engine dir
 String cmdGameDataPath; // game path received from cmdline
 
 extern int editor_debugging_initialized;
-extern char editor_debugger_instance_token[100];
 
 
 // Startup flags, set from parameters to engine
@@ -248,17 +247,24 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         {
             justRunSetup = true;
         }
-        else if ((ags_stricmp(arg,"--loadsavedgame") == 0) && (argc > ee + 1))
+        else if ((ags_stricmp(arg, "--loadsavedgame") == 0) && (argc > ee + 1))
         {
             loadSaveGameOnStartup = argv[ee + 1];
             ee++;
         }
-        else if ((ags_stricmp(arg,"--enabledebugger") == 0) && (argc > ee + 1))
+        else if ((ags_stricmp(arg, "--debugger") == 0) && (argc > ee + 1))
         {
-            snprintf(editor_debugger_instance_token, sizeof(editor_debugger_instance_token), "%s", argv[ee + 1]);
+            String comm = argv[++ee];
+            String comm_type = comm.LeftSection('=');
+            String comm_config;
+            if (comm_type.GetLength() != comm.GetLength())
+            {
+                comm_config = comm.RightSection('=');
+            }
+
+            cfg["debugger"]["comm_type"] = comm_type;
+            cfg["debugger"]["comm_config"] = comm_config;
             editor_debugging_enabled = 1;
-            cfg["graphics"]["windowed"] = "1";
-            ee++;
         }
         else if (ags_stricmp(arg, "--conf") == 0 && (argc > ee + 1))
         {

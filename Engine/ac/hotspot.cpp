@@ -167,11 +167,6 @@ void RunHotspotInteraction(int hotspothere, int mood)
         play.usedinv = playerchar->activeinv;
     }
 
-    if ((game.options[OPT_WALKONLOOK] == 0) && (game.HasCursorRole(mood, kCursorRole_Look)));
-    else if (play.auto_use_walkto_points == 0);
-    else if ((!game.HasCursorRole(mood, kCursorRole_Walk)) && (play.check_interaction_only == 0))
-        MoveCharacterToHotspot(game.playercharacter, hotspothere);
-
     const auto obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_HOTSPOT, hotspothere,
                                      RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspothere], &ccDynamicHotspot), mood);
     if ((evnt >= 0) &&

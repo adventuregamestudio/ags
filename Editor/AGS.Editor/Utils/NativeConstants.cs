@@ -87,7 +87,6 @@ namespace AGS.Editor
         public class GameOptions
         {
             public static readonly int OPT_DEBUGMODE = (int)Factory.NativeProxy.GetNativeConstant("OPT_DEBUGMODE");
-            public static readonly int OPT_WALKONLOOK = (int)Factory.NativeProxy.GetNativeConstant("OPT_WALKONLOOK");
             public static readonly int OPT_DIALOGIFACE = (int)Factory.NativeProxy.GetNativeConstant("OPT_DIALOGIFACE");
             public static readonly int OPT_ANTIGLIDE = (int)Factory.NativeProxy.GetNativeConstant("OPT_ANTIGLIDE");
             public static readonly int OPT_TWCUSTOM = (int)Factory.NativeProxy.GetNativeConstant("OPT_TWCUSTOM");

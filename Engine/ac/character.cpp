@@ -2726,17 +2726,6 @@ void walk_character_straight(CharacterInfo *chaa, int x, int y)
     move_character_straight(chaa, x, y, true /* animate */);
 }
 
-void MoveCharacterToHotspot(int chaa, int hotsp)
-{
-    if ((hotsp < 0) || (hotsp >= MAX_ROOM_HOTSPOTS))
-        quit("!MovecharacterToHotspot: invalid hotspot");
-    if (thisroom.Hotspots[hotsp].WalkTo.X < 1)
-        return;
-
-    walk_character(&game.chars[chaa], thisroom.Hotspots[hotsp].WalkTo.X, thisroom.Hotspots[hotsp].WalkTo.Y, false /* walkable areas */);
-    GameLoopUntilNotMoving(&game.chars[chaa].walking);
-}
-
 int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {
     // check most likely case first
     if ((chex->zoom == 100) || ((chi->flags & CHF_SCALEMOVESPEED) == 0))

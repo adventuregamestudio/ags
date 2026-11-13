@@ -50,8 +50,8 @@
 #define NARRATOR -1
 
 #define OPT_DEBUGMODE        0
-// OPT_SCORESOUND            1   // [HIDDEN], only read once on startup
-#define OPT_WALKONLOOK       2
+// OPT_SCORESOUND            1   // [OBSOLETE]
+// OPT_WALKONLOOK            2   // [OBSOLETE]
 #define OPT_DIALOGOPTIONSGUI 3
 #define OPT_ANTIGLIDE        4   // $AUTOCOMPLETEIGNORE$
 #define OPT_TWCUSTOM         5
@@ -62,15 +62,15 @@
 #define OPT_SPEECHTYPE      10   // $AUTOCOMPLETEIGNORE$
 #define OPT_PIXELPERFECT    11
 #define OPT_NOWALKMODE      12
-#define OPT_LETTERBOX       13
+// OPT_LETTERBOX            13   // [OBSOLETE]
 #define OPT_FIXEDINVCURSOR  14
-#define OPT_DONTLOSEINV     15   // $AUTOCOMPLETEIGNORE$
-// OPT_HIRES_FONTS          16   // [HIDDEN]
-// OPT_SPLITRESOURCES       17   // [HIDDEN]
+// OPT_DONTLOSEINV          15   // [OBSOLETE]
+// OPT_HIRES_FONTS          16   // [OBSOLETE]
+// OPT_SPLITRESOURCES       17   // [OBSOLETE]
 #define OPT_TURNBEFOREWALK  18
 // OPT_FADETYPE             19   // [HIDDEN], only read once on startup
 #define OPT_HANDLEINVCLICKS 20
-#define OPT_MOUSEWHEEL      21
+// OPT_MOUSEWHEEL           21   // [OBSOLETE]
 #define OPT_DIALOGNUMBERED  22
 #define OPT_DIALOGUPWARDS   23
 #define OPT_ANTIALIASFONTS  25
@@ -80,21 +80,21 @@
 #define OPT_MULTIPLEINV     29
 #define OPT_SAVEGAMESCREENSHOTS 30
 #define OPT_PORTRAITPOSITION  31
-// OPT_STRICTSCRIPTING        32 // [HIDDEN]
-// OPT_LEFTTORIGHTEVAL        33 // [HIDDEN]
+// OPT_STRICTSCRIPTING        32 // [OBSOLETE]
+// OPT_LEFTTORIGHTEVAL        33 // [OBSOLETE]
 // OPT_COMPRESSSPRITES        34 // [HIDDEN]
-// OPT_STRICTSTRINGS          35 // [HIDDEN]
-#define OPT_GUIALPHABLEND     36
+// OPT_STRICTSTRINGS          35 // [OBSOLETE]
+// OPT_GUIALPHABLEND          36 // [OBSOLETE]
 #define OPT_RUNGAMEINDLGOPTS  37
-#define OPT_NATIVECOORDINATES 38
+// OPT_NATIVECOORDINATES      38 // [OBSOLETE]
 #define OPT_GLOBALTALKANIMSPD 39 // $AUTOCOMPLETEIGNORE$
 #define OPT_SPRITEALPHABLEND  40
-// OPT_SAFEFILEPATHS          41 // [HIDDEN]
+// OPT_SAFEFILEPATHS          41 // [OBSOLETE]
 #define OPT_DIALOGOPTIONSAPI  42
 #define OPT_BASESCRIPTAPI     43
 #define OPT_SCRIPTCOMPATLEV   44
 // OPT_RENDERATSCREENRES      45 // [HIDDEN], only read once on startup
-// OPT_RELATIVEASSETRES       46 // [HIDDEN]
+// OPT_RELATIVEASSETRES       46 // [OBSOLETE]
 #define OPT_WALKSPEEDABSOLUTE 47
 #define OPT_CLIPGUICONTROLS   48
 #define OPT_GAMETEXTENCODING  49
@@ -3629,9 +3629,9 @@ builtin struct GameState {
   int  screenshot_height;
   int  top_bar_font;
   readonly int  unused__10;   // $AUTOCOMPLETEIGNORE$
-  int  auto_use_walkto_points;
-  int  inventory_greys_out;
   readonly int  unused__11;   // $AUTOCOMPLETEIGNORE$
+  int  inventory_greys_out;
+  readonly int  unused__12;   // $AUTOCOMPLETEIGNORE$
   int  abort_key;
   readonly int fade_color_red;
   readonly int fade_color_green;
@@ -3639,11 +3639,11 @@ builtin struct GameState {
   int  show_single_dialog_option;
   int  keep_screen_during_instant_transition;
   int  read_dialog_option_color;
-  readonly int  unused__12;   // $AUTOCOMPLETEIGNORE$
   readonly int  unused__13;   // $AUTOCOMPLETEIGNORE$
   readonly int  unused__14;   // $AUTOCOMPLETEIGNORE$
   readonly int  unused__15;   // $AUTOCOMPLETEIGNORE$
   readonly int  unused__16;   // $AUTOCOMPLETEIGNORE$
+  readonly int  unused__17;   // $AUTOCOMPLETEIGNORE$
   int  dialog_options_highlight_color;
   };
   

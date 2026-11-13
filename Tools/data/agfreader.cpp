@@ -969,7 +969,6 @@ void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings& s)
     s.TurnOrderPriority = ReadTurnOrderPriority(ReadString(elem, "TurnOrderPriority"));
     s.TextBoxKeyClaimStyle = ReadTextBoxKeyClaimStyle(ReadString(elem, "TextBoxKeyClaimStyle"));
     s.Version = ReadString(elem, "Version");
-    s.WalkInLookMode = ReadBool(elem, "WalkInLookMode");
     s.WhenInterfaceDisabled = ReadGuiDisableStyle(ReadString(elem, "WhenInterfaceDisabled"));
 }
 

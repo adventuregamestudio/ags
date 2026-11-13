@@ -528,7 +528,6 @@ std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
     options[OPT_SAVESCREENSHOT] = game.Settings.SaveScreenshots ? 1 : 0;
     options[OPT_CHARTURNWHENFACE] = game.Settings.TurnBeforeFacing ? 1 : 0;
     options[OPT_CHARTURNWHENWALK] = game.Settings.TurnBeforeWalking ? 1 : 0;
-    options[OPT_WALKONLOOK] = game.Settings.WalkInLookMode ? 1 : 0;
     options[OPT_CLIPGUICONTROLS] = game.Settings.ClipGUIControls ? 1 : 0;
     options[OPT_SCALECHAROFFSETS] = game.Settings.ScaleCharacterSpriteOffsets ? 1 : 0;
     options[OPT_SAVESCREENSHOTLAYER] = -1;

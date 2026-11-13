@@ -650,7 +650,6 @@ struct GameSettings
     CharacterTurnOrderPriority TurnOrderPriority = kTurnOrder_Clockwise;
     GUITextBoxKeyClaimStyle TextBoxKeyClaimStyle = kTextBoxKeyClaim_All;
     String Version;
-    bool WalkInLookMode;
     GuiDisableStyle WhenInterfaceDisabled = AGS::Common::kGuiDis_Greyout;
 };
 

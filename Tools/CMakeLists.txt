@@ -144,8 +144,12 @@ target_sources(libtools
         data/include_utils.h
         data/mfl_utils.cpp
         data/mfl_utils.h
+        data/room_build.cpp
+        data/room_build.h
         data/room_utils.cpp
         data/room_utils.h
+        data/room_xml.cpp
+        data/room_xml.h
         data/script_utils.cpp
         data/script_utils.h
         data/scriptgen.cpp
@@ -215,6 +219,14 @@ set_target_properties(agspak PROPERTIES
         )
 target_link_libraries(agspak PUBLIC libtools)
 
+#----- crmbuild -----------------------------------------------
+add_executable(crmbuild crmbuild/main.cpp)
+set_target_properties(crmbuild PROPERTIES
+        CXX_STANDARD 11
+        CXX_EXTENSIONS NO
+        )
+target_link_libraries(crmbuild PUBLIC libtools)
+
 #----- crmpak -------------------------------------------------
 add_executable(crmpak crmpak/main.cpp
         crmpak/commands.h
@@ -269,6 +281,7 @@ list(APPEND TOOLS_TARGETS
         agfexport
         agsbuild
         agspak
+        crmbuild
         crmpak
         spriteimport
         spritepak
@@ -325,6 +338,7 @@ if(AGS_TESTS)
       agsbuild/pipedprocess.cpp
       test/include_utils_test.cpp
       test/pipedprocess_test.cpp
+      test/room_build_test.cpp
       test/scriptgen_test.cpp
       test/spriteimport_test.cpp
       test/tra_utils_test.cpp

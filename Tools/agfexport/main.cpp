@@ -355,9 +355,13 @@ HError gamecfg_command(AGF::AGFReader &reader, const String &dst, bool no_empty_
     WriteConfig(setup, &settings, cfg);
 
     // Write config tree as ini
-    String str;
-    IniUtil::WriteToString(str, cfg);
-    return write_to_file(str, dst);
+    std::unique_ptr<Stream> out(File::CreateFile(dst));
+    if (!out)
+    {
+        return new Error("Failed to open output file '%s' for writing.", dst.GetCStr());
+    }
+    IniUtil::Write(std::move(out), cfg);
+    return HError::None();
 }
 
 int main(int argc, char *argv[])

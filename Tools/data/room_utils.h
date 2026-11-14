@@ -28,10 +28,13 @@ struct RoomScriptNames
 {
     std::vector<String> ObjectNames;
     std::vector<String> HotspotNames;
+    std::vector<String> RegionNames;
+    std::vector<String> WalkableAreaNames;
+    std::vector<String> WalkBehindNames;
 };
 
-// Generates room script header out of the room data;
-// the header will contain room object declarations.
+// Generates the declarations of the room's named objects and areas, as the editor appends
+// them to the auto-generated script header when it compiles the room (Tasks.AppendRoomContentsToHeader)
 String MakeRoomScriptHeader(const RoomScriptNames &data);
 
 } // namespace DataUtil

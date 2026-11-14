@@ -22,6 +22,20 @@ namespace DataUtil
 
 // TODO: consider a generic String-to-String conversion based on a array of string pairs?
 
+// AGSEditor.GetGfxDriverConfigID: the engine's id of a GraphicsDriver
+String GetGfxDriverConfigID(const String &driver)
+{
+    if (driver == "Software")
+        return "software";
+    if (driver == "D3D9")
+        return "d3d9";
+    if (driver == "D3D11")
+        return "d3d11";
+    if (driver == "OpenGL")
+        return "ogl";
+    return "";
+}
+
 String MakeGameScalingConfig(const String &scaling)
 {
     if (scaling == "MaxInteger" || scaling == "Integer")
@@ -68,7 +82,7 @@ String CustomPathForConfig(bool use_custom_path, const String &custom_path)
 
 void WriteConfig(const RuntimeSetup &setup, const GameSettings *settings, ConfigTree &cfg)
 {
-    cfg["graphics"]["driver"] = setup.GraphicsDriver;
+    cfg["graphics"]["driver"] = GetGfxDriverConfigID(setup.GraphicsDriver);
     cfg["graphics"]["windowed"] = setup.Windowed ? "1" : "0";
     cfg["graphics"]["fullscreen"] = setup.FullscreenDesktop ? "full_window" : "desktop";
     if (setup.WindowGameScaling == "Integer")

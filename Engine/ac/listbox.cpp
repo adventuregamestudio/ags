@@ -38,8 +38,7 @@ extern GameSetupStruct game;
 // *** LIST BOX FUNCTIONS
 
 int ListBox_AddItem(GUIListBox *lbb, const char *text) {
-  if (lbb->AddItem(text) < 0)
-    return 0;
+  lbb->AddItem(text);
   return 1;
 }
 

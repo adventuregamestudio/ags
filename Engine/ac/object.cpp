@@ -713,8 +713,8 @@ Rect get_object_blocking_rect(int objid)
 // bitmap_original tells whether bitmap is an original sprite, or transformed version
 int is_pos_in_sprite(int xx, int yy, int arx, int ary, Bitmap *sprit,
                      int spww, int sphh, int flipped, bool bitmap_original) {
-    if (spww==0) spww = game_to_data_coord(sprit->GetWidth()) - 1;
-    if (sphh==0) sphh = game_to_data_coord(sprit->GetHeight()) - 1;
+    if (spww==0) spww = game_to_data_coord(sprit->GetWidth());
+    if (sphh==0) sphh = game_to_data_coord(sprit->GetHeight());
 
     if (!RectWH(arx, ary, spww, sphh).IsInside(xx, yy))
         return false;

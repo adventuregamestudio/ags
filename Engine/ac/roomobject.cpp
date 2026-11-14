@@ -183,6 +183,10 @@ void RoomObject::ReadFromSavegame(Stream *in, int save_ver)
         in->ReadInt32();
         in->ReadInt32();
     }
+    else
+    {
+        audio_speed = 0; // default: normal speed
+    }
 }
 
 void RoomObject::WriteToSavegame(Stream *out) const

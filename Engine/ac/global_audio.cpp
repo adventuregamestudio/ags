@@ -26,6 +26,7 @@
 #include "main/engine.h"
 #include "media/audio/audio_core.h"
 #include "media/audio/audio_system.h"
+#include "util/path.h"
 #include "util/string_compat.h"
 #include "util/time_util.h"
 
@@ -415,7 +416,7 @@ void PlaySilentMIDI (int mnum) {
 }
 
 void SetSpeechVolume(int newvol) {
-    if ((newvol<0) | (newvol>255))
+    if ((newvol<0) || (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
     auto* ch = AudioChans::GetChannel(SCHAN_SPEECH);
@@ -570,8 +571,10 @@ bool play_voice_speech(int charid, int sndid)
     int ii;  // Compare the base file name to the .pam file name
     curLipLine = -1;  // See if we have voice lip sync for this line
     curLipLinePhoneme = -1;
+    // (the sync data names the clips without the voice pack's folder)
+    const String clip_name = Path::GetFilename(voice_file);
     for (ii = 0; ii < numLipLines; ii++) {
-        if (voice_file.CompareNoCase(splipsync[ii].filename) == 0) {
+        if (clip_name.CompareNoCase(splipsync[ii].filename) == 0) {
             curLipLine = ii;
             break;
         }

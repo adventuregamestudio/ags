@@ -18,16 +18,6 @@
 
 using namespace AGS::Common;
 
-void cc_error(const char *, ...)
-{
-    // do nothing
-}
-
-void debug_script_event(MessageType mt, const String &msg)
-{
-    // do nothing
-}
-
 size_t ScriptVSprintf__(char *buffer, size_t buf_length, const char *format, ...)
 {
     va_list args;

@@ -161,7 +161,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
                 cscim->id = finddefaultcontrol(CNF_CANCEL);
                 cscim->code = CM_COMMAND;
             } else if ((uchar == 0) && (keywas < eAGSKeyCodeSpace) && (keywas != eAGSKeyCodeBackspace)) ;
-            else if ((keywas >= eAGSKeyCodeUpArrow) & (keywas <= eAGSKeyCodePageDown) & (finddefaultcontrol(CNT_LISTBOX) >= 0))
+            else if ((keywas >= eAGSKeyCodeUpArrow) && (keywas <= eAGSKeyCodePageDown) && (finddefaultcontrol(CNT_LISTBOX) >= 0))
                 vobjs[finddefaultcontrol(CNT_LISTBOX)]->processmessage(CTB_KEYPRESS, keywas, 0);
             else if (finddefaultcontrol(CNT_TEXTBOX) >= 0)
                 vobjs[finddefaultcontrol(CNT_TEXTBOX)]->processmessage(CTB_KEYPRESS, keywas, uchar);

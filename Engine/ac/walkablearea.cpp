@@ -87,7 +87,7 @@ int get_area_scaling (int onarea, int xx, int yy) {
             }
             zoom_level += 100;
     }
-    else if ((onarea >= 0) & (onarea < MAX_WALK_AREAS))
+    else if ((onarea >= 0) && (onarea < MAX_WALK_AREAS))
         zoom_level = thisroom.WalkAreas[onarea].ScalingFar + 100;
 
     if (zoom_level == 0)
@@ -184,7 +184,7 @@ int get_walkable_area_at_location(int xx, int yy) {
         else if (yy >= thisroom.Height)
             onarea = get_walkable_area_pixel(xx, thisroom.Height - 1);
         else if (yy < 0)
-            onarea = get_walkable_area_pixel(xx, 1);
+            onarea = get_walkable_area_pixel(xx, 0);
     }
     if (onarea==0) {
         // the path finder sometimes slightly goes into non-walkable areas;

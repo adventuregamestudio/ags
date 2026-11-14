@@ -1,82 +1,261 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\..\Common\test\common_stubs.cpp" />
-    <ClCompile Include="..\..\Common\ac\audiocliptype.cpp" />
-    <ClCompile Include="..\..\Common\ac\characterinfo.cpp" />
-    <ClCompile Include="..\..\Common\ac\dialogtopic.cpp" />
-    <ClCompile Include="..\..\Common\ac\dynobj\scriptaudioclip.cpp" />
-    <ClCompile Include="..\..\Common\ac\gamesetupstructbase.cpp" />
-    <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp" />
-    <ClCompile Include="..\..\Common\ac\mousecursor.cpp" />
-    <ClCompile Include="..\..\Common\ac\view.cpp" />
-    <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp" />
-    <ClCompile Include="..\..\Common\debug\debugmanager.cpp" />
-    <ClCompile Include="..\..\Common\game\customproperties.cpp" />
-    <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest-all.cc" />
-    <ClCompile Include="..\..\Common\util\bufferedstream.cpp" />
-    <ClCompile Include="..\..\Common\util\file.cpp" />
-    <ClCompile Include="..\..\Common\util\filestream.cpp" />
-    <ClCompile Include="..\..\Common\util\memorystream.cpp" />
-    <ClCompile Include="..\..\Common\util\path.cpp" />
-    <ClCompile Include="..\..\Common\util\stdio_compat.c" />
-    <ClCompile Include="..\..\Common\util\stream.cpp" />
-    <ClCompile Include="..\..\Common\util\string.cpp" />
-    <ClCompile Include="..\..\Common\util\string_compat.c" />
-    <ClCompile Include="..\..\Common\util\string_utils.cpp" />
-    <ClCompile Include="..\..\Common\util\textstreamreader.cpp" />
-    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\file.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
-    <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp" />
-    <ClCompile Include="..\..\Tools\agsbuild\pipedprocess.cpp" />
-    <ClCompile Include="..\..\Tools\data\agfreader.cpp" />
-    <ClCompile Include="..\..\Tools\data\data_file_writer.cpp" />
-    <ClCompile Include="..\..\Tools\data\include_utils.cpp" />
-    <ClCompile Include="..\..\Tools\data\scriptgen.cpp" />
-    <ClCompile Include="..\..\Tools\data\sprite_utils.cpp" />
-    <ClCompile Include="..\..\Tools\test\agfreader_test.cpp" />
-    <ClCompile Include="..\..\Tools\test\data_file_writer_test.cpp" />
-    <ClCompile Include="..\..\Tools\test\gtest_main.cc" />
-    <ClCompile Include="..\..\Tools\test\include_utils_test.cpp" />
-    <ClCompile Include="..\..\Tools\test\pipedprocess_test.cpp" />
-    <ClCompile Include="..\..\Tools\test\scriptgen_test.cpp" />
-    <ClCompile Include="..\..\Tools\test\spriteimport_test.cpp" />
-    <ClCompile Include="..\..\Common\game\scripteventtable.cpp" />
-    <ClCompile Include="..\..\Common\test\sdl2_stubs.c" />
+    <ClCompile Include="..\..\Tools\data\agfreader.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c">
+      <Filter>libsrc\allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\test\agfreader_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\audiocliptype.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\bufferedstream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\characterinfo.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\test\common_stubs.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\game\customproperties.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\data_file_writer.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\test\data_file_writer_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\debug\debugmanager.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\dialogtopic.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\file.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\filestream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\gamesetupstructbase.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\test\gtest_main.cc">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\libsrc\googletest\googletest\src\gtest-all.cc">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\include_utils.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\test\include_utils_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\memorystream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\mousecursor.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\path.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\agsbuild\pipedprocess.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\test\pipedprocess_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\dynobj\scriptaudioclip.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\game\scripteventtable.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\scriptgen.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\test\scriptgen_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\test\sdl2_stubs.c">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\sprite_utils.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\test\spriteimport_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\stdio_compat.c">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\stream.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\string.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\string_compat.c">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\string_utils.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\textstreamreader.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\tinyxml2\tinyxml2.cpp">
+      <Filter>libsrc\tinyxml2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\data\tra_utils.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\test\tra_utils_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c">
+      <Filter>libsrc\allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\view.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
+      <Filter>libsrc\allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Common\ac\audiocliptype.h" />
-    <ClInclude Include="..\..\Common\ac\characterinfo.h" />
-    <ClInclude Include="..\..\Common\ac\dialogtopic.h" />
-    <ClInclude Include="..\..\Common\ac\dynobj\scriptaudioclip.h" />
-    <ClInclude Include="..\..\Common\ac\gamesetupstructbase.h" />
-    <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />
-    <ClInclude Include="..\..\Common\ac\mousecursor.h" />
-    <ClInclude Include="..\..\Common\ac\view.h" />
-    <ClInclude Include="..\..\Common\ac\wordsdictionary.h" />
-    <ClInclude Include="..\..\Common\debug\debugmanager.h" />
-    <ClInclude Include="..\..\Common\game\customproperties.h" />
-    <ClInclude Include="..\..\Common\util\bufferedstream.h" />
-    <ClInclude Include="..\..\Common\util\file.h" />
-    <ClInclude Include="..\..\Common\util\filestream.h" />
-    <ClInclude Include="..\..\Common\util\memorystream.h" />
-    <ClInclude Include="..\..\Common\util\path.h" />
-    <ClInclude Include="..\..\Common\util\stdio_compat.h" />
-    <ClInclude Include="..\..\Common\util\stream.h" />
-    <ClInclude Include="..\..\Common\util\string.h" />
-    <ClInclude Include="..\..\Common\util\string_compat.h" />
-    <ClInclude Include="..\..\Common\util\string_utils.h" />
-    <ClInclude Include="..\..\Common\util\textstreamreader.h" />
-    <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h" />
-    <ClInclude Include="..\..\Tools\data\agfreader.h" />
-    <ClInclude Include="..\..\Tools\data\data_file_writer.h" />
-    <ClInclude Include="..\..\Tools\data\game_utils.h" />
-    <ClInclude Include="..\..\Tools\data\include_utils.h" />
-    <ClInclude Include="..\..\Tools\data\scriptgen.h" />
-    <ClInclude Include="..\..\Tools\data\sprite_utils.h" />
-    <ClInclude Include="..\..\Tools\test\spriteimport_env.h" />
-    <ClInclude Include="..\..\Common\game\scripteventtable.h" />
+    <ClInclude Include="..\..\Tools\data\agfreader.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\audiocliptype.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\bufferedstream.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\characterinfo.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\game\customproperties.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\data_file_writer.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\debug\debugmanager.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\dialogtopic.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\file.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\filestream.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\game_utils.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\gamesetupstructbase.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\include_utils.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\memorystream.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\mousecursor.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\path.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\dynobj\scriptaudioclip.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\game\scripteventtable.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\scriptgen.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\sprite_utils.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\test\spriteimport_env.h">
+      <Filter>Test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\stdio_compat.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\stream.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\string.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\string_compat.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\string_utils.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\textstreamreader.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h">
+      <Filter>libsrc\tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\tra_utils.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\view.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\wordsdictionary.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>{41f7c563-3e31-4f8e-a564-d998a606540a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="data">
+      <UniqueIdentifier>{7d63954b-f200-4ce4-8287-37a7cb58e1fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libsrc">
+      <UniqueIdentifier>{fb53c05b-5985-4234-9c50-aa08ffb175ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Test">
+      <UniqueIdentifier>{788db8c7-e5ef-4779-b575-a23d2a08286a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libsrc\allegro">
+      <UniqueIdentifier>{6de0dba9-943d-4bfc-b237-03b77778d193}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libsrc\tinyxml2">
+      <UniqueIdentifier>{7f36c549-538a-4ae9-82a7-517136ef2832}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

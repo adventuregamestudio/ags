@@ -14,6 +14,7 @@
 #ifndef __AGS_TOOL_DATA__DATAFILEWRITER_H
 #define __AGS_TOOL_DATA__DATAFILEWRITER_H
 
+#include <functional>
 #include <memory>
 #include <vector>
 #include "util/error.h"
@@ -24,6 +25,17 @@ namespace AGS {
 namespace DataFileWriter {
 
 using AGS::Common::Stream;
+
+// Auxiliary data that WriteGameData28 prepares once from the GameData,
+// for the writing functions that need it
+struct CompiledData
+{
+    // Views by ID, as the editor writes them: slot i holds the view with ID i + 1, or null;
+    // the list runs up to the highest view ID
+    std::vector<const DataUtil::ViewData *> ViewsByID;
+
+    explicit CompiledData(const DataUtil::GameData &game);
+};
 
 void WriteCharacter(Stream *out, const DataUtil::GameData &game,
     const DataUtil::CharacterData &character, int index);
@@ -46,7 +58,7 @@ void WritePropertyValues(Stream *out,
 // that their count, ordering and reserved-slot framing may be unit-tested.
 void WriteInventoryBlock(const DataUtil::GameData &game, Stream *out);
 void WriteCursorBlock(const DataUtil::GameData &game, Stream *out);
-void WriteViewsBlock(const DataUtil::GameData &game, Stream *out);
+void WriteViewsBlock(const DataUtil::GameData &game, const CompiledData &data, Stream *out);
 void WriteCharactersBlock(const DataUtil::GameData &game, Stream *out);
 void WriteGlobalMessagesBlock(const DataUtil::GameData &game, Stream *out);
 void WriteCustomPropertiesBlock(const DataUtil::GameData &game, Stream *out);
@@ -56,7 +68,7 @@ void WriteSpriteFlags(const DataUtil::GameData &game, Stream *out);
 void WriteInteractionScriptsBlock(const DataUtil::GameData &game, Stream *out);
 void WriteLipSyncBlock(const DataUtil::GameData &game, Stream *out);
 void WriteSaveGameInfo(const DataUtil::GameData &game, Stream *out);
-void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, Stream *out);
+void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, const CompiledData &data, Stream *out);
 void WritePluginsBlock(const DataUtil::GameData &game, Stream *out);
 void WriteRoomNamesBlock(const DataUtil::GameData &game, Stream *out);
 void WriteGuiBlock(const DataUtil::GameData &game, Stream *out);
@@ -69,12 +81,12 @@ void WriteExt363GameInfo(Stream *out, const DataUtil::GameData &game);
 void WriteGuiControlLooks363(Stream *out, const DataUtil::GUIControlData &control);
 void WriteExt363GuiControls(Stream *out, const DataUtil::GameData &game);
 
-using ExtensionWriter = void (*)(Stream*, const DataUtil::GameData&);
+using ExtensionWriter = std::function<void(Stream*, const DataUtil::GameData&)>;
 void WriteExtension(Stream *out, const char *id,
     const DataUtil::GameData &game, ExtensionWriter writer);
 
 // Serializes the legacy GameSetupStructBase block.
-void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out,
+void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData &data, Stream *out,
     soff_t &ext_offset_pos);
 
 } // namespace DataFileWriter

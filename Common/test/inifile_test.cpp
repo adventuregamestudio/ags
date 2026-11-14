@@ -365,3 +365,30 @@ TEST(IniFile, MergeTreeWithFile) {
     // Assert, that tree2 has all the items from tree1
     ASSERT_TRUE(tree1 == tree2);
 }
+
+TEST(IniFile, WriteTreeFormatsLinesAsIniFile) {
+    ConfigTree tree;
+    tree["audio"]["driver"] = "midi";
+    tree["audio"]["volume"] = "100.0";
+    tree["video"]["vsync"] = "false";
+
+    // The tree written at once
+    std::vector<uint8_t> written;
+    IniUtil::Write(std::make_unique<Stream>(
+        std::make_unique<VectorStream>(written, kStream_Write)), tree);
+
+    // The tree merged into an empty ini file, which is then written
+    IniFile ini;
+    IniUtil::Merge(ini, tree);
+    std::vector<uint8_t> merged;
+    ini.Write(std::make_unique<Stream>(
+        std::make_unique<VectorStream>(merged, kStream_Write)));
+
+    ASSERT_FALSE(written.empty());
+    EXPECT_TRUE(written == merged);
+
+    // The same lines in a string, with plain line breaks
+    String s;
+    IniUtil::WriteToString(s, tree);
+    EXPECT_STREQ("[audio]\ndriver=midi\nvolume=100.0\n[video]\nvsync=false\n", s.GetCStr());
+}

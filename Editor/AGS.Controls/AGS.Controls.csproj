@@ -142,20 +142,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AdressBarEx\AddressBarExt.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="AdressBarEx\AddressBarExt.designer.cs">
-      <DependentUpon>AddressBarExt.cs</DependentUpon>
-    </Compile>
-    <Compile Include="AdressBarEx\IAddressNode.cs" />
     <Compile Include="AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Controls\ReadOnlyRichTextBox.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Controls\ToolStripDropDownButtonEx.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Controls\ContextMenuTriggerEventArgs.cs" />
@@ -174,9 +164,6 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Controls\TargetDropZone.cs" />
-    <Compile Include="Controls\ToolStripDropDownMenuEx.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Controls\ToolStripExtended.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -283,9 +270,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="AdressBarEx\AddressBarExt.resx">
-      <DependentUpon>AddressBarExt.cs</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="AGS.Controls.snk" />

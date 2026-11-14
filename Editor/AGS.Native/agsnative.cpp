@@ -3557,6 +3557,7 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->FontsForHiRes = (thisgame.options[OPT_HIRES_FONTS] != 0);
 	game->Settings->GameName = gcnew String(thisgame.gamename.GetCStr());
 	game->Settings->UseGlobalSpeechAnimationDelay = true; // this was always on in pre-3.0 games
+	game->Settings->UseLowResCoordinatesInScript = (thisgame.options[OPT_NATIVECOORDINATES] == 0);
 	game->Settings->GUIAlphaStyle = GUIAlphaStyle::Classic;
     game->Settings->SpriteAlphaStyle = SpriteAlphaStyle::Classic;
 	game->Settings->HandleInvClicksInScript = (thisgame.options[OPT_HANDLEINVCLICKS] != 0);

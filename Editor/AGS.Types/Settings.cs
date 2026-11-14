@@ -51,8 +51,8 @@ namespace AGS.Types
         private string _gameTextLanguage = "en-US";
         private int _gameFPS = 60;
         private bool _allowRelativeAssetResolution = false;
-        private bool _debugMode = true;
-        private bool _antiGlideMode = true;
+        private bool _debugMode = false;
+        private bool _antiGlideMode = false;
         private bool _walkInLookMode = false;
         private InterfaceDisabledAction _whenInterfaceDisabled = InterfaceDisabledAction.GreyOut;
         private bool _clipGuiControls = true;
@@ -89,7 +89,7 @@ namespace AGS.Types
         private bool _oldKeyHandling = false;
         private bool _oldVoiceClipNaming = false;
         private bool _scaleCharacterSpriteOffsets = true;
-        private int _playSoundOnScore = -1;
+        private int _playSoundOnScore = AudioClip.FixedIndexNoValue;
         private int _dialogOptionsGUI = 0;
         private int _dialogOptionsGap = 0;
         private int _dialogBulletImage = 0;
@@ -116,7 +116,7 @@ namespace AGS.Types
         private SpriteAlphaStyle _spriteAlphaStyle = SpriteAlphaStyle.Improved;
         private bool _runGameLoopsWhileDialogOptionsDisplayed = true;
         private InventoryHotspotMarker _inventoryHotspotMarker = new InventoryHotspotMarker();
-        private bool _useLowResCoordinatesInScript = true;
+        private bool _useLowResCoordinatesInScript = false;
         private int _defRoomMaskResolution = 1;
         // Game Description fields
 		private string _description = string.Empty;
@@ -1443,7 +1443,7 @@ namespace AGS.Types
             _spriteAlphaStyle = SpriteAlphaStyle.Classic;
             _runGameLoopsWhileDialogOptionsDisplayed = false;
             _inventoryHotspotMarker = new InventoryHotspotMarker();
-            _useLowResCoordinatesInScript = true;
+            _useLowResCoordinatesInScript = false;
             _audioIndexer = AudioClip.FixedIndexBase;
             _enforceNewAudio = false;
             _gameFileName = string.Empty;

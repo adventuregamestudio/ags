@@ -753,8 +753,6 @@ void D3DGraphicsDriver::SetupViewport()
 
   const float src_width = _srcRect.GetWidth();
   const float src_height = _srcRect.GetHeight();
-  const float disp_width = _mode.Width;
-  const float disp_height = _mode.Height;
 
   // Setup orthographic projection matrix
   glm::mat4 identity(1.f);
@@ -764,16 +762,11 @@ void D3DGraphicsDriver::SetupViewport()
   direct3ddevice->SetTransform(D3DTS_VIEW, (D3DMATRIX*)glm::value_ptr(identity));
   direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
 
-  // See "Directly Mapping Texels to Pixels" MSDN article for why this is necessary
-  // http://msdn.microsoft.com/en-us/library/windows/desktop/bb219690.aspx
-  _pixelRenderXOffset = (src_width / disp_width) / 2.0f;
-  _pixelRenderYOffset = (src_height / disp_height) / 2.0f;
-
   // Clear the screen before setting a viewport.
   ClearScreenRect(RectWH(0, 0, _mode.Width, _mode.Height), nullptr);
 
   // Set Viewport.
-  SetD3DViewport(_dstRect);
+  SetD3DViewport(_dstRect, _srcRect.GetSize());
 
   D3DSurfacePtr backbuffer;
   HRESULT hr = direct3ddevice->GetRenderTarget(0, backbuffer.Acquire());
@@ -1522,10 +1515,10 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
 
     // Self sprite transform (first scale, then rotate and then translate, reversed)
     glm::mat4 transform = glmex::make_transform2d(
-        thisX - _pixelRenderXOffset, thisY + _pixelRenderYOffset, widthToScale, heightToScale,
-        rotZ, pivotX, pivotY);
-    // Global batch transform
-    transform = matGlobal * transform;
+        thisX, thisY, widthToScale, heightToScale, rotZ, pivotX, pivotY);
+    // Global batch transform, then the half-pixel offset of the render target,
+    // which must be applied last, in the target's own pixels
+    transform = glmex::translate(-_pixelRenderXOffset, _pixelRenderYOffset) * matGlobal * transform;
 
     if ((_smoothScaling) && bmpToDraw->GetUseResampler()
         && bmpToDraw->GetSizeToRender() != bmpToDraw->GetSize())
@@ -1725,7 +1718,7 @@ void D3DGraphicsDriver::SetBackbufferState(BackbufferState *state, bool clear)
     {
         throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
     }
-    SetD3DViewport(_currentBackbuffer->Viewport);
+    SetD3DViewport(_currentBackbuffer->Viewport, _currentBackbuffer->RendSize);
 
     if (clear)
     {
@@ -1733,7 +1726,7 @@ void D3DGraphicsDriver::SetBackbufferState(BackbufferState *state, bool clear)
     }
 }
 
-void D3DGraphicsDriver::SetD3DViewport(const Rect &rc)
+void D3DGraphicsDriver::SetD3DViewport(const Rect &rc, const Size &rend_sz)
 {
     D3DVIEWPORT9 view;
     ZeroMemory(&view, sizeof(D3DVIEWPORT9));
@@ -1744,6 +1737,16 @@ void D3DGraphicsDriver::SetD3DViewport(const Rect &rc)
     view.MinZ = 0.0f;
     view.MaxZ = 1.0f;
     direct3ddevice->SetViewport(&view);
+
+    // Direct3D 9 puts pixel centers at integer coordinates, so the sprites are
+    // shifted by a half of the target's pixel, measured in the projection units;
+    // see "Directly Mapping Texels to Pixels" MSDN article:
+    // http://msdn.microsoft.com/en-us/library/windows/desktop/bb219690.aspx
+    if (rc.GetWidth() > 0 && rc.GetHeight() > 0)
+    {
+        _pixelRenderXOffset = (static_cast<float>(rend_sz.Width) / rc.GetWidth()) / 2.0f;
+        _pixelRenderYOffset = (static_cast<float>(rend_sz.Height) / rc.GetHeight()) / 2.0f;
+    }
 }
 
 void D3DGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture)
@@ -1772,7 +1775,7 @@ void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch, Size &rend_
         assert(hr == D3D_OK);
         Size surface_sz = Size(batch->RenderTarget->GetWidth(), batch->RenderTarget->GetHeight());
         rend_sz = surface_sz;
-        SetD3DViewport(RectWH(surface_sz));
+        SetD3DViewport(RectWH(surface_sz), surface_sz);
         glm::mat4 mat_ortho = glmex::ortho_d3d(surface_sz.Width, surface_sz.Height);
         direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(mat_ortho));
         // Configure rules for merging sprite alpha values onto a
@@ -1786,7 +1789,7 @@ void D3DGraphicsDriver::SetRenderTarget(const D3DSpriteBatch *batch, Size &rend_
         HRESULT hr = direct3ddevice->SetRenderTarget(0, _currentBackbuffer->Surface.get());
         assert(hr == D3D_OK);
         rend_sz = _currentBackbuffer->RendSize;
-        SetD3DViewport(_currentBackbuffer->Viewport);
+        SetD3DViewport(_currentBackbuffer->Viewport, _currentBackbuffer->RendSize);
         direct3ddevice->SetTransform(D3DTS_PROJECTION, (D3DMATRIX*)glm::value_ptr(_currentBackbuffer->Projection));
         // Return back to default alpha merging rules
         SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);

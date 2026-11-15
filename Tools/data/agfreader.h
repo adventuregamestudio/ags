@@ -360,6 +360,8 @@ public:
     String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
 
     String ReadDefaultValue(DocElem elem) { return ReadString(elem, "DefaultValue"); }
+    DataUtil::VariableArrayType ReadArrayType(DocElem elem);
+    int ReadArraySize(DocElem elem) { return ReadInt(elem, "ArraySize"); }
 };
 
 class GlobalVariables : public EntityListParser

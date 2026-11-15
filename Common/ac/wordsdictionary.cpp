@@ -43,7 +43,7 @@ void WordsDictionary::ReadFromFile(Stream* in)
 
 void WordsDictionary::WriteToFile(Stream* out) const
 {
-    out->WriteInt32(_words.size());
+    out->WriteInt32(static_cast<uint32_t>(_words.size()));
     for (auto item : _words)
     {
         WriteStringEncrypt(out, item.first.GetCStr());

@@ -423,10 +423,15 @@ HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in)
             }
 
             if (options.ParserWordID >= 0)
+            {
                 AddParserWords(tra.ParserDict, dst, options.ParserWordID);
+                tra.ParserDictSourceRef[options.ParserWordID] = src;
+            }
             // TODO: warn about duplicates
             else if (tra.Dict.count(src) == 0)
+            {
                 tra.Dict.insert(std::make_pair(src, dst));
+            }
         }
     }
 
@@ -455,6 +460,17 @@ struct TranslationSection
         : Name(name) {}
 };
 
+struct ParserWordEntry
+{
+    uint16_t WordID = WordsDictionary::INVALIDWORD;
+    String Source;
+    String Trans;
+
+    ParserWordEntry() = default;
+    ParserWordEntry(uint16_t word_id, const String &src, const String &trs)
+        : WordID(word_id), Source(src), Trans(trs) {}
+};
+
 // Organizes translated lines by sections.
 // There's not much to do if we have a runtime Translation object;
 // there's enough data to make only 2 sections:
@@ -469,20 +485,27 @@ static void MakeSections(const Translation &translation, std::vector<Translation
 
     if (translation.ParserDict.GetWords().size() > 0)
     {
-        TranslationSection parser_section(SECTION_TEXTPARSER);
-        std::multimap<uint16_t, String> words_by_id;
+        // Get all words with same ID joined into a single line,
+        // and find if there's a available source line reference.
+        std::map<uint16_t, std::vector<String>> words_by_id;
         for (const auto &word : translation.ParserDict.GetWords())
-            words_by_id.insert(std::make_pair(word.second, word.first));
-
-        for (const auto &word : words_by_id)
+            words_by_id[word.second].push_back(word.first);
+        std::vector<ParserWordEntry> parser_entries;
+        for (const auto &words : words_by_id)
         {
-            // FIXME: it appears that there's no way to fully reverse the parser word translation entry,
-            // the keys in base game language are not stored within the translation!
-            // probably add another TRA extension, for the reference. But then, it should not be read
-            // into existing Translation struct, because that struct is meant for runtime use,
-            // where such reference will be redundant, excess data.
-            TranslationEntry entry("???", word.second);
-            entry.Annotations.push_back(String::FromFormat("%s:%d", ANNOTATE_PARSERWORD.GetCStr(), word.first));
+            String parser_src = "???";
+            auto parser_src_at = translation.ParserDictSourceRef.find(words.first);
+            if (parser_src_at != translation.ParserDictSourceRef.end())
+                parser_src = parser_src_at->second;
+            String parser_trs = String::Join(words.second, ",");
+            parser_entries.push_back(ParserWordEntry(words.first, parser_src, parser_trs));
+        }
+
+        TranslationSection parser_section(SECTION_TEXTPARSER);
+        for (const auto &parser_entry : parser_entries)
+        {
+            TranslationEntry entry(parser_entry.Source, parser_entry.Trans);
+            entry.Annotations.push_back(String::FromFormat("%s:%d", ANNOTATE_PARSERWORD.GetCStr(), parser_entry.WordID));
             parser_section.Entries.push_back(entry);
         }
         sectionLists.push_back(std::move(parser_section));
@@ -577,6 +600,7 @@ HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out)
     {
         has_translation |= !kv.first.IsEmpty() && !kv.second.IsEmpty();
     }
+    has_translation |= (!tra.ParserDict.GetWords().empty());
     if (!has_translation)
         printf("WARNING: input translation did not appear to have any translated lines.\n");
 

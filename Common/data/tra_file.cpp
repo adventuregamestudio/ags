@@ -173,6 +173,17 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
         tra.ParserDict.ReadFromFile(in);
         return HError::None();
     }
+    else if (ext_id.CompareNoCase("ext_parsersrcref") == 0)
+    {
+        uint32_t word_count = in->ReadInt32();
+        for (uint32_t i = 0; i < word_count; ++i)
+        {
+            uint16_t word_id = static_cast<uint16_t>(in->ReadInt16());
+            String word = ReadStringDecrypt(in);
+            tra.ParserDictSourceRef[word_id] = word;
+        }
+        return HError::None();
+    }
     
     return new TraFileError(kTraFileErr_UnknownBlockType,
         String::FromFormat("Type: %s", ext_id.GetCStr()));
@@ -277,6 +288,16 @@ void WriteParserDict(const Translation &tra, Stream *out)
     tra.ParserDict.WriteToFile(out);
 }
 
+void WriteParserSourceRef(const Translation &tra, Stream *out)
+{
+    out->WriteInt32(static_cast<uint32_t>(tra.ParserDictSourceRef.size()));
+    for (auto item : tra.ParserDictSourceRef)
+    {
+        out->WriteInt16(item.first);
+        WriteStringEncrypt(out, item.second.GetCStr());
+    }
+}
+
 void WriteTextOpts(const Translation &tra, Stream *out)
 {
     out->WriteInt32(tra.NormalFont);
@@ -293,7 +314,7 @@ void WriteStrOptions(const Translation &tra, Stream *out)
 
 void WriteFontOverrides(const Translation &tra, Stream *out)
 {
-    out->WriteInt32(tra.FontOverrides.size());
+    out->WriteInt32(static_cast<uint32_t>(tra.FontOverrides.size()));
     // data version (matches current game data); determines which font info extensions are written
     out->WriteInt32(kGameVersion_Current);
 
@@ -354,6 +375,10 @@ void WriteTraData(const Translation &tra, std::unique_ptr<Stream> &&out)
     if (tra.ParserDict.GetWords().size() > 0)
     {
         WriteTraBlock(tra, "ext_parserdict", WriteParserDict, out.get());
+    }
+    if (tra.ParserDictSourceRef.size() > 0)
+    {
+        WriteTraBlock(tra, "ext_parsersrcref", WriteParserSourceRef, out.get());
     }
     WriteTraBlock(tra, kTraFblk_TextOpts, WriteTextOpts, out.get());
     WriteTraBlock(tra, "ext_sopts", WriteStrOptions, out.get());

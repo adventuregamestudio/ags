@@ -117,6 +117,11 @@ struct Translation
     int OptFlags = 0; // misc translation options
     StringMap StrOptions; // to store extended options with string values
     std::unordered_map<int, FontOverride> FontOverrides;
+    // Optional text parser source reference
+    // TODO: when we have a TranslationSource / Translation runtime
+    // separation this field should be only in TranslationSource,
+    // because it's not needed at runtime
+    std::unordered_map<uint16_t, String> ParserDictSourceRef;
 };
 
 

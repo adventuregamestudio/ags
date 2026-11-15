@@ -900,7 +900,7 @@ int SaveScreenShot1(const char *namm) {
 }
 
 void SetMultitasking (int mode) {
-    if ((mode < 0) | (mode > 1))
+    if ((mode < 0) || (mode > 1))
         quit("!SetMultitasking: invalid mode parameter");
     // Save requested setting
     usetup.RunInBackground = mode != 0;

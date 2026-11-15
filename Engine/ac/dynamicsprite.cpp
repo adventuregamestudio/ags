@@ -62,6 +62,9 @@ void DynamicSprite_Delete(ScriptDynamicSprite *sds)
 
 ScriptDrawingSurface* DynamicSprite_GetDrawingSurface(ScriptDynamicSprite *dss)
 {
+    if (dss->slot == 0)
+        quit("!DynamicSprite.GetDrawingSurface: sprite has been deleted");
+
     // If there's already a active DrawingSurface, then return one
     ScriptDrawingSurface *surface = get_dynsprite_surface(dss->slot);
     if (surface)
@@ -85,15 +88,30 @@ int DynamicSprite_GetGraphic(ScriptDynamicSprite *sds) {
 }
 
 int DynamicSprite_GetWidth(ScriptDynamicSprite *sds) {
+    if (sds->slot == 0)
+    {
+        debug_script_warn("DynamicSprite.Width: sprite has been deleted");
+        return 0;
+    }
     return game_to_data_coord(game.SpriteInfos[sds->slot].Width);
 }
 
 int DynamicSprite_GetHeight(ScriptDynamicSprite *sds) {
+    if (sds->slot == 0)
+    {
+        debug_script_warn("DynamicSprite.Height: sprite has been deleted");
+        return 0;
+    }
     return game_to_data_coord(game.SpriteInfos[sds->slot].Height);
 }
 
 int DynamicSprite_GetColorDepth(ScriptDynamicSprite *sds) {
-    // Dynamic sprite ensures the sprite exists always
+    if (sds->slot == 0)
+    {
+        debug_script_warn("DynamicSprite.ColorDepth: sprite has been deleted");
+        return 0;
+    }
+    // A dynamic sprite that was not deleted always has its image
     int depth = spriteset[sds->slot]->GetColorDepth();
     if (depth == 15)
         depth = 16;
@@ -268,6 +286,9 @@ void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int he
 
 void DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, int saturation, int luminance) 
 {
+    if (sds->slot == 0)
+        quit("!DynamicSprite.Tint: sprite has been deleted");
+
     Bitmap *source = spriteset[sds->slot];
     std::unique_ptr<Bitmap> new_pic(
         BitmapHelper::CreateBitmap(source->GetWidth(), source->GetHeight(), source->GetColorDepth()));

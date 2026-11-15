@@ -70,6 +70,9 @@
     <ClCompile Include="..\..\Common\test\deflatestream_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\test\compress_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Common\test\error_test.cpp">
       <Filter>Test</Filter>
     </ClCompile>

@@ -66,7 +66,7 @@ struct RoomObject
     int   audio_volume = 100; // default animation volume (relative factor)
     int   cur_audio_volume = 100; // current animation sound volume (relative factor)
     int   audio_panning = 0;
-    int   audio_speed = 0;
+    int   audio_speed = 1000;
     Common::String name;
 
     RoomObject();

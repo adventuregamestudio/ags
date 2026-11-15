@@ -97,3 +97,26 @@ TEST(PixelOp, CopyPixelsRegionFullRowsWithOffset) {
         { 13, 14, 15, 16 } };
     ExpectPixels(out, expect);
 }
+
+TEST(BitmapData, GetSetPixel4Bit) {
+    // 4-bit pixels: the even x is the high nibble, the odd x is the low one
+    PixelBuffer buf(3, 1, kPxFmt_Indexed4);
+    memset(buf.GetData(), 0, buf.GetDataSize());
+    buf.SetPixel(0, 0, 0xA);
+    buf.SetPixel(1, 0, 0x5);
+    buf.SetPixel(2, 0, 0xF);
+    EXPECT_EQ(buf.GetData()[0], 0xA5);
+    EXPECT_EQ(buf.GetData()[1], 0xF0);
+    EXPECT_EQ(buf.GetPixel(0, 0), 0xAu);
+    EXPECT_EQ(buf.GetPixel(1, 0), 0x5u);
+    EXPECT_EQ(buf.GetPixel(2, 0), 0xFu);
+
+    // overwriting one nibble keeps the other
+    buf.SetPixel(0, 0, 0x3);
+    buf.SetPixel(1, 0, 0xC);
+    EXPECT_EQ(buf.GetData()[0], 0x3C);
+    buf.SetPixel(1, 0, 0x0);
+    EXPECT_EQ(buf.GetData()[0], 0x30);
+    EXPECT_EQ(buf.GetPixel(0, 0), 0x3u);
+    EXPECT_EQ(buf.GetPixel(1, 0), 0x0u);
+}

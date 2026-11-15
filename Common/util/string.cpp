@@ -395,19 +395,6 @@ String String::Wrapper(const char *cstr)
     return str;
 }
 
-/* static */ String String::Join(const std::vector<String> &strings, const char *separator)
-{
-    String str;
-    if (strings.size() > 0)
-        str.Append(strings[0]);
-    for (size_t i = 1u; i < strings.size(); ++i)
-    {
-        str.Append(separator);
-        str.Append(strings[i]);
-    }
-    return str;
-}
-
 /* static */ String String::FromStream(Stream *in, size_t max_chars, bool stop_at_limit)
 {
     String str;

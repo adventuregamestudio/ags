@@ -240,10 +240,6 @@ public:
     static String FromFormat(AGS_FORMAT_STRING_ARG const char *fcstr, ...) AGS_FORMAT_STRING(1);
     static String FromFormatV(AGS_FORMAT_STRING_ARG const char *fcstr, va_list argptr) AGS_FORMAT_STRING_V(1);
 
-    // Creates a string by joining a list of strings together,
-    // optionally with a separator string between them
-    static String Join(const std::vector<String> &strings, const char *separator);
-
     // TODO: reorganize stream reading/writing methods, decide if they should
     // be a part of the String class, or separate e.g. StrUtil function group.
     // Reads stream until null-terminator or EOS

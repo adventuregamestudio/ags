@@ -273,6 +273,12 @@ void IniUtil::Write(const String &file, const ConfigTree &tree)
     IniUtil::Write(std::move(fs), tree);
 }
 
+#if AGS_PLATFORM_OS_WINDOWS
+static const char *Endl = "\r\n";
+#else
+static const char *Endl = "\n";
+#endif
+
 void IniUtil::WriteToString(String &s, const ConfigTree &tree)
 {
     for (ConfigNode it_sec = tree.begin(); it_sec != tree.end(); ++it_sec)
@@ -283,10 +289,10 @@ void IniUtil::WriteToString(String &s, const ConfigTree &tree)
             continue; // skip empty sections
         // write section name
         if (!sec_key.IsEmpty())
-            s.Append(String::FromFormat("[%s]\n", sec_key.GetCStr()));
+            s.Append(String::FromFormat("[%s]%s", sec_key.GetCStr(), Endl));
         // write all items
         for (StrStrOIter keyval = sec_tree.begin(); keyval != sec_tree.end(); ++keyval)
-            s.Append(String::FromFormat("%s=%s\n", keyval->first.GetCStr(), keyval->second.GetCStr()));
+            s.Append(String::FromFormat("%s=%s%s", keyval->first.GetCStr(), keyval->second.GetCStr(), Endl));
     }
 }
 

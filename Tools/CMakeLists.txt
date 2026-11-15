@@ -277,6 +277,7 @@ if(AGS_TESTS)
       test/data_file_writer_test.cpp
       test/data_helpers_test.cpp
       test/include_utils_test.cpp
+      test/scriptgen_test.cpp
    )
    set_target_properties(tools_test PROPERTIES
       CXX_STANDARD 11

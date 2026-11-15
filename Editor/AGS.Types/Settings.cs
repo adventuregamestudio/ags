@@ -1412,7 +1412,7 @@ namespace AGS.Types
         }
 
         [DisplayName("Translate Text Parser")]
-        [Description("Will include list of words from the text parser's dictionary into translation. Engine will automatically translate strings passed into Parser.Said().")]
+        [Description("Will include list of words from the text parser's dictionary into translation.")]
         [Category("Translation")]
         [DefaultValue(false)]
         public bool TranslateTextParser

@@ -813,7 +813,7 @@ namespace AGS.Editor
             }
         }
 
-        static void WriteStringEncrypted(BinaryWriter writer, string text)
+        public static void WriteStringEncrypted(BinaryWriter writer, string text)
         {
             byte[] bytes = GetTextBytesTerminated(text);
             EncryptText(bytes);

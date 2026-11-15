@@ -366,6 +366,12 @@ TEST(IniFile, MergeTreeWithFile) {
     ASSERT_TRUE(tree1 == tree2);
 }
 
+#if AGS_PLATFORM_OS_WINDOWS
+static const char *Endl = "\r\n";
+#else
+static const char *Endl = "\n";
+#endif
+
 TEST(IniFile, WriteTreeFormatsLinesAsIniFile) {
     ConfigTree tree;
     tree["audio"]["driver"] = "midi";
@@ -390,5 +396,7 @@ TEST(IniFile, WriteTreeFormatsLinesAsIniFile) {
     // The same lines in a string, with plain line breaks
     String s;
     IniUtil::WriteToString(s, tree);
-    EXPECT_STREQ("[audio]\ndriver=midi\nvolume=100.0\n[video]\nvsync=false\n", s.GetCStr());
+    String expect_s = String::FromFormat("[audio]%sdriver=midi%svolume=100.0%s[video]%svsync=false%s",
+        Endl, Endl, Endl, Endl, Endl);
+    EXPECT_STREQ(expect_s.GetCStr(), s.GetCStr());
 }

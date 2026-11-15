@@ -238,7 +238,9 @@ static void ReadSpecialTags(Translation &tra, const String &line)
     }
     else if (key == AUTO_PARSERSAID_TAG)
     {
-        tra.OptFlags |= kTraOpt_AutoTranslateSaid;
+        tra.OptFlags &= ~kTraOpt_AutoTranslateSaid;
+        if (value == TAG_ON)
+            tra.OptFlags |= kTraOpt_AutoTranslateSaid;
     }
     else if (key == ENCODING_TAG)
     {

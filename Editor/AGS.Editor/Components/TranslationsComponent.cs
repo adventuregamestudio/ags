@@ -28,6 +28,7 @@ namespace AGS.Editor.Components
         private const string TRANSLATION_BLOCK_STROPTIONS = "ext_sopts";
         private const string TRANSLATION_BLOCK_FONTOVERRIDES = "ext_fonts";
         private const string TRANSLATION_BLOCK_PARSERDICT = "ext_parserdict";
+        private const string TRANSLATION_BLOCK_PARSERSRCREF = "ext_parsersrcref";
         private const int TRANSLATION_BLOCK_END_OF_FILE = -1;
 
 //        private Dictionary<AGS.Types.Font, ContentDocument> _documents;
@@ -153,6 +154,16 @@ namespace AGS.Editor.Components
             DataFileWriter.WriteTextParserDictionary(parserDict, bw);
         }
 
+        private void WriteExtParserSrcRef(BinaryWriter bw, Translation translation, List<Tuple<ushort, string>> parserSrcRef, CompileMessages errors)
+        {
+            bw.Write(parserSrcRef.Count);
+            foreach (var src in parserSrcRef)
+            {
+                bw.Write((ushort)src.Item1);
+                DataFileWriter.WriteStringEncrypted(bw, src.Item2);
+            }
+        }
+
         private void WriteExtTextOptions(BinaryWriter bw, Translation translation, CompileMessages error)
         {
             bw.Write(translation.NormalFont ?? -1);
@@ -212,7 +223,8 @@ namespace AGS.Editor.Components
 
             var translatedLines = new List<Tuple<string, string>>();
             var parserDict = new List<Tuple<string, ushort>>();
-            SplitTranslationItemsIntoSections(translation, ref translatedLines, ref parserDict);
+            var parserSourceRef = new List<Tuple<ushort, string>>();
+            SplitTranslationItemsIntoSections(translation, ref translatedLines, ref parserDict, ref parserSourceRef);
 
             using (BinaryWriter bw = new BinaryWriter(new FileStream(tempFile, FileMode.Create, FileAccess.Write)))
             {
@@ -228,6 +240,11 @@ namespace AGS.Editor.Components
                 {
                     DataFileWriter.WriteExtension(TRANSLATION_BLOCK_PARSERDICT, 0, DataFileWriter.DataExtFlags.ID32,
                         (w, e) => WriteExtParserDict(w, translation, parserDict, e), bw, errors);
+                }
+                if (parserSourceRef.Count > 0)
+                {
+                    DataFileWriter.WriteExtension(TRANSLATION_BLOCK_PARSERSRCREF, 0, DataFileWriter.DataExtFlags.ID32,
+                        (w, e) => WriteExtParserSrcRef(w, translation, parserSourceRef, e), bw, errors);
                 }
 
                 DataFileWriter.WriteExtension(string.Empty, TRANSLATION_BLOCK_OPTIONS, DataFileWriter.DataExtFlags.ID32,
@@ -257,7 +274,7 @@ namespace AGS.Editor.Components
         }
 
         private void SplitTranslationItemsIntoSections(Translation translation, ref List<Tuple<string, string>> translatedLines,
-            ref List<Tuple<string, ushort>> wordsDictionary)
+            ref List<Tuple<string, ushort>> wordsDictionary, ref List<Tuple<ushort, string>> parserSrcRef)
         {
             foreach (string line in translation.TranslatedLines.Keys)
             {
@@ -276,6 +293,7 @@ namespace AGS.Editor.Components
                         if (options.IsParserDictionary)
                         {
                             wordsDictionary.Add(new Tuple<string, ushort>(translatedLine, (ushort)options.ParserWordID));
+                            parserSrcRef.Add(new Tuple<ushort, string>((ushort)options.ParserWordID, line));
                             continue;
                         }
                     }

@@ -157,6 +157,10 @@ static const CstrArr<3> kTextBoxKeyClaimStyleNames = {{
     "All", "Handled", "TextOnly"
 }};
 
+
+static const CstrArr<3> kGlobalVariableArrayTypeNames = {{
+    "None", "Array", "DynamicArray"
+}};
 } // namespace
 
 namespace AGS
@@ -303,14 +307,23 @@ int ValueParser::ReadInt(DocElem elem, const char *field, int def_value)
         return def_value;
     DocElem name_f = elem->FirstChildElement(field);
     if (name_f && name_f->GetText())
-        return StrUtil::StringToInt(name_f->GetText(), def_value);
+    {
+        // 64-bit parsing takes both the negative values and the hexadecimal colours
+        // above 0x7FFFFFFF ("0xFFA8A8A8"), which are stored as negative 32-bit values
+        const int64_t value = StrUtil::StringToInt64(name_f->GetText(), INT64_MAX);
+        if (value < INT32_MIN || value > UINT32_MAX)
+            return def_value;
+        return static_cast<int>(static_cast<uint32_t>(value));
+    }
     return def_value;
 }
 
 float ValueParser::ReadFloat(DocElem elem, const char *field, float def_value)
 {
+    if (!elem)
+        return def_value;
     DocElem name_f = elem->FirstChildElement(field);
-    if (name_f)
+    if (name_f && name_f->GetText())
         return StrUtil::StringToFloat(name_f->GetText(), def_value);
     return def_value;
 }
@@ -557,6 +570,7 @@ void InventoryItem::ReadAllData(DocElem elem, DataUtil::InventoryItemData &data)
     data.CursorImage = ReadInt(elem, "CursorImage");
     data.HotspotX = ReadInt(elem, "HotspotX");
     data.HotspotY = ReadInt(elem, "HotspotY");
+    data.HotspotAlignment = ReadFrameAlignment(ReadString(elem, "HotspotAlignment"), kAlignNone);
     data.PlayerStartsWith = ReadBool(elem, "PlayerStartsWithItem");
 }
 
@@ -772,6 +786,7 @@ void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings& s)
     s.DebugMode = ReadBool(elem, "DebugMode", s.DebugMode);
     s.DefaultRoomMaskResolution = ReadInt(elem, "DefaultRoomMaskResolution", s.DefaultRoomMaskResolution);
     s.Description = ReadString(elem, "Description");
+    s.DeveloperErrorText = ReadString(elem, "DeveloperErrorText");
     s.DeveloperName = ReadString(elem, "DeveloperName");
     s.DeveloperURL = ReadString(elem, "DeveloperURL");
     s.DialogOptionsBackwards = ReadBool(elem, "DialogOptionsBackwards", s.DialogOptionsBackwards);
@@ -844,6 +859,11 @@ void GameSettings::ReadAllData(DocElem elem, DataUtil::GameSettings& s)
     s.Version = ReadString(elem, "Version");
     s.WalkInLookMode = ReadBool(elem, "WalkInLookMode", s.WalkInLookMode);
     s.WhenInterfaceDisabled = ReadGuiDisableStyle(ReadString(elem, "WhenInterfaceDisabled"));
+}
+
+DataUtil::VariableArrayType GlobalVariable::ReadArrayType(DocElem elem)
+{
+    return StrUtil::ParseEnum(ReadString(elem, "ArrayType"), kGlobalVariableArrayTypeNames, DataUtil::kVariable_Single);
 }
 
 void GlobalVariables::GetAll(DocElem root, std::vector<DocElem> &elems)
@@ -985,6 +1005,7 @@ static void ReadGUI(DataUtil::GUIData& gui_data, AGF::DocElem elem)
             control.ReadButtonData(el, *data);
             if (strcmp(el->Name(), "GUITextWindowEdge") == 0)
             {
+                data->IsTextWindowEdge = true;
                 data->ClickAction = "RunScript";
                 data->MouseoverImage = -1;
                 data->PushedImage = -1;
@@ -1068,6 +1089,8 @@ void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root)
         var.Type = glvar.ReadType(el);
         var.Name = glvar.ReadScriptName(el);
         var.Value = glvar.ReadDefaultValue(el);
+        var.ArrayType = glvar.ReadArrayType(el);
+        var.ArraySize = glvar.ReadArraySize(el);
         vars.push_back(var);
     }
 }

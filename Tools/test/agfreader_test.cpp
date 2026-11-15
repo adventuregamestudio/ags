@@ -17,6 +17,7 @@
 #include <tinyxml2.h>
 #include "gtest/gtest.h"
 #include "data/agfreader.h"
+#include "data/scriptgen.h"
 
 using namespace AGS;
 
@@ -92,6 +93,30 @@ TEST(AGFReader, EnumReadLipSyncType)
         AGF::ReadLipSyncType("PamelaVoiceFiles"));
     EXPECT_EQ(DataUtil::kLipSync_None,
         AGF::ReadLipSyncType("NotARealValue"));
+}
+
+TEST(AGFReader, GlobalVariablesMayBeArrays)
+{
+    tinyxml2::XMLDocument doc;
+    ASSERT_EQ(tinyxml2::XML_SUCCESS, doc.Parse(
+        "<Game><GlobalVariables><Variables>"
+        "<GlobalVariable><ArraySize>0</ArraySize><ArrayType>None</ArrayType><DefaultValue>True</DefaultValue>"
+        "<Name>flag</Name><Type>bool</Type></GlobalVariable>"
+        "<GlobalVariable><ArraySize>5</ArraySize><ArrayType>Array</ArrayType><DefaultValue></DefaultValue>"
+        "<Name>list</Name><Type>int</Type></GlobalVariable>"
+        "<GlobalVariable><ArraySize>0</ArraySize><ArrayType>DynamicArray</ArrayType><DefaultValue>x</DefaultValue>"
+        "<Name>names</Name><Type>String</Type></GlobalVariable>"
+        "</Variables></GlobalVariables></Game>"));
+    std::vector<DataUtil::Variable> vars;
+    AGF::ReadGlobalVariables(vars, doc.RootElement());
+    ASSERT_EQ(3u, vars.size());
+
+    // as the editor's GlobalVariablesComponent writes them
+    EXPECT_STREQ("import bool flag;\nimport int list[5];\nimport String names[];\n",
+        DataUtil::MakeVariablesScriptHeader(vars).GetCStr());
+    EXPECT_STREQ("bool flag = true;\nexport flag;\nint list[5];\nexport list;\nString names[];\nexport names;\n"
+        "function game_start() {\n}\n",
+        DataUtil::MakeVariablesScriptBody(vars).GetCStr());
 }
 
 // A default-constructed GameSettings must have the scalar defaults of AGS.Types.Settings (Editor)

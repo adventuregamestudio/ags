@@ -378,6 +378,7 @@ struct GUIButtonData : GUIControlData
     int MouseoverImage{};
     int NewModeNumber{};
     String OnClick;
+    bool IsTextWindowEdge{}; // a text window's edge, which the editor writes as a button
     int PushedImage{};
     String Text;
     FrameAlignment TextAlignment = kAlignTopCenter;
@@ -475,12 +476,21 @@ struct GUIData : EntityRef
     std::vector<std::shared_ptr<GUIControlData>> Controls;
 };
 
+enum VariableArrayType
+{
+    kVariable_Single, // not an array
+    kVariable_Array,  // fixed size array
+    kVariable_DynamicArray
+};
+
 // Game variable (for variables defined in the game project)
 struct Variable
 {
     String Type;
     String Name;
     String Value;
+    VariableArrayType ArrayType = kVariable_Single;
+    int ArraySize = 0;
 };
 
 // Game settings
@@ -507,6 +517,7 @@ struct GameSettings
     bool DebugMode = false;
     int DefaultRoomMaskResolution = 1;
     String Description;
+    String DeveloperErrorText;
     String DeveloperName;
     String DeveloperURL;
     bool DialogOptionsBackwards = false;
@@ -633,6 +644,7 @@ struct InventoryItemData : EntityRef
     int CursorImage = 0;
     int HotspotX = 0;
     int HotspotY = 0;
+    FrameAlignment HotspotAlignment = kAlignMiddleCenter;
     bool PlayerStartsWith = false;
     String ScriptModule;
     std::vector<String> InteractionEvents;

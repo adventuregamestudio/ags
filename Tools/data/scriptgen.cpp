@@ -218,48 +218,58 @@ String MakeGameAutoScriptHeader(const GameRef &game)
 // _GlobalVariables.ash/asc
 //-----------------------------------------------------------------------------
 
+// Array brackets of a variable's name
+static String MakeArraySuffix(const Variable &var)
+{
+    switch (var.ArrayType)
+    {
+    case kVariable_Array: return String::FromFormat("[%d]", var.ArraySize);
+    case kVariable_DynamicArray: return "[]";
+    default: return "";
+    }
+}
+
 String MakeVariablesScriptHeader(std::vector<Variable> &vars)
 {
     String header, buf;
     for (const auto &var : vars)
     {
-        buf.Format("import %s %s;\n", var.Type.GetCStr(), var.Name.GetCStr());
-        header.Append(buf);
+        header.AppendFmt("import %s %s%s;\n", var.Type.GetCStr(), var.Name.GetCStr(), MakeArraySuffix(var).GetCStr());
     }
     return header;
 }
 
 String MakeVariablesScriptBody(std::vector<Variable> &vars)
 {
-    String body, buf;
+    String body;
     // Generate declarations and init simple vars
     for (const auto &var : vars)
     {
         if ((var.Type.Compare("int") == 0 || var.Type.Compare("bool") == 0 || var.Type.Compare("float") == 0) &&
             !var.Value.IsEmpty())
         {
-            buf.Format("%s %s = %s;\n", var.Type.GetCStr(), var.Name.GetCStr(), var.Value.GetCStr());
+            // the editor writes the default value in lower case, so "True" becomes true
+            body.AppendFmt("%s %s%s = %s;\n", var.Type.GetCStr(), var.Name.GetCStr(), MakeArraySuffix(var).GetCStr(),
+                           var.Value.Lower().GetCStr());
         }
         else
         {
-            buf.Format("%s %s;\n", var.Type.GetCStr(), var.Name.GetCStr());
+            body.AppendFmt("%s %s%s;\n", var.Type.GetCStr(), var.Name.GetCStr(), MakeArraySuffix(var).GetCStr());
         }
-        body.Append(buf);
-        buf.Format("export %s;\n", var.Name.GetCStr());
-        body.Append(buf);
+        body.AppendFmt("export %s;\n", var.Name.GetCStr());
     }
 
     // Generate initialization of String vars
     body.Append("function game_start() {\n");
     for (const auto &var : vars)
     {
-        if (var.Type.Compare("String") == 0)
+        // we do not support array initialization from the variables pane
+        if (var.Type.Compare("String") == 0 && var.ArrayType == kVariable_Single)
         {
             String value = var.Value;
             value.Replace("\\", "\\\\");
             value.Replace("\"", "\\\"");
-            buf.Format("  %s = \"%s\";\n", var.Name.GetCStr(), value.GetCStr());
-            body.Append(buf);
+            body.AppendFmt("  %s = \"%s\";\n", var.Name.GetCStr(), value.GetCStr());
         }
     }
     body.Append("}\n");

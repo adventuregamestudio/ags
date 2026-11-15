@@ -311,6 +311,7 @@ if(AGS_TESTS)
       test/data_helpers_test.cpp
       test/include_utils_test.cpp
       test/pipedprocess_test.cpp
+      test/scriptgen_test.cpp
       test/spriteimport_test.cpp
       test/gtest_main.cc # need to use our own, cannot link one from gtest
    )

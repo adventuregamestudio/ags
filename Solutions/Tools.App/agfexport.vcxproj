@@ -52,6 +52,8 @@
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h" />
     <ClInclude Include="..\..\Tools\data\agfreader.h" />
+    <ClInclude Include="..\..\Tools\data\game_utils.h" />
+    <ClInclude Include="..\..\Tools\data\scriptgen.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{776E38BA-D6A4-431E-8053-299310D85301}</ProjectGuid>

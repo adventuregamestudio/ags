@@ -153,6 +153,12 @@
     <ClCompile Include="..\..\Tools\agsbuild\pipedprocess.cpp">
       <Filter>data</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Tools\data\scriptgen.cpp">
+      <Filter>data</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Tools\test\scriptgen_test.cpp">
+      <Filter>Test</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Tools\data\include_utils.h">
@@ -247,6 +253,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Tools\test\spriteimport_env.h">
       <Filter>Test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\scriptgen.h">
+      <Filter>data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

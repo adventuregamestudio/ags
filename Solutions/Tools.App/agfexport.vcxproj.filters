@@ -102,5 +102,11 @@
     <ClInclude Include="..\..\Tools\data\agfreader.h">
       <Filter>data</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Tools\data\scriptgen.h">
+      <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Tools\data\game_utils.h">
+      <Filter>data</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

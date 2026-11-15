@@ -284,7 +284,7 @@ TEST(DataFileWriter, RoundTripInventoryItem)
     InventoryItemInfo loaded{};
     loaded.ReadFromFile(in.get(), kGameVersion_Current);
 
-    EXPECT_STREQ("Key that unlocks the \"do", loaded.name.GetCStr()); // limited by 25 chars
+    EXPECT_STREQ("Key that unlocks the \"doo", loaded.name.GetCStr()); // limited by 25 chars
     EXPECT_EQ(10, loaded.pic);
     EXPECT_EQ(11, loaded.cursorPic);
     EXPECT_EQ(3, loaded.hotx);

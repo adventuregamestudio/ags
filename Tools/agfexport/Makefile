@@ -10,6 +10,7 @@ CFLAGS := -O2 -g \
 	-Werror=write-strings -Werror=format -Werror=format-security \
 	-DNDEBUG \
 	-D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
+	-DALLEGRO_STATICLINK \
 	$(CFLAGS)
 
 CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
@@ -109,7 +110,7 @@ clean:
 
 install: agfexport
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin agfexport
+	cp agfexport $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/agfexport

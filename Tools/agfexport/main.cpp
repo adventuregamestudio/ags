@@ -17,7 +17,7 @@ namespace AGF = AGS::AGF;
 
 const char *HELP_STRING = ""
    //--------------------------------------------------------------------------------|
-    "agfexport v0.3.0 - AGS game project miscellaneous export tool\n"
+    "agfexport v0.3.5 - AGS game project miscellaneous export tool\n"
     "Copyright (c) 2026 AGS Team and contributors\n"
     "Usage: agfexport <COMMAND> [<OPTIONS>] <input-game.agf> <out-file>\n"
     "Commands:\n"

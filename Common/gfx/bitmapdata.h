@@ -307,6 +307,10 @@ namespace PixelOp
     // FIXME: this would require a palette if conversion goes from indexed to non-indexed!
     bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch,
         const int width, const int height, uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch);
+    // Copies pixels from source to dest buffer, possibly converting between source
+    // and dest pixel format. The resulting dest buffer may be possibly reallocated if it's
+    // not large enough to accomodate the converted data.
+    bool CopyConvert(const BitmapData &src, PixelBuffer &dst, const PixelFormat dst_fmt);
     // Copies pixels from source to dest buffer, swapping the RGB components, according
     // to the provided RGB shifts. This operation requires that pixel format is kept the same.
     // It is actually possible to swap in-place (where src and dst are the same buffers).

@@ -60,6 +60,8 @@ void CopyPixelsRegion(const uint8_t *src_buffer, const int bpp, const size_t src
     Memory::BlockCopy(src_buffer, src_pitch, src_boff, width_b, height_px, dst_buffer, dst_pitch, dst_boff);
 }
 
+// TODO: quite possibly may be *at least partially* reimplemented as a template function,
+// with parameters defining pixel sizes and rgb shifts.
 bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch,
     const int width, const int height, uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch)
 {
@@ -141,9 +143,9 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
             {
                 uint16_t c = *(src_ptr++);
                 int32_t c2 = 
-                    _rgb_scale_5[((c >> _rgb_r_shift_16) & 0x1F)] << _rgb_r_shift_32 |
-                    _rgb_scale_6[((c >> _rgb_g_shift_16) & 0x3F)] << _rgb_g_shift_32 |
-                    _rgb_scale_5[((c >> _rgb_b_shift_16) & 0x1F)] << _rgb_b_shift_32;
+                    _rgb_scale_5[((c >> _rgb_r_shift_16) & 0x1F)] << _rgb_r_shift_24 |
+                    _rgb_scale_6[((c >> _rgb_g_shift_16) & 0x3F)] << _rgb_g_shift_24 |
+                    _rgb_scale_5[((c >> _rgb_b_shift_16) & 0x1F)] << _rgb_b_shift_24;
                 Memory::WriteInt24(dst_ptr, c2);
             }
         }
@@ -169,7 +171,61 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
         }
         return true;
     }
-    // 32-bit RGB -> 24-bit ARGB (cut alpha channel)
+    // 24-bit RGB -> 16-bit RGB
+    else if (src_fmt == kPxFmt_R8G8B8 && dst_fmt == kPxFmt_R5G6B5)
+    {
+        const uint8_t *src_end = src_buffer + src_pitch * height;
+        for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
+        {
+            const uint8_t *src_ptr = src_buffer;
+            uint16_t *dst_ptr = reinterpret_cast<uint16_t*>(dst_buffer);
+            for (int x = 0; x < width; ++x, src_ptr += 3)
+            {
+                uint32_t c = Memory::ReadInt24(src_ptr);
+                *(dst_ptr++) =
+                    (((c >> _rgb_r_shift_24) & 0xFF) >> 3) << _rgb_r_shift_16 |
+                    (((c >> _rgb_g_shift_24) & 0xFF) >> 2) << _rgb_g_shift_16 |
+                    (((c >> _rgb_b_shift_24) & 0xFF) >> 3) << _rgb_b_shift_16;
+            }
+        }
+        return true;
+    }
+    // 24-bit RGB -> 32-bit ARGB
+    else if (src_fmt == kPxFmt_R8G8B8 && dst_fmt == kPxFmt_A8R8G8B8)
+    {
+        const uint8_t *src_end = src_buffer + src_pitch * height;
+        for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
+        {
+            const uint8_t *src_ptr = src_buffer;
+            uint32_t *dst_ptr = reinterpret_cast<uint32_t*>(dst_buffer);
+            for (int x = 0; x < width; ++x, src_ptr += 3)
+            {
+                uint32_t c = Memory::ReadInt24(src_ptr);
+                *(dst_ptr++) = c | 0xFF000000;
+            }
+        }
+        return true;
+    }
+    // 32-bit ARGB -> 16-bit RGB (cut alpha channel)
+    else if (src_fmt == kPxFmt_A8R8G8B8 && dst_fmt == kPxFmt_R5G6B5)
+    {
+        const uint8_t *src_end = src_buffer + src_pitch * height;
+        for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
+        {
+            const uint32_t *src_ptr = reinterpret_cast<const uint32_t*>(src_buffer);
+            uint16_t *dst_ptr = reinterpret_cast<uint16_t*>(dst_buffer);
+            for (int x = 0; x < width; ++x, src_ptr++)
+            {
+                uint32_t c = *src_ptr;
+                *(dst_ptr++) = 
+                    (((c >> _rgb_r_shift_32) & 0xFF) >> 3) << _rgb_r_shift_16 |
+                    (((c >> _rgb_g_shift_32) & 0xFF) >> 2) << _rgb_g_shift_16 |
+                    (((c >> _rgb_b_shift_32) & 0xFF) >> 3) << _rgb_b_shift_16;
+            }
+        }
+        return true;
+    }
+    // 32-bit ARGB -> 24-bit RGB (cut alpha channel)
     else if (src_fmt == kPxFmt_A8R8G8B8 && dst_fmt == kPxFmt_R8G8B8)
     {
         const uint8_t *src_end = src_buffer + src_pitch * height;
@@ -185,6 +241,14 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
         return true;
     }
     return false;
+}
+
+bool CopyConvert(const BitmapData &src, PixelBuffer &dst, const PixelFormat dst_fmt)
+{
+    if (dst.GetDataSize() != GetDataSizeForPixelFormat(dst_fmt, src.GetWidth(), src.GetHeight()))
+        dst = PixelBuffer(src.GetWidth(), src.GetHeight(), dst_fmt);
+    return CopyConvert(src.GetData(), src.GetFormat(), src.GetStride(), src.GetWidth(), src.GetHeight(),
+        dst.GetData(), dst_fmt, dst.GetStride());
 }
 
 void CopySwapRGBA(const uint8_t *src_buffer, const size_t src_pitch, int src_r_shift, int src_g_shift, int src_b_shift, int src_a_shift,

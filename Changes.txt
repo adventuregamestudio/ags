@@ -1,6 +1,6 @@
 REVISION HISTORY
 ================
-VERSION 3.6.3 - RC, October 2026
+VERSION 3.6.3, November 2026
 
 Common:
  - Removed limit of Dialog's options (was 30).
@@ -81,7 +81,8 @@ Editor:
  - Redesigned Font Preview panel. Now the table of glyphs display all the characters present in the
    font and let jump to a chosen character. Added text preview, where user may input any multiline
    text and see it printed with the current font.
- - Font Preview and GUI Editor now display fonts with their respective outlines.
+ - Font Preview and GUI Editor now display fonts with their respective outlines, and anti-aliasing.
+ - Font Preview and GUI Editor now get updated if a game's font file was changed externally.
  - In GUI Editor new Labels will be created non-Clickable by default. Historically engine would
    unconditionally disable all Labels on game startup, hence overriding project settings. Now this
    property is fully under user's control. (Older projects will have Labels disabled on import.)
@@ -143,6 +144,11 @@ Editor:
    the new version, and any errors were found in script(s) during game recompilation. Now it will
    only recompile those rooms which were either modified or not compiled yet.
  - Fixed OutputPanel which was using 8-bit message icons instead of 32-bit ones.
+ - Fixed Autocomplete was parsing string literal contents for variable declarations, so anything
+   resembling a variable declaration inside a string could be registered as a real one.
+ - Fixed incorrect "unterminated literal" that could occur when updating translations,
+   if one of the scripts begins with a comment with a quote or double quote character inside.
+ - Fixed a test game launch failing if game's folder name contains a comma.
 
 Compiler:
  - Removed hard limit of script function parameters.
@@ -358,20 +364,36 @@ Engine:
    log a warning instead.
  - Add [WARN] and [ERROR] labels to the game warning and errors messages printed into the log.
  - Reduced logging of certain things set in game, when this doesn't result in actual change.
- - Fixed inventory cursor not updated immediately if OPT_FIXEDINVCURSOR option is set.
- - Fixed InventoryWindow not getting redrawn immediately if one of the item's has a dynamic sprite
-   assigned as a graphic and that dynamic sprite gets edited (like, drawn upon).
+ - Fixed DisplayTopBar() function was limiting its display duration based on the title's length,
+   rather than the message length, and that it did not use requested font, but always "normal font"
+   (regression since 3.6.2).
  - Fixed that DrawingSurface didn't register when its source image (such as a dynamic sprite or a
    room background) gets unavailable, which could led to a invalid memory access would user script
    continue to operate this DrawingSurface object.
+ - Fixed few DynamicSprite script functions not testing that the sprite was deleted.
+ - Fixed FadeOut(0) causing transition to halt indefinitely when running with Software renderer.
+ - Fixed File.ReadRawChar() returning negative values for bytes > 127.
+ - Fixed inventory cursor not updated immediately if OPT_FIXEDINVCURSOR option is set.
+ - Fixed InventoryWindow not getting redrawn immediately if one of the item's has a dynamic sprite
+   assigned as a graphic and that dynamic sprite gets edited (like, drawn upon).
  - Fixed potential engine crash occuring if the game's spritefile contained less sprites than
    are defined by the game data, for any reason.
  - Fixed black (RGB 0,0,0) region tint value turning into the maximal light level instead.
- - Fixed FadeOut(0) causing transition to halt indefinitely when running with Software renderer.
  - Fixed pathfinder's debug overlay toggling off logic.
  - Fixed pathfinder's debug overlay scaling in "upscaled" old games.
+ - Fixed that when character moved beyond the top of the room's bounds, it was applied effects
+   from a walkable area found at Y = 1, instead of Y = 0.
+ - Fixed that lipsync was loaded only from the main voice pack and never from additional language
+   packs, even if it was present there.
  - Fixed NumPad keys in "old keyhandle mode" triggering both digit and arrow key events
    when NumLock is on.
+ - Fixed a crash occuring when restoring a save which contains certain "components" which are set
+   to be ignored when loading it back (OPT_SAVECOMPONENTSIGNORE).
+ - Fixed that if "clear_cache_on_room_change" config option was enabled, the engine would
+   clear dynamic sprites instead of normal ones from the cache.
+ - Fixed a tiny memory leak occuring when restoring game saves with managed user structs.
+ - Fixed Direct3D may have a scaled camera image shifted by extra pixel (by x or y axis).
+ - Fixed small mistake in color interpolation occuring during Fade transition in 8-bit games.
 
 Compatibility:
  - Let restore a save from game_start() in pre-2.7 games.
@@ -401,6 +423,8 @@ Compatibility:
    in script (even though that was not supposed to work like that).
  - In pre-2.62 games let clicks interact with characters and objects under walk-behinds.
  - In 3.5.0 - 3.6.2 games have ListBox item rows ignore border width (may result in +1 row).
+ - In pre-3.5.0 games ListBox.AddItem() and InsertItem() functions must return 0 when the list
+   box has >= 200 items.
  - In pre-2.61 games always reset player character to normal view after speech.
  - Don't update mouse properties in script during blocking actions in pre-2.7 games.
  - Fixed TTF fonts in pre-3.2.0 games having an incorrect ascender (drawn lower) if the game

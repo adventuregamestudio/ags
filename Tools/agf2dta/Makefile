@@ -10,6 +10,7 @@ CFLAGS := -O2 -g \
 	-Werror=write-strings -Werror=format -Werror=format-security \
 	-DNDEBUG \
 	-D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
+	-DALLEGRO_STATICLINK \
 	$(CFLAGS)
 
 CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
@@ -33,6 +34,7 @@ COMMON_OBJS = \
 	../../Common/ac/inventoryiteminfo.cpp \
 	../../Common/ac/mousecursor.cpp \
 	../../Common/ac/wordsdictionary.cpp \
+	../../Common/data/data_helpers.cpp \
 	../../Common/debug/debugmanager.cpp \
 	../../Common/util/bufferedstream.cpp \
 	../../Common/util/cmdlineopts.cpp \
@@ -109,7 +111,7 @@ clean:
 
 install: agf2dta
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin agf2dta
+	cp agf2dta $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/agf2dta

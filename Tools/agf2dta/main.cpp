@@ -23,7 +23,7 @@ const char *HELP_STRING =
 
 int main(int argc, char *argv[])
 {
-    printf("agf2dta v0.1.0 - AGS game main data file build tool\n"\
+    printf("agf2dta v0.1.5 - AGS game main data file build tool\n"\
         "Copyright (c) 2026 AGS Team and contributors\n");
     ParseResult parseResult = Parse(argc,argv,{});
     if (parseResult.HelpRequested)

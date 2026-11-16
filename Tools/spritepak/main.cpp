@@ -25,7 +25,7 @@ using namespace AGS::Common;
 using namespace AGS::DataUtil;
 
 
-const char *BIN_STRING = "spritepak v0.2.0 - AGS spritefile tool\n"
+const char *BIN_STRING = "spritepak v0.2.5 - AGS spritefile tool\n"
 "Copyright (c) 2026 AGS Team and contributors\n";
 
 const char *HELP_STRING = "Usage:\n"

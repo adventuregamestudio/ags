@@ -115,7 +115,7 @@ static int Command_Decompile(const String &src, const String &dst)
 
 int main(int argc, char *argv[])
 {
-    printf("trac v0.9.6 - AGS translation compiler and decompiler (TRS <-> TRA)\n"\
+    printf("trac v0.9.7 - AGS translation compiler and decompiler (TRS <-> TRA)\n"\
         "Copyright (c) 2021-2026 AGS Team and contributors\n");
 
     ParseResult cmdargs = Parse(argc, argv, {"--gamename", "--uniqueid"});

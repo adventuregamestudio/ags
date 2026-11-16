@@ -21,7 +21,7 @@
 
 using namespace AGS::Common;
 
-const char *BIN_STRING = "crmpak v0.2.0 - AGS compiled room's (re)packer\n"
+const char *BIN_STRING = "crmpak v0.3.0 - AGS compiled room's (re)packer\n"
 "Copyright (c) 2026 AGS Team and contributors";
 
 const char *HELP_STRING =

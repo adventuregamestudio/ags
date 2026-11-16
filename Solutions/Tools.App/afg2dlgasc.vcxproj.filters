@@ -85,6 +85,9 @@
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
       <Filter>allegro</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Common\util\cmdlineopts.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\tinyxml2\tinyxml2.h">
@@ -125,6 +128,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Tools\data\script_utils.h">
       <Filter>data</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\cmdlineopts.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

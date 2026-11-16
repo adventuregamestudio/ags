@@ -10,6 +10,7 @@ CFLAGS := -O2 -g \
 	-Werror=write-strings -Werror=format -Werror=format-security \
 	-DNDEBUG \
 	-D_FILE_OFFSET_BITS=64 -DRTLD_NEXT \
+	-DALLEGRO_STATICLINK \
 	$(CFLAGS)
 
 CXXFLAGS := -std=c++11 -Werror=delete-non-virtual-dtor $(CXXFLAGS)
@@ -31,6 +32,7 @@ LDFLAGS  += $(addprefix -L,$(LIBDIR))
 COMMON_OBJS = \
 	../../Common/debug/debugmanager.cpp \
 	../../Common/util/bufferedstream.cpp \
+	../../Common/util/cmdlineopts.cpp \
 	../../Common/util/file.cpp \
 	../../Common/util/directory.cpp \
 	../../Common/util/filestream.cpp \
@@ -106,7 +108,7 @@ clean:
 
 install: agf2dlgasc
 	mkdir -p $(PREFIX)/bin
-	cp -t $(PREFIX)/bin agf2dlgasc
+	cp agf2dlgasc $(PREFIX)/bin
 
 uninstall:
 	rm -f $(PREFIX)/bin/agf2dlgasc

@@ -231,7 +231,7 @@ static String MakeArraySuffix(const Variable &var)
 
 String MakeVariablesScriptHeader(std::vector<Variable> &vars)
 {
-    String header, buf;
+    String header;
     for (const auto &var : vars)
     {
         header.AppendFmt("import %s %s%s;\n", var.Type.GetCStr(), var.Name.GetCStr(), MakeArraySuffix(var).GetCStr());

@@ -1648,30 +1648,9 @@ void ReadGameData(DataUtil::GameData &game, AGFReader &reader)
     }
 
     game.Palette.resize(256);
-    DocElem palette = root->FirstChildElement("Palette");
-    for (DocElem entry = palette ? palette->FirstChildElement("PaletteEntry") : nullptr;
-         entry; entry = entry->NextSiblingElement("PaletteEntry"))
-    {
-        const int index = ValueParser::ReadAttributeInt(entry, "Index", -1);
-        if (index < 0 || index >= 256) continue;
-        auto &data = game.Palette[index];
-        data.ColourType = ReadColourType(ValueParser::ReadAttributeString(entry, "Type", "Gamewide"));
-        data.Red = ValueParser::ReadAttributeInt(entry, "Red");
-        data.Green = ValueParser::ReadAttributeInt(entry, "Green");
-        data.Blue = ValueParser::ReadAttributeInt(entry, "Blue");
-    }
+    ReadGamePalette(game.Palette, root);
 
-    elems.clear();
-    CollectElements(root->FirstChildElement("Sprites"), "Sprite", elems);
-    for (DocElem sprite : elems)
-    {
-        DataUtil::SpriteData data;
-        data.Slot = ValueParser::ReadAttributeInt(sprite, "Slot", -1);
-        const String resolution = ValueParser::ReadAttributeString(sprite, "Resolution", "Real");
-        data.Resolution = ReadSpriteImportResolution(resolution);
-        data.AlphaChannel = ValueParser::ReadAttributeBool(sprite, "AlphaChannel");
-        game.Sprites.push_back(data);
-    }
+    GetAllSprites(game.Sprites, root);
 
     DocElem plugins = root->FirstChildElement("Plugins");
     for (DocElem plugin = plugins ? plugins->FirstChildElement("Plugin") : nullptr;

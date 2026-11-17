@@ -17,19 +17,20 @@
 #include <stdio.h> // sprintf
 #include "platform/windows/debug/namedpipesagsdebugger.h"
 #include "util/stdio_compat.h"
+#include "util/string_utils.h"
 
-void NamedPipesAGSDebugger::SendAcknowledgement()
+using namespace AGS::Common;
+
+NamedPipesAGSDebugger::NamedPipesAGSDebugger(const String &config)
 {
-    DWORD bytesWritten;
-    WriteFile(_hPipeSending, "MSGACK", 6, &bytesWritten, NULL);
-}
-
-
-NamedPipesAGSDebugger::NamedPipesAGSDebugger(const char *instanceToken)
-{
-    _hPipeSending = NULL;
-    _hPipeReading = NULL;
-    _instanceToken = instanceToken;
+    String instance_token;
+    for (const auto &opt : StrUtil::SplitPreservingDoublequoted(config, ','))
+    {
+        const auto kv = StrUtil::GetKeyValue(opt, ':');
+        if (kv.first == "token")
+            instance_token = kv.second;
+    }
+    _instanceToken = instance_token;
 }
 
 bool NamedPipesAGSDebugger::Initialize()
@@ -37,11 +38,11 @@ bool NamedPipesAGSDebugger::Initialize()
     // can't use a single duplex pipe as it was deadlocking
     char pipeNameBuffer[MAX_PATH_SZ];
     WCHAR wpipeNameBuf[MAX_PATH_SZ];
-    snprintf(pipeNameBuffer, MAX_PATH_SZ, "\\\\.\\pipe\\AGSEditorDebuggerGameToEd%s", _instanceToken);
+    snprintf(pipeNameBuffer, MAX_PATH_SZ, "\\\\.\\pipe\\AGSEditorDebuggerGameToEd%s", _instanceToken.GetCStr());
     MultiByteToWideChar(CP_UTF8, 0, pipeNameBuffer, -1, wpipeNameBuf, MAX_PATH_SZ);
     _hPipeSending = CreateFileW(wpipeNameBuf, GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
-    snprintf(pipeNameBuffer, MAX_PATH_SZ, "\\\\.\\pipe\\AGSEditorDebuggerEdToGame%s", _instanceToken);
+    snprintf(pipeNameBuffer, MAX_PATH_SZ, "\\\\.\\pipe\\AGSEditorDebuggerEdToGame%s", _instanceToken.GetCStr());
     MultiByteToWideChar(CP_UTF8, 0, pipeNameBuffer, -1, wpipeNameBuf, MAX_PATH_SZ);
     _hPipeReading = CreateFileW(wpipeNameBuf, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
 
@@ -76,26 +77,30 @@ bool NamedPipesAGSDebugger::IsMessageAvailable()
     return (bytesAvailable > 0);
 }
 
-char* NamedPipesAGSDebugger::GetNextMessage()
+String NamedPipesAGSDebugger::GetNextMessage()
 {
     DWORD bytesAvailable = 0;
     PeekNamedPipe(_hPipeReading, NULL, 0, NULL, &bytesAvailable, NULL);
 
     if (bytesAvailable > 0)
     {
-        char* buffer = (char*)malloc(bytesAvailable + 1);
+        _buffer.resize(bytesAvailable);
         DWORD bytesRead = 0;
-        ReadFile(_hPipeReading, buffer, bytesAvailable, &bytesRead, NULL);
-        buffer[bytesRead] = 0;
+        ReadFile(_hPipeReading, _buffer.data(), bytesAvailable, &bytesRead, NULL);
 
         SendAcknowledgement();
-        return buffer;
+        return String(_buffer.data(), bytesRead);
     }
     else
     {
-        return NULL;
+        return {};
     }
+}
 
+void NamedPipesAGSDebugger::SendAcknowledgement()
+{
+    DWORD bytesWritten;
+    WriteFile(_hPipeSending, "MSGACK", 6, &bytesWritten, NULL);
 }
 
 #endif // AGS_PLATFORM_OS_WINDOWS

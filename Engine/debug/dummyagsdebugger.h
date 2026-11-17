@@ -16,7 +16,7 @@
 
 #include "debug/debugger.h"
 
-struct DummyAGSDebugger : IAGSEditorDebugger
+class DummyAGSDebugger : public IAGSEditorDebugger
 {
 public:
 
@@ -24,7 +24,7 @@ public:
     void Shutdown() override { }
     bool SendMessageToEditor(const char *message) override { return false; }
     bool IsMessageAvailable() override { return false; }
-    char* GetNextMessage() override { return NULL; }
+    AGS::Common::String GetNextMessage() override { return {}; }
 };
 
 #endif // __AC_DUMMYAGSDEBUGGER_H

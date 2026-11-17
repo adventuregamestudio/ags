@@ -954,7 +954,7 @@ namespace AGS.Editor
             {
                 string logDebugger = Factory.ComponentController.FindComponent<DebugLogComponent>()?.GetCmdLineLogGroupsAndLevels();
                 // debugger connection params
-                parameter = logDebugger + " --enabledebugger " + Factory.AGSEditor.Debugger.InstanceIdentifier;
+                parameter = logDebugger + $" --debugger pipe=token:{Factory.AGSEditor.Debugger.InstanceIdentifier} --windowed";
             }
             else if (Factory.AGSEditor.Settings.TestGameWindowStyle == TestGameWindowStyle.Windowed)
             {

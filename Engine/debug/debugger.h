@@ -17,12 +17,11 @@
 
 #include "util/string.h"
 
-struct IAGSEditorDebugger;
+class IAGSEditorDebugger;
 struct ScriptPosition;
 
 extern int editor_debugging_enabled;
 extern int editor_debugging_initialized;
-extern char editor_debugger_instance_token[100];
 extern IAGSEditorDebugger *editor_debugger;
 extern int break_on_next_script_step;
 

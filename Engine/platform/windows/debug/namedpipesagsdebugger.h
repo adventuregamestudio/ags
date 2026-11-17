@@ -11,28 +11,44 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+// 
+// NamedPipesAGSDebugger exchanges messages through named pipes, using
+// instance token to identify a pipe.
+// 
+// Currently this is a Windows-only implementation.
+// 
+//=============================================================================
 #ifndef __AC_NAMEDPIPESAGSDEBUGGER_H
 #define __AC_NAMEDPIPESAGSDEBUGGER_H
 
-#include <windows.h>
+#include "platform/platform.h"
+
+#if AGS_PLATFORM_OS_WINDOWS
+
+#include <vector>
+#include "platform/windows/windows.h"
 #include "debug/agseditordebugger.h"
+#include "util/string.h"
 
-struct NamedPipesAGSDebugger : IAGSEditorDebugger
+class NamedPipesAGSDebugger : public IAGSEditorDebugger
 {
-private:
-    HANDLE _hPipeSending;
-    HANDLE _hPipeReading;
-    const char *_instanceToken;
-
-    void SendAcknowledgement();
 public:
+    NamedPipesAGSDebugger(const AGS::Common::String &config);
 
-    NamedPipesAGSDebugger(const char *instanceToken);
     bool Initialize() override;
     void Shutdown() override;
     bool SendMessageToEditor(const char *message) override;
     bool IsMessageAvailable() override;
-    char* GetNextMessage() override;
+    AGS::Common::String GetNextMessage() override;
+
+private:
+    AGS::Common::String _instanceToken;
+    HANDLE _hPipeSending = NULL;
+    HANDLE _hPipeReading = NULL;
+    std::vector<char> _buffer;
+
+    void SendAcknowledgement();
 };
 
+#endif // AGS_PLATFORM_OS_WINDOWS
 #endif // __AC_NAMEDPIPESAGSDEBUGGER_H

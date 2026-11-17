@@ -11,24 +11,40 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
+// 
+// FileBasedAGSDebugger exchanges messages through files named after the
+// instance token.
+// 
+//=============================================================================
 #ifndef __AC_FILEBASEDAGSDEBUGGER_H
 #define __AC_FILEBASEDAGSDEBUGGER_H
 
 #include "debug/agseditordebugger.h"
+#include "util/string.h"
 
-struct FileBasedAGSDebugger : IAGSEditorDebugger
+class FileBasedAGSDebugger : public IAGSEditorDebugger
 {
 public:
+    // config is a comma-separated list of key:value pairs:
+    //   dir - folder for the files (current directory by default)
+    FileBasedAGSDebugger(const AGS::Common::String &config);
 
     bool Initialize() override;
     void Shutdown() override;
     bool SendMessageToEditor(const char *message) override;
     bool IsMessageAvailable() override;
-    char* GetNextMessage() override;
+    AGS::Common::String GetNextMessage() override;
 
+private:
+    // engine -> editor; written to a temporary file first and then renamed
+    static const char *SentMessageFileName;
+    static const char *SentMessagePartFileName;
+    // editor -> engine
+    static const char *ReceivedMessageFileName;
+
+    AGS::Common::String _sentMessageFile;
+    AGS::Common::String _sentMessagePartFile;
+    AGS::Common::String _receivedMessageFile;
 };
-
-extern const char* SENT_MESSAGE_FILE_NAME;
 
 #endif // __AC_FILEBASEDAGSDEBUGGER_H

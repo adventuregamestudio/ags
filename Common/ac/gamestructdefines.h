@@ -33,7 +33,7 @@
 // General game options
 #define OPT_DEBUGMODE       0
 #define OPT_OBSOLETE_SCORESOUND     1 // [DEPRECATED]
-#define OPT_WALKONLOOK      2
+#define OPT_OBSOLETE_WALKONLOOK     2 // [DEPRECATED]
 #define OPT_DIALOGIFACE     3
 #define OPT_ANTIGLIDE       4
 #define OPT_TWCUSTOM        5

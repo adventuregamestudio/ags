@@ -530,7 +530,6 @@ namespace AGS.Editor
             options[NativeConstants.GameOptions.OPT_THOUGHTGUI] = game.Settings.ThoughtGUI;
             options[NativeConstants.GameOptions.OPT_CHARTURNWHENFACE] = (game.Settings.TurnBeforeFacing ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_CHARTURNWHENWALK] = (game.Settings.TurnBeforeWalking ? 1 : 0);
-            options[NativeConstants.GameOptions.OPT_WALKONLOOK] = (game.Settings.WalkInLookMode ? 1 : 0);
             options[NativeConstants.GameOptions.OPT_DISABLEOFF] = (int)game.Settings.WhenInterfaceDisabled;
             options[NativeConstants.GameOptions.OPT_DIALOGOPTIONSAPI] = 1; // always use new one
             options[NativeConstants.GameOptions.OPT_BASESCRIPTAPI] = (int)game.Settings.ScriptAPIVersionReal;

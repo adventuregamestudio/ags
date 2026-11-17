@@ -51,7 +51,6 @@ namespace AGS.Types
         private int _gameFPS = 60;
         private bool _debugMode = true;
         private bool _antiGlideMode = true;
-        private bool _walkInLookMode = false;
         private InterfaceDisabledAction _whenInterfaceDisabled = InterfaceDisabledAction.GreyOut;
         private bool _clipGuiControls = true;
         private bool _pixelPerfect = true;
@@ -576,15 +575,9 @@ namespace AGS.Types
             set { _inventoryHotspotMarker.CrosshairColor = value; }
         }
 
-        [DisplayName("Automatically walk to hotspots in Look mode")]
-        [Description("Whenever the player clicks somewhere in Look mode, the player character will automatically be moved there")]
-        [Category("Character behavior")]
-        [DefaultValue(false)]
-        public bool WalkInLookMode
-        {
-            get { return _walkInLookMode; }
-            set { _walkInLookMode = value; }
-        }
+        [Obsolete]
+        [Browsable(false)]
+        public bool WalkInLookMode { get { return false; } }
 
         [Browsable(false)]
         public bool AntiGlideMode

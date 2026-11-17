@@ -535,7 +535,6 @@ TEST_F(AGFReaderBlocks, GameSettings)
     EXPECT_EQ(123456, s.UniqueID);
     EXPECT_TRUE(s.UseGlobalSpeechAnimationDelay);
     EXPECT_STREQ("1.2.3", s.Version.GetCStr());
-    EXPECT_TRUE(s.WalkInLookMode);
     EXPECT_EQ(Common::kGuiDis_Blackout, s.WhenInterfaceDisabled);
 }
 

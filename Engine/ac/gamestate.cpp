@@ -634,7 +634,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     screenshot_height = in->ReadInt32();
     top_bar_font = in->ReadInt32();
     speech_text_align = (HorAlignment)in->ReadInt32();
-    auto_use_walkto_points = in->ReadInt32();
+    in->ReadInt32(); // [DEPRECATED]
     inventory_greys_out = in->ReadInt32();
     skip_speech_specific_key = in->ReadInt32();
     abort_key = in->ReadInt32();
@@ -920,7 +920,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(screenshot_height);
     out->WriteInt32(top_bar_font);
     out->WriteInt32(speech_text_align);
-    out->WriteInt32(auto_use_walkto_points);
+    out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(inventory_greys_out);
     out->WriteInt32(skip_speech_specific_key);
     out->WriteInt32(abort_key);

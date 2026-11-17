@@ -2767,7 +2767,6 @@ Game^ import_compiled_game_dta(const AGSString &filename)
 	game->Settings->ThoughtGUI = thisgame.options[OPT_THOUGHTGUI];
 	game->Settings->TurnBeforeFacing = (thisgame.options[OPT_CHARTURNWHENFACE] != 0);
 	game->Settings->TurnBeforeWalking = (thisgame.options[OPT_CHARTURNWHENWALK] != 0);
-	game->Settings->WalkInLookMode = (thisgame.options[OPT_WALKONLOOK] != 0);
 	game->Settings->WhenInterfaceDisabled = (InterfaceDisabledAction)thisgame.options[OPT_DISABLEOFF];
 	game->Settings->UniqueID = thisgame.uniqueid;
     game->Settings->SaveGameFolderName = gcnew String(thisgame.gamename.GetCStr());

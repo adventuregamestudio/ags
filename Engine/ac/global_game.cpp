@@ -733,35 +733,34 @@ void RoomProcessClick(int xx, int yy,int mood)
     xx = vpt.first.X;
     yy = vpt.first.Y;
 
-    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.options[OPT_NOWALKMODE]==0)) {
-        int hsnum=GetHotspotIDAtRoom(xx, yy, kHit_Interactable);
-        if (hsnum<1) ;
-        else if (thisroom.Hotspots[hsnum].WalkTo.X<1) ;
-        else if (play.auto_use_walkto_points == 0) ;
-        else {
-            xx=thisroom.Hotspots[hsnum].WalkTo.X;
-            yy=thisroom.Hotspots[hsnum].WalkTo.Y;
-            debug_script_log("Move to walk-to point hotspot %d", hsnum);
-        }
+    // Auto-walk to position when a Walk cursor role is used
+    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.options[OPT_NOWALKMODE] == 0))
+    {
         walk_character(playerchar, xx, yy, false /* walk areas */);
         return;
     }
     play.usedmode=mood;
 
-    if (loctype == 0) {
+    if (loctype == 0)
+    {
         // click on nothing -> hotspot 0
         getloctype_index = 0;
         loctype = LOCTYPE_HOTSPOT;
     }
 
-    if (loctype == LOCTYPE_CHAR) {
-        if (check_click_on_character(xx,yy,mood)) return;
+    // TODO: can we actually do RunCharacter/RunObjectInteraction here right away, using getloctype_index?
+    if (loctype == LOCTYPE_CHAR)
+    {
+        check_click_on_character(xx, yy, mood);
     }
-    else if (loctype == LOCTYPE_OBJ) {
-        if (check_click_on_object(xx,yy,mood)) return;
+    else if (loctype == LOCTYPE_OBJ)
+    {
+        check_click_on_object(xx, yy, mood);
     }
-    else if (loctype == LOCTYPE_HOTSPOT) 
-        RunHotspotInteraction (getloctype_index, mood);
+    else if (loctype == LOCTYPE_HOTSPOT)
+    {
+        RunHotspotInteraction(getloctype_index, mood);
+    }
 }
 
 int IsInteractionAvailable (int xx, int yy, int mood)

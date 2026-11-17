@@ -98,7 +98,7 @@ int32_t CCScriptGame::ReadInt32(const void *address, intptr_t offset)
     case 110: return play.screenshot_height;
     case 111: return play.top_bar_font;
     case 112: return play.speech_text_align;
-    case 113: return play.auto_use_walkto_points;
+    case 113: return 0;// [DEPRECATED]
     case 114: return play.inventory_greys_out;
     case 115: return play.skip_speech_specific_key;
     case 116: return play.abort_key;
@@ -200,7 +200,7 @@ void CCScriptGame::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 110:  play.screenshot_height = val; break;
     case 111:  play.top_bar_font = val; break;
     case 112:  play.speech_text_align = (HorAlignment)val; break;
-    case 113:  play.auto_use_walkto_points = val; break;
+    case 113:  break; // [DEPRECATED]
     case 114:  play.inventory_greys_out = val; break;
     case 115:  play.skip_speech_specific_key = val; break;
     case 116:  play.abort_key = val; break;

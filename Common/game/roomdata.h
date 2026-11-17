@@ -226,7 +226,8 @@ struct RoomHotspot : public RoomObjectBase
     // Interaction events (cursor-based)
     ScriptEventHandlers Interactions = {};
 
-    // Player will automatically walk here when interacting with hotspot
+    // Hotspot's walk-to point, may optionally be used to direct character
+    // to hotspot's position when interacting with them in script.
     Point       WalkTo;
 
     RoomHotspot()

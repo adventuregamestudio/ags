@@ -502,10 +502,13 @@ private:
     // Process a function parameter list
     void ParseFuncdecl_Parameters(Symbol funcsym, bool body_follows);
 
+    // Process a virtual function of a struct
+    void ParseFuncdecl_VirtualInheritance(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool body_follows);
+
     void ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool body_follows);
 
     // There was a forward declaration -- check that the real declaration matches it
-    void ParseFuncdecl_CheckAndAddKnownInfo(Symbol name_of_func, SymbolTableEntry::FunctionDesc *known_info, size_t known_declared, bool body_follows);
+    void ParseFuncdecl_CheckAndAddKnownInfo(Symbol name_of_func, const SymbolTableEntry::FunctionDesc *known_info, size_t known_declared, bool body_follows);
 
     // Enter the function in the 'imports[]' or 'functions[]' array of '_script'; get its index   
     void ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t params_count, CodeLoc &function_soffs);
@@ -723,9 +726,10 @@ private:
     void AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, SrcList &expression, EvaluationResult &eres);
 
     // Find the component of a struct in the struct or in the ancestors of the struct
-    // and return the name of the struct (!) that the component is defined in
+    // and return the name of the struct (!) that the component is defined in;
+    // optionally fills the fully qualified name of that struct's component.
     // Return kKW_NoSymbol if such a struct doesn't exist 
-    Symbol FindStructOfComponent(Vartype strct, Symbol unqualified_component);
+    Symbol FindStructOfComponent(Vartype strct, Symbol unqualified_component, Symbol *strct_component = nullptr);
 
     // Find the component of a struct in the struct or in the ancestors of the struct
     // and return the name of the component(!), qualified by the struct that the component was defined in

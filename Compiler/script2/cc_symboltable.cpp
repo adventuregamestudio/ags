@@ -85,6 +85,7 @@ std::map<AGS::TypeQualifier, AGS::Symbol> const &AGS::TypeQualifierSet::TQToSymb
         { TQ::kStatic,          kKW_Static, },
         { TQ::kInternalstring,  kKW_Internalstring, },
         { TQ::kWriteprotected,  kKW_Writeprotected, },
+        { TQ::kVirtual,         kKW_Virtual, },
     };
 
     return tq2sym;
@@ -109,7 +110,9 @@ AGS::TypeQualifierSet AGS::TypeQualifierSet::WithouttVarFuncDefQualifiers()
         ret[TQ::kProtected] =
         ret[TQ::kReadonly] =
         ret[TQ::kStatic] =
-        ret[TQ::kWriteprotected] = false;
+        ret[TQ::kWriteprotected] =
+        ret[TQ::kVirtual] =
+            false;
     return ret;
 }
 
@@ -370,6 +373,7 @@ AGS::SymbolTable::SymbolTable()
     AddKeyword(kKW_DotDotDot, "...");
     AddKeyword(kKW_While, "while");
     AddKeyword(kKW_Writeprotected, "writeprotected");
+    AddKeyword(kKW_Virtual, "virtual");
 
     // Add some additional symbols that the compiler or scanner will need
     {
@@ -784,6 +788,18 @@ AGS::Symbol AGS::SymbolTable::FindStructComponent(Symbol strct, Symbol const com
     return kKW_NoSymbol;
 }
 
+AGS::Symbol AGS::SymbolTable::FindStructUnqualifiedComponentName(Symbol strct, Symbol qualified_component)
+{
+    if (!IsVartype(strct) || !entries.at(strct).VartypeD->Flags[VTF::kStruct])
+        return kKW_NoSymbol; // not a struct
+
+    auto const &components = entries.at(strct).VartypeD->Components;
+    for (auto components_it = components.begin(); components_it != components.end(); components_it++)
+        if (qualified_component == components_it->second)
+            return components_it->first;
+    return kKW_NoSymbol;
+}
+
 AGS::Symbol AGS::SymbolTable::FindConstructorOfTypeOrParent(Symbol strct) const
 {
     if (!IsVartype(strct) || !entries.at(strct).VartypeD->Flags[VTF::kStruct])
@@ -797,6 +813,25 @@ AGS::Symbol AGS::SymbolTable::FindConstructorOfTypeOrParent(Symbol strct) const
         strct = entries.at(strct).VartypeD->Parent;
     }
     return kKW_NoSymbol;
+}
+
+AGS::Symbol AGS::SymbolTable::FindVirtualFunctionParent(Symbol strct, Symbol name_of_func)
+{
+    if (!IsVartype(strct) || !entries.at(strct).VartypeD->Flags[VTF::kStruct])
+        return kKW_NoSymbol; // not a struct
+
+    // Check for the function of same name, going up the hierarchy,
+    // remember the topmost function found.
+    Symbol topmost = kKW_NoSymbol;
+    while (strct)
+    {
+        const auto &sym = entries.at(strct);
+        const auto it_found = sym.VartypeD->Components.find(name_of_func);
+        if (it_found != sym.VartypeD->Components.end())
+            topmost = strct;
+        strct = entries.at(strct).VartypeD->Parent;
+    }
+    return topmost;
 }
 
 AGS::Vartype AGS::SymbolTable::GetBaseVartypeIfDynptr(AGS::Vartype vartype) const

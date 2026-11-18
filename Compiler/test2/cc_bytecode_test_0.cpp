@@ -4692,6 +4692,8 @@ TEST_F(Bytecode0, Func20) {
     CompareStrings(&scrip, stringssize, strings);
 }
 
+// TODO: this function does not test any bytecode,
+// either fix, remove this test, or move it to the Parser tests
 TEST_F(Bytecode0, Func21) {
 
     // Call function via named parameters
@@ -4710,6 +4712,55 @@ TEST_F(Bytecode0, Func21) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // WriteOutput("Func20", scrip);
+}
+
+TEST_F(Bytecode0, VirtualFunc) {
+
+    // Virtual function call
+
+    char const *inpl = "\
+        managed struct S {              \n\
+            import virtual void VF1();  \n\
+            import virtual void VF2();  \n\
+        };                              \n\
+                                        \n\
+        void Foo() {                    \n\
+            S s;                        \n\
+            s.VF2();                    \n\
+        }";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string const &err_msg = mh.GetError().Message;
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // WriteOutput("VirtualFunc", scrip);
+
+    size_t const codesize = 37;
+    EXPECT_EQ(codesize, scrip.code.size());
+
+    int32_t code[] = {
+        SCMD_LINENUM, 6, SCMD_THISBASE, 0, SCMD_LINENUM, 7, SCMD_LOADSPOFFS, 0, SCMD_MEMZEROPTR,
+        SCMD_ADD, SREG_SP, 4, SCMD_LINENUM, 8, SCMD_LOADSPOFFS, 4, SCMD_MEMREADPTR, 2, SCMD_CHECKNULL,
+        SCMD_CALLOBJ, SREG_MAR, SCMD_NUMFUNCARGS, 0, SCMD_GETVIRTFUNC, SREG_AX, 1 /* vt index */,
+        SCMD_CALLDYNAMIC, SREG_AX, SCMD_LINENUM, 9, SCMD_LOADSPOFFS, 4, SCMD_MEMZEROPTR,
+        SCMD_SUB, SREG_SP, 4, SCMD_RET
+    };
+    CompareCode(&scrip, codesize, code);
+
+    size_t const numfixups = 0;
+    EXPECT_EQ(numfixups, scrip.fixups.size());
+
+    int const numimports = 1;
+    std::string imports[] = {
+        "S::VF2^0", "[[SENTINEL]]" // only imports referenced in code
+    };
+    CompareImports(&scrip, numimports, imports);
+
+    size_t const numexports = 0;
+    EXPECT_EQ(numexports, scrip.exports.size());
+
+    size_t const stringssize = 0;
+    EXPECT_EQ(stringssize, scrip.strings.size());
 }
 
 TEST_F(Bytecode0, Export) {

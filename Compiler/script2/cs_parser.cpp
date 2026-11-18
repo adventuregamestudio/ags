@@ -1187,6 +1187,36 @@ void AGS::Parser::ParseFuncdecl_Parameters(Symbol name_of_func, bool body_follow
     InternalError("End of input when processing parameter list"); // Cannot happen
 }
 
+void AGS::Parser::ParseFuncdecl_VirtualInheritance(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool body_follows)
+{
+    // In case of virtual function: we should check for known declarations of a function
+    // of similar name in the topmost parent where such function is declared.
+    if (tqs[TQ::kVirtual] && (kKW_NoSymbol != struct_of_func))
+    {
+        Symbol func_unq_name = _sym.FindStructUnqualifiedComponentName(struct_of_func, name_of_func);
+        if (func_unq_name == kKW_NoSymbol)
+            InternalError("Expected to find function %s as a component in %s", _sym.GetName(name_of_func), _sym.GetName(struct_of_func));
+
+        Symbol base_parent = _sym.FindVirtualFunctionParent(struct_of_func, func_unq_name);
+        if (base_parent == kKW_NoSymbol)
+            InternalError("Expected to find a owner struct of virtual function %s", _sym.entries[name_of_func]);
+
+        if (base_parent == struct_of_func)
+        {
+            // This is the first entrance of this function name, give it a new virtual index
+            _sym[name_of_func].FunctionD->VirtualIndex = _sym[struct_of_func].VartypeD->VirtualTableCount++;
+        }
+        else
+        {
+            // This function takes existing index, overriding it in the derived type
+            Symbol base_func = _sym.entries.at(base_parent).VartypeD->Components[func_unq_name];
+            ParseFuncdecl_CheckAndAddKnownInfo(name_of_func, _sym.entries[base_func].FunctionD, _sym.GetDeclared(base_func), body_follows);
+            // Take existing index, virtual table count is not increased
+            _sym[name_of_func].FunctionD->VirtualIndex = _sym[base_func].FunctionD->VirtualIndex;
+        }
+    }
+}
+
 void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype const return_vartype, Symbol struct_of_func, Symbol name_of_func, bool body_follows)
 {
     _sym.MakeEntryFunction(name_of_func);
@@ -1207,6 +1237,7 @@ void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype con
     entry_tqs[TQ::kReadonly] = tqs[TQ::kReadonly];
     entry_tqs[TQ::kStatic] = tqs[TQ::kStatic];
     entry_tqs[TQ::kWriteprotected] = tqs[TQ::kWriteprotected];
+    entry_tqs[TQ::kVirtual] = tqs[TQ::kVirtual];
     // Do not set Extends and the component flag here.
     // They are used to denote functions that were either declared in a struct defn or as extender
 
@@ -1223,7 +1254,7 @@ void AGS::Parser::ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype con
     }
 }
 
-void AGS::Parser::ParseFuncdecl_CheckAndAddKnownInfo(Symbol const name_of_func, SymbolTableEntry::FunctionDesc *known_info, size_t known_declared, bool const body_follows)
+void AGS::Parser::ParseFuncdecl_CheckAndAddKnownInfo(Symbol const name_of_func, const SymbolTableEntry::FunctionDesc *known_info, size_t known_declared, bool const body_follows)
 {
     if (!known_info)
         return; // We don't have any known info
@@ -1435,7 +1466,19 @@ void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_fu
 
     if (kKW_NoSymbol == struct_of_func && tqs[TQ::kProtected])
         UserError(
-            "Function '%s' isn't a struct component and so cannot be 'protected'",
+            "Function '%s' isn't a struct member and so cannot be 'protected'",
+            _sym.GetName(name_of_func).c_str());
+    if (kKW_NoSymbol == struct_of_func && tqs[TQ::kVirtual])
+        UserError(
+            "Function '%s' isn't a struct member and so cannot be 'virtual'",
+            _sym.GetName(name_of_func).c_str());
+    if (tqs[TQ::kVirtual] && !_sym.IsManagedVartype(struct_of_func))
+        UserError(
+            "Only managed structs can have virtual functions, but '%s' isn't a managed struct",
+            _sym.GetName(struct_of_func).c_str());
+    if (tqs[TQ::kVirtual] && tqs[TQ::kStatic])
+        UserError(
+            "Static functions cannot be virtual (see '%s')",
             _sym.GetName(name_of_func).c_str());
     if (is_constructor && !_sym[struct_of_func].VartypeD->Flags[VTF::kManaged])
         UserError(
@@ -1533,12 +1576,13 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
     _importLabels.SetLabelValue(name_of_func, imports_idx);
 }
 
-void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype const return_vartype, Symbol const struct_of_func, Symbol const name_of_func, bool const no_loop_check, bool  const body_follows)
+void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype const return_vartype, Symbol const struct_of_func, Symbol const name_of_func, bool const no_loop_check, bool const body_follows)
 {
     ParseFuncdecl_Checks(tqs, struct_of_func, name_of_func, return_vartype, body_follows, no_loop_check);
     
     // A forward decl can be written with the "import" keyword (when allowed in the options).
     // This isn't an import proper, so reset the "import" flag in this case.
+    const bool is_function_import = tqs[TQ::kImport];
     if (tqs[TQ::kImport] &&  // This declaration has 'import'
         _sym.IsFunction(name_of_func) &&
         !_sym[name_of_func].FunctionD->TypeQualifiers[TQ::kImport]) // but symbol table hasn't 'import'
@@ -1559,6 +1603,17 @@ void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype const return_varty
     if (PP::kMain == _pp && body_follows)
         _sym[name_of_func].FunctionD->NoLoopCheck = no_loop_check;
     ParseFuncdecl_Parameters(name_of_func, body_follows);
+
+    // Only configure virtual functions in the main phase,
+    // because currently struct's parent is not set during pre-analyze phase.
+    // See: ParseStruct_ExtendsClause()
+    if (PP::kMain == _pp)
+    {
+        if (is_function_import)
+            ParseFuncdecl_VirtualInheritance(tqs, struct_of_func, name_of_func, body_follows);
+        else // if not import, then copy virtual index from known decl, otherwise it's lost!
+            _sym[name_of_func].FunctionD->VirtualIndex = known_info->VirtualIndex;
+    }
     
     ParseFuncdecl_CheckAndAddKnownInfo(name_of_func, known_info.get(), known_declared, body_follows);
 
@@ -2825,21 +2880,43 @@ void AGS::Parser::AccessData_FunctionCall_EmitCall(Symbol const name_of_func, si
     }
 
     // Load function address into AX
-    WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[name_of_func].FunctionD->Offset);
+    const bool is_virtual_call = _sym.IsVirtualFunction(name_of_func);
+    if (is_virtual_call)
+    {
+        // Virtual function: load virtual table index into AX;
+        // it will be resolved to a real function address at runtime
+        // Note: this expects SREG_OP register to store a object pointer
+        WriteCmd(SCMD_GETVIRTFUNC, SREG_AX, _sym[name_of_func].FunctionD->VirtualIndex);
+    }
+    else
+    {
+        // Regular function: load static address into AX;
+        // if it's a external function then it will be replaced by fixup at runtime
+        WriteCmd(SCMD_LITTOREG, SREG_AX, _sym[name_of_func].FunctionD->Offset);
+    }
     _reg_track.SetRegister(SREG_AX);
 
-    if (func_is_import)
-    {   
-        _scrip.FixupPrevious(kFx_Import);
-        if (!_scrip.IsImport(_sym.GetName(name_of_func)))
+    if (func_is_import || is_virtual_call)
+    {
+        // Fixup regular call, where previous SCMD_LITTOREG value will be
+        // replaced with the actual resolved import at the linking stage
+        if (!is_virtual_call)
         {
-            // We don't know the import number of this function yet, so put a label here
-            // and keep track of the location in order to patch in the proper import number later on
-            _scrip.code.back() = _importLabels.Function2Label(name_of_func);
-            _importLabels.TrackLabelLoc(_scrip.Codesize_i32() - 1);
+            _scrip.FixupPrevious(kFx_Import);
+            if (!_scrip.IsImport(_sym.GetName(name_of_func)))
+            {
+                // We don't know the import number of this function yet, so put a label here
+                // and keep track of the location in order to patch in the proper import number later on
+                _scrip.code.back() = _importLabels.Function2Label(name_of_func);
+                _importLabels.TrackLabelLoc(_scrip.Codesize_i32() - 1);
+            }
         }
 
-        WriteCmd(SCMD_CALLEXT, SREG_AX); // Do the call
+        if (is_virtual_call)
+            WriteCmd(SCMD_CALLDYNAMIC, SREG_AX); // Do the call
+        else
+            WriteCmd(SCMD_CALLEXT, SREG_AX); // Do the call
+
         _reg_track.SetAllRegisters();
         // At runtime, we will arrive here when the function call has returned: Restore the stack
         if (args_count > 0u)
@@ -3318,7 +3395,8 @@ void AGS::Parser::AccessData_FunctionCall(Symbol name_of_func, SrcList &expressi
     SrcList arguments = SrcList(expression, arguments_begin, arguments_end - arguments_begin);
 
     auto const function_tqs = _sym[name_of_func].FunctionD->TypeQualifiers;
-    bool const func_is_import = function_tqs[TQ::kImport];
+    // Virtual functions always use farcall method
+    bool const func_is_import = function_tqs[TQ::kImport] || _sym[name_of_func].FunctionD->VirtualIndex >= 0;
     // If function uses normal stack, we need to do stack calculations to get at certain elements
     bool const func_uses_normal_stack = !func_is_import;
     bool const calling_func_uses_this = (kKW_NoSymbol != _sym.GetVartype(kKW_This));
@@ -4095,13 +4173,17 @@ void AGS::Parser::AccessData_SubsequentClause(VariableAccess access_type, bool a
     InternalError("Unknown kind of component of '%s'", _sym.GetName(vartype).c_str());
 }
 
-AGS::Symbol AGS::Parser::FindStructOfComponent(Vartype strct, Symbol unqualified_component)
+AGS::Symbol AGS::Parser::FindStructOfComponent(Vartype strct, Symbol unqualified_component, Symbol *strct_component)
 {
     while (strct > 0 && _sym.IsVartype(strct))
     {
         auto const &components = _sym[strct].VartypeD->Components;
         if (0u < components.count(unqualified_component))
+        {
+            if (strct_component)
+                *strct_component = components.at(unqualified_component);
             return strct;
+        }
         strct = _sym[strct].VartypeD->Parent;
     }
     return kKW_NoSymbol;
@@ -4934,7 +5016,7 @@ void AGS::Parser::ParseStruct_ConstantDefn(Symbol const name_of_struct)
             if (kKW_NoSymbol != parent)
                 UserError(
                     ReferenceMsgSym(
-                        "The struct '%s' extends '%s', and '%s' is already defined",
+                        "The struct '%s' extends '%s', and '%s' is already defined there",
                         parent).c_str(),
                     _sym.GetName(name_of_struct).c_str(),
                     _sym.GetName(parent).c_str(),
@@ -5459,9 +5541,11 @@ void AGS::Parser::ParseStruct_ExtendsClause(Symbol stname)
     if (_sym.IsManagedVartype(parent) && !_sym.IsManagedVartype(stname))
         UserError("Unmanaged struct cannot extend the managed struct '%s'", _sym.GetName(parent).c_str());
     if (_sym.IsBuiltinVartype(parent) && !_sym.IsBuiltinVartype(stname))
-        UserError("The built-in type '%s' cannot be extended by a concrete struct. Use extender methods instead", _sym.GetName(parent).c_str());
+        UserError("The built-in type '%s' cannot be extended by a user struct. Use extender methods instead", _sym.GetName(parent).c_str());
     _sym[stname].VartypeD->Size = _sym.GetSize(parent);
     _sym[stname].VartypeD->Parent = parent;
+    // Child struct begins with the same virtual table count as its immediate parent
+    _sym[stname].VartypeD->VirtualTableCount = _sym.entries[parent].VartypeD->VirtualTableCount;
 }
 
 void AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl)
@@ -5472,16 +5556,17 @@ void AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in
         if (tqs[(error_tq = TQ::kAutoptr)] ||
             tqs[(error_tq = TQ::kBuiltin)] ||
             tqs[(error_tq = TQ::kInternalstring)])
-            UserError("Cannot use '%s' within a struct declaration", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());
+            UserError("Cannot use '%s' in a struct member declaration", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());
     }
     else // !in_struct_decl
     {
         TypeQualifier error_tq;
         if (tqs[(error_tq = TQ::kProtected)] ||
             tqs[(error_tq = TQ::kStatic)] ||
-            tqs[(error_tq = TQ::kWriteprotected)])
+            tqs[(error_tq = TQ::kWriteprotected)] ||
+            tqs[(error_tq = TQ::kVirtual)])
         {
-            UserError("Can only use '%s' within a struct declaration", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());
+            UserError("Can only use '%s' in a struct member declaration", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());
         }
     }
 
@@ -5494,7 +5579,8 @@ void AGS::Parser::Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in
             tqs[(error_tq = TQ::kInternalstring)] ||
             tqs[(error_tq = TQ::kManaged)] ||
             tqs[(error_tq = TQ::kManagedBase)] ||
-            tqs[(error_tq = TQ::kStatic)])
+            tqs[(error_tq = TQ::kStatic)] ||
+            tqs[(error_tq = TQ::kVirtual)])
         {
             UserError("Cannot use '%s' within a function body", _sym.GetName(tqs.TQ2Symbol(error_tq)).c_str());
         }
@@ -5556,6 +5642,7 @@ void AGS::Parser::ParseQualifiers(TypeQualifierSet &tqs)
         case kKW_Protected:      tqs[TQ::kProtected] = true; break;
         case kKW_Readonly:       tqs[TQ::kReadonly] = true; break;
         case kKW_Static:         tqs[TQ::kStatic] = true; break;
+        case kKW_Virtual:        tqs[TQ::kVirtual] = true; break;
         case kKW_Writeprotected: tqs[TQ::kWriteprotected] = true; break;
         } // switch (_sym.GetSymbolType(peeksym))
 
@@ -5711,7 +5798,7 @@ void AGS::Parser::ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet tqs, 
     Symbol const parent = FindStructOfComponent(name_of_struct, unqualified_attribute);
     if (kKW_NoSymbol != parent)
         UserError(
-            ReferenceMsgSym("The struct '%s' extends '%s', and '%s' is already defined", parent).c_str(),
+            ReferenceMsgSym("The struct '%s' extends '%s', and '%s' is already defined there", parent).c_str(),
             _sym.GetName(name_of_struct).c_str(),
             _sym.GetName(parent).c_str(),
             _sym.GetName(unqualified_attribute).c_str());
@@ -5892,6 +5979,8 @@ void AGS::Parser::ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype
         Expect(kKW_OpenParenthesis, _src.PeekNext());
     if (tqs[TQ::kStatic]) // e.g. 'static int zonk;': No static struct variables in AGS
         UserError("Static variables are not supported");
+    if (tqs[TQ::kVirtual]) // e.g. 'virtual int zonk;'
+        UserError("A variable cannot be declared as 'virtual'");
     if (tqs[TQ::kImport])
         UserError("Cannot import struct component variables; import the whole struct instead");
 
@@ -5940,16 +6029,31 @@ void AGS::Parser::ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, Type
 				ReferenceMsgSym("'%s' is already defined", qualified_component).c_str(), 
 				_sym.GetName(qualified_component).c_str());
 
-        // Mustn't be in any ancester
-        Symbol const parent = FindStructOfComponent(name_of_struct, unqualified_component);
-        if (kKW_NoSymbol != parent)
-            UserError(
-                ReferenceMsgSym(
-                    "The struct '%s' extends '%s', and '%s' is already defined",
-                    parent).c_str(),
-                _sym.GetName(name_of_struct).c_str(),
-                _sym.GetName(parent).c_str(),
-                _sym.GetName(qualified_component).c_str());
+        // Mustn't be in any ancester, unless if a virtual function
+        Symbol parent_func = kKW_NoSymbol;
+        Symbol const parent = FindStructOfComponent(name_of_struct, unqualified_component, &parent_func);
+        if (kKW_NoSymbol != parent && !tqs[TQ::kVirtual] && !_sym.IsVirtualFunction(parent_func))
+        {
+            std::string err_msg;
+            if (is_function && !tqs[TQ::kVirtual] && _sym.IsVirtualFunction(parent_func))
+                UserError(
+                    ReferenceMsgSym(
+                        "The struct '%s' extends '%s', and '%s' is already defined as a virtual function there, so must be virtual in '%s' too",
+                        parent).c_str(),
+                    _sym.GetName(name_of_struct).c_str(),
+                    _sym.GetName(parent).c_str(),
+                    _sym.GetName(qualified_component).c_str(),
+                    _sym.GetName(name_of_struct).c_str(),
+                    _sym.GetName(parent).c_str());
+            else
+                UserError(
+                    ReferenceMsgSym(
+                        "The struct '%s' extends '%s', and '%s' is already defined there",
+                        parent).c_str(),
+                    _sym.GetName(name_of_struct).c_str(),
+                    _sym.GetName(parent).c_str(),
+                    _sym.GetName(qualified_component).c_str());
+        }
     }
 
     _sym.MakeEntryComponent(qualified_component);

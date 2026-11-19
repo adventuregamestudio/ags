@@ -40,7 +40,7 @@ namespace AGS.Types
 
         [Description("The sprite to be displayed in this frame")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
         public int Image
         {
             get { return _image; }

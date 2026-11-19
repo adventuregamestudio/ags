@@ -160,7 +160,7 @@ namespace AGS.Types
         [AGSSerializeClass()]
         [Description("Custom properties for this dialog")]
         [Category("Properties")]
-        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.CustomPropertiesUIEditor, EditorTypeNames.UITypeEditor)]
         public CustomProperties Properties
         {
             get { return _properties; }

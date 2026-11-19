@@ -64,7 +64,7 @@ namespace AGS.Types
         [Description("The player character's walking view will switch to this when he is standing on the area")]
         [Category("Design")]
         [DefaultValue(0)]
-        [EditorAttribute(typeof(ViewUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ViewUIEditor, EditorTypeNames.UITypeEditor)]
         public int AreaSpecificView
         {
             get { return _areaSpecificView; }
@@ -127,7 +127,7 @@ namespace AGS.Types
         [AGSSerializeClass()]
         [Description("Custom properties for this area")]
         [Category("Properties")]
-        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.CustomPropertiesUIEditor, EditorTypeNames.UITypeEditor)]
         public CustomProperties Properties
         {
             get { return _properties; }

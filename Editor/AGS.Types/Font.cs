@@ -66,7 +66,7 @@ namespace AGS.Types
         [Description("The nominal size that this font was imported at")]
         [Category("Appearance")]
         [DisplayName("Font Size")]
-        [EditorAttribute(typeof(FontSizeUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.FontSizeUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(FontSizeTypeConverter))]
         // NOTE: this property's name is incorrect, as it's not really a "point size"
         public int PointSize

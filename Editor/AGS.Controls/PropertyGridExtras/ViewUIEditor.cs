@@ -1,3 +1,4 @@
+using AGS.Types;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -7,14 +8,14 @@ using System.Reflection;
 using System.Text;
 using System.Windows.Forms.Design;
 
-namespace AGS.Types
+namespace AGS.Controls
 {
-    public class SpriteSelectUIEditor : UITypeEditor
+    public class ViewUIEditor : UITypeEditor
     {
-        public delegate int? SpriteSelectionGUIType(int? currentSprite);
-        public static SpriteSelectionGUIType SpriteSelectionGUI;
+        public delegate int ViewSelectionGUIType(int currentView);
+        public static ViewSelectionGUIType ViewSelectionGUI;
 
-        public SpriteSelectUIEditor()
+        public ViewUIEditor()
         {
         }
 
@@ -25,14 +26,14 @@ namespace AGS.Types
 
         public override object EditValue(ITypeDescriptorContext context, IServiceProvider provider, object value)
         {
-            int? spriteNumber = (int?)value;
+            int viewNumber = (int)value;
 
-            if (SpriteSelectionGUI != null)
+            if (ViewSelectionGUI != null)
             {
-                spriteNumber = SpriteSelectionGUI(spriteNumber);
+                viewNumber = ViewSelectionGUI(viewNumber);
             }
 
-            return spriteNumber ?? value; // must return strictly original value if no change
+            return viewNumber;
         }
     }
 }

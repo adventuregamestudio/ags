@@ -108,6 +108,7 @@
     <Compile Include="Editor\Utilities\TextUtilsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScriptCompiler\PreprocessorTests.cs" />
+    <Compile Include="Types\PropertyGridAttributesTests.cs" />
     <Compile Include="Types\RuntimeSetupTests.cs" />
     <Compile Include="Types\InteractionsScriptModuleTests.cs" />
     <Compile Include="Types\RoomHotspotTests.cs" />
@@ -123,6 +124,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AGS.Controls\AGS.Controls.csproj">
+      <Project>{D937E1F4-1B9F-4567-B28E-EED24AA31C9C}</Project>
+      <Name>AGS.Controls</Name>
+    </ProjectReference>
     <ProjectReference Include="..\AGS.CScript.Compiler\AGS.CScript.Compiler.csproj">
       <Project>{4771753a-641d-49b1-8096-0b431eac413e}</Project>
       <Name>AGS.CScript.Compiler</Name>

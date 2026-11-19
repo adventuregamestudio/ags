@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [PropertyTab(EditorTypeNames.PropertyTabEvents, PropertyTabScope.Component)]
     [DefaultProperty("Description")]
     public class RoomHotspot : IHasID, IChangeNotification, IToXml
     {
@@ -52,7 +52,7 @@ namespace AGS.Types
 
         [Description("Description of the hotspot")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string DisplayName
         {
             get { return _displayName; }
@@ -128,7 +128,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
         [ScriptFunction("AnyClick", "Hotspot *theHotspot, CursorMode mode")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnAnyClick
         {
             get { return _onAnyClick; }
@@ -140,7 +140,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
         [ScriptFunction("WalkOn", "Hotspot *theHotspot")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnWalkOn
         {
             get { return _onWalkOn; }
@@ -152,7 +152,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
         [ScriptFunction("MouseMove", "Hotspot *theHotspot")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnMouseMove
         {
             get { return _onMouseMove; }

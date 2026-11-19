@@ -48,7 +48,7 @@ namespace AGS.Types
 
         [Description("Colour of the label text")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int TextColor
@@ -59,7 +59,7 @@ namespace AGS.Types
 
         [Description("Colour of the label text's outline (applied if the font has one)")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         public int TextOutlineColor
         {
@@ -94,7 +94,7 @@ namespace AGS.Types
 
         [Description("The text displayed on the label")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string Text
         {
             get { return _text; }

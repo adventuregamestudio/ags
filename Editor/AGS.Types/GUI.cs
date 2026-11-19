@@ -8,7 +8,7 @@ using System.Drawing;
 namespace AGS.Types
 {    
     [Serializable]
-    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [PropertyTab(EditorTypeNames.PropertyTabEvents, PropertyTabScope.Component)]
     [DefaultProperty("BackgroundImage")]
     public abstract class GUI : IHasID, IToXml, IComparable<GUI>, ICloneable
     {
@@ -52,7 +52,7 @@ namespace AGS.Types
 
         [Description("Background color of the GUI (0 = transparent)")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int BackgroundColor
@@ -63,7 +63,7 @@ namespace AGS.Types
 
         [Description("Background image for the GUI (0 for none)")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
         public int BackgroundImage
         {
             get { return _bgimage; }
@@ -142,7 +142,7 @@ namespace AGS.Types
         [AGSSerializeClass()]
         [Description("Custom properties for this GUI")]
         [Category("Properties")]
-        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.CustomPropertiesUIEditor, EditorTypeNames.UITypeEditor)]
         public CustomProperties Properties
         {
             get { return _properties; }

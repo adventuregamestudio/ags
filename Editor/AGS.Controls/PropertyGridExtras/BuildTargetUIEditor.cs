@@ -1,10 +1,11 @@
-﻿using System;
+﻿using AGS.Types;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 using System.Windows.Forms;
 
-namespace AGS.Types
+namespace AGS.Controls
 {
     public class BuildTargetUIEditor : StringListUIEditor
     {

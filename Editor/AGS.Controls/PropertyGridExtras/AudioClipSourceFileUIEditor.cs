@@ -1,9 +1,10 @@
-﻿using System;
+﻿using AGS.Types;
+using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Design;
 
-namespace AGS.Types
+namespace AGS.Controls
 {
     public class AudioClipSourceFileUIEditor : UITypeEditor
     {

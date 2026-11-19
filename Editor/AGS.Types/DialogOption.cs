@@ -30,7 +30,7 @@ namespace AGS.Types
 
         [Description("The text to display as the option")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string Text
         {
             get { return _text; }

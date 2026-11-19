@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AGS.Types;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -10,7 +11,7 @@ using System.Windows.Forms.Design;
 // Based on an idea by Ozcan Degirmenci:
 // <http://www.ozcandegirmenci.com/post/2008/08/How-to-permit-multiple-selections-for-Enum-properties.aspx>
 
-namespace AGS.Types
+namespace AGS.Controls
 {
     public partial class StringListUIEditorControl : UserControl
     {

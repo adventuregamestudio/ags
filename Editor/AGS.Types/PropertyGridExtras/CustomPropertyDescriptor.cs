@@ -14,7 +14,7 @@ namespace AGS.Types
                 new DescriptionAttribute(schemaItem.Description),
                 new DefaultValueAttribute(schemaItem.GetTypedDefaultValue()),
                 schemaItem.Type == CustomPropertyType.Text ?
-                    new EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor)) :
+                    new EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor) :
                     new EditorAttribute()
                     })
         {

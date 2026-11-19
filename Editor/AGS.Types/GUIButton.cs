@@ -9,7 +9,7 @@ namespace AGS.Types
 {    
     [Serializable]
     [DefaultProperty("Image")]
-    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]    
+    [PropertyTab(EditorTypeNames.PropertyTabEvents, PropertyTabScope.Component)]    
     public class GUIButton : GUIControl, ICustomTypeDescriptor
     {
         public const string CONTROL_DISPLAY_NAME = "Button";
@@ -69,7 +69,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty(), AGSDefaultEventProperty()]
         [ScriptFunction("OnClick", "GUIControl *control, MouseButton button")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnClick
         {
             get { return _onClick; }
@@ -81,7 +81,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
         [ScriptFunction("OnFrameEvent", "Button *button, int view, int loop, int frame, String eventName")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnFrameEvent
         {
             get { return _onFrameEvent; }
@@ -159,7 +159,7 @@ namespace AGS.Types
 
         [Description("Colour of the button's border shadow")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int BorderShadeColor
@@ -170,7 +170,7 @@ namespace AGS.Types
 
         [Description("Colour of the button text")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int TextColor
@@ -181,7 +181,7 @@ namespace AGS.Types
 
         [Description("Colour of the button text's outline (applied if the font has one)")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         public int TextOutlineColor
         {
@@ -191,7 +191,7 @@ namespace AGS.Types
 
         [Description("Colour of the button's background when the player moves their mouse over the button")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int MouseOverBackgroundColor
@@ -202,7 +202,7 @@ namespace AGS.Types
 
         [Description("Colour of the button's background when the player clicks the button")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int PushedBackgroundColor
@@ -213,7 +213,7 @@ namespace AGS.Types
 
         [Description("Colour of the button's border when the player moves their mouse over the button")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int MouseOverBorderColor
@@ -224,7 +224,7 @@ namespace AGS.Types
 
         [Description("Colour of the button's border when the player clicks the button")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int PushedBorderColor
@@ -235,7 +235,7 @@ namespace AGS.Types
 
         [Description("Colour of the button text when the player moves their mouse over the button")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int MouseOverTextColor
@@ -246,7 +246,7 @@ namespace AGS.Types
 
         [Description("Colour of the button text when the player clicks the button")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int PushedTextColor
@@ -266,7 +266,7 @@ namespace AGS.Types
 
         [Description("Image to display when the player clicks the button")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
         public int PushedImage
         {
             get { return _pushedImage; }
@@ -275,7 +275,7 @@ namespace AGS.Types
 
         [Description("Image to display when the player moves their mouse over the button")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
         public int MouseoverImage
         {
             get { return _mouseoverImage; }
@@ -284,7 +284,7 @@ namespace AGS.Types
 
         [Description("Optional image to be displayed on the button")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
         public int Image
         {
             get { return _image; }
@@ -309,7 +309,7 @@ namespace AGS.Types
 
         [Description("The text displayed on the button")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string Text
         {
             get { return _text; }

@@ -70,7 +70,7 @@ namespace AGS.Types
         }
 
         [Description("The file from which this audio clip was imported")]
-        [Editor(typeof(AudioClipSourceFileUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.AudioClipSourceFileUIEditor, EditorTypeNames.UITypeEditor)]
         public string SourceFileName
         {
             get { return _sourceFileName; }
@@ -204,7 +204,7 @@ namespace AGS.Types
         [AGSSerializeClass()]
         [Description("Custom properties for this audio clip")]
         [Category("Properties")]
-        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.CustomPropertiesUIEditor, EditorTypeNames.UITypeEditor)]
         public CustomProperties Properties
         {
             get { return _properties; }

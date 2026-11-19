@@ -8,7 +8,7 @@ using System.Drawing;
 namespace AGS.Types
 {    
     [Serializable]    
-    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [PropertyTab(EditorTypeNames.PropertyTabEvents, PropertyTabScope.Component)]
     [DefaultProperty("TextColor")]
     public class GUIListBox : GUIControl
     {
@@ -45,7 +45,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty(), AGSDefaultEventProperty()]
         [ScriptFunction("OnSelectionChanged", "GUIControl *control")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnSelectionChanged
         {
             get { return _onSelectionChanged; }
@@ -70,7 +70,7 @@ namespace AGS.Types
 
         [Description("Colour of the text")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int TextColor
@@ -81,7 +81,7 @@ namespace AGS.Types
 
         [Description("Colour of the text's outline (applied if the font has one)")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         public int TextOutlineColor
         {
@@ -91,7 +91,7 @@ namespace AGS.Types
 
         [Description("Selected item's text colour")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int SelectedTextColor
@@ -102,7 +102,7 @@ namespace AGS.Types
 
         [Description("Selected item's background colour")]
         [Category("Appearance")]
-        [Editor(typeof(ColorUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [Editor(EditorTypeNames.ColorUIEditor, EditorTypeNames.UITypeEditor)]
         [TypeConverter(typeof(CustomColorConverter))]
         [SerializeAsHex]
         public int SelectedBackgroundColor

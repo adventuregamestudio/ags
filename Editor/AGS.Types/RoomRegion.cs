@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [PropertyTab(EditorTypeNames.PropertyTabEvents, PropertyTabScope.Component)]
     [DefaultProperty("LightLevel")]
     public class RoomRegion : IHasID, IChangeNotification, ICustomTypeDescriptor, IToXml
     {
@@ -151,7 +151,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
         [ScriptFunction("Standing", "Region *theRegion")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnStanding
         {
             get { return _onStanding; }
@@ -163,7 +163,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
         [ScriptFunction("WalksOnto", "Region *theRegion")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnWalksOnto
         {
             get { return _onWalksOnto; }
@@ -175,7 +175,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
         [ScriptFunction("WalksOff", "Region *theRegion")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnWalksOff
         {
             get { return _onWalksOff; }
@@ -187,7 +187,7 @@ namespace AGS.Types
         [AGSSerializeClass()]
         [Description("Custom properties for this region")]
         [Category("Properties")]
-        [EditorAttribute(typeof(CustomPropertiesUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.CustomPropertiesUIEditor, EditorTypeNames.UITypeEditor)]
         public CustomProperties Properties
         {
             get { return _properties; }

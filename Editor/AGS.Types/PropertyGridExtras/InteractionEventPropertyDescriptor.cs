@@ -24,7 +24,7 @@ namespace AGS.Types
             string eventName, string displayName, string category, string functionSuffix, string parameterList)
             :
             base(eventName, new Attribute[]{new DisplayNameAttribute(displayName),
-                new EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor)),
+                new EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor),
                 new CategoryAttribute(category),
                 new DefaultValueAttribute(string.Empty),
                 new ScriptFunctionAttribute(functionSuffix, parameterList)})

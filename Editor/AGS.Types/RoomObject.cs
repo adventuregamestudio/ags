@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    [PropertyTab(typeof(PropertyTabEvents), PropertyTabScope.Component)]
+    [PropertyTab(EditorTypeNames.PropertyTabEvents, PropertyTabScope.Component)]
     [DefaultProperty("Image")]
 	public class RoomObject : IHasID, IComparable<RoomObject>, IChangeNotification, ICustomTypeDescriptor, IToXml
     {
@@ -64,7 +64,7 @@ namespace AGS.Types
         
         [Description("Sprite used to display the object")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(SpriteSelectUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.SpriteSelectUIEditor, EditorTypeNames.UITypeEditor)]
         public int Image
         {
             get { return _image; }
@@ -212,7 +212,7 @@ namespace AGS.Types
 
         [Description("Description of the object")]
         [Category("Appearance")]
-        [EditorAttribute(typeof(MultiLineStringUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.MultiLineStringUIEditor, EditorTypeNames.UITypeEditor)]
         public string DisplayName
         {
             get { return _displayName; }
@@ -298,7 +298,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
         [ScriptFunction("AnyClick", "Object *theObject, CursorMode mode")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnAnyClick
         {
             get { return _onAnyClick; }
@@ -310,7 +310,7 @@ namespace AGS.Types
         [Browsable(false)]
         [AGSEventsTabProperty(), AGSEventProperty()]
         [ScriptFunction("OnFrameEvent", "Object *theObject, int view, int loop, int frame, String eventName")]
-        [EditorAttribute(typeof(ScriptFunctionUIEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [EditorAttribute(EditorTypeNames.ScriptFunctionUIEditor, EditorTypeNames.UITypeEditor)]
         public string OnFrameEvent
         {
             get { return _onFrameEvent; }

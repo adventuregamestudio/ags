@@ -123,6 +123,18 @@ namespace GfxDef
         return (value100 * 10) / 25;
     }
 
+    // Converts value from range of 100 to range of 255
+    inline int Value100ToValue255(const int value100)
+    {
+        return (value100 * 255) / 100;
+    }
+
+    // Converts value from range of 250 to range of 255
+    inline int Value250ToValue255(const int value250)
+    {
+        return (value250 * 255) / 250;
+    }
+
     // Converts percentage of transparency into alpha
     inline int Trans100ToAlpha255(const int transparency)
     {
@@ -227,6 +239,21 @@ namespace GfxDef
             // the rest of the range works as alpha
             return alpha;
         }
+    }
+
+    // The AGS 4.0 script property Transparency (0-100) on top of opacity (0-255 alpha), giving the
+    // values 4.0 gave: it stored Trans100ToLegacyTrans255() and returned LegacyTrans255ToTrans100()
+    // of it, so a read after a write may differ by one, as it did in 4.0 (37 reads back as 38)
+    inline int Trans100ToOpacity(const int transparency)
+    {
+        return LegacyTrans255ToAlpha255(Trans100ToLegacyTrans255(transparency));
+    }
+
+    // Opacity 251-254, which 4.0 could not store, would give -1: clamped
+    inline int OpacityToTrans100(const int opacity)
+    {
+        const int trans = LegacyTrans255ToTrans100(Alpha255ToLegacyTrans255(opacity));
+        return trans < 0 ? 0 : trans;
     }
 
     // Convert Alignment to the graphic anchor, which is a

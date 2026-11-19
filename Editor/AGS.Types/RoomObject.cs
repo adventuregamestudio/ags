@@ -18,7 +18,7 @@ namespace AGS.Types
         private int _image;
         private int _x;
         private int _y;
-        private int _transparency = 0;
+        private int _opacity = 255;
         private GraphicAnchor _graphicAnchor = new GraphicAnchor(FrameAlignment.BottomLeft);
         private Point _graphicOffset = new Point();
         private bool _clickable = true;
@@ -80,14 +80,22 @@ namespace AGS.Types
             get;
             set;
         }
-        
-        [Description("This object's transparency (0-100)")]
-        [Category("Appearance")]
-        [DefaultValue(0)]
+
+        [Obsolete]
+        [Browsable(false)]
         public int Transparency
         {
-            get { return _transparency; }
-            set { _transparency = Math.Max(0, Math.Min(100, value)); }
+            get { return TypesHelper.Alpha255ToTrans100(Opacity); }
+            set { Opacity = TypesHelper.Trans100ToAlpha255(value); }
+        }
+
+        [Description("This object's opacity (0-255)")]
+        [Category("Appearance")]
+        [DefaultValue(255)]
+        public int Opacity
+        {
+            get { return _opacity; }
+            set { _opacity = Math.Max(0, Math.Min(255, value)); }
         }
 
         [Description("This object's graphic anchor")]

@@ -103,7 +103,7 @@ ScriptDrawingSurface* DrawingSurface_CreateCopy(ScriptDrawingSurface *sds)
 }
 
 static void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
-    int dst_x, int dst_y, int trans, BlendMode mode, int dst_width, int dst_height,
+    int dst_x, int dst_y, int alpha, BlendMode mode, int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height, int sprite_id)
 {
     Bitmap *ds = AssertBitmapSurface(sds->GetBitmapSurface(), "DrawingSurface.DrawImage");
@@ -119,11 +119,11 @@ static void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
         else
             debug_script_warn("DrawImage: Source image colour depth %d-bit not same as destination depth %d-bit", src->GetColorDepth(), ds->GetColorDepth());
     }
-    if ((trans < 0) || (trans > 100))
-        debug_script_warn("DrawingSurface.DrawImage: invalid transparency %d, range is %d - %d", trans, 0, 100);
-    trans = Math::Clamp(trans, 0, 100);
+    if ((alpha < 0) || (alpha > 255))
+        debug_script_warn("DrawingSurface.DrawImage: invalid alpha %d, range is %d - %d", alpha, 0, 255);
+    alpha = Math::Clamp(alpha, 0, 255);
 
-    if (trans == 100)
+    if (alpha == 0)
         return; // fully transparent
     if (dst_width < 1 || dst_height < 1 || src_width < 1 || src_height < 1)
         return; // invalid src or dest rectangles
@@ -161,13 +161,13 @@ static void DrawingSurface_DrawImageImpl(ScriptDrawingSurface* sds, Bitmap* src,
 
     ds = sds->StartDrawing();
 
-    draw_sprite_support_alpha(ds, dst_x, dst_y, src, mode, GfxDef::Trans100ToAlpha255(trans));
+    draw_sprite_support_alpha(ds, dst_x, dst_y, src, mode, alpha);
 
     sds->FinishedDrawing();
 }
 
 void DrawingSurface_DrawImage(ScriptDrawingSurface* sds,
-    int dst_x, int dst_y, int slot, int trans,
+    int dst_x, int dst_y, int slot, int alpha,
     int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height)
 {
@@ -176,12 +176,12 @@ void DrawingSurface_DrawImage(ScriptDrawingSurface* sds,
         debug_script_warn("DrawingSurface.DrawImage: invalid sprite slot number specified: %d", slot);
         slot = 0;
     }
-    DrawingSurface_DrawImageImpl(sds, spriteset[slot], dst_x, dst_y, trans, kBlend_Normal, dst_width, dst_height,
+    DrawingSurface_DrawImageImpl(sds, spriteset[slot], dst_x, dst_y, alpha, kBlend_Normal, dst_width, dst_height,
         src_x, src_y, src_width, src_height, slot);
 }
 
 void DrawingSurface_BlendImage(ScriptDrawingSurface* sds,
-    int dst_x, int dst_y, int slot, BlendMode mode, int trans,
+    int dst_x, int dst_y, int slot, BlendMode mode, int alpha,
     int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height)
 {
@@ -190,11 +190,11 @@ void DrawingSurface_BlendImage(ScriptDrawingSurface* sds,
         debug_script_warn("DrawingSurface.BlendImage: invalid sprite slot number specified: %d", slot);
         slot = 0;
     }
-    DrawingSurface_DrawImageImpl(sds, spriteset[slot], dst_x, dst_y, trans, mode, dst_width, dst_height,
+    DrawingSurface_DrawImageImpl(sds, spriteset[slot], dst_x, dst_y, alpha, mode, dst_width, dst_height,
         src_x, src_y, src_width, src_height, slot);
 }
 
-void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurface* source, int trans,
+void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurface* source, int alpha,
     int dst_x, int dst_y, int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height)
 {
@@ -202,11 +202,11 @@ void DrawingSurface_DrawSurface(ScriptDrawingSurface* target, ScriptDrawingSurfa
     if (!source_bmp)
         return;
 
-    DrawingSurface_DrawImageImpl(target, source_bmp, dst_x, dst_y, trans, kBlend_Normal, dst_width, dst_height,
+    DrawingSurface_DrawImageImpl(target, source_bmp, dst_x, dst_y, alpha, kBlend_Normal, dst_width, dst_height,
         src_x, src_y, src_width, src_height, -1);
 }
 
-void DrawingSurface_BlendSurface(ScriptDrawingSurface* target, ScriptDrawingSurface* source, BlendMode mode, int trans,
+void DrawingSurface_BlendSurface(ScriptDrawingSurface* target, ScriptDrawingSurface* source, BlendMode mode, int alpha,
     int dst_x, int dst_y, int dst_width, int dst_height,
     int src_x, int src_y, int src_width, int src_height)
 {
@@ -214,7 +214,7 @@ void DrawingSurface_BlendSurface(ScriptDrawingSurface* target, ScriptDrawingSurf
     if (!source_bmp)
         return;
 
-    DrawingSurface_DrawImageImpl(target, source_bmp, dst_x, dst_y, trans, mode, dst_width, dst_height,
+    DrawingSurface_DrawImageImpl(target, source_bmp, dst_x, dst_y, alpha, mode, dst_width, dst_height,
         src_x, src_y, src_width, src_height, -1);
 }
 

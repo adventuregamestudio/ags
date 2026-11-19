@@ -45,6 +45,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
+#include "gfx/gfx_def.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
@@ -380,15 +381,27 @@ void GUI_SetPopupYPos(ScriptGUI *tehgui, int newpos)
         guis[tehgui->id].SetPopupAtY(newpos);
 }
 
+void GUI_SetOpacity(ScriptGUI *tehgui, int alpha) {
+  if ((alpha < 0) | (alpha > 255))
+    quit("!GUI.Opacity: alpha value must be between 0 and 255");
+
+  guis[tehgui->id].SetOpacity(alpha);
+}
+
+int GUI_GetOpacity(ScriptGUI *tehgui) {
+  return guis[tehgui->id].GetOpacity();
+}
+
+// [OBSOLETE] Transparency of AGS 4.0, kept for the compiled 4.0 games
 void GUI_SetTransparency(ScriptGUI *tehgui, int trans) {
   if ((trans < 0) | (trans > 100))
     quit("!SetGUITransparency: transparency value must be between 0 and 100");
 
-  guis[tehgui->id].SetTransparencyAsPercentage(trans);
+  guis[tehgui->id].SetOpacity(GfxDef::Trans100ToOpacity(trans));
 }
 
 int GUI_GetTransparency(ScriptGUI *tehgui) {
-  return GfxDef::LegacyTrans255ToTrans100(guis[tehgui->id].GetTransparency());
+  return GfxDef::OpacityToTrans100(guis[tehgui->id].GetOpacity());
 }
 
 void GUI_Centre(ScriptGUI *sgui) {
@@ -829,7 +842,7 @@ static bool should_skip_adjust_for_gui(const GUIMain &gui)
         // completely offscreen
         !IsRectInsideRect(play.GetUIViewport(), gui.GetRect()) ||
         // fully transparent (? FIXME: this only checks background, but not controls)
-        ((gui.GetBgColor() == 0) && (gui.GetBgImage() < 1)) || (gui.GetTransparency() == 255);
+        ((gui.GetBgColor() == 0) && (gui.GetBgImage() < 1)) || (gui.GetOpacity() == 0);
 }
 
 int adjust_x_for_guis(int x, int y, bool assume_blocking)
@@ -1261,12 +1274,24 @@ RuntimeScriptValue Sc_GUI_SetTextPadding(void *self, const RuntimeScriptValue *p
 }
 
 // int (ScriptGUI *tehgui)
+RuntimeScriptValue Sc_GUI_GetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_INT(ScriptGUI, GUI_GetOpacity);
+}
+
+// void (ScriptGUI *tehgui, int alpha)
+RuntimeScriptValue Sc_GUI_SetOpacity(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetOpacity);
+}
+
+// int (ScriptGUI *)
 RuntimeScriptValue Sc_GUI_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptGUI, GUI_GetTransparency);
 }
 
-// void (ScriptGUI *tehgui, int trans)
+// void (ScriptGUI *, int trans)
 RuntimeScriptValue Sc_GUI_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptGUI, GUI_SetTransparency);
@@ -1542,6 +1567,9 @@ void RegisterGUIAPI()
         { "GUI::get_PopupYPos",           API_FN_PAIR(GUI_GetPopupYPos) },
         { "GUI::set_PopupYPos",           API_FN_PAIR(GUI_SetPopupYPos) },
         { "GUI::get_ScriptName",          API_FN_PAIR(GUI_GetScriptName) },
+        { "GUI::get_Opacity",             API_FN_PAIR(GUI_GetOpacity) },
+        { "GUI::set_Opacity",             API_FN_PAIR(GUI_SetOpacity) },
+        // [OBSOLETE] Transparency => Opacity
         { "GUI::get_Transparency",        API_FN_PAIR(GUI_GetTransparency) },
         { "GUI::set_Transparency",        API_FN_PAIR(GUI_SetTransparency) },
         { "GUI::get_Visible",             API_FN_PAIR(GUI_GetVisible) },

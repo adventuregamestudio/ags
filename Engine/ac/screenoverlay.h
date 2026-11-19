@@ -74,7 +74,8 @@ enum OverlaySvgVersion
     kOverSvgVersion_40026   = 4000026, // sync with kOverSvgVersion_36304
     kOverSvgVersion_40028   = 4000028, // autosize flag, scale field is valid
     kOverSvgVersion_40029   = 4000029, // rotation pivot
-    kOverSvgVersion_Current = kOverSvgVersion_40029
+    kOverSvgVersion_40034   = 4000034, // opacity instead of transparency, full tint and light ranges
+    kOverSvgVersion_Current = kOverSvgVersion_40034
 };
 
 class ScreenOverlay
@@ -113,7 +114,7 @@ public:
     bool IsAutoSize() const  { return (_flags & kOver_AutoSize) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
     bool IsVisible() const { return (_flags & kOver_Visible) != 0; }
-    int  GetTransparency() const { return _transparency; }
+    int  GetOpacity() const { return _opacity; }
     Common::BlendMode GetBlendMode() const { return _blendMode; }
     Common::GraphicFlip GetFlip() const { return Common::GfxDef::GetFlipFromFlags(_spritetf); }
     bool HasTint() const { return (_flags & kOver_HasTint) != 0; }
@@ -170,8 +171,8 @@ public:
     void SetText(const Common::String &text);
     // Assigns flip setting
     void SetFlip(Common::GraphicFlip flip);
-    // Assigns overlay transparency (0 - 255)
-    void SetTransparency(int trans);
+    // Assigns overlay opacity (0 - 255)
+    void SetOpacity(int alpha);
     // Assigns blend mode
     void SetBlendMode(Common::BlendMode blend_mode);
     // Assigns tint settings
@@ -259,12 +260,12 @@ private:
     Size _scaledSize;
     float _rotation = 0.f;
     int _zorder = INT_MIN;
-    int _transparency = 0;
+    int _opacity = 255;
     uint8_t _tintR = 0u;
     uint8_t _tintG = 0u;
     uint8_t _tintB = 0u;
     uint8_t _tintLevel = 0u;
-    int _tintLight = 0; // -100 to 100 (comply to objects and characters)
+    int _tintLight = 0; // -255 to 255 (comply to objects and characters)
     Common::BlendMode _blendMode = Common::kBlend_Normal;
     // TODO: a RAII wrapper over managed handle, that auto releases the reference
     int _shaderID = 0;

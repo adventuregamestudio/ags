@@ -123,10 +123,18 @@ RTTI RTTISerializer::Read(Stream *in)
     const uint32_t fieldi_table_len = (uint32_t)in->ReadInt32();
     const uint32_t str_table_off = (uint32_t)in->ReadInt32();
     const size_t str_table_sz = (uint32_t)in->ReadInt32();
+    uint32_t vte_sz = 0u, vt_table_off = 0u, vt_table_len = 0u;
+    if (format >= kFmtver_400_34)
+    {
+        vte_sz = (uint32_t)in->ReadInt32();
+        vt_table_off = (uint32_t)in->ReadInt32();
+        vt_table_len = (uint32_t)in->ReadInt32();
+    }
 
     const soff_t loc_soff = rtti_soff + loc_table_off;
     const soff_t typei_soff = rtti_soff + typei_table_off;
     const soff_t fieldi_soff = rtti_soff + fieldi_table_off;
+    const soff_t vte_soff = rtti_soff + vt_table_off;
     const soff_t str_soff = rtti_soff + str_table_off;
     const soff_t end_soff = rtti_soff + full_sz;
 
@@ -161,6 +169,12 @@ RTTI RTTISerializer::Read(Stream *in)
             t.dim_num = (uint32_t)in->ReadInt32();
         }
 
+        if (format >= FormatVersion::kFmtver_400_34)
+        {
+            t.vte_num = (uint32_t)in->ReadInt32();
+            t.vt_index = (uint32_t)in->ReadInt32();
+        }
+
         rtti._types.push_back(t);
     }
 
@@ -185,18 +199,31 @@ RTTI RTTISerializer::Read(Stream *in)
         in->Read(rtti._strings.data(), str_table_sz);
     }
 
+    // Virtual Table
+    if (format >= kFmtver_400_34)
+    {
+        in->Seek(vte_soff, kSeekBegin);
+        for (uint32_t i = 0; i < vt_table_len; ++i)
+        {
+            RTTI::VTEntry vte;
+            vte.index = (uint32_t)in->ReadInt32();
+            vte.name_stri = (uint32_t)in->ReadInt32();
+            rtti._vt.push_back(vte);
+        }
+    }
+
     // Finish
     in->Seek(end_soff, kSeekBegin);
 
     rtti.CreateQuickRefs();
-    return std::move(rtti);
+    return rtti;
 }
 
 void RTTISerializer::Write(const RTTI &rtti, Stream *out)
 {
     // RTTI Header placeholder
     const soff_t rtti_soff = out->GetPosition();
-    out->WriteByteCount(0, 14 * sizeof(uint32_t));
+    out->WriteByteCount(0, 17 * sizeof(uint32_t));
 
     // Location Infos
     const soff_t loc_soff = out->GetPosition();
@@ -222,6 +249,9 @@ void RTTISerializer::Write(const RTTI &rtti, Stream *out)
         // kFmtver_400_22
         out->WriteInt32(t.base_id);
         out->WriteInt32(t.dim_num);
+        // kFmtver_400_33
+        out->WriteInt32(t.vte_num);
+        out->WriteInt32(t.vt_index);
     }
 
     // Field Infos
@@ -242,6 +272,14 @@ void RTTISerializer::Write(const RTTI &rtti, Stream *out)
         out->Write(rtti._strings.data(), rtti._strings.size());
     }
 
+    // Virtual Table
+    const soff_t vte_soff = out->GetPosition();
+    for (const auto &vte : rtti._vt)
+    {
+        out->WriteInt32(vte.index);
+        out->WriteInt32(vte.name_stri);
+    }
+
     // Finalize, write actual RTTI header
     const soff_t end_soff = out->GetPosition();
     out->Seek(rtti_soff, kSeekBegin);
@@ -259,6 +297,10 @@ void RTTISerializer::Write(const RTTI &rtti, Stream *out)
     out->WriteInt32(rtti._fields.size()); // number of fields
     out->WriteInt32((uint32_t)(str_soff - rtti_soff)); // strings table offset
     out->WriteInt32(rtti._strings.size()); // string table size
+    out->WriteInt32(RTTI::VTEntry::FileSize); // virtual table entry info size
+    out->WriteInt32((uint32_t)(vte_soff - rtti_soff)); // virtual table offset
+    out->WriteInt32(rtti._vt.size()); // size of the virtual table
+
     out->Seek(end_soff, kSeekBegin);
 }
 
@@ -272,6 +314,7 @@ RTTI &RTTI::operator=(const RTTI &rtti)
     _locs = rtti._locs;
     _types = rtti._types;
     _fields = rtti._fields;
+    _vt = rtti._vt;
     _strings = rtti._strings;
     CreateQuickRefs();
     return *this;
@@ -316,6 +359,7 @@ void RTTI::CreateQuickRefs()
             ti.base = &_types[typeid_to_type[ti.base_id]];
         if (ti.parent_id > 0u)
             ti.parent = &_types[typeid_to_type[ti.parent_id]];
+        const Type *const this_type = &_types[typeid_to_type[ti.this_id]];
         if (ti.field_num > 0u)
         {
             ti.first_field = &_fields[ti.field_index];
@@ -324,9 +368,21 @@ void RTTI::CreateQuickRefs()
                 auto &fi = _fields[ti.field_index + index];
                 fi.name = &_strings[fi.name_stri];
                 fi.type = &_types[typeid_to_type[fi.f_typeid]];
-                fi.owner = &_types[typeid_to_type[ti.this_id]];
+                fi.owner = this_type;
                 fi.prev_field = (index > 0) ? &_fields[ti.field_index + index - 1] : nullptr;
                 fi.next_field = (index + 1 < ti.field_num) ? &_fields[ti.field_index + index + 1] : nullptr;
+            }
+        }
+        if (ti.vte_num > 0u)
+        {
+            ti.first_vte = &_vt[ti.vt_index];
+            for (uint32_t index = 0; index < ti.vte_num; ++index)
+            {
+                auto &vte = _vt[ti.vt_index + index];
+                vte.name = &_strings[vte.name_stri];
+                vte.owner = this_type;
+                vte.prev_vte = (index > 0) ? &_vt[ti.vt_index + index - 1] : nullptr;
+                vte.next_vte = (index + 1 < ti.vte_num) ? &_vt[ti.vt_index + index + 1] : nullptr;
             }
         }
     }
@@ -368,6 +424,14 @@ void RTTIBuilder::AddField(uint32_t owner_id, const std::string &name,
     _fieldIdx.insert(std::make_pair(owner_id, fi)); // match field to owner type
 }
 
+void RTTIBuilder::AddVirtualFunction(uint32_t owner_id, const std::string &name, uint32_t index)
+{
+    RTTI::VTEntry vte;
+    vte.index = index;
+    vte.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
+    _vteIdx.insert(std::make_pair(owner_id, vte)); // match vt entry to owner type
+}
+
 RTTI RTTIBuilder::Finalize()
 {
     // Save complete string data
@@ -380,14 +444,26 @@ RTTI RTTIBuilder::Finalize()
     // Save complete field data
     for (auto &ti : _rtti._types)
     {
-        auto fi_range = _fieldIdx.equal_range(ti.this_id);
-        if (fi_range.first == _fieldIdx.end())
-            continue; // no fields for this type
-        ti.field_index = _rtti._fields.size(); // save first field index
-        ti.field_num = std::distance(fi_range.first, fi_range.second);
-        for (auto fi_it = fi_range.first; fi_it != fi_range.second; ++fi_it)
+        const auto fi_range = _fieldIdx.equal_range(ti.this_id);
+        if (fi_range.first != _fieldIdx.end() && fi_range.first != fi_range.second)
         {
-            _rtti._fields.push_back(fi_it->second);
+            ti.field_index = _rtti._fields.size(); // save first field index
+            ti.field_num = std::distance(fi_range.first, fi_range.second);
+            for (auto fi_it = fi_range.first; fi_it != fi_range.second; ++fi_it)
+            {
+                _rtti._fields.push_back(fi_it->second);
+            }
+        }
+
+        const auto vt_range = _vteIdx.equal_range(ti.this_id);
+        if (vt_range.first != _vteIdx.end() && vt_range.first != vt_range.second)
+        {
+            ti.vt_index = _rtti._vt.size(); // save first field index
+            ti.vte_num = std::distance(vt_range.first, vt_range.second);
+            for (auto vte_it = vt_range.first; vte_it != vt_range.second; ++vte_it)
+            {
+                _rtti._vt.push_back(vte_it->second);
+            }
         }
     }
 
@@ -412,7 +488,8 @@ uint32_t JointRTTI::JoinLocation(const Location &loc, uint32_t uid, const char *
 }
 
 uint32_t JointRTTI::JoinType(const Type &type, uint32_t uid, const char *name,
-    const std::vector<Field> &src_fields, const std::vector<char> &src_strings,
+    const std::vector<Field> &src_fields, const std::vector<VTEntry> &src_vt,
+    const std::vector<char> &src_strings,
     std::unordered_map<uint32_t, uint32_t> &type_l2g)
 {
     if (uid <= _types.size())
@@ -444,6 +521,24 @@ uint32_t JointRTTI::JoinType(const Type &type, uint32_t uid, const char *name,
             _fields[joint_fields_idx + findex] = field;
         }
         new_type.field_index = joint_fields_idx;
+    }
+    // Add new type's virtual table
+    if (type.vte_num > 0)
+    {
+        // See comments to fields above
+        uint32_t joint_vte_idx = _vt.size();
+        if (type_slot.vte_num >= type.vte_num)
+            joint_vte_idx = type_slot.vt_index;
+        else
+            _vt.resize(_vt.size() + type.vte_num);
+
+        for (uint32_t vindex = 0; vindex < type.vte_num; ++vindex)
+        {
+            VTEntry field = src_vt[type.vt_index + vindex];
+            field.name_stri = StrTableCopy(_strings, &src_strings[field.name_stri]);
+            _vt[joint_vte_idx + vindex] = field;
+        }
+        new_type.vt_index = joint_vte_idx;
     }
     type_slot = new_type;
     type_l2g.insert(std::make_pair(type.this_id, new_type.this_id));
@@ -506,14 +601,14 @@ void JointRTTI::Join(const RTTI &rtti,
             const Type &gl_type = _types[global_it->second];
             new_types.push_back(
                 JoinType(local_type, gl_type.this_id, &_strings[gl_type.name_stri],
-                    rtti._fields, rtti._strings, type_l2g));
+                    rtti._fields, rtti._vt, rtti._strings, type_l2g));
         }
         else
         {
             // add a new type
             new_types.push_back(
                 JoinType(local_type, _types.size(), &rtti._strings[local_type.name_stri],
-                    rtti._fields, rtti._strings, type_l2g));
+                    rtti._fields, rtti._vt, rtti._strings, type_l2g));
             // add new type to a global lookup
             _rttiLookup.insert(std::make_pair(fullname, new_types.back()));
         }

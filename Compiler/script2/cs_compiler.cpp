@@ -124,6 +124,18 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
             rtb.AddField(ste.ComponentD->Parent, buf, ste.ComponentD->Offset,
                 symt.GetFirstBaseVartype(ste.VariableD->Vartype), flags, num_elems);
         }
+        // Detect a struct's virtual function
+        else if (ste.ComponentD && ste.FunctionD)
+        {
+            // NOTE: if we ever support function overloading, then we will have to
+            // register virtual functions by their fully mangled names, to match import names precisely
+            // (i.e. "funcname^numparams^args...")
+            if (ste.FunctionD->VirtualIndex >= 0)
+            {
+                buf = ste.Name.substr(ste.Name.rfind(":") + 1);
+                rtb.AddVirtualFunction(ste.ComponentD->Parent, buf, ste.FunctionD->VirtualIndex);
+            }
+        }
     }
 
     return std::unique_ptr<RTTI>(

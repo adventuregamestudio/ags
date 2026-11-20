@@ -24,11 +24,11 @@ Helper functions for touch devices
 #endif
 
 #if defined(BUILTIN_PLUGINS)
-namespace agstouch {
+namespace agstouch
+{
 #endif
 
-IAGSEngine* engine;
-
+IAGSEngine *engine;
 
 
 // ********************************************
@@ -39,7 +39,7 @@ IAGSEngine* engine;
 void TouchShowKeyboard()
 {
 #if (AGS_PLATFORM_OS_IOS)
-  SDL_StartTextInput();
+    SDL_StartTextInput();
 #endif
 }
 
@@ -47,7 +47,7 @@ void TouchShowKeyboard()
 void TouchHideKeyboard()
 {
 #if (AGS_PLATFORM_OS_IOS)
-  SDL_StopTextInput();
+    SDL_StopTextInput();
 #endif
 }
 
@@ -55,44 +55,39 @@ void TouchHideKeyboard()
 bool TouchIsKeyboardVisible()
 {
 #if (AGS_PLATFORM_OS_IOS)
-  return SDL_IsTextInputActive();
+    return SDL_IsTextInputActive();
 #else
-  return false;
+    return false;
 #endif
 }
 
 
 void AGS_EngineStartup(IAGSEngine *lpEngine)
 {
-  engine = lpEngine;
+    engine = lpEngine;
 
-  engine->RegisterScriptFunction("TouchShowKeyboard", (void*)&TouchShowKeyboard);
-  engine->RegisterScriptFunction("TouchHideKeyboard", (void*)&TouchHideKeyboard);
-  engine->RegisterScriptFunction("TouchIsKeyboardVisible", (void*)&TouchIsKeyboardVisible);
+    engine->RegisterScriptFunction("TouchShowKeyboard", (void *)&TouchShowKeyboard);
+    engine->RegisterScriptFunction("TouchHideKeyboard", (void *)&TouchHideKeyboard);
+    engine->RegisterScriptFunction("TouchIsKeyboardVisible", (void *)&TouchIsKeyboardVisible);
 }
 
-void AGS_EngineShutdown()
-{
-
-}
+void AGS_EngineShutdown() {}
 
 intptr_t AGS_EngineOnEvent(int event, intptr_t data)
 {
-  return 0;
+    return 0;
 }
 
 int AGS_EngineDebugHook(const char *scriptName, int lineNum, int reserved)
 {
-  return 0;
+    return 0;
 }
 
-void AGS_EngineInitGfx(const char *driverID, void *data)
-{
-}
+void AGS_EngineInitGfx(const char *driverID, void *data) {}
 
 int AGS_PluginV2()
 {
-  return 1;
+    return 1;
 }
 
 
@@ -102,59 +97,57 @@ int AGS_PluginV2()
 // ***********  Editor Interface  *************
 // ********************************************
 
-const char* scriptHeader =
-  "import void TouchShowKeyboard();\r\n"
-  "import void TouchHideKeyboard();\r\n"
-  "import bool TouchIsKeyboardVisible();\r\n"
-  ;
+const char *scriptHeader = "import void TouchShowKeyboard();\r\n"
+                           "import void TouchHideKeyboard();\r\n"
+                           "import bool TouchIsKeyboardVisible();\r\n";
 
 
-IAGSEditor* editor;
+IAGSEditor *editor;
 
 
 LPCSTR AGS_GetPluginName(void)
 {
-  // Return the plugin description
-  return "Touch device control";
+    // Return the plugin description
+    return "Touch device control";
 }
 
-int  AGS_EditorStartup(IAGSEditor* lpEditor)
+int AGS_EditorStartup(IAGSEditor *lpEditor)
 {
-  // User has checked the plugin to use it in their game
+    // User has checked the plugin to use it in their game
 
-  // If it's an earlier version than what we need, abort.
-  if (lpEditor->version < 1)
-    return -1;
+    // If it's an earlier version than what we need, abort.
+    if (lpEditor->version < 1)
+        return -1;
 
-  editor = lpEditor;
-  editor->RegisterScriptHeader(scriptHeader);
+    editor = lpEditor;
+    editor->RegisterScriptHeader(scriptHeader);
 
-  // Return 0 to indicate success
-  return 0;
+    // Return 0 to indicate success
+    return 0;
 }
 
 void AGS_EditorShutdown()
 {
-  // User has un-checked the plugin from their game
-  editor->UnregisterScriptHeader(scriptHeader);
+    // User has un-checked the plugin from their game
+    editor->UnregisterScriptHeader(scriptHeader);
 }
 
 void AGS_EditorProperties(HWND parent)
 {
-  // User has chosen to view the Properties of the plugin
-  // We could load up an options dialog or something here instead
-  MessageBoxA(parent, "Touch device control plugin by JJS", "About", MB_OK | MB_ICONINFORMATION);
+    // User has chosen to view the Properties of the plugin
+    // We could load up an options dialog or something here instead
+    MessageBoxA(parent, "Touch device control plugin by JJS", "About", MB_OK | MB_ICONINFORMATION);
 }
 
-int AGS_EditorSaveGame(char* buffer, int bufsize)
+int AGS_EditorSaveGame(char *buffer, int bufsize)
 {
-  // We don't want to save any persistent data
-  return 0;
+    // We don't want to save any persistent data
+    return 0;
 }
 
-void AGS_EditorLoadGame(char* buffer, int bufsize)
+void AGS_EditorLoadGame(char *buffer, int bufsize)
 {
-  // Nothing to load for this plugin
+    // Nothing to load for this plugin
 }
 
 #endif

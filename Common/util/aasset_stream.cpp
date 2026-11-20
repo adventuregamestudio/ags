@@ -25,138 +25,136 @@
 
 namespace AGS
 {
-    namespace Common
+namespace Common
+{
+AAssetStream::AAssetStream(const String &asset_name, int asset_mode) : StreamBase()
+{
+    AAsset *asset = OpenAAsset(asset_name, asset_mode);
+    Open(asset, true, asset_name, asset_mode);
+}
+
+AAssetStream::AAssetStream(AAsset *aasset, bool own, int asset_mode) : StreamBase()
+{
+    Open(aasset, own, "" /* none provided */, asset_mode);
+}
+
+AAssetStream::~AAssetStream()
+{
+    if (_ownHandle)
+        Close();
+}
+
+void AAssetStream::Close()
+{
+    if (_aAsset)
     {
-        AAssetStream::AAssetStream(const String &asset_name, int asset_mode)
-            : StreamBase()
-        {
-            AAsset *asset = OpenAAsset(asset_name, asset_mode);
-            Open(asset, true, asset_name, asset_mode);
-        }
+        AAsset_close(_aAsset);
+        _aAsset = nullptr;
+    }
+    _mode = kStream_None;
+}
 
-        AAssetStream::AAssetStream(AAsset *aasset, bool own, int asset_mode)
-            : StreamBase()
-        {
-            Open(aasset, own, "" /* none provided */, asset_mode);
-        }
+bool AAssetStream::Flush()
+{
+    return false;
+}
 
-        AAssetStream::~AAssetStream()
-        {
-            if (_ownHandle)
-                Close();
-        }
+StreamMode AAssetStream::GetMode() const
+{
+    return _mode;
+}
 
-        void AAssetStream::Close()
-        {
-            if (_aAsset)
-            {
-                AAsset_close(_aAsset);
-                _aAsset = nullptr;
-            }
-            _mode = kStream_None;
-        }
+bool AAssetStream::EOS() const
+{
+    return (_end - _cur_offset) <= 0;
+}
 
-        bool AAssetStream::Flush()
-        {
-            return false;
-        }
+soff_t AAssetStream::GetLength() const
+{
+    return _end - _start;
+}
 
-        StreamMode AAssetStream::GetMode() const
-        {
-            return _mode;
-        }
+soff_t AAssetStream::GetPosition() const
+{
+    return _cur_offset - _start; // convert to formal offset range
+}
 
-        bool AAssetStream::EOS() const
-        {
-            return (_end - _cur_offset) <= 0;
-        }
+size_t AAssetStream::Read(void *buffer, size_t size)
+{
+    assert(_aAsset);
+    size = std::min<size_t>(size, _end - _cur_offset);
+    if (size == 0)
+        return 0;
+    auto read_size = AAsset_read(_aAsset, buffer, size);
+    if (read_size < 0)
+        return 0; // error
+    _cur_offset += read_size;
+    return read_size;
+}
 
-        soff_t AAssetStream::GetLength() const
-        {
-            return _end - _start;
-        }
+int32_t AAssetStream::ReadByte()
+{
+    uint8_t ch;
+    auto read_size = Read(&ch, 1);
+    return (read_size == 1) ? ch : EOF;
+}
 
-        soff_t AAssetStream::GetPosition() const
-        {
-            return _cur_offset - _start; // convert to formal offset range
-        }
+size_t AAssetStream::Write(const void *buffer, size_t size)
+{
+    return 0;
+}
 
-        size_t AAssetStream::Read(void *buffer, size_t size)
-        {
-            assert(_aAsset);
-            size = std::min<size_t>(size, _end - _cur_offset);
-            if (size == 0)
-                return 0;
-            auto read_size = AAsset_read(_aAsset, buffer, size);
-            if (read_size < 0)
-                return 0; // error
-            _cur_offset += read_size;
-            return read_size;
-        }
+int32_t AAssetStream::WriteByte(uint8_t val)
+{
+    return -1;
+}
 
-        int32_t AAssetStream::ReadByte()
-        {
-            uint8_t ch;
-            auto read_size = Read(&ch, 1);
-            return (read_size == 1) ? ch : EOF;
-        }
+soff_t AAssetStream::Seek(soff_t offset, StreamSeek origin)
+{
+    assert(_aAsset);
+    int aa_origin;
+    switch (origin)
+    {
+    case kSeekBegin: aa_origin = SEEK_SET; break;
+    case kSeekCurrent: aa_origin = SEEK_CUR; break;
+    case kSeekEnd: aa_origin = SEEK_END; break;
+    default: return -1;
+    }
 
-        size_t AAssetStream::Write(const void *buffer, size_t size)
-        {
-            return 0;
-        }
+    off64_t new_off = AAsset_seek64(_aAsset, static_cast<off64_t>(offset), aa_origin);
+    // if seek returns error (< 0), then the position must remain
+    if (new_off < 0)
+        return -1;
+    _cur_offset = new_off;
+    return _cur_offset - _start; // convert to formal offset range
+}
 
-        int32_t AAssetStream::WriteByte(uint8_t val)
-        {
-            return -1;
-        }
+AAsset *AAssetStream::OpenAAsset(const String &asset_name, int asset_mode)
+{
+    AAssetManager *aAssetManager = GetAAssetManager();
+    if (aAssetManager == nullptr)
+        throw std::runtime_error("Couldn't get AAssetManager, SDL not initialized yet.");
 
-        soff_t AAssetStream::Seek(soff_t offset, StreamSeek origin)
-        {
-            assert(_aAsset);
-            int aa_origin;
-            switch (origin)
-            {
-                case kSeekBegin:    aa_origin = SEEK_SET; break;
-                case kSeekCurrent:  aa_origin = SEEK_CUR; break;
-                case kSeekEnd:      aa_origin = SEEK_END; break;
-                default: return -1;
-            }
+    String a_asset_name = Path::GetPathInForeignAsset(asset_name);
+    AAsset *asset = AAssetManager_open(aAssetManager, a_asset_name.GetCStr(), asset_mode);
+    if (asset == nullptr)
+        throw std::runtime_error("Error opening file.");
+    return asset;
+}
 
-            off64_t new_off = AAsset_seek64(_aAsset, static_cast<off64_t>(offset), aa_origin);
-            // if seek returns error (< 0), then the position must remain
-            if (new_off < 0)
-                return -1;
-            _cur_offset = new_off;
-            return _cur_offset - _start; // convert to formal offset range
-        }
+void AAssetStream::Open(AAsset *asset, bool own, const String &asset_name, int asset_mode)
+{
+    _aAsset = asset;
+    _ownHandle = own;
+    _cur_offset = 0;
+    _start = 0;
+    _end = AAsset_getLength64(_aAsset);
+    _assetMode = asset_mode;
+    _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
+    _path = asset_name;
+}
 
-        AAsset *AAssetStream::OpenAAsset(const String &asset_name, int asset_mode)
-        {
-            AAssetManager* aAssetManager = GetAAssetManager();
-            if(aAssetManager == nullptr)
-                throw std::runtime_error("Couldn't get AAssetManager, SDL not initialized yet.");
-
-            String a_asset_name = Path::GetPathInForeignAsset(asset_name);
-            AAsset *asset = AAssetManager_open(aAssetManager, a_asset_name.GetCStr(), asset_mode);
-            if (asset == nullptr)
-                throw std::runtime_error("Error opening file.");
-            return asset;
-        }
-
-        void AAssetStream::Open(AAsset *asset, bool own, const String &asset_name, int asset_mode)
-        {
-            _aAsset = asset;
-            _ownHandle = own;
-            _cur_offset = 0;
-            _start = 0;
-            _end = AAsset_getLength64(_aAsset);
-            _assetMode = asset_mode;
-            _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
-            _path = asset_name;
-        }
-
-    } // namespace Common
+} // namespace Common
 } // namespace AGS
 
 #endif

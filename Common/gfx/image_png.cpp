@@ -11,11 +11,11 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-// 
+//
 // .PNG reading and writing.
 // This is the internal image file API implementation, the actual reading is
 // done by stb_image.h, the writing is done by miniz.
-// 
+//
 //=============================================================================
 #include <cstring>
 #include <allegro.h>
@@ -46,17 +46,17 @@ namespace ImageFile
 
 static int STB_IO_read(void *user, char *data, int size)
 {
-    return static_cast<int>(static_cast<IStreamBase*>(user)->Read(data, size));
+    return static_cast<int>(static_cast<IStreamBase *>(user)->Read(data, size));
 }
 
 static void STB_IO_skip(void *user, int n)
 {
-    static_cast<IStreamBase*>(user)->Seek(n, kSeekCurrent);
+    static_cast<IStreamBase *>(user)->Seek(n, kSeekCurrent);
 }
 
 static int STB_IO_eof(void *user)
 {
-    return static_cast<int>(static_cast<IStreamBase*>(user)->EOS());
+    return static_cast<int>(static_cast<IStreamBase *>(user)->EOS());
 }
 
 PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
@@ -72,15 +72,9 @@ PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
     if (in->Read(magic, sizeof(magic)) == sizeof(magic))
     {
         const uint8_t PNG_COLOR_INDEXED = 3;
-        if (magic[0] == 0x89 &&
-            magic[1] == 'P' &&
-            magic[2] == 'N' &&
-            magic[3] == 'G' &&
-            magic[12] == 'I' &&
-            magic[13] == 'H' &&
-            magic[14] == 'D' &&
-            magic[15] == 'R' &&
-            magic[25] == PNG_COLOR_INDEXED) {
+        if (magic[0] == 0x89 && magic[1] == 'P' && magic[2] == 'N' && magic[3] == 'G' && magic[12] == 'I' &&
+            magic[13] == 'H' && magic[14] == 'D' && magic[15] == 'R' && magic[25] == PNG_COLOR_INDEXED)
+        {
             use_palette = true;
         }
     }
@@ -97,28 +91,16 @@ PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
     stbi_uc *pixels;
     int width, height;
     int stb_format = STBI_default;
-    uint32_t palette_colors[PAL_SIZE] = { 0 };
+    uint32_t palette_colors[PAL_SIZE] = {0};
     if (use_palette)
     {
-        pixels = stbi_load_from_callbacks_with_palette(
-            &rw_callbacks,
-            in->GetStreamBase(),
-            &width,
-            &height,
-            palette_colors,
-            PAL_SIZE
-        );
+        pixels = stbi_load_from_callbacks_with_palette(&rw_callbacks, in->GetStreamBase(), &width, &height,
+                                                       palette_colors, PAL_SIZE);
     }
     else
     {
-        pixels = stbi_load_from_callbacks(
-            &rw_callbacks,
-            in->GetStreamBase(),
-            &width,
-            &height,
-            &stb_format,
-            STBI_default
-        );
+        pixels =
+            stbi_load_from_callbacks(&rw_callbacks, in->GetStreamBase(), &width, &height, &stb_format, STBI_default);
     }
 
     if (!pixels)
@@ -131,9 +113,7 @@ PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
     case STBI_grey_alpha: px_fmt = kPxFmt_A8R8G8B8; break;
     case STBI_rgb: px_fmt = kPxFmt_R8G8B8; break;
     case STBI_rgb_alpha: px_fmt = kPxFmt_A8R8G8B8; break;
-    default:
-        px_fmt = use_palette ? kPxFmt_Indexed8 : kPxFmt_Undefined;
-        break;
+    default: px_fmt = use_palette ? kPxFmt_Indexed8 : kPxFmt_Undefined; break;
     }
 
     PixelBuffer pxbuf;
@@ -144,7 +124,7 @@ PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
         std::memcpy(pxbuf.GetData(), pixels, width * height);
         if (pal)
         {
-            const uint8_t *palette_bytes = reinterpret_cast<const uint8_t*>(palette_colors);
+            const uint8_t *palette_bytes = reinterpret_cast<const uint8_t *>(palette_colors);
             for (int i = 0; i < PAL_SIZE; i++)
             {
                 pal[i].r = *palette_bytes++;
@@ -178,9 +158,10 @@ PixelBuffer LoadPNG(Stream *in, PixelFormat *src_fmt, RGB *pal)
         pxbuf = PixelBuffer(width, height, px_fmt);
         if (_rgb_r_shift_32 != PNG_SHIFT_R32 || _rgb_g_shift_32 != PNG_SHIFT_G32 || _rgb_b_shift_32 != PNG_SHIFT_B32)
         {
-            PixelOp::CopySwapRGBA(pixels, width * stb_format, PNG_SHIFT_R32, PNG_SHIFT_G32, PNG_SHIFT_B32, PNG_SHIFT_A32,
-                pxbuf.GetData(), GetStrideForPixelFormat(px_fmt, width), _rgb_r_shift_32, _rgb_g_shift_32, _rgb_b_shift_32, _rgb_a_shift_32,
-                width, height, px_fmt);
+            PixelOp::CopySwapRGBA(pixels, width * stb_format, PNG_SHIFT_R32, PNG_SHIFT_G32, PNG_SHIFT_B32,
+                                  PNG_SHIFT_A32, pxbuf.GetData(), GetStrideForPixelFormat(px_fmt, width),
+                                  _rgb_r_shift_32, _rgb_g_shift_32, _rgb_b_shift_32, _rgb_a_shift_32, width, height,
+                                  px_fmt);
         }
         else
         {
@@ -230,7 +211,7 @@ bool SavePNG(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out
     uint8_t trns[PAL_SIZE] = {0};
     if (bmp.GetBytesPerPixel() == 1)
     {
-        assert (pal);
+        assert(pal);
         if (!pal)
             return false;
 
@@ -246,17 +227,17 @@ bool SavePNG(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out
     // * first if it's a 16-bit image, as our PNG save implementation cannot write 16-bit RGB data;
     // * second if it's a 32-bit image, but we are instructed to skip alpha.
     // TODO: is it possible to support saving 16-bit RGB PNGs?
-    else if ((bmp.GetBytesPerPixel() == 2)
-        || ((bmp.GetBytesPerPixel() == 4) && skip_alpha))
+    else if ((bmp.GetBytesPerPixel() == 2) || ((bmp.GetBytesPerPixel() == 4) && skip_alpha))
     {
         png_buf = PixelBuffer(bmp.GetWidth(), bmp.GetHeight(), kPxFmt_R8G8B8);
-        PixelOp::CopyConvert(bmp.GetData(), bmp.GetFormat(), bmp.GetStride(),
-            bmp.GetWidth(), bmp.GetHeight(), png_buf.GetData(), kPxFmt_R8G8B8, png_buf.GetStride());
+        PixelOp::CopyConvert(bmp.GetData(), bmp.GetFormat(), bmp.GetStride(), bmp.GetWidth(), bmp.GetHeight(),
+                             png_buf.GetData(), kPxFmt_R8G8B8, png_buf.GetStride());
         // Swap RGB(A) components if necessary (in-place)
         if (_rgb_r_shift_32 != PNG_SHIFT_R32 || _rgb_g_shift_32 != PNG_SHIFT_G32 || _rgb_b_shift_32 != PNG_SHIFT_B32)
         {
             PixelOp::CopySwapRGBA(png_buf.GetData(), _rgb_r_shift_32, _rgb_g_shift_32, _rgb_b_shift_32, _rgb_a_shift_32,
-                png_buf.GetData(), PNG_SHIFT_R32, PNG_SHIFT_G32, PNG_SHIFT_B32, PNG_SHIFT_A32, png_buf.GetWidth(), png_buf.GetHeight(), png_buf.GetFormat());
+                                  png_buf.GetData(), PNG_SHIFT_R32, PNG_SHIFT_G32, PNG_SHIFT_B32, PNG_SHIFT_A32,
+                                  png_buf.GetWidth(), png_buf.GetHeight(), png_buf.GetFormat());
         }
     }
     else
@@ -266,23 +247,26 @@ bool SavePNG(const BitmapData &bmp, bool skip_alpha, const RGB *pal, Stream *out
         {
             png_buf = PixelBuffer(bmp.GetWidth(), bmp.GetHeight(), bmp.GetFormat());
             PixelOp::CopySwapRGBA(bmp.GetData(), _rgb_r_shift_32, _rgb_g_shift_32, _rgb_b_shift_32, _rgb_a_shift_32,
-                png_buf.GetData(), PNG_SHIFT_R32, PNG_SHIFT_G32, PNG_SHIFT_B32, PNG_SHIFT_A32, bmp.GetWidth(), bmp.GetHeight(), bmp.GetFormat());
+                                  png_buf.GetData(), PNG_SHIFT_R32, PNG_SHIFT_G32, PNG_SHIFT_B32, PNG_SHIFT_A32,
+                                  bmp.GetWidth(), bmp.GetHeight(), bmp.GetFormat());
         }
     }
 
     // Write a compressed PNG to memory
     size_t size = 0;
     void *png;
-    const BitmapData *final_bmp = (png_buf) ? static_cast<const BitmapData*>(&png_buf) : &bmp;
+    const BitmapData *final_bmp = (png_buf) ? static_cast<const BitmapData *>(&png_buf) : &bmp;
     if (final_bmp->GetBytesPerPixel() == 1)
     {
-        png = tdefl_write_image_to_png_file_in_memory_ex2(final_bmp->GetData(), final_bmp->GetWidth(), final_bmp->GetHeight(), final_bmp->GetBytesPerPixel(),
+        png = tdefl_write_image_to_png_file_in_memory_ex2(
+            final_bmp->GetData(), final_bmp->GetWidth(), final_bmp->GetHeight(), final_bmp->GetBytesPerPixel(),
             final_bmp->GetStride(), &size, Z_DEFAULT_COMPRESSION, MZ_FALSE, plte, PAL_SIZE * 3, trns, PAL_SIZE);
     }
     else
     {
-        png = tdefl_write_image_to_png_file_in_memory_ex(final_bmp->GetData(), final_bmp->GetWidth(), final_bmp->GetHeight(), final_bmp->GetBytesPerPixel(),
-            &size, Z_DEFAULT_COMPRESSION, MZ_FALSE);
+        png = tdefl_write_image_to_png_file_in_memory_ex(final_bmp->GetData(), final_bmp->GetWidth(),
+                                                         final_bmp->GetHeight(), final_bmp->GetBytesPerPixel(), &size,
+                                                         Z_DEFAULT_COMPRESSION, MZ_FALSE);
     }
 
     // Write a result PNG from memory to file

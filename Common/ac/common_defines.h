@@ -29,22 +29,22 @@
 
 // Room object flags
 // (design-time values are now limited to 16-bit by the game file format)
-#define OBJF_NOINTERACT     0x0001  // not clickable
-#define OBJF_NOWALKBEHINDS  0x0002  // [DEPRECATED] ignore walk-behinds
-#define OBJF_HASTINT        0x0004  // the tint_* members are valid
-#define OBJF_USEREGIONTINTS 0x0008  // obey region tints/light areas
-#define OBJF_USEROOMSCALING 0x0010  // obey room scaling areas
-#define OBJF_SOLID          0x0020  // blocks characters from moving
-#define OBJF_LEGACY_LOCKED  0x0040  // object position is locked in the editor (OBSOLETE since 3.5.0)
-#define OBJF_HASLIGHT       0x0080  // the tint_light is valid and treated as brightness
+#define OBJF_NOINTERACT     0x0001 // not clickable
+#define OBJF_NOWALKBEHINDS  0x0002 // [DEPRECATED] ignore walk-behinds
+#define OBJF_HASTINT        0x0004 // the tint_* members are valid
+#define OBJF_USEREGIONTINTS 0x0008 // obey region tints/light areas
+#define OBJF_USEROOMSCALING 0x0010 // obey room scaling areas
+#define OBJF_SOLID          0x0020 // blocks characters from moving
+#define OBJF_LEGACY_LOCKED  0x0040 // object position is locked in the editor (OBSOLETE since 3.5.0)
+#define OBJF_HASLIGHT       0x0080 // the tint_light is valid and treated as brightness
 #define OBJF_TINTLIGHTMASK  (OBJF_HASTINT | OBJF_HASLIGHT | OBJF_USEREGIONTINTS)
 #define OBJF_ENABLED        0x0100
 #define OBJF_VISIBLE        0x0200
 
 // Legacy animation flow constants, required only for unserializing old saves
-#define LEGACY_ANIM_ONCE        0
-#define LEGACY_ANIM_REPEAT      1
-#define LEGACY_ANIM_ONCERESET   2
+#define LEGACY_ANIM_ONCE      0
+#define LEGACY_ANIM_REPEAT    1
+#define LEGACY_ANIM_ONCERESET 2
 
 // A value of a font property that tells that the property is not set;
 // this is handled on a per-case basis by the engine, replacing by
@@ -56,22 +56,22 @@
 
 // Classic standard interaction verbs (aka cursor modes)
 #define STD_MODE_NONE      -1
-#define STD_MODE_WALK       0
-#define STD_MODE_LOOK       1
-#define STD_MODE_HAND       2
-#define STD_MODE_TALK       3
-#define STD_MODE_USE        4
-#define STD_MODE_PICKUP     5
-#define STD_MODE_POINTER    6
-#define STD_MODE_WAIT       7
-#define STD_MODE_CUSTOM1    8
-#define STD_MODE_CUSTOM2    9
+#define STD_MODE_WALK      0
+#define STD_MODE_LOOK      1
+#define STD_MODE_HAND      2
+#define STD_MODE_TALK      3
+#define STD_MODE_USE       4
+#define STD_MODE_PICKUP    5
+#define STD_MODE_POINTER   6
+#define STD_MODE_WAIT      7
+#define STD_MODE_CUSTOM1   8
+#define STD_MODE_CUSTOM2   9
 #define NUM_STANDARD_VERBS 10
 
-#define AUDIOTYPE_UNDEFINED -1
-#define AUDIOTYPE_SPEECH 0
+#define AUDIOTYPE_UNDEFINED            -1
+#define AUDIOTYPE_SPEECH               0
 #define AUDIOTYPE_LEGACY_AMBIENT_SOUND 1
-#define AUDIOTYPE_LEGACY_MUSIC 2
-#define AUDIOTYPE_LEGACY_SOUND 3
+#define AUDIOTYPE_LEGACY_MUSIC         2
+#define AUDIOTYPE_LEGACY_SOUND         3
 
 #endif // __AC_DEFINES_H

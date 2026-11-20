@@ -21,13 +21,13 @@
 #include "platform/platform.h"
 #include "platform/types.h"
 
-#define EXTENDED_KEY_CODE ('\0')
+#define EXTENDED_KEY_CODE       ('\0')
 #define EXTENDED_KEY_CODE_MACOS ('?')
 
 // Constant used to define Alt+Key codes
-#define AGS_EXT_KEY_SHIFT  300
-#define AGS_EXT_KEY_FROMALPHA(key)  (AGS_EXT_KEY_SHIFT + (key - eAGSKeyCodeCtrlA) + 1)
-#define AGS_EXT_KEY_TOALPHA(key)    (((key + eAGSKeyCodeCtrlA) - 1) - AGS_EXT_KEY_SHIFT)
+#define AGS_EXT_KEY_SHIFT          300
+#define AGS_EXT_KEY_FROMALPHA(key) (AGS_EXT_KEY_SHIFT + (key - eAGSKeyCodeCtrlA) + 1)
+#define AGS_EXT_KEY_TOALPHA(key)   (((key + eAGSKeyCodeCtrlA) - 1) - AGS_EXT_KEY_SHIFT)
 
 // These are based on eKeyCode values in AGS Script.
 // The actual values are based on scan codes of the old backend (allegro 3 and/or 4),
@@ -73,8 +73,8 @@ enum eAGSKeyCode
     eAGSKeyCodeCtrlZ = 26,
 
     eAGSKeyCodeBackspace = 8, // matches Ctrl + H
-    eAGSKeyCodeTab = 9, // matches Ctrl + I
-    eAGSKeyCodeReturn = 13, // matches Ctrl + M
+    eAGSKeyCodeTab = 9,       // matches Ctrl + I
+    eAGSKeyCodeReturn = 13,   // matches Ctrl + M
     eAGSKeyCodeEscape = 27,
 
     /* printable chars - from eAGSKeyCodeSpace to eAGSKeyCode_z */
@@ -260,23 +260,23 @@ enum eAGSKeyCode
 // AGS key modifiers
 enum eAGSKeyMod
 {
-    eAGSModNone   = 0,
+    eAGSModNone = 0,
     eAGSModLShift = 0x00010000,
     eAGSModRShift = 0x00020000,
-    eAGSModLCtrl  = 0x00040000,
-    eAGSModRCtrl  = 0x00080000,
-    eAGSModLAlt   = 0x00100000,
-    eAGSModRAlt   = 0x00200000,
-    eAGSModNum    = 0x00400000,
-    eAGSModCaps   = 0x00800000,
-    eAGSModShift  = 0x00030000,
-    eAGSModCtrl   = 0x000C0000,
-    eAGSModAlt    = 0x00300000,
+    eAGSModLCtrl = 0x00040000,
+    eAGSModRCtrl = 0x00080000,
+    eAGSModLAlt = 0x00100000,
+    eAGSModRAlt = 0x00200000,
+    eAGSModNum = 0x00400000,
+    eAGSModCaps = 0x00800000,
+    eAGSModShift = 0x00030000,
+    eAGSModCtrl = 0x000C0000,
+    eAGSModAlt = 0x00300000,
 
     // Mask defines the key mod position if packed in the int32;
     // the upper 8 bits are reserved for "input type" codes;
     // potentially may take 4 bits below (4th pos), as KeyMask takes only 12.
-    eAGSModMask   = 0x00FF0000
+    eAGSModMask = 0x00FF0000
 };
 
 
@@ -296,11 +296,11 @@ struct KeyInput
     // combos as two separate variables everywhere.
     eAGSKeyCode CompatKey = eAGSKeyCodeNone;
     // Key modifiers (see eAGSKeyMod)
-    int         Mod = 0;
+    int Mod = 0;
     // Printable character value (supports unicode)
-    int         UChar = 0;
+    int UChar = 0;
     // Printable character in UTF-8 string format
-    char        Text[UTF8_ARR_SIZE]{};
+    char Text[UTF8_ARR_SIZE]{};
 
     KeyInput() = default;
 };
@@ -321,8 +321,7 @@ enum eAGSMouseButton
 // Tells if the AGS keycode refers to the modifier key (ctrl, alt, etc)
 inline bool IsAGSModKey(eAGSKeyCode keycode)
 {
-    return (keycode >= eAGSKeyCodeLShift && keycode <= eAGSKeyCodeLAlt) ||
-        keycode == eAGSKeyCodeRAlt;
+    return (keycode >= eAGSKeyCodeLShift && keycode <= eAGSKeyCodeLAlt) || keycode == eAGSKeyCodeRAlt;
 }
 // Tells if the AGS keycode refers to the service key (modifier, PrintScreen and similar);
 // this lets distinct keys that normally should not affect the game

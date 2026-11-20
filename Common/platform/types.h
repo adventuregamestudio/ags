@@ -21,7 +21,7 @@
 #include <stddef.h> // for size_t
 #include <stdint.h>
 #include <inttypes.h> // for PRI constants
-#include <limits.h> // for _WORDSIZE
+#include <limits.h>   // for _WORDSIZE
 
 #ifndef NULL
 #define NULL nullptr
@@ -29,20 +29,20 @@
 
 // Not all compilers have this. Added in clang and gcc followed
 #ifndef __has_attribute
-    #define __has_attribute(x) 0
+#define __has_attribute(x) 0
 #endif
 
 #ifndef FORCEINLINE
-    #ifdef _MSC_VER
-        #define FORCEINLINE __forceinline
+#ifdef _MSC_VER
+#define FORCEINLINE __forceinline
 
-    #elif defined (__GNUC__) || __has_attribute(__always_inline__)
-        #define FORCEINLINE inline __attribute__((__always_inline__))
+#elif defined(__GNUC__) || __has_attribute(__always_inline__)
+#define FORCEINLINE inline __attribute__((__always_inline__))
 
-    #else
-        #define FORCEINLINE inline
+#else
+#define FORCEINLINE inline
 
-    #endif
+#endif
 #endif
 
 // Format compile time guard for printf style variadic functions in AGS
@@ -60,37 +60,37 @@
 //   void FormatV(AGS_FORMAT_STRING_ARG const char *fcstr, va_list argptr) AGS_FORMAT_STRING_OBJECT_V(1);
 //
 #if !defined(AGS_DISABLE_FORMAT_MACRO) && (defined(__GNUC__) || defined(__clang__))
-    // see https://stackoverflow.com/questions/79973899/mingw-w64-produces-warning-for-own-function-using-attribute-format-when
-    #if defined(__MINGW32__) || defined(__MINGW64__)
-        #include <stdio.h>
-        #define AGS_PRINTF_ARCHETYPE __MINGW_PRINTF_FORMAT
-    #else
-        #define AGS_PRINTF_ARCHETYPE printf
-    #endif
-
-    // fmt_idx: 1-based index of the format parameter
-    #define AGS_FORMAT_STRING(fmt_idx) __attribute__((format(AGS_PRINTF_ARCHETYPE, fmt_idx, fmt_idx + 1)))
-    // Same, but for va_list overloads: no variadic args to count.
-    #define AGS_FORMAT_STRING_V(fmt_idx) __attribute__((format(AGS_PRINTF_ARCHETYPE, fmt_idx, 0)))
-
-    // "this" is index 1 for non-static member functions, so we add 1 there.
-    #define AGS_FORMAT_STRING_OBJECT(fmt_idx) __attribute__((format(AGS_PRINTF_ARCHETYPE, fmt_idx + 1, fmt_idx + 2)))
-    #define AGS_FORMAT_STRING_OBJECT_V(fmt_idx) __attribute__((format(AGS_PRINTF_ARCHETYPE, fmt_idx + 1, 0)))
-
-    #define AGS_FORMAT_STRING_ARG
-#elif !defined(AGS_DISABLE_FORMAT_MACRO) && (defined(_MSC_VER) && (_MSC_VER >= 1600)) // VS 2010+
-    #include <sal.h>
-    #define AGS_FORMAT_STRING(fmt_idx)
-    #define AGS_FORMAT_STRING_V(fmt_idx)
-    #define AGS_FORMAT_STRING_OBJECT(fmt_idx)
-    #define AGS_FORMAT_STRING_OBJECT_V(fmt_idx)
-    #define AGS_FORMAT_STRING_ARG _Printf_format_string_
+// see https://stackoverflow.com/questions/79973899/mingw-w64-produces-warning-for-own-function-using-attribute-format-when
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#include <stdio.h>
+#define AGS_PRINTF_ARCHETYPE __MINGW_PRINTF_FORMAT
 #else
-    #define AGS_FORMAT_STRING(fmt_idx)
-    #define AGS_FORMAT_STRING_V(fmt_idx)
-    #define AGS_FORMAT_STRING_OBJECT(fmt_idx)
-    #define AGS_FORMAT_STRING_OBJECT_V(fmt_idx)
-    #define AGS_FORMAT_STRING_ARG
+#define AGS_PRINTF_ARCHETYPE printf
+#endif
+
+// fmt_idx: 1-based index of the format parameter
+#define AGS_FORMAT_STRING(fmt_idx) __attribute__((format(AGS_PRINTF_ARCHETYPE, fmt_idx, fmt_idx + 1)))
+// Same, but for va_list overloads: no variadic args to count.
+#define AGS_FORMAT_STRING_V(fmt_idx) __attribute__((format(AGS_PRINTF_ARCHETYPE, fmt_idx, 0)))
+
+// "this" is index 1 for non-static member functions, so we add 1 there.
+#define AGS_FORMAT_STRING_OBJECT(fmt_idx)   __attribute__((format(AGS_PRINTF_ARCHETYPE, fmt_idx + 1, fmt_idx + 2)))
+#define AGS_FORMAT_STRING_OBJECT_V(fmt_idx) __attribute__((format(AGS_PRINTF_ARCHETYPE, fmt_idx + 1, 0)))
+
+#define AGS_FORMAT_STRING_ARG
+#elif !defined(AGS_DISABLE_FORMAT_MACRO) && (defined(_MSC_VER) && (_MSC_VER >= 1600)) // VS 2010+
+#include <sal.h>
+#define AGS_FORMAT_STRING(fmt_idx)
+#define AGS_FORMAT_STRING_V(fmt_idx)
+#define AGS_FORMAT_STRING_OBJECT(fmt_idx)
+#define AGS_FORMAT_STRING_OBJECT_V(fmt_idx)
+#define AGS_FORMAT_STRING_ARG _Printf_format_string_
+#else
+#define AGS_FORMAT_STRING(fmt_idx)
+#define AGS_FORMAT_STRING_V(fmt_idx)
+#define AGS_FORMAT_STRING_OBJECT(fmt_idx)
+#define AGS_FORMAT_STRING_OBJECT_V(fmt_idx)
+#define AGS_FORMAT_STRING_ARG
 #endif
 
 // Stream offset type
@@ -109,8 +109,8 @@ typedef int32_t color_t; // AGS color number type (meaning depends on game's set
 // TODO: use distinct fixed point class
 enum
 {
-    kShift    = 16,
-    kUnit     = 1 << kShift
+    kShift = 16,
+    kUnit = 1 << kShift
 };
 
 #endif // __AGS_CN_CORE__TYPES_H

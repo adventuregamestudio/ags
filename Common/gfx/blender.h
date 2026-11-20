@@ -82,10 +82,10 @@ namespace AGS
 {
 namespace Common
 {
-    typedef uint32_t (*PfnBlenderCb)(uint32_t x, uint32_t y, uint32_t n);
-    // Gets 32-bit ARGB blender function for the given blending mode.
-    // This is meant for manually applying blend functions.
-    PfnBlenderCb GetBlenderFunc(BlendMode blend_mode);
+typedef uint32_t (*PfnBlenderCb)(uint32_t x, uint32_t y, uint32_t n);
+// Gets 32-bit ARGB blender function for the given blending mode.
+// This is meant for manually applying blend functions.
+PfnBlenderCb GetBlenderFunc(BlendMode blend_mode);
 } // namespace Common
 } // namespace AGS
 

@@ -16,7 +16,8 @@
 
 using namespace AGS::Common;
 
-TEST(String, Internal) {
+TEST(String, Internal)
+{
     String s1 = "abcdefghijklmnop";
     String s2 = s1;
     String s3 = s1;
@@ -56,7 +57,8 @@ TEST(String, Internal) {
     ASSERT_TRUE(strcmp(s4.GetCStr(), "12345123456789012345") == 0);
 }
 
-TEST(String, Compare) {
+TEST(String, Compare)
+{
     String s1 = "abcdabcdabcd";
     String s2 = "abcdbfghijklmn";
     int cmp1 = s1.Compare(s2);
@@ -89,7 +91,8 @@ TEST(String, Compare) {
     ASSERT_TRUE(cmp14 < 0);
 }
 
-TEST(String, FindChar) {
+TEST(String, FindChar)
+{
     String s1 = "findsomethinginhere";
     String s2 = "stringtofindsomethinginside";
     String s3 = "findsomethinginherex";
@@ -117,7 +120,8 @@ TEST(String, FindChar) {
     ASSERT_TRUE(find10 == 10);
 }
 
-TEST(String, GetAt) {
+TEST(String, GetAt)
+{
     String s1 = "abcdefghijklmnop";
     String s2;
     char c1 = s1.GetAt(0);
@@ -132,7 +136,8 @@ TEST(String, GetAt) {
     ASSERT_TRUE(c5 == 0);
 }
 
-TEST(String, ToInt) {
+TEST(String, ToInt)
+{
     String s1;
     String s2 = "100";
     String s3 = "202aaa";
@@ -147,7 +152,8 @@ TEST(String, ToInt) {
     ASSERT_TRUE(i4 == 0);
 }
 
-TEST(String, LeftMidRight) {
+TEST(String, LeftMidRight)
+{
     String s1 = "this is a string to be split";
     String s2 = s1.Left(4);
     String s3 = s1.Left(100);
@@ -172,7 +178,8 @@ TEST(String, LeftMidRight) {
     ASSERT_TRUE(strcmp(s11.GetCStr(), "") == 0);
 }
 
-TEST(String, Section) {
+TEST(String, Section)
+{
     String s = "_123_567_";
     size_t from;
     size_t to;
@@ -203,7 +210,8 @@ TEST(String, Section) {
 }
 
 
-TEST(String, FindSection) {
+TEST(String, FindSection)
+{
     String s1 = "";
     ASSERT_TRUE(s1.FindSection("", ',') == 0);
     ASSERT_TRUE(s1.FindSection("value", ',') == String::NoIndex);
@@ -224,7 +232,8 @@ TEST(String, FindSection) {
     ASSERT_TRUE(s4.FindSection("", ',') == String::NoIndex);
 }
 
-TEST(String, Append) {
+TEST(String, Append)
+{
     String s1 = "a string to enlarge - ";
     s1.Append("make it bigger");
     ASSERT_TRUE(strcmp(s1.GetCStr(), "a string to enlarge - make it bigger") == 0);
@@ -236,7 +245,8 @@ TEST(String, Append) {
     ASSERT_TRUE(strcmp(s1.GetCStr(), "a string to enlarge - make it bigger! much much bigger!") == 0);
 }
 
-TEST(String, Clip) {
+TEST(String, Clip)
+{
     String str1 = "long truncateable string";
     String str2 = str1;
     String str3 = str1;
@@ -255,7 +265,8 @@ TEST(String, Clip) {
     ASSERT_TRUE(strcmp(str5.GetCStr(), "") == 0);
 }
 
-TEST(String, ClipSection) {
+TEST(String, ClipSection)
+{
     String str1 = "C:\\Games\\AGS\\MyNewGame";
     String str2 = str1;
     String str3 = str1;
@@ -292,7 +303,8 @@ TEST(String, ClipSection) {
     ASSERT_TRUE(strcmp(str11.GetCStr(), "") == 0);
 }
 
-TEST(String, FactoryMethods) {
+TEST(String, FactoryMethods)
+{
     String s1 = "we have some string here";
     ASSERT_TRUE(strcmp(s1.GetCStr(), "we have some string here") == 0);
     s1.Empty();
@@ -309,7 +321,8 @@ TEST(String, FactoryMethods) {
     ASSERT_TRUE(strcmp(s1.GetCStr(), "some") == 0);
 }
 
-TEST(String, LowerUpperCase) {
+TEST(String, LowerUpperCase)
+{
     String s1 = "ThIs StRiNg Is TwIsTeD";
     String s2 = s1;
     String s3 = s1;
@@ -319,7 +332,8 @@ TEST(String, LowerUpperCase) {
     ASSERT_TRUE(strcmp(s3.GetCStr(), "THIS STRING IS TWISTED") == 0);
 }
 
-TEST(String, LowerUpperCaseUTF8) {
+TEST(String, LowerUpperCaseUTF8)
+{
     String s1 = "FußGÄNgeRüBerGÄNGe";
     String s2 = s1;
     String s3 = s1;
@@ -329,7 +343,8 @@ TEST(String, LowerUpperCaseUTF8) {
     ASSERT_TRUE(strcmp(s3.GetCStr(), "FUßGÄNGERÜBERGÄNGE") == 0);
 }
 
-TEST(String, Prepend) {
+TEST(String, Prepend)
+{
     String s1 = "- a string to enlarge";
     s1.Prepend("make it bigger ");
     ASSERT_TRUE(strcmp(s1.GetCStr(), "make it bigger - a string to enlarge") == 0);
@@ -341,7 +356,8 @@ TEST(String, Prepend) {
     ASSERT_TRUE(strcmp(s1.GetCStr(), "much much bigger! !make it bigger - a string to enlarge") == 0);
 }
 
-TEST(String, ReplaceChar) {
+TEST(String, ReplaceChar)
+{
     String s1 = "0abc0def0ghi0jk0lm00no0p0";
     String s2 = " abc0def0ghi0jk0lm00no0p0";
     String s3 = "0abc0def0ghi0jk0lm00no0p0";
@@ -359,16 +375,17 @@ TEST(String, ReplaceChar) {
     ASSERT_TRUE(strcmp(s5.GetCStr(), "0abc0def0ghi0jk0lm00no0p0") == 0);
 }
 
-TEST(String, ReplaceString) {
+TEST(String, ReplaceString)
+{
     String s1 = "-123-123-123-";
     String s2 = s1;
     String s3 = s1;
     String s4 = s1;
     String s5 = "\n\n\n\n\n\n\n\n\n";
-    s1.Replace("123", "456"); // same length
+    s1.Replace("123", "456");   // same length
     s2.Replace("123", "45678"); // longer length
-    s3.Replace("123", "4"); // shorter length
-    s4.Replace("1234", "+"); // pattern does not exist
+    s3.Replace("123", "4");     // shorter length
+    s4.Replace("1234", "+");    // pattern does not exist
     s5.Replace("\n", "\r");
     ASSERT_TRUE(strcmp(s1.GetCStr(), "-456-456-456-") == 0);
     ASSERT_TRUE(strcmp(s2.GetCStr(), "-45678-45678-45678-") == 0);
@@ -377,7 +394,8 @@ TEST(String, ReplaceString) {
     ASSERT_TRUE(strcmp(s5.GetCStr(), "\r\r\r\r\r\r\r\r\r") == 0);
 }
 
-TEST(String, ReplaceMid) {
+TEST(String, ReplaceMid)
+{
     String s1 = "we need to replace PRECISELY THIS PART in this string";
     String s2 = s1;
     String s3 = s1;
@@ -395,7 +413,8 @@ TEST(String, ReplaceMid) {
     ASSERT_TRUE(strcmp(s4.GetCStr(), "insert new string here: NEW STRING") == 0);
 }
 
-TEST(String, Reverse) {
+TEST(String, Reverse)
+{
     String s1 = "Reverse this string";
     String s2 = s1;
     s2.Reverse();
@@ -409,7 +428,8 @@ TEST(String, Reverse) {
     ASSERT_TRUE(strcmp(s4.GetCStr(), "yx") == 0);
 }
 
-TEST(String, SetAt) {
+TEST(String, SetAt)
+{
     String s1 = "strimg wiyh typos";
     s1.SetAt(-1, 'a');
     ASSERT_TRUE(strcmp(s1.GetCStr(), "strimg wiyh typos") == 0);
@@ -422,7 +442,8 @@ TEST(String, SetAt) {
     ASSERT_TRUE(strcmp(s1.GetCStr(), "string with typos") == 0);
 }
 
-TEST(String, Trim) {
+TEST(String, Trim)
+{
     String str1 = "\t   This string is quite long and should be cut a little bit\r\n    ";
     String str2 = str1;
     String str3 = str1;
@@ -442,7 +463,8 @@ TEST(String, Trim) {
     ASSERT_TRUE(strcmp(str5.GetCStr(), "There's nothing to trim here") == 0);
 }
 
-TEST(String, Split) {
+TEST(String, Split)
+{
     String str1 = "C:\\Games\\AGS\\MyNewGame\\";
     std::vector<String> result = str1.Split('\\');
     ASSERT_TRUE(result.size() == 5);
@@ -468,7 +490,8 @@ TEST(String, Split) {
     ASSERT_TRUE(strcmp(result[4].GetCStr(), "") == 0);
 }
 
-TEST(String, Truncate) {
+TEST(String, Truncate)
+{
     String str1 = "long truncateable string";
     String str2 = str1;
     String str3 = str1;
@@ -487,7 +510,8 @@ TEST(String, Truncate) {
     ASSERT_TRUE(strcmp(str5.GetCStr(), "long truncateable string") == 0);
 }
 
-TEST(String, TruncateToSection) {
+TEST(String, TruncateToSection)
+{
     String str1 = "C:\\Games\\AGS\\MyNewGame";
     String str2 = str1;
     String str3 = str1;
@@ -527,7 +551,8 @@ TEST(String, TruncateToSection) {
     ASSERT_TRUE(strcmp(str12.GetCStr(), "\\MyNewGame") == 0);
 }
 
-TEST(String, Wrap) {
+TEST(String, Wrap)
+{
     const char *cstr = "This is a string literal";
     String str1 = String::Wrapper(cstr);
     String str2 = str1;

@@ -19,10 +19,10 @@
 
 // Cursor flags
 #define MCF_ANIMMOVE 0x01
-#define MCF_DISABLED 0x02  // enabled for the cursor-cycling and display
-#define MCF_STANDARD 0x04  // a part of the cursor-cycling
-#define MCF_HOTSPOT  0x08  // only animate when over hotspot
-#define MCF_EVENT    0x10  // generates interaction events
+#define MCF_DISABLED 0x02 // enabled for the cursor-cycling and display
+#define MCF_STANDARD 0x04 // a part of the cursor-cycling
+#define MCF_HOTSPOT  0x08 // only animate when over hotspot
+#define MCF_EVENT    0x10 // generates interaction events
 
 #define LEGACY_MAX_CURSOR_NAME_LENGTH 10
 
@@ -30,30 +30,30 @@
 // These are used in built-in engine's behavior.
 enum CursorRole
 {
-    kCursorRole_None        = -1,
-    kCursorRole_Walk        = 0,
-    kCursorRole_Look        = 1,
-    kCursorRole_Interact    = 2,
-    kCursorRole_UseInv      = 4,
-    kCursorRole_Pointer     = 6,
-    kCursorRole_Wait        = 7,
+    kCursorRole_None = -1,
+    kCursorRole_Walk = 0,
+    kCursorRole_Look = 1,
+    kCursorRole_Interact = 2,
+    kCursorRole_UseInv = 4,
+    kCursorRole_Pointer = 6,
+    kCursorRole_Wait = 7,
     kNumCursorRoles
 };
 
 enum CursorSvgVersion
 {
     kCursorSvgVersion_Initial = 0,
-    kCursorSvgVersion_36016   = 1, // animation delay
+    kCursorSvgVersion_36016 = 1, // animation delay
 };
 
 struct MouseCursor
 {
     uint8_t flags = 0;
     CursorRole role = kCursorRole_None;
-    int   pic = 0;
+    int pic = 0;
     short hotx = 0, hoty = 0;
     short view = -1;
-    int   animdelay = 5;
+    int animdelay = 5;
 
     AGS::Common::String name; // script name
 

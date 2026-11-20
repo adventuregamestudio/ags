@@ -23,18 +23,12 @@ namespace Common
 FileStream::FFileCloseNotify FileStream::FileCloseNotify = nullptr;
 
 FileStream::FileStream(const String &file_name, FileOpenMode open_mode, StreamMode work_mode)
-    : StreamBase()
-    , _file(nullptr)
-    , _openMode(open_mode)
-    , _workMode(work_mode)
+    : StreamBase(), _file(nullptr), _openMode(open_mode), _workMode(work_mode)
 {
     Open(file_name, open_mode, work_mode);
 }
 
-FileStream::FileStream(FILE *file, bool own, StreamMode work_mode)
-    : StreamBase()
-    , _file(file)
-    , _ownHandle(own)
+FileStream::FileStream(FILE *file, bool own, StreamMode work_mode) : StreamBase(), _file(file), _ownHandle(own)
 {
     if (_file)
     {
@@ -125,14 +119,13 @@ soff_t FileStream::Seek(soff_t offset, StreamSeek origin)
     int stdclib_origin;
     switch (origin)
     {
-    case kSeekBegin:    stdclib_origin = SEEK_SET; break;
-    case kSeekCurrent:  stdclib_origin = SEEK_CUR; break;
-    case kSeekEnd:      stdclib_origin = SEEK_END; break;
+    case kSeekBegin: stdclib_origin = SEEK_SET; break;
+    case kSeekCurrent: stdclib_origin = SEEK_CUR; break;
+    case kSeekEnd: stdclib_origin = SEEK_END; break;
     default: return -1;
     }
 
-    return (ags_fseek(_file, (file_off_t)offset, stdclib_origin) == 0) ?
-        ags_ftell(_file) : -1;
+    return (ags_fseek(_file, (file_off_t)offset, stdclib_origin) == 0) ? ags_ftell(_file) : -1;
 }
 
 void FileStream::Open(const String &file_name, FileOpenMode open_mode, StreamMode work_mode)

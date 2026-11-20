@@ -28,79 +28,86 @@
 
 namespace AGS
 {
-    namespace Common
+namespace Common
+{
+
+class AAssetStream : public StreamBase
+{
+public:
+    // Represents an open android asset object from asset manager
+    // The constructor may raise std::runtime_error if
+    // - there is an issue opening the asset
+    AAssetStream(const String &asset_name, int asset_mode);
+
+    // Constructs an asset stream over an open AAsset handle;
+    // Take an ownership over it and will close upon disposal
+    static std::unique_ptr<AAssetStream> OwnHandle(AAsset *aasset, int asset_mode)
     {
+        return std::unique_ptr<AAssetStream>(new AAssetStream(aasset, true, asset_mode));
+    }
+    // Constructs a asset stream over an open AAsset handle;
+    // does NOT take an ownership over it
+    static std::unique_ptr<AAssetStream> WrapHandle(AAsset *aasset, int asset_mode)
+    {
+        return std::unique_ptr<AAssetStream>(new AAssetStream(aasset, false, asset_mode));
+    }
+    ~AAssetStream() override;
 
-        class AAssetStream : public StreamBase
-        {
-        public:
-            // Represents an open android asset object from asset manager
-            // The constructor may raise std::runtime_error if
-            // - there is an issue opening the asset
-            AAssetStream(const String &asset_name, int asset_mode);
+    // Tells the AASSET_MODE this stream is working in.
+    int GetAssetMode() const { return _assetMode; }
+    // Tells which mode the stream is working in, which defines
+    // supported io operations, such as reading, writing, seeking, etc.
+    // Invalid streams return kStream_None to indicate that they are not functional.
+    StreamMode GetMode() const override;
+    // Is end of stream
+    bool EOS() const override;
+    // Total length of stream (if known)
+    soff_t GetLength() const override;
+    // Current position (if known)
+    soff_t GetPosition() const override;
 
-            // Constructs an asset stream over an open AAsset handle;
-            // Take an ownership over it and will close upon disposal
-            static std::unique_ptr<AAssetStream> OwnHandle(AAsset * aasset, int asset_mode)
-            { return std::unique_ptr<AAssetStream>(new AAssetStream(aasset, true, asset_mode)); }
-            // Constructs a asset stream over an open AAsset handle;
-            // does NOT take an ownership over it
-            static std::unique_ptr<AAssetStream> WrapHandle(AAsset * aasset, int asset_mode)
-            { return std::unique_ptr<AAssetStream>(new AAssetStream(aasset, false, asset_mode)); }
-            ~AAssetStream() override;
+    size_t Read(void *buffer, size_t size) override;
+    int32_t ReadByte() override;
+    size_t Write(const void *buffer, size_t size) override;
+    int32_t WriteByte(uint8_t b) override;
 
-            // Tells the AASSET_MODE this stream is working in.
-            int     GetAssetMode() const { return _assetMode; }
-            // Tells which mode the stream is working in, which defines
-            // supported io operations, such as reading, writing, seeking, etc.
-            // Invalid streams return kStream_None to indicate that they are not functional.
-            StreamMode GetMode() const override;
-            // Is end of stream
-            bool    EOS() const override;
-            // Total length of stream (if known)
-            soff_t  GetLength() const override;
-            // Current position (if known)
-            soff_t  GetPosition() const override;
+    soff_t Seek(soff_t offset, StreamSeek origin) override;
 
-            size_t  Read(void *buffer, size_t size) override;
-            int32_t ReadByte() override;
-            size_t  Write(const void *buffer, size_t size) override;
-            int32_t WriteByte(uint8_t b) override;
+    bool Flush() override;
+    void Close() override;
 
-            soff_t  Seek(soff_t offset, StreamSeek origin) override;
+private:
+    AAssetStream(AAsset *aasset, bool own, int asset_mode);
 
-            bool    Flush() override;
-            void    Close() override;
+    static AAsset *OpenAAsset(const String &asset_name, int asset_mode);
+    void Open(AAsset *asset, bool own, const String &asset_name, int asset_mode);
 
-        private:
-            AAssetStream(AAsset *aasset, bool own, int asset_mode);
-
-            static AAsset *OpenAAsset(const String &asset_name, int asset_mode);
-            void    Open(AAsset *asset, bool own, const String &asset_name, int asset_mode);
-
-            bool    _ownHandle = false;
-            AAsset *_aAsset = nullptr;
-            int     _assetMode = AASSET_MODE_UNKNOWN;
-            StreamMode _mode = kStream_None;
-            // Remember range of offsets and current pos, reduce API calls
-            soff_t  _start = 0;
-            soff_t  _end = 0;
-            soff_t  _cur_offset = 0;
-        };
+    bool _ownHandle = false;
+    AAsset *_aAsset = nullptr;
+    int _assetMode = AASSET_MODE_UNKNOWN;
+    StreamMode _mode = kStream_None;
+    // Remember range of offsets and current pos, reduce API calls
+    soff_t _start = 0;
+    soff_t _end = 0;
+    soff_t _cur_offset = 0;
+};
 
 
-        // A helper class that creates a buffered stream over a AAssetStream object
-        class BufferedAAssetStream : public BufferedStream
-        {
-        public:
-            BufferedAAssetStream(const String &asset_name, int asset_mode)
-                : BufferedStream(std::make_unique<AAssetStream>(asset_name, asset_mode)) {}
-            BufferedAAssetStream(const String &asset_name, soff_t start_pos, soff_t end_pos,
-                                 int asset_mode)
-                : BufferedStream(std::make_unique<AAssetStream>(asset_name, asset_mode), start_pos, end_pos) {}
-        };
+// A helper class that creates a buffered stream over a AAssetStream object
+class BufferedAAssetStream : public BufferedStream
+{
+public:
+    BufferedAAssetStream(const String &asset_name, int asset_mode)
+        : BufferedStream(std::make_unique<AAssetStream>(asset_name, asset_mode))
+    {
+    }
+    BufferedAAssetStream(const String &asset_name, soff_t start_pos, soff_t end_pos, int asset_mode)
+        : BufferedStream(std::make_unique<AAssetStream>(asset_name, asset_mode), start_pos, end_pos)
+    {
+    }
+};
 
-    } // namespace Common
+} // namespace Common
 } // namespace AGS
 
 #endif // AGS_PLATFORM_OS_ANDROID

@@ -30,10 +30,10 @@ namespace Common
 // Mask option for blitting one bitmap on another
 enum BitmapMaskOption
 {
-	// Plain copies bitmap pixels
-	kBitmap_Copy,
-	// Consider mask color fully transparent and do not copy pixels having it
-	kBitmap_Transparency
+    // Plain copies bitmap pixels
+    kBitmap_Copy,
+    // Consider mask color fully transparent and do not copy pixels having it
+    kBitmap_Transparency
 };
 
 } // namespace Common
@@ -55,103 +55,123 @@ class Bitmap;
 // TODO: revise this construction later
 namespace BitmapHelper
 {
-    // Helper functions, that delete faulty bitmaps automatically, and return
-    // NULL if bitmap could not be created.
-    // NOTE: color_depth is in BITS per pixel (i.e. 8, 16, 24, 32...).
-    // NOTE: in all of these color_depth may be passed as 0 in which case a default
-    // color depth will be used (as previously set for the system).
-    // Creates a new bitmap of the given format; the pixel contents are undefined.
-    Bitmap *CreateBitmap(int width, int height, int color_depth = 0);
-    // Creates a new bitmap and clears it with the given color
-    Bitmap *CreateClearBitmap(int width, int height, int color_depth = 0, int clear_color = 0);
-    // Creates a new bitmap and clears it with the transparent color
-    Bitmap *CreateTransparentBitmap(int width, int height, int color_depth = 0);
-    // Create Bitmap and attach prepared pixel buffer
-    Bitmap *CreateBitmap(PixelBuffer &&pxbuf);
-    // Creates a sub-bitmap of the given bitmap; the sub-bitmap is a reference to
-    // particular region inside a parent.
-    // WARNING: the parent bitmap MUST be kept in memory for as long as sub-bitmap exists!
-	Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc);
-    // Creates a plain copy of the given bitmap, optionally converting to a different color depth;
-    // pass color depth 0 to keep the original one.
-    Bitmap *CreateBitmapCopy(const Bitmap *src, int color_depth = 0);
+// Helper functions, that delete faulty bitmaps automatically, and return
+// NULL if bitmap could not be created.
+// NOTE: color_depth is in BITS per pixel (i.e. 8, 16, 24, 32...).
+// NOTE: in all of these color_depth may be passed as 0 in which case a default
+// color depth will be used (as previously set for the system).
+// Creates a new bitmap of the given format; the pixel contents are undefined.
+Bitmap *CreateBitmap(int width, int height, int color_depth = 0);
+// Creates a new bitmap and clears it with the given color
+Bitmap *CreateClearBitmap(int width, int height, int color_depth = 0, int clear_color = 0);
+// Creates a new bitmap and clears it with the transparent color
+Bitmap *CreateTransparentBitmap(int width, int height, int color_depth = 0);
+// Create Bitmap and attach prepared pixel buffer
+Bitmap *CreateBitmap(PixelBuffer &&pxbuf);
+// Creates a sub-bitmap of the given bitmap; the sub-bitmap is a reference to
+// particular region inside a parent.
+// WARNING: the parent bitmap MUST be kept in memory for as long as sub-bitmap exists!
+Bitmap *CreateSubBitmap(Bitmap *src, const Rect &rc);
+// Creates a plain copy of the given bitmap, optionally converting to a different color depth;
+// pass color depth 0 to keep the original one.
+Bitmap *CreateBitmapCopy(const Bitmap *src, int color_depth = 0);
 
-    // Creates Bitmap of wanted color depth from a raw pixel array of a (possibly different)
-    // specified color depth.
-    // NOTE: color_depth is in BITS per pixel (i.e. 8, 16, 24, 32...).
-    // WARNING: the only conversion supported currently is 4-bit => 8-bit and 1-bit => 8-bit;
-    //          add more common conversions later!
-    Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth,
-        const uint8_t *pixels, const int src_col_depth, const int src_pitch);
+// Creates Bitmap of wanted color depth from a raw pixel array of a (possibly different)
+// specified color depth.
+// NOTE: color_depth is in BITS per pixel (i.e. 8, 16, 24, 32...).
+// WARNING: the only conversion supported currently is 4-bit => 8-bit and 1-bit => 8-bit;
+//          add more common conversions later!
+Bitmap *CreateBitmapFromPixels(int width, int height, int dst_color_depth, const uint8_t *pixels,
+                               const int src_col_depth, const int src_pitch);
 
-    // Load a bitmap from file; supported formats currently are: BMP, PCX.
-    // Optionally instructs to convert to the bitmap of certain color depth.
-    // Optionally assigns a source pixel format, for informational purposes.
-    // Optionally fills in a palette, if one was found in the file.
-    Bitmap* LoadFromFile(const char *filename, int dst_color_depth, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr);
-    inline Bitmap* LoadFromFile(const String &filename, int dst_color_depth, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
-        { return LoadFromFile(filename.GetCStr(), dst_color_depth, src_fmt, pal); }
-    // Load a bitmap from file; supported formats currently are: BMP, PCX.
-    inline Bitmap *LoadFromFile(const char *filename, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
-        { return LoadFromFile(filename, 0, src_fmt, pal); }
-    inline Bitmap *LoadFromFile(const String &filename, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
-        { return LoadFromFile(filename.GetCStr(), 0, src_fmt); }
-    // Write a bitmap into a file; supported formats currently are: BMP, PCX.
-    // FIXME: skip_alpha parameter is added as a hotfix, to be able to reduce
-    // image file size when writing 32-bit images which are known to be opaque (like screenshots).
-    // Normally this should be replaced with a "destination pixel format OR color depth" parameter.
-    bool SaveToFile(const Bitmap* bmp, const char *filename, bool skip_alpha, const RGB *pal = nullptr);
-    inline bool SaveToFile(const Bitmap* bmp, const char* filename, const RGB* pal = nullptr)
-        { return SaveToFile(bmp, filename, false, pal); }
-    // Reads a bitmap from the stream, using file extension as a format hint;
-    // supported formats currently are : BMP, PCX.
-    // Optionally instructs to convert to the bitmap of certain color depth.
-    // Optionally assigns a source pixel format, for informational purposes.
-    // Optionally fills in a palette, if one was found in the file.
-    Bitmap *LoadBitmap(Stream *in, const String &ext, int dst_color_depth, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr);
-    inline Bitmap *LoadBitmap(Stream *in, const String &ext, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
-        { return LoadBitmap(in, ext, 0, src_fmt, pal); }
-    // Write a bitmap to the stream, optionally along with the palette.
-    // Usese file extension as a format hint. Supported formats currently are: BMP, PCX.
-    bool SaveBitmap(const Bitmap *bmp, bool skip_alpha, const RGB* pal, Stream *out, const String& ext);
-    inline bool SaveBitmap(const Bitmap* bmp, Stream* out, const String& ext)
-         { return SaveBitmap(bmp, false, nullptr, out, ext); }
+// Load a bitmap from file; supported formats currently are: BMP, PCX.
+// Optionally instructs to convert to the bitmap of certain color depth.
+// Optionally assigns a source pixel format, for informational purposes.
+// Optionally fills in a palette, if one was found in the file.
+Bitmap *LoadFromFile(const char *filename, int dst_color_depth, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr);
+inline Bitmap *LoadFromFile(const String &filename, int dst_color_depth, PixelFormat *src_fmt = nullptr,
+                            RGB *pal = nullptr)
+{
+    return LoadFromFile(filename.GetCStr(), dst_color_depth, src_fmt, pal);
+}
+// Load a bitmap from file; supported formats currently are: BMP, PCX.
+inline Bitmap *LoadFromFile(const char *filename, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
+{
+    return LoadFromFile(filename, 0, src_fmt, pal);
+}
+inline Bitmap *LoadFromFile(const String &filename, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
+{
+    return LoadFromFile(filename.GetCStr(), 0, src_fmt);
+}
+// Write a bitmap into a file; supported formats currently are: BMP, PCX.
+// FIXME: skip_alpha parameter is added as a hotfix, to be able to reduce
+// image file size when writing 32-bit images which are known to be opaque (like screenshots).
+// Normally this should be replaced with a "destination pixel format OR color depth" parameter.
+bool SaveToFile(const Bitmap *bmp, const char *filename, bool skip_alpha, const RGB *pal = nullptr);
+inline bool SaveToFile(const Bitmap *bmp, const char *filename, const RGB *pal = nullptr)
+{
+    return SaveToFile(bmp, filename, false, pal);
+}
+// Reads a bitmap from the stream, using file extension as a format hint;
+// supported formats currently are : BMP, PCX.
+// Optionally instructs to convert to the bitmap of certain color depth.
+// Optionally assigns a source pixel format, for informational purposes.
+// Optionally fills in a palette, if one was found in the file.
+Bitmap *LoadBitmap(Stream *in, const String &ext, int dst_color_depth, PixelFormat *src_fmt = nullptr,
+                   RGB *pal = nullptr);
+inline Bitmap *LoadBitmap(Stream *in, const String &ext, PixelFormat *src_fmt = nullptr, RGB *pal = nullptr)
+{
+    return LoadBitmap(in, ext, 0, src_fmt, pal);
+}
+// Write a bitmap to the stream, optionally along with the palette.
+// Usese file extension as a format hint. Supported formats currently are: BMP, PCX.
+bool SaveBitmap(const Bitmap *bmp, bool skip_alpha, const RGB *pal, Stream *out, const String &ext);
+inline bool SaveBitmap(const Bitmap *bmp, Stream *out, const String &ext)
+{
+    return SaveBitmap(bmp, false, nullptr, out, ext);
+}
 
-    // Stretches bitmap to the requested size. The new bitmap will have same
-    // colour depth. Returns original bitmap if no changes are necessary.
-    Bitmap *AdjustBitmapSize(const Bitmap *src, int width, int height);
-    // Makes sure that the parent bitmap is large enough, and initializes sub-bitmap of the
-    // requested size. The parent bitmap is only recreated when grown, but is never shrunk.
-    // This function does not make an effort to retain the original image.
-    void    AllocateBitmapAndSubBitmap(Bitmap *parent, Bitmap *child, int sub_width, int sub_height, int color_depth);
+// Stretches bitmap to the requested size. The new bitmap will have same
+// colour depth. Returns original bitmap if no changes are necessary.
+Bitmap *AdjustBitmapSize(const Bitmap *src, int width, int height);
+// Makes sure that the parent bitmap is large enough, and initializes sub-bitmap of the
+// requested size. The parent bitmap is only recreated when grown, but is never shrunk.
+// This function does not make an effort to retain the original image.
+void AllocateBitmapAndSubBitmap(Bitmap *parent, Bitmap *child, int sub_width, int sub_height, int color_depth);
 
-    // TODO: all the following functions may be actually reimplemented in PixelOp
-    // namespace, where they will work with raw pixel buffers instead of Bitmaps.
-    // Then these Bitmap helpers will simply delegate the work to them.
-    // 
-    // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.
-    void MakeOpaque(Bitmap *bmp);
-    // Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.
-    // Skips mask color (leaves it with zero alpha).
-    void MakeOpaqueSkipMask(Bitmap *bmp);
-    // Runs over a bitmap and replaces all instances of one color value with another
-    void    ReplaceColor(Bitmap *bmp, int color1, int color2);
-    // Replaces pixels with alpha <= threshold with standard mask color.
-    void ReplaceAlphaWithRGBMask(Bitmap *bmp, int alpha_threshold);
-    // Replaces fully transparent (alpha = 0) pixels with standard mask color.
-    inline void ReplaceZeroAlphaWithRGBMask(Bitmap *bmp) { ReplaceAlphaWithRGBMask(bmp, 0); }
-    // Replaces less than 50% transparent (alpha < 128) pixels with standard mask color.
-    inline void ReplaceHalfAlphaWithRGBMask(Bitmap *bmp) { ReplaceAlphaWithRGBMask(bmp, 127); }
-    // Copy transparency mask and/or alpha channel from one bitmap into another.
-    // Destination and mask bitmaps must be of the same pixel format.
-    // Transparency is merged, meaning that fully transparent pixels on
-    // destination should remain such regardless of mask pixel values.
-    void    CopyTransparency(Bitmap *dst, const Bitmap *mask, bool dst_has_alpha, bool mask_has_alpha);
-    // Copy pixel data into bitmap from memory buffer. It is required that the
-    // source matches bitmap format and has enough data.
-    // Pitch is given in bytes and defines the length of the source scan line.
-    // FIXME: a safer version that requires to assert buffer size
-    void    ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch);
+// TODO: all the following functions may be actually reimplemented in PixelOp
+// namespace, where they will work with raw pixel buffers instead of Bitmaps.
+// Then these Bitmap helpers will simply delegate the work to them.
+//
+// Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.
+void MakeOpaque(Bitmap *bmp);
+// Makes the given bitmap opaque (full alpha), while keeping pixel RGB unchanged.
+// Skips mask color (leaves it with zero alpha).
+void MakeOpaqueSkipMask(Bitmap *bmp);
+// Runs over a bitmap and replaces all instances of one color value with another
+void ReplaceColor(Bitmap *bmp, int color1, int color2);
+// Replaces pixels with alpha <= threshold with standard mask color.
+void ReplaceAlphaWithRGBMask(Bitmap *bmp, int alpha_threshold);
+// Replaces fully transparent (alpha = 0) pixels with standard mask color.
+inline void ReplaceZeroAlphaWithRGBMask(Bitmap *bmp)
+{
+    ReplaceAlphaWithRGBMask(bmp, 0);
+}
+// Replaces less than 50% transparent (alpha < 128) pixels with standard mask color.
+inline void ReplaceHalfAlphaWithRGBMask(Bitmap *bmp)
+{
+    ReplaceAlphaWithRGBMask(bmp, 127);
+}
+// Copy transparency mask and/or alpha channel from one bitmap into another.
+// Destination and mask bitmaps must be of the same pixel format.
+// Transparency is merged, meaning that fully transparent pixels on
+// destination should remain such regardless of mask pixel values.
+void CopyTransparency(Bitmap *dst, const Bitmap *mask, bool dst_has_alpha, bool mask_has_alpha);
+// Copy pixel data into bitmap from memory buffer. It is required that the
+// source matches bitmap format and has enough data.
+// Pitch is given in bytes and defines the length of the source scan line.
+// FIXME: a safer version that requires to assert buffer size
+void ReadPixelsFromMemory(Bitmap *dst, const uint8_t *src_buffer, const size_t src_pitch);
 
 } // namespace BitmapHelper
 

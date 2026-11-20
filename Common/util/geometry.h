@@ -35,29 +35,29 @@ enum FrameAlignment
     // Alignment options are representing 8 sides of a frame (rectangle);
     // they are implemented as flags that may be combined together if it
     // is wanted to define alignment to multiple sides at once.
-    kAlignTopLeft       = 0x0001,
-    kAlignTopCenter     = 0x0002,
-    kAlignTopRight      = 0x0004,
-    kAlignMiddleLeft    = 0x0008,
-    kAlignMiddleCenter  = 0x0010,
-    kAlignMiddleRight   = 0x0020,
-    kAlignBottomLeft    = 0x0040,
-    kAlignBottomCenter  = 0x0080,
-    kAlignBottomRight   = 0x0100,
+    kAlignTopLeft = 0x0001,
+    kAlignTopCenter = 0x0002,
+    kAlignTopRight = 0x0004,
+    kAlignMiddleLeft = 0x0008,
+    kAlignMiddleCenter = 0x0010,
+    kAlignMiddleRight = 0x0020,
+    kAlignBottomLeft = 0x0040,
+    kAlignBottomCenter = 0x0080,
+    kAlignBottomRight = 0x0100,
 
     // Masks are helping to determine whether alignment parameter contains
     // particular horizontal or vertical component (for example: left side
     // or bottom side)
-    kMAlignLeft         = kAlignTopLeft | kAlignMiddleLeft | kAlignBottomLeft,
-    kMAlignRight        = kAlignTopRight | kAlignMiddleRight | kAlignBottomRight,
-    kMAlignTop          = kAlignTopLeft | kAlignTopCenter | kAlignTopRight,
-    kMAlignBottom       = kAlignBottomLeft | kAlignBottomCenter | kAlignBottomRight,
-    kMAlignHCenter      = kAlignTopCenter | kAlignMiddleCenter | kAlignBottomCenter,
-    kMAlignVCenter      = kAlignMiddleLeft | kAlignMiddleCenter | kAlignMiddleRight,
+    kMAlignLeft = kAlignTopLeft | kAlignMiddleLeft | kAlignBottomLeft,
+    kMAlignRight = kAlignTopRight | kAlignMiddleRight | kAlignBottomRight,
+    kMAlignTop = kAlignTopLeft | kAlignTopCenter | kAlignTopRight,
+    kMAlignBottom = kAlignBottomLeft | kAlignBottomCenter | kAlignBottomRight,
+    kMAlignHCenter = kAlignTopCenter | kAlignMiddleCenter | kAlignBottomCenter,
+    kMAlignVCenter = kAlignMiddleLeft | kAlignMiddleCenter | kAlignMiddleRight,
 
-    kMAlignHorizontal   = kMAlignLeft | kMAlignRight | kMAlignHCenter,
-    kMAlignVertical     = kMAlignTop | kMAlignBottom | kMAlignVCenter,
-    kMAlignAny          = kMAlignHorizontal | kMAlignVertical
+    kMAlignHorizontal = kMAlignLeft | kMAlignRight | kMAlignHCenter,
+    kMAlignVertical = kMAlignTop | kMAlignBottom | kMAlignVCenter,
+    kMAlignAny = kMAlignHorizontal | kMAlignVertical
 };
 
 // Horizontal alignment; based on FrameAlignment, used to restrict alignment
@@ -65,10 +65,10 @@ enum FrameAlignment
 // alignment in case it will be supported in the future.
 enum HorAlignment
 {
-    kHAlignNone     = kAlignNone,
-    kHAlignLeft     = kAlignTopLeft,
-    kHAlignRight    = kAlignTopRight,
-    kHAlignCenter   = kAlignTopCenter
+    kHAlignNone = kAlignNone,
+    kHAlignLeft = kAlignTopLeft,
+    kHAlignRight = kAlignTopRight,
+    kHAlignCenter = kAlignTopCenter
 };
 
 enum RectPlacement
@@ -81,7 +81,7 @@ enum RectPlacement
 };
 
 
-template <typename T>
+template<typename T>
 struct PointT
 {
     typedef PointT<T> Pt;
@@ -96,7 +96,7 @@ struct PointT
         Y = y;
     }
     // Cast from another Point<R>
-    template <typename R>
+    template<typename R>
     PointT(const PointT<R> &pt)
     {
         X = static_cast<T>(pt.X);
@@ -104,8 +104,8 @@ struct PointT
     }
 
     // Cast from another Point<R>
-    template <typename R>
-    Pt &operator =(const PointT<R> &pt)
+    template<typename R>
+    Pt &operator=(const PointT<R> &pt)
     {
         X = static_cast<T>(pt.X);
         Y = static_cast<T>(pt.Y);
@@ -114,122 +114,93 @@ struct PointT
 
     inline static Pt Clamp(const Pt &p, const Pt &floor, const Pt &ceil)
     {
-        return Pt(AGSMath::Clamp(p.X, floor.X, ceil.X),
-                    AGSMath::Clamp(p.Y, floor.Y, ceil.Y));
+        return Pt(AGSMath::Clamp(p.X, floor.X, ceil.X), AGSMath::Clamp(p.Y, floor.Y, ceil.Y));
     }
 
-    inline bool operator ==(const Pt &p) const
-    {
-        return X == p.X && Y == p.Y;
-    }
+    inline bool operator==(const Pt &p) const { return X == p.X && Y == p.Y; }
 
-    inline bool operator !=(const Pt &p) const
-    {
-        return X != p.X || Y != p.Y;
-    }
+    inline bool operator!=(const Pt &p) const { return X != p.X || Y != p.Y; }
 
-    inline Pt operator +(const Pt &p) const
-    {
-        return Pt(X + p.X, Y + p.Y);
-    }
+    inline Pt operator+(const Pt &p) const { return Pt(X + p.X, Y + p.Y); }
 
-    inline Pt operator -(const Pt &p) const
-    {
-        return Pt(X - p.X, Y - p.Y);
-    }
+    inline Pt operator-(const Pt &p) const { return Pt(X - p.X, Y - p.Y); }
 
-    inline Pt operator *(const Pt &p) const
-    {
-        return Pt(X * p.X, Y * p.Y);
-    }
+    inline Pt operator*(const Pt &p) const { return Pt(X * p.X, Y * p.Y); }
 
-    inline Pt operator /(const Pt &p) const
-    {
-        return Pt(X / p.X, Y / p.Y);
-    }
+    inline Pt operator/(const Pt &p) const { return Pt(X / p.X, Y / p.Y); }
 
-    inline Pt &operator *=(const Pt p)
+    inline Pt &operator*=(const Pt p)
     {
         X *= p.X;
         Y *= p.Y;
         return *this;
     }
 
-    inline Pt &operator /=(const Pt p)
+    inline Pt &operator/=(const Pt p)
     {
         X /= p.X;
         Y /= p.Y;
         return *this;
     }
 
-    inline Pt operator *(const T &mul) const
-    {
-        return Pt(X * mul, Y * mul);
-    }
+    inline Pt operator*(const T &mul) const { return Pt(X * mul, Y * mul); }
 
-    inline Pt operator /(const T &div) const
-    {
-        return Pt(X / div, Y / div);
-    }
+    inline Pt operator/(const T &div) const { return Pt(X / div, Y / div); }
 
-    inline Pt &operator *=(const T &mul)
+    inline Pt &operator*=(const T &mul)
     {
         X *= mul;
         Y *= mul;
         return *this;
     }
 
-    inline Pt &operator /=(const T &div)
+    inline Pt &operator/=(const T &div)
     {
         X /= div;
         Y /= div;
         return *this;
     }
 
-    inline bool Equals(const T &x, const T &y) const
-    {
-        return X == x && Y == y;
-    }
+    inline bool Equals(const T &x, const T &y) const { return X == x && Y == y; }
 };
 
 typedef PointT<int> Point;
 typedef PointT<float> Pointf;
 
 
-
 struct Line
 {
-	int X1;
-	int Y1;
-	int X2;
-	int Y2;
+    int X1;
+    int Y1;
+    int X2;
+    int Y2;
 
-	Line()
-	{
-		X1 = 0;
-		Y1 = 0;
-		X2 = 0;
-		Y2 = 0;
-	}
+    Line()
+    {
+        X1 = 0;
+        Y1 = 0;
+        X2 = 0;
+        Y2 = 0;
+    }
 
-	Line(int x1, int y1, int x2, int y2)
-	{
-		X1 = x1;
-		Y1 = y1;
-		X2 = x2;
-		Y2 = y2;
-	}
+    Line(int x1, int y1, int x2, int y2)
+    {
+        X1 = x1;
+        Y1 = y1;
+        X2 = x2;
+        Y2 = y2;
+    }
 };
 
 // Helper factory functions
 inline Line HLine(int x1, int x2, int y)
 {
-	return Line(x1, y, x2, y);
+    return Line(x1, y, x2, y);
 }
 
 inline Line VLine(int x, int y1, int y2)
 {
-	return Line(x, y1, x, y2);
+    return Line(x, y1, x, y2);
 }
 
 struct Size
@@ -249,10 +220,7 @@ struct Size
         Height = height;
     }
 
-    inline bool IsNull() const
-    {
-        return Width <= 0 || Height <= 0;
-    }
+    inline bool IsNull() const { return Width <= 0 || Height <= 0; }
 
     inline static Size Clamp(const Size &sz, const Size &floor, const Size &ceil)
     {
@@ -261,54 +229,33 @@ struct Size
     }
 
     // Indicates if current size exceeds other size by any metric
-    inline bool ExceedsByAny(const Size &size) const
-    {
-        return Width > size.Width || Height > size.Height;
-    }
+    inline bool ExceedsByAny(const Size &size) const { return Width > size.Width || Height > size.Height; }
 
-    inline bool operator==(const Size &size) const
-    {
-        return Width == size.Width && Height == size.Height;
-    }
+    inline bool operator==(const Size &size) const { return Width == size.Width && Height == size.Height; }
 
-    inline bool operator!=(const Size &size) const
-    {
-        return Width != size.Width || Height != size.Height;
-    }
+    inline bool operator!=(const Size &size) const { return Width != size.Width || Height != size.Height; }
 
     inline bool operator<(const Size &other) const
     { // TODO: this implementation is silly and not universally useful; make a realistic one and replace with another function where necessary
         return Width < other.Width || (Width == other.Width && Height < other.Height);
     }
 
-    inline Size operator +(const Size &size) const
-    {
-        return Size(Width + size.Width, Height + size.Height);
-    }
+    inline Size operator+(const Size &size) const { return Size(Width + size.Width, Height + size.Height); }
 
-    inline Size operator -(const Size &size) const
-    {
-        return Size(Width - size.Width, Height - size.Height);
-    }
+    inline Size operator-(const Size &size) const { return Size(Width - size.Width, Height - size.Height); }
 
-    inline Size operator *(int x) const
-    {
-        return Size(Width * x, Height * x);
-    }
+    inline Size operator*(int x) const { return Size(Width * x, Height * x); }
 
-    inline Size operator /(int x) const
-    {
-        return Size(Width / x, Height / x);
-    }
+    inline Size operator/(int x) const { return Size(Width / x, Height / x); }
 
-    inline Size &operator *=(int x)
+    inline Size &operator*=(int x)
     {
         Width *= x;
         Height *= x;
         return *this;
     }
 
-    inline Size &operator /=(int x)
+    inline Size &operator/=(int x)
     {
         Width /= x;
         Height /= x;
@@ -330,74 +277,41 @@ struct Rect
 
     Rect()
     {
-        Left    = 0;
-        Top     = 0;
-        Right   = -1;
-        Bottom  = -1;
+        Left = 0;
+        Top = 0;
+        Right = -1;
+        Bottom = -1;
     }
 
     Rect(int l, int t, int r, int b)
     {
-        Left    = l;
-        Top     = t;
-        Right   = r;
-        Bottom  = b;
+        Left = l;
+        Top = t;
+        Right = r;
+        Bottom = b;
     }
 
-    inline Point GetLT() const
-    {
-        return Point(Left, Top);
-    }
+    inline Point GetLT() const { return Point(Left, Top); }
 
-    inline Point GetRT() const
-    {
-        return Point(Right, Top);
-    }
+    inline Point GetRT() const { return Point(Right, Top); }
 
-    inline Point GetLB() const
-    {
-        return Point(Left, Bottom);
-    }
+    inline Point GetLB() const { return Point(Left, Bottom); }
 
-    inline Point GetRB() const
-    {
-        return Point(Right, Bottom);
-    }
+    inline Point GetRB() const { return Point(Right, Bottom); }
 
-    inline Point GetCenter() const
-    {
-        return Point(Left + GetWidth() / 2, Top + GetHeight() / 2);
-    }
+    inline Point GetCenter() const { return Point(Left + GetWidth() / 2, Top + GetHeight() / 2); }
 
-    inline int GetWidth() const
-    {
-        return Right - Left + 1;
-    }
+    inline int GetWidth() const { return Right - Left + 1; }
 
-    inline int GetHeight() const
-    {
-        return Bottom - Top + 1;
-    }
+    inline int GetHeight() const { return Bottom - Top + 1; }
 
-    inline Size GetSize() const
-    {
-        return Size(GetWidth(), GetHeight());
-    }
-    
-    inline bool IsEmpty() const
-    {
-        return Right < Left || Bottom < Top;
-    }
+    inline Size GetSize() const { return Size(GetWidth(), GetHeight()); }
 
-    inline bool IsInside(int x, int y) const
-    {
-        return x >= Left && y >= Top && (x <= Right) && (y <= Bottom);
-    }
+    inline bool IsEmpty() const { return Right < Left || Bottom < Top; }
 
-    inline bool IsInside(const Point &pt) const
-    {
-        return IsInside(pt.X, pt.Y);
-    }
+    inline bool IsInside(int x, int y) const { return x >= Left && y >= Top && (x <= Right) && (y <= Bottom); }
+
+    inline bool IsInside(const Point &pt) const { return IsInside(pt.X, pt.Y); }
 
     inline void MoveToX(int x)
     {
@@ -423,20 +337,13 @@ struct Rect
         Top = std::min(Top + y, Bottom);
     }
 
-    inline void SetWidth(int width)
-    {
-        Right = Left + width - 1;
-    }
+    inline void SetWidth(int width) { Right = Left + width - 1; }
 
-    inline void SetHeight(int height)
-    {
-        Bottom = Top + height - 1;
-    }
+    inline void SetHeight(int height) { Bottom = Top + height - 1; }
 
     inline static Rect Clamp(const Rect &r, const Rect &bounds)
     {
-        return Rect(AGSMath::Clamp(r.Left, bounds.Left, bounds.Right),
-                    AGSMath::Clamp(r.Top, bounds.Top, bounds.Bottom),
+        return Rect(AGSMath::Clamp(r.Left, bounds.Left, bounds.Right), AGSMath::Clamp(r.Top, bounds.Top, bounds.Bottom),
                     AGSMath::Clamp(r.Right, bounds.Left, bounds.Right),
                     AGSMath::Clamp(r.Bottom, bounds.Top, bounds.Bottom));
     }
@@ -446,22 +353,18 @@ struct Rect
         return Rect(r.Left + x, r.Top + y, r.Right + x, r.Bottom + y);
     }
 
-    inline bool operator ==(const Rect &r) const
+    inline bool operator==(const Rect &r) const
     {
-        return Left == r.Left && Top == r.Top &&
-            Right == r.Right && Bottom == r.Bottom;
+        return Left == r.Left && Top == r.Top && Right == r.Right && Bottom == r.Bottom;
     }
 
-    inline Rect operator *(int mult) const
-    {
-        return Rect(Left * mult, Top * mult, Right * mult, Bottom * mult);
-    }
+    inline Rect operator*(int mult) const { return Rect(Left * mult, Top * mult, Right * mult, Bottom * mult); }
 };
 
 // Helper factory function
 inline Rect RectWH(int x, int y, int width, int height)
 {
-	return Rect(x, y, x + width - 1, y + height - 1);
+    return Rect(x, y, x + width - 1, y + height - 1);
 }
 
 inline Rect RectWH(const Size &sz)
@@ -472,54 +375,53 @@ inline Rect RectWH(const Size &sz)
 
 struct Triangle
 {
-	int X1;
-	int Y1;
-	int X2;
-	int Y2;
-	int X3;
-	int Y3;
+    int X1;
+    int Y1;
+    int X2;
+    int Y2;
+    int X3;
+    int Y3;
 
-	Triangle()
-	{
-		X1 = 0;
-		Y1 = 0;
-		X2 = 0;
-		Y2 = 0;
-		X3 = 0;
-		Y3 = 0;
-	}
+    Triangle()
+    {
+        X1 = 0;
+        Y1 = 0;
+        X2 = 0;
+        Y2 = 0;
+        X3 = 0;
+        Y3 = 0;
+    }
 
-	Triangle(int x1, int y1, int x2, int y2, int x3, int y3)
-	{
-		X1 = x1;
-		Y1 = y1;
-		X2 = x2;
-		Y2 = y2;
-		X3 = x3;
-		Y3 = y3;
-	}
+    Triangle(int x1, int y1, int x2, int y2, int x3, int y3)
+    {
+        X1 = x1;
+        Y1 = y1;
+        X2 = x2;
+        Y2 = y2;
+        X3 = x3;
+        Y3 = y3;
+    }
 };
 
 struct Circle
 {
-	int X;
-	int Y;
-	int Radius;
+    int X;
+    int Y;
+    int Radius;
 
-	Circle()
-	{
-		X = 0;
-		Y = 0;
-		Radius = 0;
-	}
+    Circle()
+    {
+        X = 0;
+        Y = 0;
+        Radius = 0;
+    }
 
-	Circle(int x, int y, int radius)
-	{
-		X = x;
-		Y = y;
-		Radius = radius;
-	}
-
+    Circle(int x, int y, int radius)
+    {
+        X = x;
+        Y = y;
+        Radius = radius;
+    }
 };
 
 

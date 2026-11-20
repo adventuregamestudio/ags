@@ -24,12 +24,9 @@ namespace AGS
 namespace Common
 {
 
-/* static */ ScriptEventSchema GUITextBox::_eventSchema = {{
-        { "OnActivate", kTextBoxEvent_OnActivate }
-    }};
+/* static */ ScriptEventSchema GUITextBox::_eventSchema = {{{"OnActivate", kTextBoxEvent_OnActivate}}};
 
-GUITextBox::GUITextBox()
-    : GUITextFieldControl(&GUITextBox::_eventSchema)
+GUITextBox::GUITextBox() : GUITextFieldControl(&GUITextBox::_eventSchema)
 {
     _flags |= kGUICtrl_ShowBorder;
     _paddingX = 1;
@@ -49,11 +46,7 @@ Rect GUITextBox::CalcGraphicRect(bool clipped)
     if (GUI::IsGUIEnabled(this))
     {
         // add a cursor
-        Rect cur_rc = RectWH(
-            text_rc.Right + 3,
-            1 + get_font_height(_font),
-            5,
-            1);
+        Rect cur_rc = RectWH(text_rc.Right + 3, 1 + get_font_height(_font), 5, 1);
         text_rc = SumRects(text_rc, cur_rc);
     }
     return SumRects(rc, text_rc);
@@ -77,9 +70,7 @@ bool GUITextBox::OnKeyPress(const KeyInput &ki)
 {
     switch (ki.Key)
     {
-    case eAGSKeyCodeReturn:
-        _isActivated = true;
-        return true;
+    case eAGSKeyCodeReturn: _isActivated = true; return true;
     case eAGSKeyCodeBackspace:
         Backspace(_text);
         MarkChanged();
@@ -140,8 +131,7 @@ void GUITextBox::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     if (svg_ver >= kGuiSvgVersion_350)
         _textBoxFlags = in->ReadInt32();
 
-    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) ||
-        (svg_ver >= kGuiSvgVersion_40026))
+    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) || (svg_ver >= kGuiSvgVersion_40026))
     {
         _textAlignment = static_cast<FrameAlignment>(in->ReadInt32());
         // valid since kGuiSvgVersion_36308

@@ -28,13 +28,12 @@ class WordsDictionary
 {
 public:
     // Special text parser entries
-    static const uint16_t IGNOREWORD   = 0;
-    static const uint16_t ANYWORD      = 29999;
-    static const uint16_t RESTOFLINE   = 30000;
-    static const uint16_t INVALIDWORD  = UINT16_MAX;
+    static const uint16_t IGNOREWORD = 0;
+    static const uint16_t ANYWORD = 29999;
+    static const uint16_t RESTOFLINE = 30000;
+    static const uint16_t INVALIDWORD = UINT16_MAX;
 
-    typedef std::unordered_map<String, uint16_t, HashStrUtf8NoCase, StrEqUtf8NoCase>
-        MapType;
+    typedef std::unordered_map<String, uint16_t, HashStrUtf8NoCase, StrEqUtf8NoCase> MapType;
 
     WordsDictionary() = default;
 
@@ -51,7 +50,7 @@ private:
     MapType _words;
 };
 
-} // Common
-} // AGS
+} // namespace Common
+} // namespace AGS
 
 #endif // __AGS_CN_UTIL__WORDSDICTIONARY_H

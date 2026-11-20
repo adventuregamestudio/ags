@@ -31,35 +31,34 @@ class TextStreamWriter : public TextWriter
 {
 public:
     // TODO: replace Stream with StreamBase here, we don't need full Stream features
-    TextStreamWriter(std::unique_ptr<Stream> &&stream)
-        : _stream(std::move(stream)) {}
+    TextStreamWriter(std::unique_ptr<Stream> &&stream) : _stream(std::move(stream)) {}
     TextStreamWriter(TextStreamWriter &&writer) = default;
     ~TextStreamWriter() override = default;
 
     std::unique_ptr<Stream> ReleaseStream() { return std::move(_stream); }
 
-    bool    IsValid() const override;
-    bool    EOS() const;
+    bool IsValid() const override;
+    bool EOS() const;
 
     // Write single character
-    void    WriteChar(char c) override;
+    void WriteChar(char c) override;
     // Write string as a plain text (without null-terminator)
-    void    WriteString(const String &str) override;
+    void WriteString(const String &str) override;
     // Write string and add line break at the end
-    void    WriteLine(const String &str) override;
+    void WriteLine(const String &str) override;
     // Write formatted string (see *printf)
-    void    WriteFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) override AGS_FORMAT_STRING_OBJECT(1);
+    void WriteFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) override AGS_FORMAT_STRING_OBJECT(1);
     // Write formatted string and line break at the end
-    void    WriteLineFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) override AGS_FORMAT_STRING_OBJECT(1);
+    void WriteLineFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) override AGS_FORMAT_STRING_OBJECT(1);
     // Write line break
-    void    WriteLineBreak() override;
+    void WriteLineBreak() override;
 
     // Flushes the underlying device
-    void    Flush() override;
+    void Flush() override;
 
 private:
     std::unique_ptr<Stream> _stream;
-    String  _buf; // formatting string buffer
+    String _buf; // formatting string buffer
 };
 
 } // namespace Common

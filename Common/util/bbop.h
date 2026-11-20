@@ -21,7 +21,7 @@
 #include "platform/platform.h"
 #include "platform/types.h"
 
-#if AGS_PLATFORM_ENDIAN_BIG || defined (TEST_BIGENDIAN)
+#if AGS_PLATFORM_ENDIAN_BIG || defined(TEST_BIGENDIAN)
 #define BITBYTE_BIG_ENDIAN
 #endif
 
@@ -34,7 +34,7 @@ enum DataEndianess
 {
     kBigEndian,
     kLittleEndian,
-#if defined (BITBYTE_BIG_ENDIAN)
+#if defined(BITBYTE_BIG_ENDIAN)
     kSystemEndianess = kBigEndian
 #else
     kSystemEndianess = kLittleEndian
@@ -61,119 +61,119 @@ inline int FlagToNoFlag(int value, int flag1, int flag2)
 
 namespace BitByteOperations
 {
-    struct IntFloatSwap
+struct IntFloatSwap
+{
+    union
     {
-        union
-        {
-            float    f;
-            int32_t  i32;
-        } val;
+        float f;
+        int32_t i32;
+    } val;
 
-        explicit IntFloatSwap(int32_t i) { val.i32 = i; }
-        explicit IntFloatSwap(float f) { val.f = f; }
-    };
+    explicit IntFloatSwap(int32_t i) { val.i32 = i; }
+    explicit IntFloatSwap(float f) { val.f = f; }
+};
 
-    inline int16_t SwapBytesInt16(const int16_t val)
-    {
-        return ((val >> 8) & 0xFF) | ((val << 8) & 0xFF00);
-    }
+inline int16_t SwapBytesInt16(const int16_t val)
+{
+    return ((val >> 8) & 0xFF) | ((val << 8) & 0xFF00);
+}
 
-    inline int32_t SwapBytesInt32(const int32_t val)
-    {
-        return ((val >> 24) & 0xFF) | ((val >> 8) & 0xFF00) | ((val << 8) & 0xFF0000) | ((val << 24) & 0xFF000000);
-    }
+inline int32_t SwapBytesInt32(const int32_t val)
+{
+    return ((val >> 24) & 0xFF) | ((val >> 8) & 0xFF00) | ((val << 8) & 0xFF0000) | ((val << 24) & 0xFF000000);
+}
 
-    inline int64_t SwapBytesInt64(const int64_t val)
-    {
-        return ((val >> 56) & 0xFF) | ((val >> 40) & 0xFF00) | ((val >> 24) & 0xFF0000) |
-              ((val >> 8) & 0xFF000000) | ((val << 8) & 0xFF00000000LL) |
-              ((val << 24) & 0xFF0000000000LL) | ((val << 40) & 0xFF000000000000LL) | ((val << 56) & 0xFF00000000000000LL);
-    }
+inline int64_t SwapBytesInt64(const int64_t val)
+{
+    return ((val >> 56) & 0xFF) | ((val >> 40) & 0xFF00) | ((val >> 24) & 0xFF0000) | ((val >> 8) & 0xFF000000) |
+           ((val << 8) & 0xFF00000000LL) | ((val << 24) & 0xFF0000000000LL) | ((val << 40) & 0xFF000000000000LL) |
+           ((val << 56) & 0xFF00000000000000LL);
+}
 
-    inline float SwapBytesFloat32(const float val)
-    {
-        IntFloatSwap swap(val);
-        swap.val.i32 = SwapBytesInt32(swap.val.i32);
-        return swap.val.f;
-    }
+inline float SwapBytesFloat32(const float val)
+{
+    IntFloatSwap swap(val);
+    swap.val.i32 = SwapBytesInt32(swap.val.i32);
+    return swap.val.f;
+}
 
-    inline int16_t Int16FromLE(const int16_t val)
-    {
-#if defined (BITBYTE_BIG_ENDIAN)
-        return SwapBytesInt16(val);
+inline int16_t Int16FromLE(const int16_t val)
+{
+#if defined(BITBYTE_BIG_ENDIAN)
+    return SwapBytesInt16(val);
 #else
-        return val;
+    return val;
 #endif
-    }
+}
 
-    inline int32_t Int32FromLE(const int32_t val)
-    {
-#if defined (BITBYTE_BIG_ENDIAN)
-        return SwapBytesInt32(val);
+inline int32_t Int32FromLE(const int32_t val)
+{
+#if defined(BITBYTE_BIG_ENDIAN)
+    return SwapBytesInt32(val);
 #else
-        return val;
+    return val;
 #endif
-    }
+}
 
-    inline int64_t Int64FromLE(const int64_t val)
-    {
-#if defined (BITBYTE_BIG_ENDIAN)
-        return SwapBytesInt64(val);
+inline int64_t Int64FromLE(const int64_t val)
+{
+#if defined(BITBYTE_BIG_ENDIAN)
+    return SwapBytesInt64(val);
 #else
-        return val;
+    return val;
 #endif
-    }
+}
 
-    inline float Float32FromLE(const float val)
-    {
-#if defined (BITBYTE_BIG_ENDIAN)
-        return SwapBytesFloat32(val);
+inline float Float32FromLE(const float val)
+{
+#if defined(BITBYTE_BIG_ENDIAN)
+    return SwapBytesFloat32(val);
 #else
-        return val;
+    return val;
 #endif
-    }
+}
 
-    inline int16_t Int16FromBE(const int16_t val)
-    {
-#if defined (BITBYTE_BIG_ENDIAN)
-        return val;
+inline int16_t Int16FromBE(const int16_t val)
+{
+#if defined(BITBYTE_BIG_ENDIAN)
+    return val;
 #else
-        return SwapBytesInt16(val);
+    return SwapBytesInt16(val);
 #endif
-    }
+}
 
-    inline int32_t Int32FromBE(const int32_t val)
-    {
-#if defined (BITBYTE_BIG_ENDIAN)
-        return val;
+inline int32_t Int32FromBE(const int32_t val)
+{
+#if defined(BITBYTE_BIG_ENDIAN)
+    return val;
 #else
-        return SwapBytesInt32(val);
+    return SwapBytesInt32(val);
 #endif
-    }
+}
 
-    inline int64_t Int64FromBE(const int64_t val)
-    {
-#if defined (BITBYTE_BIG_ENDIAN)
-        return val;
+inline int64_t Int64FromBE(const int64_t val)
+{
+#if defined(BITBYTE_BIG_ENDIAN)
+    return val;
 #else
-        return SwapBytesInt64(val);
+    return SwapBytesInt64(val);
 #endif
-    }
+}
 
-    inline float Float32FromBE(const float val)
-    {
-#if defined (BITBYTE_BIG_ENDIAN)
-        return val;
+inline float Float32FromBE(const float val)
+{
+#if defined(BITBYTE_BIG_ENDIAN)
+    return val;
 #else
-        return SwapBytesFloat32(val);
+    return SwapBytesFloat32(val);
 #endif
-    }
+}
 
 } // namespace BitByteOperations
 
 
 // Aliases for easier calling
-namespace BBOp  = BitByteOperations;
+namespace BBOp = BitByteOperations;
 
 
 } // namespace Common

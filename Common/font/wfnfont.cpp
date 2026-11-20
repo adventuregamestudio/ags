@@ -19,10 +19,10 @@
 
 using namespace AGS::Common;
 
-static const char   *WFN_FILE_SIGNATURE  = "WGT Font File  ";
-static const size_t  WFN_FILE_SIG_LENGTH = 15;
-static const size_t  MinCharDataSize     = sizeof(uint16_t) * 2;
-static const char* WFN_EXT_SIGNATURE = "WGT Font File 2";
+static const char *WFN_FILE_SIGNATURE = "WGT Font File  ";
+static const size_t WFN_FILE_SIG_LENGTH = 15;
+static const size_t MinCharDataSize = sizeof(uint16_t) * 2;
+static const char *WFN_EXT_SIGNATURE = "WGT Font File 2";
 static constexpr size_t WFN_EXT_CHAR_ENTRY_SIZE = 2u * sizeof(uint32_t);
 
 struct WFNExtHeader
@@ -37,12 +37,7 @@ struct WFNExtHeader
     uint32_t BaseShadeIndex = 0;
 };
 
-WFNChar::WFNChar()
-    : Width(0)
-    , Height(0)
-    , Data(nullptr)
-{
-}
+WFNChar::WFNChar() : Width(0), Height(0), Data(nullptr) {}
 
 void WFNChar::RestrictToBytes(size_t bytes)
 {
@@ -50,7 +45,7 @@ void WFNChar::RestrictToBytes(size_t bytes)
         Height = static_cast<uint16_t>(bytes / GetRowByteCount());
 }
 
-static WFNError ReadWFNExtHeader(Stream* in, const soff_t file_size, WFNExtHeader& header)
+static WFNError ReadWFNExtHeader(Stream *in, const soff_t file_size, WFNExtHeader &header)
 {
     constexpr uint32_t kMinHeaderSize = 8u * sizeof(uint32_t);
 
@@ -69,8 +64,7 @@ static WFNError ReadWFNExtHeader(Stream* in, const soff_t file_size, WFNExtHeade
     header.CharacterTableSize = static_cast<uint32_t>(in->ReadInt32());
     header.BaseShadeIndex = static_cast<uint32_t>(in->ReadInt32());
 
-    if (static_cast<uint64_t>(WFN_FILE_SIG_LENGTH) + header.HeaderSize >
-        static_cast<uint64_t>(file_size))
+    if (static_cast<uint64_t>(WFN_FILE_SIG_LENGTH) + header.HeaderSize > static_cast<uint64_t>(file_size))
         return kWFNErr_BadHeader;
 
     const uint64_t header_end = static_cast<uint64_t>(WFN_FILE_SIG_LENGTH) + header.HeaderSize;
@@ -108,7 +102,7 @@ void WFNFont::Clear()
     _bitsPerPixel = 0;
 }
 
-WFNError WFNFont::ReadExtendedFromFile(Stream* in, const soff_t used_data_size)
+WFNError WFNFont::ReadExtendedFromFile(Stream *in, const soff_t used_data_size)
 {
     WFNExtHeader header;
     const WFNError header_err = ReadWFNExtHeader(in, used_data_size, header);
@@ -144,8 +138,7 @@ WFNError WFNFont::ReadExtendedFromFile(Stream* in, const soff_t used_data_size)
     // Read the glyph-data table.
     std::vector<uint8_t> raw_data(glyph_data_size);
     in->Seek(header.GlyphTableAddress, kSeekBegin);
-    if (glyph_data_size != 0 &&
-        in->Read(raw_data.data(), glyph_data_size) != glyph_data_size)
+    if (glyph_data_size != 0 && in->Read(raw_data.data(), glyph_data_size) != glyph_data_size)
         return kWFNErr_BadTableAddress;
 
     // Read the sparse character map.
@@ -166,10 +159,7 @@ WFNError WFNFont::ReadExtendedFromFile(Stream* in, const soff_t used_data_size)
 
     // Sort character codes and reject duplicates.
     std::sort(character_map.begin(), character_map.end(),
-        [](const CharacterMapEntry& a, const CharacterMapEntry& b)
-        {
-            return a.Code < b.Code;
-        });
+              [](const CharacterMapEntry &a, const CharacterMapEntry &b) { return a.Code < b.Code; });
 
     for (size_t i = 1; i < char_count; ++i)
     {
@@ -222,8 +212,7 @@ WFNError WFNFont::ReadExtendedFromFile(Stream* in, const soff_t used_data_size)
         ch.BitsPerPixel = static_cast<uint8_t>(header.BitsPerPixel);
 
         const size_t expected_size = ch.GetRequiredPixelSize();
-        const size_t next_pos = (i + 1 < offs.size())
-            ? static_cast<size_t>(offs[i + 1]) : glyph_data_size;
+        const size_t next_pos = (i + 1 < offs.size()) ? static_cast<size_t>(offs[i + 1]) : glyph_data_size;
         const size_t pixel_pos = pos + MinCharDataSize;
         const size_t available = next_pos > pixel_pos ? next_pos - pixel_pos : 0;
 
@@ -248,16 +237,14 @@ WFNError WFNFont::ReadExtendedFromFile(Stream* in, const soff_t used_data_size)
             continue;
 
         const size_t pos = static_cast<size_t>(offs[i]) + MinCharDataSize;
-        std::copy(raw_data.begin() + pos, raw_data.begin() + pos + count,
-            _pixelData.begin() + pixel_dest);
+        std::copy(raw_data.begin() + pos, raw_data.begin() + pos + count, _pixelData.begin() + pixel_dest);
 
         _items[i].Data = _pixelData.data() + pixel_dest;
         pixel_dest += count;
     }
 
     // Build the character reference array.
-    const size_t ref_count = character_map.empty()
-        ? 0u : static_cast<size_t>(character_map.back().Code) + 1u;
+    const size_t ref_count = character_map.empty() ? 0u : static_cast<size_t>(character_map.back().Code) + 1u;
 
     _refs.resize(ref_count, &_emptyChar);
 
@@ -276,13 +263,14 @@ WFNError WFNFont::ReadExtendedFromFile(Stream* in, const soff_t used_data_size)
 }
 
 
-WFNError WFNFont::ReadClassicFromFile(Stream* in, const soff_t used_data_size)
+WFNError WFNFont::ReadClassicFromFile(Stream *in, const soff_t used_data_size)
 {
     const soff_t table_addr = static_cast<uint16_t>(in->ReadInt16()); // offset table relative address
     if (table_addr < WFN_FILE_SIG_LENGTH + sizeof(uint16_t) || table_addr >= used_data_size)
     {
         Debug::Printf(kDbgMsg_Error, "\tWFN: bad table address: %jd (%jd - %jd)", static_cast<intmax_t>(table_addr),
-            static_cast<intmax_t>(WFN_FILE_SIG_LENGTH + sizeof(uint16_t)), static_cast<intmax_t>(used_data_size));
+                      static_cast<intmax_t>(WFN_FILE_SIG_LENGTH + sizeof(uint16_t)),
+                      static_cast<intmax_t>(used_data_size));
         return kWFNErr_BadTableAddress; // bad table address
     }
 
@@ -309,7 +297,7 @@ WFNError WFNFont::ReadClassicFromFile(Stream* in, const soff_t used_data_size)
 
     // Read offset table
     std::vector<uint16_t> offset_table(char_count);
-    in->ReadArrayOfInt16(reinterpret_cast<int16_t*>(offset_table.data()), char_count);
+    in->ReadArrayOfInt16(reinterpret_cast<int16_t *>(offset_table.data()), char_count);
 
     // Read all referenced offsets in an unsorted vector
     std::vector<uint16_t> offs;
@@ -324,10 +312,10 @@ WFNError WFNFont::ReadClassicFromFile(Stream* in, const soff_t used_data_size)
         }
         else if (off < raw_data_offset || off + MinCharDataSize > table_addr)
         {
-            Debug::Printf("\tWFN: character %zu -- bad item offset: %d (%" PRId64 " - %" PRId64 ", +%zu)",
-                i, off, raw_data_offset, table_addr, MinCharDataSize);
+            Debug::Printf("\tWFN: character %zu -- bad item offset: %d (%" PRId64 " - %" PRId64 ", +%zu)", i, off,
+                          raw_data_offset, table_addr, MinCharDataSize);
             err = kWFNErr_HasBadCharacters; // warn about potentially corrupt format
-            continue; // bad character offset
+            continue;                       // bad character offset
         }
         offs.push_back(off);
     }
@@ -341,7 +329,7 @@ WFNError WFNFont::ReadClassicFromFile(Stream* in, const soff_t used_data_size)
     size_t total_pixel_size = 0;
     for (size_t i = 0; i < _items.size(); ++i)
     {
-        const uint8_t* p_data = &raw_data[offs[i] - raw_data_offset];
+        const uint8_t *p_data = &raw_data[offs[i] - raw_data_offset];
         init_ch.Width = Memory::ReadInt16LE(p_data);
         init_ch.Height = Memory::ReadInt16LE(p_data + sizeof(uint16_t));
         total_pixel_size += init_ch.GetRequiredPixelSize();
@@ -363,17 +351,17 @@ WFNError WFNFont::ReadClassicFromFile(Stream* in, const soff_t used_data_size)
         const uint16_t raw_off = offs[i] - raw_data_offset + MinCharDataSize; // offset in raw array
         size_t src_size = pixel_data_size;
         if (i + 1 != _items.size() && raw_off + src_size > offs[i + 1] - raw_data_offset)
-        {   // character pixel data overlaps next character
-            Debug::Printf("\tWFN: item at off %d -- pixel data overlaps next known item (at %d, +%zu)",
-                offs[i], offs[i + 1], MinCharDataSize + src_size);
+        { // character pixel data overlaps next character
+            Debug::Printf("\tWFN: item at off %d -- pixel data overlaps next known item (at %d, +%zu)", offs[i],
+                          offs[i + 1], MinCharDataSize + src_size);
             err = kWFNErr_HasBadCharacters; // warn about potentially corrupt format
             src_size = offs[i + 1] - offs[i] - MinCharDataSize;
         }
 
         if (raw_off + src_size > total_char_data)
-        {   // character pixel data overflow buffer
-            Debug::Printf("\tWFN: item at off %d -- pixel data exceeds available data (at %" PRId64 ", +%zu)",
-                offs[i], table_addr, MinCharDataSize + src_size);
+        { // character pixel data overflow buffer
+            Debug::Printf("\tWFN: item at off %d -- pixel data exceeds available data (at %" PRId64 ", +%zu)", offs[i],
+                          table_addr, MinCharDataSize + src_size);
             err = kWFNErr_HasBadCharacters; // warn about potentially corrupt format
             src_size = total_char_data - raw_off;
         }
@@ -405,7 +393,7 @@ WFNError WFNFont::ReadClassicFromFile(Stream* in, const soff_t used_data_size)
                 // we know beforehand that such item must exist
                 std::vector<uint16_t>::const_iterator at = std::lower_bound(offs.begin(), offs.end(), off);
                 assert(at != offs.end() && *at == off && // should not normally fail
-                    at - offs.begin() >= 0 && static_cast<size_t>(at - offs.begin()) < _items.size());
+                       at - offs.begin() >= 0 && static_cast<size_t>(at - offs.begin()) < _items.size());
                 _refs[i] = &_items[at - offs.begin()]; // set up reference to item
             }
         }
@@ -426,11 +414,9 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
     // Read font header
     char sig[WFN_FILE_SIG_LENGTH];
     in->Read(sig, WFN_FILE_SIG_LENGTH);
-    const bool is_legacy_wfn =
-        strncmp(sig, WFN_FILE_SIGNATURE, WFN_FILE_SIG_LENGTH) == 0;
+    const bool is_legacy_wfn = strncmp(sig, WFN_FILE_SIGNATURE, WFN_FILE_SIG_LENGTH) == 0;
 
-    const bool is_extended_wfn =
-        strncmp(sig, WFN_EXT_SIGNATURE, WFN_FILE_SIG_LENGTH) == 0;
+    const bool is_extended_wfn = strncmp(sig, WFN_EXT_SIGNATURE, WFN_FILE_SIG_LENGTH) == 0;
 
     if (!is_legacy_wfn && !is_extended_wfn)
     {
@@ -438,11 +424,10 @@ WFNError WFNFont::ReadFromFile(Stream *in, const soff_t data_size)
         return kWFNErr_BadSignature;
     }
 
-    const WFNError err = is_extended_wfn
-        ? ReadExtendedFromFile(in, used_data_size)
-        : ReadClassicFromFile(in, used_data_size);
+    const WFNError err =
+        is_extended_wfn ? ReadExtendedFromFile(in, used_data_size) : ReadClassicFromFile(in, used_data_size);
 
-    for (const WFNChar& ch : _items)
+    for (const WFNChar &ch : _items)
     {
         _bbox.Right = std::max(_bbox.Right, static_cast<int>(ch.Width) - 1);
         _bbox.Bottom = std::max(_bbox.Bottom, static_cast<int>(ch.Height) - 1);

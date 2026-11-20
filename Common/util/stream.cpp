@@ -194,8 +194,7 @@ StreamSection::StreamSection(std::unique_ptr<IStreamBase> &&base, soff_t start, 
     _base = _ownBase.get();
 }
 
-StreamSection::StreamSection(IStreamBase *base, soff_t start, soff_t end)
-    : StreamBase(base->GetPath())
+StreamSection::StreamSection(IStreamBase *base, soff_t start, soff_t end) : StreamBase(base->GetPath())
 {
     OpenSection(base, start, end);
     _base = base;
@@ -286,12 +285,12 @@ int32_t StreamSection::WriteByte(uint8_t b)
 soff_t StreamSection::Seek(soff_t offset, StreamSeek origin)
 {
     soff_t want_pos = -1;
-    switch(origin)
+    switch (origin)
     {
-        case StreamSeek::kSeekCurrent:  want_pos = _position   + offset; break;
-        case StreamSeek::kSeekBegin:    want_pos = _start      + offset; break;
-        case StreamSeek::kSeekEnd:      want_pos = _end        + offset; break;
-        default: return -1;
+    case StreamSeek::kSeekCurrent: want_pos = _position + offset; break;
+    case StreamSeek::kSeekBegin: want_pos = _start + offset; break;
+    case StreamSeek::kSeekEnd: want_pos = _end + offset; break;
+    default: return -1;
     }
 
     want_pos = std::min(std::max(want_pos, _start), _end);

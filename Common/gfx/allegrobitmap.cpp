@@ -31,9 +31,7 @@ inline fixed_t ToAllegroAngle(int angle)
     return itofix((angle * 256) / 360);
 }
 
-Bitmap::Bitmap()
-{
-}
+Bitmap::Bitmap() {}
 
 Bitmap::Bitmap(int width, int height, int color_depth)
 {
@@ -81,7 +79,7 @@ Bitmap::~Bitmap()
     Destroy();
 }
 
-Bitmap &Bitmap::operator =(const Bitmap &bmp)
+Bitmap &Bitmap::operator=(const Bitmap &bmp)
 {
     CreateCopy(&bmp);
     return *this;
@@ -146,7 +144,7 @@ bool Bitmap::Create(PixelBuffer &&pxbuf)
         data = std::move(copy_buf);
         data_sz = need_size;
     }
-    
+
     BITMAP *bitmap = create_bitmap_userdata(color_depth, width, height, data.get(), data_sz, 0u, nullptr);
     if (!bitmap)
         return false;
@@ -223,8 +221,8 @@ bool Bitmap::WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, boo
 {
     Destroy();
 
-    _alBitmap = create_bitmap_userdata(bm_data.GetColorDepth(),
-        bm_data.GetWidth(), bm_data.GetHeight(), bm_data.GetData(), bm_data.GetDataSize(), bm_data.GetStride(), nullptr);
+    _alBitmap = create_bitmap_userdata(bm_data.GetColorDepth(), bm_data.GetWidth(), bm_data.GetHeight(),
+                                       bm_data.GetData(), bm_data.GetDataSize(), bm_data.GetStride(), nullptr);
     if (!_alBitmap)
         return false;
 
@@ -236,13 +234,13 @@ bool Bitmap::WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, boo
 
 PixelBuffer Bitmap::ReleasePixelData()
 {
-	if (!_alBitmap)
-		return {};
+    if (!_alBitmap)
+        return {};
 
-	auto pxbuf = PixelBuffer(std::move(_pixelData), _alBitmap->dat_sz, _alBitmap->w, _alBitmap->h,
-		ColorDepthToPixelFormat(GetColorDepth()), _alBitmap->pitch);
-	Destroy();
-	return pxbuf;
+    auto pxbuf = PixelBuffer(std::move(_pixelData), _alBitmap->dat_sz, _alBitmap->w, _alBitmap->h,
+                             ColorDepthToPixelFormat(GetColorDepth()), _alBitmap->pitch);
+    Destroy();
+    return pxbuf;
 }
 
 void Bitmap::Destroy()
@@ -269,7 +267,7 @@ void Bitmap::Destroy()
 
 bool Bitmap::SaveToFile(const char *filename, bool skip_alpha, const RGB *palette)
 {
-	return BitmapHelper::SaveToFile(this, filename, skip_alpha, palette);
+    return BitmapHelper::SaveToFile(this, filename, skip_alpha, palette);
 }
 
 color_t Bitmap::GetCompatibleColor(int color)
@@ -283,7 +281,7 @@ color_t Bitmap::GetCompatibleColor(int color)
 
 void Bitmap::SetClip(const Rect &rc)
 {
-	set_clip_rect(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom);
+    set_clip_rect(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom);
 }
 
 void Bitmap::ResetClip()
@@ -293,9 +291,9 @@ void Bitmap::ResetClip()
 
 Rect Bitmap::GetClip() const
 {
-	Rect temp;
-	get_clip_rect(_alBitmap, &temp.Left, &temp.Top, &temp.Right, &temp.Bottom);
-	return temp;
+    Rect temp;
+    get_clip_rect(_alBitmap, &temp.Left, &temp.Top, &temp.Right, &temp.Bottom);
+    return temp;
 }
 
 //=============================================================================
@@ -303,30 +301,31 @@ Rect Bitmap::GetClip() const
 //=============================================================================
 
 void Bitmap::Blit(const Bitmap *src, int dst_x, int dst_y, BitmapMaskOption mask)
-{	
-	BITMAP *al_src_bmp = src->_alBitmap;
-	// WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
-	if (mask == kBitmap_Transparency)
-	{
-		draw_sprite(_alBitmap, al_src_bmp, dst_x, dst_y);
-	}
-	else
-	{
-		blit(al_src_bmp, _alBitmap, 0, 0, dst_x, dst_y, al_src_bmp->w, al_src_bmp->h);
-	}
+{
+    BITMAP *al_src_bmp = src->_alBitmap;
+    // WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
+    if (mask == kBitmap_Transparency)
+    {
+        draw_sprite(_alBitmap, al_src_bmp, dst_x, dst_y);
+    }
+    else
+    {
+        blit(al_src_bmp, _alBitmap, 0, 0, dst_x, dst_y, al_src_bmp->w, al_src_bmp->h);
+    }
 }
 
-void Bitmap::Blit(const Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask)
+void Bitmap::Blit(const Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height,
+                  BitmapMaskOption mask)
 {
-	BITMAP *al_src_bmp = src->_alBitmap;
-	if (mask == kBitmap_Transparency)
-	{
-		masked_blit(al_src_bmp, _alBitmap, src_x, src_y, dst_x, dst_y, width, height);
-	}
-	else
-	{
-		blit(al_src_bmp, _alBitmap, src_x, src_y, dst_x, dst_y, width, height);
-	}
+    BITMAP *al_src_bmp = src->_alBitmap;
+    if (mask == kBitmap_Transparency)
+    {
+        masked_blit(al_src_bmp, _alBitmap, src_x, src_y, dst_x, dst_y, width, height);
+    }
+    else
+    {
+        blit(al_src_bmp, _alBitmap, src_x, src_y, dst_x, dst_y, width, height);
+    }
 }
 
 void Bitmap::MaskedBlit(const Bitmap *src, int dst_x, int dst_y)
@@ -336,103 +335,90 @@ void Bitmap::MaskedBlit(const Bitmap *src, int dst_x, int dst_y)
 
 void Bitmap::StretchBlt(const Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask)
 {
-	BITMAP *al_src_bmp = src->_alBitmap;
-	// WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
-	if (mask == kBitmap_Transparency)
-	{
-		stretch_sprite(_alBitmap, al_src_bmp,
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
-	else
-	{
-		stretch_blit(al_src_bmp, _alBitmap,
-			0, 0, al_src_bmp->w, al_src_bmp->h,
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
+    BITMAP *al_src_bmp = src->_alBitmap;
+    // WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
+    if (mask == kBitmap_Transparency)
+    {
+        stretch_sprite(_alBitmap, al_src_bmp, dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
+    }
+    else
+    {
+        stretch_blit(al_src_bmp, _alBitmap, 0, 0, al_src_bmp->w, al_src_bmp->h, dst_rc.Left, dst_rc.Top,
+                     dst_rc.GetWidth(), dst_rc.GetHeight());
+    }
 }
 
 void Bitmap::StretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask)
 {
-	BITMAP *al_src_bmp = src->_alBitmap;
-	if (mask == kBitmap_Transparency)
-	{
-		masked_stretch_blit(al_src_bmp, _alBitmap,
-			src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(),
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
-	else
-	{
-		stretch_blit(al_src_bmp, _alBitmap,
-			src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(),
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
+    BITMAP *al_src_bmp = src->_alBitmap;
+    if (mask == kBitmap_Transparency)
+    {
+        masked_stretch_blit(al_src_bmp, _alBitmap, src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(),
+                            dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
+    }
+    else
+    {
+        stretch_blit(al_src_bmp, _alBitmap, src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(), dst_rc.Left,
+                     dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
+    }
 }
 
 void Bitmap::AAStretchBlt(const Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask)
 {
-	BITMAP *al_src_bmp = src->_alBitmap;
-	// WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
-	if (mask == kBitmap_Transparency)
-	{
-		aa_stretch_sprite(_alBitmap, al_src_bmp,
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
-	else
-	{
-		aa_stretch_blit(al_src_bmp, _alBitmap,
-			0, 0, al_src_bmp->w, al_src_bmp->h,
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
+    BITMAP *al_src_bmp = src->_alBitmap;
+    // WARNING: For some evil reason Allegro expects dest and src bitmaps in different order for blit and draw_sprite
+    if (mask == kBitmap_Transparency)
+    {
+        aa_stretch_sprite(_alBitmap, al_src_bmp, dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
+    }
+    else
+    {
+        aa_stretch_blit(al_src_bmp, _alBitmap, 0, 0, al_src_bmp->w, al_src_bmp->h, dst_rc.Left, dst_rc.Top,
+                        dst_rc.GetWidth(), dst_rc.GetHeight());
+    }
 }
 
 void Bitmap::AAStretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask)
 {
-	BITMAP *al_src_bmp = src->_alBitmap;
-	if (mask == kBitmap_Transparency)
-	{
-		// TODO: aastr lib does not expose method for masked stretch blit; should do that at some point since 
-		// the source code is a gift-ware anyway
-		// aa_masked_blit(_alBitmap, al_src_bmp, src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(), dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-		throw std::runtime_error("aa_masked_blit is not yet supported!");
-	}
-	else
-	{
-		aa_stretch_blit(al_src_bmp, _alBitmap,
-			src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(),
-			dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
-	}
+    BITMAP *al_src_bmp = src->_alBitmap;
+    if (mask == kBitmap_Transparency)
+    {
+        // TODO: aastr lib does not expose method for masked stretch blit; should do that at some point since
+        // the source code is a gift-ware anyway
+        // aa_masked_blit(_alBitmap, al_src_bmp, src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(), dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
+        throw std::runtime_error("aa_masked_blit is not yet supported!");
+    }
+    else
+    {
+        aa_stretch_blit(al_src_bmp, _alBitmap, src_rc.Left, src_rc.Top, src_rc.GetWidth(), src_rc.GetHeight(),
+                        dst_rc.Left, dst_rc.Top, dst_rc.GetWidth(), dst_rc.GetHeight());
+    }
 }
 
 void Bitmap::TransBlendBlt(const Bitmap *src, int dst_x, int dst_y)
 {
-	BITMAP *al_src_bmp = src->_alBitmap;
-	draw_trans_sprite(_alBitmap, al_src_bmp, dst_x, dst_y);
+    BITMAP *al_src_bmp = src->_alBitmap;
+    draw_trans_sprite(_alBitmap, al_src_bmp, dst_x, dst_y);
 }
 
 void Bitmap::LitBlendBlt(const Bitmap *src, int dst_x, int dst_y, int light_amount)
 {
-	BITMAP *al_src_bmp = src->_alBitmap;
-	draw_lit_sprite(_alBitmap, al_src_bmp, dst_x, dst_y, light_amount);
+    BITMAP *al_src_bmp = src->_alBitmap;
+    draw_lit_sprite(_alBitmap, al_src_bmp, dst_x, dst_y, light_amount);
 }
 
 void Bitmap::FlipBlt(const Bitmap *src, int dst_x, int dst_y, GraphicFlip flip)
-{	
-	BITMAP *al_src_bmp = src->_alBitmap;
-	switch (flip)
-	{
-	case kFlip_Horizontal:
-		draw_sprite_h_flip(_alBitmap, al_src_bmp, dst_x, dst_y);
-		break;
-	case kFlip_Vertical:
-		draw_sprite_v_flip(_alBitmap, al_src_bmp, dst_x, dst_y);
-		break;
-	case kFlip_Both:
-		draw_sprite_vh_flip(_alBitmap, al_src_bmp, dst_x, dst_y);
-		break;
-	default: // blit with no transform
-		Blit(src, dst_x, dst_y);
-		break;
-	}
+{
+    BITMAP *al_src_bmp = src->_alBitmap;
+    switch (flip)
+    {
+    case kFlip_Horizontal: draw_sprite_h_flip(_alBitmap, al_src_bmp, dst_x, dst_y); break;
+    case kFlip_Vertical: draw_sprite_v_flip(_alBitmap, al_src_bmp, dst_x, dst_y); break;
+    case kFlip_Both: draw_sprite_vh_flip(_alBitmap, al_src_bmp, dst_x, dst_y); break;
+    default: // blit with no transform
+        Blit(src, dst_x, dst_y);
+        break;
+    }
 }
 
 void Bitmap::RotateBlt(const Bitmap *src, int dst_x, int dst_y, int angle)
@@ -455,14 +441,14 @@ void Bitmap::RotateBlt(const Bitmap *src, int dst_x, int dst_y, int pivot_x, int
 
 void Bitmap::Clear(color_t color)
 {
-	if (color)
-	{
-		clear_to_color(_alBitmap, color);
-	}
-	else
-	{
-		clear_bitmap(_alBitmap);	
-	}
+    if (color)
+    {
+        clear_to_color(_alBitmap, color);
+    }
+    else
+    {
+        clear_bitmap(_alBitmap);
+    }
 }
 
 void Bitmap::ClearTransparent()
@@ -477,25 +463,21 @@ void Bitmap::PutPixel(int x, int y, color_t color)
         return;
     }
 
-	switch (bitmap_color_depth(_alBitmap))
-	{
-	case 8:
-		return _putpixel(_alBitmap, x, y, color);
-	case 15:
-		return _putpixel15(_alBitmap, x, y, color);
-	case 16:
-		return _putpixel16(_alBitmap, x, y, color);
-	case 24:
-		return _putpixel24(_alBitmap, x, y, color);
-	case 32:
-		return _putpixel32(_alBitmap, x, y, color);
-	default: assert(0); // this should not normally happen
-	}
-	return putpixel(_alBitmap, x, y, color);
+    switch (bitmap_color_depth(_alBitmap))
+    {
+    case 8: return _putpixel(_alBitmap, x, y, color);
+    case 15: return _putpixel15(_alBitmap, x, y, color);
+    case 16: return _putpixel16(_alBitmap, x, y, color);
+    case 24: return _putpixel24(_alBitmap, x, y, color);
+    case 32: return _putpixel32(_alBitmap, x, y, color);
+    default: assert(0); // this should not normally happen
+    }
+    return putpixel(_alBitmap, x, y, color);
 }
 
 // hack into allegro...
-extern "C" {
+extern "C"
+{
     extern BLENDER_FUNC _blender_func15;
     extern BLENDER_FUNC _blender_func16;
     extern BLENDER_FUNC _blender_func24;
@@ -511,16 +493,11 @@ void Bitmap::BlendPixel(int x, int y, color_t color)
 
     switch (bitmap_color_depth(_alBitmap))
     {
-    case 8:
-        return _putpixel(_alBitmap, x, y, color);
-    case 15:
-        return _putpixel15(_alBitmap, x, y, _blender_func15(color, _getpixel15(_alBitmap, x, y), 0xFF));
-    case 16:
-        return _putpixel16(_alBitmap, x, y, _blender_func16(color, _getpixel16(_alBitmap, x, y), 0xFF));
-    case 24:
-        return _putpixel24(_alBitmap, x, y, _blender_func24(color, _getpixel24(_alBitmap, x, y), 0xFF));
-    case 32:
-        return _putpixel32(_alBitmap, x, y, _blender_func32(color, _getpixel32(_alBitmap, x, y), 0xFF));
+    case 8: return _putpixel(_alBitmap, x, y, color);
+    case 15: return _putpixel15(_alBitmap, x, y, _blender_func15(color, _getpixel15(_alBitmap, x, y), 0xFF));
+    case 16: return _putpixel16(_alBitmap, x, y, _blender_func16(color, _getpixel16(_alBitmap, x, y), 0xFF));
+    case 24: return _putpixel24(_alBitmap, x, y, _blender_func24(color, _getpixel24(_alBitmap, x, y), 0xFF));
+    case 32: return _putpixel32(_alBitmap, x, y, _blender_func32(color, _getpixel32(_alBitmap, x, y), 0xFF));
     default: assert(0); // this should not normally happen
     }
     return putpixel(_alBitmap, x, y, color);
@@ -530,25 +507,20 @@ int Bitmap::GetPixel(int x, int y) const
 {
     if (x < 0 || x >= _alBitmap->w || y < 0 || y >= _alBitmap->h)
     {
-		// FIXME: this is frankly wrong, because -1 translates to 0xFFFFFFFF (opaque white) in case of 32-bit ARGB
+        // FIXME: this is frankly wrong, because -1 translates to 0xFFFFFFFF (opaque white) in case of 32-bit ARGB
         return -1; // Allegros getpixel() implementation returns -1 in this case
     }
 
-	switch (bitmap_color_depth(_alBitmap))
-	{
-	case 8:
-		return _getpixel(_alBitmap, x, y);
-	case 15:
-		return _getpixel15(_alBitmap, x, y);
-	case 16:
-		return _getpixel16(_alBitmap, x, y);
-	case 24:
-		return _getpixel24(_alBitmap, x, y);
-	case 32:
-		return _getpixel32(_alBitmap, x, y);
-	}
+    switch (bitmap_color_depth(_alBitmap))
+    {
+    case 8: return _getpixel(_alBitmap, x, y);
+    case 15: return _getpixel15(_alBitmap, x, y);
+    case 16: return _getpixel16(_alBitmap, x, y);
+    case 24: return _getpixel24(_alBitmap, x, y);
+    case 32: return _getpixel32(_alBitmap, x, y);
+    }
     assert(0); // this should not normally happen
-	return getpixel(_alBitmap, x, y);
+    return getpixel(_alBitmap, x, y);
 }
 
 //=============================================================================
@@ -557,89 +529,88 @@ int Bitmap::GetPixel(int x, int y) const
 
 inline void NormalizeAngles(int &angle1, int &angle2)
 {
-	angle1 %= 360;
-	angle2 %= 360;
-	if (angle2 < angle1)
-		angle2 += 360;
+    angle1 %= 360;
+    angle2 %= 360;
+    if (angle2 < angle1)
+        angle2 += 360;
 }
 
 void Bitmap::DrawArc(int x, int y, int radius, int angle1, int angle2, color_t color)
 {
-	NormalizeAngles(angle1, angle2);
-	arc(_alBitmap, x, y, ToAllegroAngle(angle1), ToAllegroAngle(angle2), radius, color);
+    NormalizeAngles(angle1, angle2);
+    arc(_alBitmap, x, y, ToAllegroAngle(angle1), ToAllegroAngle(angle2), radius, color);
 }
 
 void Bitmap::DrawCircle(const Circle &circle, color_t color)
 {
-	::circle(_alBitmap, circle.X, circle.Y, circle.Radius, color);
+    ::circle(_alBitmap, circle.X, circle.Y, circle.Radius, color);
 }
 
 void Bitmap::DrawEllipse(int x, int y, int radiusx, int radiusy, color_t color)
 {
-	ellipse(_alBitmap, x, y, radiusx, radiusy, color);
+    ellipse(_alBitmap, x, y, radiusx, radiusy, color);
 }
 
 void Bitmap::DrawLine(const Line &ln, color_t color)
 {
-	line(_alBitmap, ln.X1, ln.Y1, ln.X2, ln.Y2, color);
+    line(_alBitmap, ln.X1, ln.Y1, ln.X2, ln.Y2, color);
 }
 
 void Bitmap::DrawPie(int x, int y, int radius, int angle1, int angle2, color_t color)
 {
-	NormalizeAngles(angle1, angle2);
-	_soft_pie(_alBitmap, x, y, ToAllegroAngle(angle1), ToAllegroAngle(angle2), radius, color);
+    NormalizeAngles(angle1, angle2);
+    _soft_pie(_alBitmap, x, y, ToAllegroAngle(angle1), ToAllegroAngle(angle2), radius, color);
 }
 
 void Bitmap::DrawRect(const Rect &rc, color_t color)
 {
-	rect(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, color);
+    rect(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, color);
 }
 
 void Bitmap::DrawTriangle(const Triangle &tr, color_t color)
 {
-	// Allegro4 provides only triangle fill function, so we just draw 3 lines
-	line(_alBitmap, tr.X1, tr.Y1, tr.X2, tr.Y2, color);
-	line(_alBitmap, tr.X2, tr.Y2, tr.X3, tr.Y3, color);
-	line(_alBitmap, tr.X3, tr.Y3, tr.X1, tr.Y1, color);
+    // Allegro4 provides only triangle fill function, so we just draw 3 lines
+    line(_alBitmap, tr.X1, tr.Y1, tr.X2, tr.Y2, color);
+    line(_alBitmap, tr.X2, tr.Y2, tr.X3, tr.Y3, color);
+    line(_alBitmap, tr.X3, tr.Y3, tr.X1, tr.Y1, color);
 }
 
 void Bitmap::FillCircle(const Circle &circle, color_t color)
 {
-	circlefill(_alBitmap, circle.X, circle.Y, circle.Radius, color);
+    circlefill(_alBitmap, circle.X, circle.Y, circle.Radius, color);
 }
 
 void Bitmap::FillEllipse(int x, int y, int radiusx, int radiusy, color_t color)
 {
-	ellipsefill(_alBitmap, x, y, radiusx, radiusy, color);
+    ellipsefill(_alBitmap, x, y, radiusx, radiusy, color);
 }
 
 void Bitmap::FillPie(int x, int y, int radius, int angle1, int angle2, color_t color)
 {
-	NormalizeAngles(angle1, angle2);
-	_soft_piefill(_alBitmap, x, y, ToAllegroAngle(angle1), ToAllegroAngle(angle2), radius, color);
+    NormalizeAngles(angle1, angle2);
+    _soft_piefill(_alBitmap, x, y, ToAllegroAngle(angle1), ToAllegroAngle(angle2), radius, color);
 }
 
 void Bitmap::FillRect(const Rect &rc, color_t color)
 {
-	rectfill(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, color);
+    rectfill(_alBitmap, rc.Left, rc.Top, rc.Right, rc.Bottom, color);
 }
 
 void Bitmap::FillTriangle(const Triangle &tr, color_t color)
 {
-	triangle(_alBitmap,
-		tr.X1, tr.Y1, tr.X2, tr.Y2, tr.X3, tr.Y3, color);
+    triangle(_alBitmap, tr.X1, tr.Y1, tr.X2, tr.Y2, tr.X3, tr.Y3, color);
 }
 
 void Bitmap::Fill(color_t color)
 {
-	if (color)
-	{
-		clear_to_color(_alBitmap, color);
-	}
-	else
-	{
-		clear_bitmap(_alBitmap);	
-	}
+    if (color)
+    {
+        clear_to_color(_alBitmap, color);
+    }
+    else
+    {
+        clear_bitmap(_alBitmap);
+    }
 }
 
 void Bitmap::FillTransparent()
@@ -649,7 +620,7 @@ void Bitmap::FillTransparent()
 
 void Bitmap::FloodFill(int x, int y, color_t color)
 {
-	floodfill(_alBitmap, x, y, color);
+    floodfill(_alBitmap, x, y, color);
 }
 
 //=============================================================================
@@ -658,25 +629,24 @@ void Bitmap::FloodFill(int x, int y, color_t color)
 
 void Bitmap::SetScanLine(int index, unsigned char *data, int data_size)
 {
-	if (index < 0 || index >= GetHeight())
-	{
-		return;
-	}
+    if (index < 0 || index >= GetHeight())
+    {
+        return;
+    }
 
-	int copy_length = data_size;
-	if (copy_length < 0)
-	{
-		copy_length = GetPitch();
-	}
-	else // TODO: use Math namespace here
-		if (copy_length > GetPitch())
-	{
-		copy_length = GetPitch();
-	}
+    int copy_length = data_size;
+    if (copy_length < 0)
+    {
+        copy_length = GetPitch();
+    }
+    else // TODO: use Math namespace here
+        if (copy_length > GetPitch())
+        {
+            copy_length = GetPitch();
+        }
 
-	memcpy(_alBitmap->line[index], data, copy_length);
+    memcpy(_alBitmap->line[index], data, copy_length);
 }
-
 
 
 namespace BitmapHelper
@@ -717,24 +687,24 @@ void AGSColorToRGB(int color, int color_depth, RGB &rgb)
 
 Bitmap *CreateRawBitmapOwner(BITMAP *al_bmp)
 {
-	Bitmap *bitmap = new Bitmap();
-	if (!bitmap->WrapAllegroBitmap(al_bmp, false))
-	{
-		delete bitmap;
-		bitmap = nullptr;
-	}
-	return bitmap;
+    Bitmap *bitmap = new Bitmap();
+    if (!bitmap->WrapAllegroBitmap(al_bmp, false))
+    {
+        delete bitmap;
+        bitmap = nullptr;
+    }
+    return bitmap;
 }
 
 Bitmap *CreateRawBitmapWrapper(BITMAP *al_bmp)
 {
-	Bitmap *bitmap = new Bitmap();
-	if (!bitmap->WrapAllegroBitmap(al_bmp, true))
-	{
-		delete bitmap;
-		bitmap = nullptr;
-	}
-	return bitmap;
+    Bitmap *bitmap = new Bitmap();
+    if (!bitmap->WrapAllegroBitmap(al_bmp, true))
+    {
+        delete bitmap;
+        bitmap = nullptr;
+    }
+    return bitmap;
 }
 
 } // namespace BitmapHelper

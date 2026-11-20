@@ -28,20 +28,20 @@ public:
     GUIInvWindow();
 
     // Properties
-    int  GetItemWidth() const { return _itemWidth; }
-    int  GetItemHeight() const { return _itemHeight; }
+    int GetItemWidth() const { return _itemWidth; }
+    int GetItemHeight() const { return _itemHeight; }
     void SetItemWidth(int itemw) { SetItemDimensions(itemw, _itemHeight); }
     void SetItemHeight(int itemh) { SetItemDimensions(_itemWidth, itemh); }
     void SetItemDimensions(int itemw, int itemh);
-    int  GetRowCount() const { return _rowCount; }
-    int  GetColCount() const { return _colCount; }
-    int  GetTopItem() const { return _topItem; }
+    int GetRowCount() const { return _rowCount; }
+    int GetColCount() const { return _colCount; }
+    int GetTopItem() const { return _topItem; }
     void SetTopItem(int item);
     // This function has distinct implementations in Engine and Editor
-    int  GetCharacterID() const;
+    int GetCharacterID() const;
     void SetCharacterID(int charid);
     // Returns item *slot* index under the given relative coordinates
-    int  GetItemIndexAt(int at_x, int at_y);
+    int GetItemIndexAt(int at_x, int at_y);
 
     // Script Events
     // Gets a events schema corresponding to this object's type
@@ -74,13 +74,13 @@ private:
     static const int DefaultItemWidth = 40;
     static const int DefaultItemHeight = 22;
 
-    bool    _isMouseOver = false;
-    int     _charID = -1; // whose inventory (-1 = current player)
-    int     _itemWidth = DefaultItemWidth;
-    int     _itemHeight = DefaultItemHeight;
-    int     _colCount = 0;
-    int     _rowCount = 0;
-    int     _topItem = 0;
+    bool _isMouseOver = false;
+    int _charID = -1; // whose inventory (-1 = current player)
+    int _itemWidth = DefaultItemWidth;
+    int _itemHeight = DefaultItemHeight;
+    int _colCount = 0;
+    int _rowCount = 0;
+    int _topItem = 0;
 };
 
 } // namespace Common

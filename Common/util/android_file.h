@@ -34,13 +34,13 @@ namespace AGS
 namespace Common
 {
 
-void           InitAndroidFile();
-void           ShutdownAndroidFile();
+void InitAndroidFile();
+void ShutdownAndroidFile();
 AAssetManager *GetAAssetManager();
 // Tells if the Android Asset of the given name exists
-bool           GetAAssetExists(const String &filename);
+bool GetAAssetExists(const String &filename);
 // Gets the Android Asset's size, returns -1 if such asset was not found
-soff_t         GetAAssetSize(const String &filename);
+soff_t GetAAssetSize(const String &filename);
 
 // AndroidDir wraps Android Asset directory and ensures its disposal
 class AndroidADir
@@ -60,7 +60,7 @@ public:
     operator bool() const { return _dir != nullptr; }
 
 private:
-    AAssetDir *_dir {nullptr};
+    AAssetDir *_dir{nullptr};
 };
 
 } // namespace Common

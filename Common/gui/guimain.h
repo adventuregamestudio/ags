@@ -39,11 +39,11 @@ namespace Common
 // together when passing them to a processing function.
 struct GUICollection
 {
-    std::vector<GUIButton>  Buttons;
+    std::vector<GUIButton> Buttons;
     std::vector<GUIInvWindow> InvWindows;
-    std::vector<GUILabel>   Labels;
+    std::vector<GUILabel> Labels;
     std::vector<GUIListBox> ListBoxes;
-    std::vector<GUISlider>  Sliders;
+    std::vector<GUISlider> Sliders;
     std::vector<GUITextBox> TextBoxes;
 };
 
@@ -51,22 +51,33 @@ struct GUICollection
 // gui object arrays together when passing them to a processing function.
 struct GUIRefCollection
 {
-    std::vector<GUIButton>  &Buttons;
+    std::vector<GUIButton> &Buttons;
     std::vector<GUIInvWindow> &InvWindows;
-    std::vector<GUILabel>   &Labels;
+    std::vector<GUILabel> &Labels;
     std::vector<GUIListBox> &ListBoxes;
-    std::vector<GUISlider>  &Sliders;
+    std::vector<GUISlider> &Sliders;
     std::vector<GUITextBox> &TextBoxes;
 
-    GUIRefCollection(std::vector<GUIButton> &guibuts,
-        std::vector<GUIInvWindow> &guiinv, std::vector<GUILabel> &guilabels,
-        std::vector<GUIListBox> &guilist, std::vector<GUISlider> &guislider,
-        std::vector<GUITextBox> &guitext)
-        : Buttons(guibuts), InvWindows(guiinv), Labels(guilabels)
-        , ListBoxes(guilist), Sliders(guislider), TextBoxes(guitext) {}
+    GUIRefCollection(std::vector<GUIButton> &guibuts, std::vector<GUIInvWindow> &guiinv,
+                     std::vector<GUILabel> &guilabels, std::vector<GUIListBox> &guilist,
+                     std::vector<GUISlider> &guislider, std::vector<GUITextBox> &guitext)
+        : Buttons(guibuts)
+        , InvWindows(guiinv)
+        , Labels(guilabels)
+        , ListBoxes(guilist)
+        , Sliders(guislider)
+        , TextBoxes(guitext)
+    {
+    }
     GUIRefCollection(GUICollection &guiobjs)
-        : Buttons(guiobjs.Buttons), InvWindows(guiobjs.InvWindows), Labels(guiobjs.Labels)
-        , ListBoxes(guiobjs.ListBoxes), Sliders(guiobjs.Sliders), TextBoxes(guiobjs.TextBoxes) {}
+        : Buttons(guiobjs.Buttons)
+        , InvWindows(guiobjs.InvWindows)
+        , Labels(guiobjs.Labels)
+        , ListBoxes(guiobjs.ListBoxes)
+        , Sliders(guiobjs.Sliders)
+        , TextBoxes(guiobjs.TextBoxes)
+    {
+    }
 };
 
 class Bitmap;
@@ -90,56 +101,56 @@ public:
 
     // Properties
     // Tells if GUI is enabled
-    bool    IsEnabled() const override { return true /* GUIMain is always enabled */; }
+    bool IsEnabled() const override { return true /* GUIMain is always enabled */; }
     // Tells if GUI will react on clicking on it
-    bool    IsClickable() const override { return (_flags & kGUIMain_Clickable) != 0; }
+    bool IsClickable() const override { return (_flags & kGUIMain_Clickable) != 0; }
     // Tells if GUI's visibility is overridden and it won't be displayed on
     // screen regardless of Visible property (until concealed mode is off).
-    bool    IsConcealed() const { return (_flags & kGUIMain_Concealed) != 0; }
+    bool IsConcealed() const { return (_flags & kGUIMain_Concealed) != 0; }
     // Tells if gui is actually meant to be displayed on screen.
     // Normally Visible property determines whether GUI is allowed to be seen,
     // but there may be other settings that override it.
-    bool    IsDisplayed() const { return IsVisible() && !IsConcealed(); }
+    bool IsDisplayed() const { return IsVisible() && !IsConcealed(); }
     // Tells if given coordinates are within interactable area of gui
     // NOTE: this currently tests for actual visibility and Clickable property
-    bool    IsInteractableAt(int x, int y) const;
+    bool IsInteractableAt(int x, int y) const;
     // Tells if gui is a text window
-    bool    IsTextWindow() const { return (_flags & kGUIMain_TextWindow) != 0; }
+    bool IsTextWindow() const { return (_flags & kGUIMain_TextWindow) != 0; }
     // Tells if GUI is *allowed* to be displayed and interacted with.
     // This does not necessarily mean that it is displayed right now, because
     // GUI may be hidden for other reasons, including overriding behavior.
     // For example GUI with kGUIPopupMouseY style will not be shown unless
     // mouse cursor is at certain position on screen.
-    bool    IsVisible() const override { return (_flags & kGUIMain_Visible) != 0; }
+    bool IsVisible() const override { return (_flags & kGUIMain_Visible) != 0; }
     // Sets whether GUI is enabled or disabled
-    void    SetEnabled(bool on) override { /* GUIMain is always enabled */ }
+    void SetEnabled(bool on) override { /* GUIMain is always enabled */ }
     // Sets whether GUI should react to player clicking on it
-    void    SetClickable(bool on) override;
+    void SetClickable(bool on) override;
     // Override GUI visibility; when in concealed mode GUI won't show up
     // even if Visible = true
-    void    SetConceal(bool on);
+    void SetConceal(bool on);
     // Sets whether GUI is allowed to be displayed on screen
-    void    SetVisible(bool on) override;
+    void SetVisible(bool on) override;
 
-    int     GetBgColor() const { return _bgColor; }
-    void    SetBgColor(int color);
-    int     GetFgColor() const { return _fgColor; }
-    void    SetFgColor(int color);
-    int     GetBgImage() const { return _bgImage; }
-    void    SetBgImage(int image);
+    int GetBgColor() const { return _bgColor; }
+    void SetBgColor(int color);
+    int GetFgColor() const { return _fgColor; }
+    void SetFgColor(int color);
+    int GetBgImage() const { return _bgImage; }
+    void SetBgImage(int image);
     GUIPopupStyle GetPopupStyle() const { return _popupStyle; }
-    void    SetPopupStyle(GUIPopupStyle style);
-    int     GetPopupAtY() const { return _popupAtMouseY; }
-    void    SetPopupAtY(int popup_aty);
-    int     GetPadding() const { return _padding; }
-    void    SetPadding(int padding);
+    void SetPopupStyle(GUIPopupStyle style);
+    int GetPopupAtY() const { return _popupAtMouseY; }
+    void SetPopupAtY(int popup_aty);
+    int GetPadding() const { return _padding; }
+    void SetPadding(int padding);
 
     // Attempts to change control's zorder; returns if zorder changed
-    bool    SetControlZOrder(int index, int zorder);
+    bool SetControlZOrder(int index, int zorder);
     // Changes GUI style to the text window or back
-    void    SetTextWindow(bool on);
+    void SetTextWindow(bool on);
     // Sets highlighted control index
-    void    SetHighlightControl(int control_index);
+    void SetHighlightControl(int control_index);
 
     // Script Events
     // Gets a events schema corresponding to this object's type
@@ -147,35 +158,35 @@ public:
     virtual const ScriptEventSchema *GetTypeEventSchema() const override { return &GUIMain::_eventSchema; }
 
     // Notifies this object about a sprite being modified
-    void    OnSpriteUpdate(int sprite_num) override;
+    void OnSpriteUpdate(int sprite_num) override;
 
     // Tells if GUI controls have graphically changed recently
-    bool    HasControlsChanged() const { return _hasControlsChanged; }
+    bool HasControlsChanged() const { return _hasControlsChanged; }
     // Marks GUI as having any of its controls changed its looks.
-    void    MarkControlChanged();
+    void MarkControlChanged();
     // Clears changed flag
-    void    ClearChanged() override;
+    void ClearChanged() override;
     // Notify GUI about any of its controls changing its location.
-    void    NotifyControlPosition();
+    void NotifyControlPosition();
     // Notify GUI about one of its controls changing its interactive state.
-    void    NotifyControlState(int objid, bool mark_changed);
+    void NotifyControlState(int objid, bool mark_changed);
     // Resets control-under-mouse detection.
-    void    ResetOverControl();
+    void ResetOverControl();
 
     // Finds a control under given screen coordinates, returns control's child ID.
     // Optionally allows extra leeway (offset in all directions) to let the user grab tiny controls.
     // Optionally only allows clickable controls, ignoring non-clickable ones.
-    int     FindControlAt(int atx, int aty, int leeway = 0, bool must_be_clickable = true) const;
+    int FindControlAt(int atx, int aty, int leeway = 0, bool must_be_clickable = true) const;
     // Returns the last control which was under mouse cursor, or -1 if none
-    int     GetControlUnderMouse() const;
+    int GetControlUnderMouse() const;
     // Gets the number of the GUI child controls
-    int     GetControlCount() const;
+    int GetControlCount() const;
     // Gets control by its child's index
     GUIControl *GetControl(int index) const;
     // Gets child control's type, looks up with child's index
     GUIControlType GetControlType(int index) const;
     // Gets child control's global ID, looks up with child's index
-    int     GetControlID(int index) const;
+    int GetControlID(int index) const;
     // Gets an array of child control indexes in the z-order, from bottom to top
     const std::vector<int> &GetControlsDrawOrder() const;
     // Gets an array of child control references (control types and indexes in global control arrays)
@@ -183,29 +194,29 @@ public:
 
     // Child control management
     // Note that currently GUIMain does not own controls (should not delete them)
-    void    AddControl(GUIControlType type, int id, GUIControl *control);
-    void    RemoveAllControls();
+    void AddControl(GUIControlType type, int id, GUIControl *control);
+    void RemoveAllControls();
 
     // Operations
-    bool    BringControlToFront(int index);
-    void    DrawSelf(Bitmap *ds);
-    void    DrawWithControls(Bitmap *ds);
-    void    DrawControls(Bitmap *ds);
+    bool BringControlToFront(int index);
+    void DrawSelf(Bitmap *ds);
+    void DrawWithControls(Bitmap *ds);
+    void DrawControls(Bitmap *ds);
     // Polls GUI state, providing current cursor (mouse) coordinates.
     // If GUI has focus, then it will trigger OnEnter events for controls.
-    void    Poll(int mx, int my, bool has_focus);
+    void Poll(int mx, int my, bool has_focus);
     // Reconnects this GUIMain with the child controls from the global guiobject collection
-    HError  RebuildArray(GUIRefCollection &guiobjs);
-    void    ResortZOrder();
-    bool    SendControlToBack(int index);
+    HError RebuildArray(GUIRefCollection &guiobjs);
+    void ResortZOrder();
+    bool SendControlToBack(int index);
 
     // Events
-    void    OnMouseButtonDown(int mx, int my);
-    void    OnMouseButtonUp();
-  
+    void OnMouseButtonDown(int mx, int my);
+    void OnMouseButtonUp();
+
     // Serialization
-    void    ReadFromFile(Stream *in, GuiVersion gui_version);
-    void    WriteToFile(Stream *out) const;
+    void ReadFromFile(Stream *in, GuiVersion gui_version);
+    void WriteToFile(Stream *out) const;
     // Savegame reading and writing
     // TODO: move to engine, but will require to split GUI into data and runtime classes
     // NOTE: when reading from a save state we read control refs into an external array,
@@ -213,16 +224,16 @@ public:
     // control arrays mismatching current game. This also *potentially* allows the engine
     // to fixup data read from the older saves.
     // Perhaps review this later (maybe when there's a split runtime GUI class).
-    void    ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver, std::vector<ControlRef> &ctrl_refs);
-    void    WriteToSavegame(Stream *out) const;
+    void ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver, std::vector<ControlRef> &ctrl_refs);
+    void WriteToSavegame(Stream *out) const;
     static void SkipSavestate(Stream *in, GuiSvgVersion svg_ver, std::vector<ControlRef> *ctrl_refs);
 
 private:
-    void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
+    void DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
     // Same as FindControlAt but expects local space coordinates
-    int     FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const;
+    int FindControlAtLocal(int atx, int aty, int leeway, bool must_be_clickable) const;
     // Resets control under mouse and/or pressed by mouse
-    void    ResetActiveControl();
+    void ResetActiveControl();
 
     static const int DefaultBgColor = 8;
     static const int DefaultFgColor = 1;
@@ -230,32 +241,32 @@ private:
     // Script events schema
     static ScriptEventSchema _eventSchema;
 
-    color_t _bgColor = DefaultBgColor; // background color
-    int     _bgImage = 0;       // background sprite index
-    color_t _fgColor = DefaultFgColor; // foreground color (used as border color in normal GUIs,
-                                // and text color in text windows)
-    int     _padding = TEXTWINDOW_PADDING_DEFAULT; // padding surrounding a GUI text window
+    color_t _bgColor = DefaultBgColor;           // background color
+    int _bgImage = 0;                            // background sprite index
+    color_t _fgColor = DefaultFgColor;           // foreground color (used as border color in normal GUIs,
+                                                 // and text color in text windows)
+    int _padding = TEXTWINDOW_PADDING_DEFAULT;   // padding surrounding a GUI text window
     GUIPopupStyle _popupStyle = kGUIPopupNormal; // GUI popup behavior
-    int     _popupAtMouseY = -1; // popup when mousey < this
+    int _popupAtMouseY = -1;                     // popup when mousey < this
 
-    bool    _wasFocused    = false; // whether GUI was focused during last Poll
-    int     _focusCtrl     = -1; // which control has the focus
-    int     _highlightCtrl = -1; // which control has the bounding selection rect
-    int     _mouseOverCtrl = -1; // which control has the mouse cursor over it
-    int     _mouseDownCtrl = -1; // which control has the mouse button pressed on it
-    Point   _mouseWasAt = { -1, -1 }; // last mouse cursor position
+    bool _wasFocused = false;     // whether GUI was focused during last Poll
+    int _focusCtrl = -1;          // which control has the focus
+    int _highlightCtrl = -1;      // which control has the bounding selection rect
+    int _mouseOverCtrl = -1;      // which control has the mouse cursor over it
+    int _mouseDownCtrl = -1;      // which control has the mouse button pressed on it
+    Point _mouseWasAt = {-1, -1}; // last mouse cursor position
 
-    int     _flags = kGUIMain_DefFlags; // style and behavior flags
-    bool    _hasControlsChanged = false; // flag tells that GUI controls have changed position or image
-    bool    _polling = false;   // inside the polling process
+    int _flags = kGUIMain_DefFlags;   // style and behavior flags
+    bool _hasControlsChanged = false; // flag tells that GUI controls have changed position or image
+    bool _polling = false;            // inside the polling process
 
     // Array of types and control indexes in global GUI object arrays;
     // maps GUI child slots to actual controls and used for rebuilding Controls array
     std::vector<ControlRef> _ctrlRefs;
     // Array of child control references (not exclusively owned!)
-    std::vector<GUIControl*> _controls;
+    std::vector<GUIControl *> _controls;
     // Sorted array of controls in z-order.
-    std::vector<int>        _ctrlDrawOrder;
+    std::vector<int> _ctrlDrawOrder;
 };
 
 
@@ -323,170 +334,169 @@ public:
 
 namespace GUI
 {
-    // These are still global objects for now, but in the future it will be
-    // optimal to have these as an object allocated on heap, and passed to
-    // GUI functions as a pointer.
-    // GameDataVersion is commonly used to make backwards compatibility switches
-    // in the game logic.
-    extern GameDataVersion DataVersion;
-    // GuiVersion has a limited use, mostly referenced when reading gui data;
-    // so maybe this should not be exposed here at all.
-    extern GuiVersion GameGuiVersion;
-    extern GuiOptions Options;
-    extern GuiContext Context;
+// These are still global objects for now, but in the future it will be
+// optimal to have these as an object allocated on heap, and passed to
+// GUI functions as a pointer.
+// GameDataVersion is commonly used to make backwards compatibility switches
+// in the game logic.
+extern GameDataVersion DataVersion;
+// GuiVersion has a limited use, mostly referenced when reading gui data;
+// so maybe this should not be exposed here at all.
+extern GuiVersion GameGuiVersion;
+extern GuiOptions Options;
+extern GuiContext Context;
 
-    // Tells if the game interface is currently in disabled state
-    inline bool IsEnabledState()
-    {
-        return GUI::Context.DisabledState == kGuiDis_Undefined;
-    }
+// Tells if the game interface is currently in disabled state
+inline bool IsEnabledState()
+{
+    return GUI::Context.DisabledState == kGuiDis_Undefined;
+}
 
-    // Tells if the GUI should be drawn, taking global disabled interface state into account
-    inline bool IsGUIVisible(const GUIMain *g)
-    {
-        return g->IsDisplayed() && 
-            // If GUI is excluded from the disabled interface, then don't check the disabled state
-            ((GUI::Context.GuiExcludedFromDisabled == g->GetID()) ||
+// Tells if the GUI should be drawn, taking global disabled interface state into account
+inline bool IsGUIVisible(const GUIMain *g)
+{
+    return g->IsDisplayed() &&
+           // If GUI is excluded from the disabled interface, then don't check the disabled state
+           ((GUI::Context.GuiExcludedFromDisabled == g->GetID()) ||
             // If GUI is in a disabled state, which tells to hide guis, and current gui
             // does not have a "persistent" property, then it should not be visible
             !((GUI::Context.DisabledState == kGuiDis_Off) && (g->GetPopupStyle() != kGUIPopupNoAutoRemove)));
-    }
+}
 
-    // Tells if the gui control should be excluded from the disabled state check
-    inline bool IsExcludedFromDisabled(const GUIControl *g)
-    {
-        return (g->GetID() == GUI::Context.GuiControlExcludedFromDisabled) &&
-            (g->GetParentID() == GUI::Context.GuiExcludedFromDisabled);
-    }
+// Tells if the gui control should be excluded from the disabled state check
+inline bool IsExcludedFromDisabled(const GUIControl *g)
+{
+    return (g->GetID() == GUI::Context.GuiControlExcludedFromDisabled) &&
+           (g->GetParentID() == GUI::Context.GuiExcludedFromDisabled);
+}
 
-    // Tells if the gui control is considered enabled, taking global disabled interface state into account
-    inline bool IsGUIEnabled(const GUIObject *g)
-    {
-        return g->IsEnabled() && (GUI::Context.DisabledState == kGuiDis_Undefined);
-    }
+// Tells if the gui control is considered enabled, taking global disabled interface state into account
+inline bool IsGUIEnabled(const GUIObject *g)
+{
+    return g->IsEnabled() && (GUI::Context.DisabledState == kGuiDis_Undefined);
+}
 
-    // Tells if the gui control is considered visible, taking global disabled interface state into account
-    inline bool IsGUIVisible(const GUIControl *g)
-    {
-        return g->IsVisible() &&
-            // If control is excluded from the disabled interface, then don't check the disabled state
-            (IsExcludedFromDisabled(g) ||
+// Tells if the gui control is considered visible, taking global disabled interface state into account
+inline bool IsGUIVisible(const GUIControl *g)
+{
+    return g->IsVisible() &&
+           // If control is excluded from the disabled interface, then don't check the disabled state
+           (IsExcludedFromDisabled(g) ||
             // Control is also not shown if...
             // If interface is globally disabled and all controls should be hidden
             !(GUI::Context.DisabledState == kGuiDis_Blackout) &&
-            // If control is individually disabled AND controls should be hidden when disabled
-            !(!g->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)));
-    }
-
-    // Tells if the gui control should be drawn with disabled effect
-    inline bool ShouldDrawDisabled(const GUIControl *g)
-    {
-        return 
-            // If control is excluded from the disabled interface, then don't check the disabled state
-            !IsExcludedFromDisabled(g) &&
-            // If either whole interface is disabled with "grey out" style,
-            // or this control is individually disabled, and "grey out" style is set
-            ((GUI::Context.DisabledState == kGuiDis_Greyout) ||
-            (!g->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Greyout)));
-    }
-
-    // Tells if the inventory window should be drawn with disabled effect;
-    // this is a special handling for inventory window, which has its own setting in the engine
-    inline bool ShouldDrawDisabled(const GUIInvWindow *inv)
-    {
-        // If either whole interface is disabled with "grey out" style,
-        // or this control is individually disabled, and "grey out" style is set.
-        // Inventory windows have a separate global option that tells if they should be greyed out
-        return (GUI::Options.GreyOutInvWindow) &&
-            ShouldDrawDisabled(static_cast<const GUIControl*>(inv));
-    }
-
-    // Tells if the child gui controls should not be drawn, because of the disabled state
-    inline bool ShouldSkipControls(const GUIMain *g)
-    {
-        return (g->GetID() != GUI::Context.GuiExcludedFromDisabled) &&
-            (GUI::Context.DisabledState == kGuiDis_Blackout);
-    }
-
-    // Gets a default hardcoded color value for the given index.
-    // The valid index range is 0-31.
-    // Returns AGS color property value suiting the game's color depth setting,
-    // that is - a palette index in 8-bit games, else encoded RGB value.
-    int GetStandardColor(int index);
-    // Same as above, but also guarantees that the color is already converted
-    // for the bitmap, which color depth matches the game's.
-    // The principle here is that the bitmap *MAY* (in theory) require the
-    // color value to be encoded differently from the common property value.
-    // This function is equivalent to a sequence of calls:
-    //     bitmap->GetCompatibleColor(GUI::GetStandardColor(index));
-    int GetStandardColorForBitmap(int index);
-
-    // Applies current text direction setting (may depend on multiple factors)
-    String ApplyTextDirection(const String &text);
-    // Calculates the text's draw position, given the alignment
-    // optionally returns the real graphical rect that the text would occupy
-    Rect CalcTextPosition(const String &text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect = nullptr);
-    // Calculates the text's draw position and horizontal extent,
-    // using strictly horizontal alignment
-    Line CalcTextPositionHor(const String &text, int font, int x1, int x2, int y, FrameAlignment align);
-    // Calculates the graphical rect that the text would occupy
-    // if drawn at the given coordinates
-    Rect CalcTextGraphicalRect(const String &text, int font, const Point &at);
-    // Calculates the graphical rect that the text would occupy
-    // if drawn aligned to the given frame
-    Rect CalcTextGraphicalRect(const String &text, int font, const Rect &frame, FrameAlignment align);
-    // Calculates the graphical rect that the multiline text would occupy
-    // if drawn aligned to the given frame
-    Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, int font, int linespace, 
-        const Rect &frame, FrameAlignment align, bool limit_by_frame = true);
-    // Returns max potential negative offset position of a font's glyphs.
-    int CalcFontGraphicalHExtent(int font);
-    // Calculates a vertical graphical extent for a given font,
-    // which is a top and bottom offsets in zero-based coordinates.
-    // NOTE: this applies font size fixups.
-    Line CalcFontGraphicalVExtent(int font);
-    // Draw standart "shading" effect over rectangle
-    void DrawDisabledEffect(Bitmap *ds, const Rect &rc);
-    // Draw text aligned inside rectangle
-    void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
-        const Rect &frame, FrameAlignment align);
-    void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
-        BlendMode blend_mode, const Rect &frame, FrameAlignment align);
-    // Draw text aligned horizontally inside given bounds
-    void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
-        int x1, int x2, int y, FrameAlignment align);
-    void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
-        BlendMode blend_mode, int x1, int x2, int y, FrameAlignment align);
-    // Draw wrapped text aligned inside rectangle:
-    // a block of text is aligned vertically, while each line is aligned horizontally.
-    void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count,
-        int font, int linespace, color_t text_color, color_t outline_color,
-        const Rect &frame, FrameAlignment align, bool limit_by_frame = true);
-
-    // Parses the string and returns combination of label macro flags
-    GUILabelMacro FindLabelMacros(const String &text);
-    // Resolves macro tokens found in gui text, returns a new string where the macros are replaced by values
-    String ResolveMacroTokens(const String &text);
-    // Applies text transformation necessary for rendering, in accordance to the
-    // current game settings, such as right-to-left render, and anything else
-    String TransformTextForDrawing(const String &text, bool translate, bool apply_direction);
-    // Wraps given text to make it fit into width, stores it in the lines;
-    // apply_direction param tells whether text direction setting should be applied
-    size_t SplitLinesForDrawing(const String &text, bool apply_direction, SplitLines &lines, int font, int width, size_t max_lines = -1);
-
-    // Reads all GUIs and their controls. Fills guis, guiobjs arrays and gui_version on success.
-    HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVersion &gui_version,
-        GUIRefCollection &guiobjs, Stream *in);
-    // Writes all GUIs and their controls.
-    void WriteGUI(const std::vector<GUIMain> &guis, const GUIRefCollection &guiobjs, Stream *out);
-
-    // Rebuilds GUIs, connecting them to the child controls in memory.
-    HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs);
-
-    // Exclude the given gui control from disabled state. This means that it will not
-    // be applied any "disabled" effect, nor will its parent GUI (if it matters).
-    void SetExcludedFromDisabled(GUIControl *gc, bool on);
+                // If control is individually disabled AND controls should be hidden when disabled
+                !(!g->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Blackout)));
 }
+
+// Tells if the gui control should be drawn with disabled effect
+inline bool ShouldDrawDisabled(const GUIControl *g)
+{
+    return
+        // If control is excluded from the disabled interface, then don't check the disabled state
+        !IsExcludedFromDisabled(g) &&
+        // If either whole interface is disabled with "grey out" style,
+        // or this control is individually disabled, and "grey out" style is set
+        ((GUI::Context.DisabledState == kGuiDis_Greyout) ||
+         (!g->IsEnabled() && (GUI::Options.DisabledStyle == kGuiDis_Greyout)));
+}
+
+// Tells if the inventory window should be drawn with disabled effect;
+// this is a special handling for inventory window, which has its own setting in the engine
+inline bool ShouldDrawDisabled(const GUIInvWindow *inv)
+{
+    // If either whole interface is disabled with "grey out" style,
+    // or this control is individually disabled, and "grey out" style is set.
+    // Inventory windows have a separate global option that tells if they should be greyed out
+    return (GUI::Options.GreyOutInvWindow) && ShouldDrawDisabled(static_cast<const GUIControl *>(inv));
+}
+
+// Tells if the child gui controls should not be drawn, because of the disabled state
+inline bool ShouldSkipControls(const GUIMain *g)
+{
+    return (g->GetID() != GUI::Context.GuiExcludedFromDisabled) && (GUI::Context.DisabledState == kGuiDis_Blackout);
+}
+
+// Gets a default hardcoded color value for the given index.
+// The valid index range is 0-31.
+// Returns AGS color property value suiting the game's color depth setting,
+// that is - a palette index in 8-bit games, else encoded RGB value.
+int GetStandardColor(int index);
+// Same as above, but also guarantees that the color is already converted
+// for the bitmap, which color depth matches the game's.
+// The principle here is that the bitmap *MAY* (in theory) require the
+// color value to be encoded differently from the common property value.
+// This function is equivalent to a sequence of calls:
+//     bitmap->GetCompatibleColor(GUI::GetStandardColor(index));
+int GetStandardColorForBitmap(int index);
+
+// Applies current text direction setting (may depend on multiple factors)
+String ApplyTextDirection(const String &text);
+// Calculates the text's draw position, given the alignment
+// optionally returns the real graphical rect that the text would occupy
+Rect CalcTextPosition(const String &text, int font, const Rect &frame, FrameAlignment align, Rect *gr_rect = nullptr);
+// Calculates the text's draw position and horizontal extent,
+// using strictly horizontal alignment
+Line CalcTextPositionHor(const String &text, int font, int x1, int x2, int y, FrameAlignment align);
+// Calculates the graphical rect that the text would occupy
+// if drawn at the given coordinates
+Rect CalcTextGraphicalRect(const String &text, int font, const Point &at);
+// Calculates the graphical rect that the text would occupy
+// if drawn aligned to the given frame
+Rect CalcTextGraphicalRect(const String &text, int font, const Rect &frame, FrameAlignment align);
+// Calculates the graphical rect that the multiline text would occupy
+// if drawn aligned to the given frame
+Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, int font, int linespace,
+                           const Rect &frame, FrameAlignment align, bool limit_by_frame = true);
+// Returns max potential negative offset position of a font's glyphs.
+int CalcFontGraphicalHExtent(int font);
+// Calculates a vertical graphical extent for a given font,
+// which is a top and bottom offsets in zero-based coordinates.
+// NOTE: this applies font size fixups.
+Line CalcFontGraphicalVExtent(int font);
+// Draw standart "shading" effect over rectangle
+void DrawDisabledEffect(Bitmap *ds, const Rect &rc);
+// Draw text aligned inside rectangle
+void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
+                     const Rect &frame, FrameAlignment align);
+void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
+                     BlendMode blend_mode, const Rect &frame, FrameAlignment align);
+// Draw text aligned horizontally inside given bounds
+void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color, int x1,
+                        int x2, int y, FrameAlignment align);
+void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
+                        BlendMode blend_mode, int x1, int x2, int y, FrameAlignment align);
+// Draw wrapped text aligned inside rectangle:
+// a block of text is aligned vertically, while each line is aligned horizontally.
+void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count, int font, int linespace,
+                          color_t text_color, color_t outline_color, const Rect &frame, FrameAlignment align,
+                          bool limit_by_frame = true);
+
+// Parses the string and returns combination of label macro flags
+GUILabelMacro FindLabelMacros(const String &text);
+// Resolves macro tokens found in gui text, returns a new string where the macros are replaced by values
+String ResolveMacroTokens(const String &text);
+// Applies text transformation necessary for rendering, in accordance to the
+// current game settings, such as right-to-left render, and anything else
+String TransformTextForDrawing(const String &text, bool translate, bool apply_direction);
+// Wraps given text to make it fit into width, stores it in the lines;
+// apply_direction param tells whether text direction setting should be applied
+size_t SplitLinesForDrawing(const String &text, bool apply_direction, SplitLines &lines, int font, int width,
+                            size_t max_lines = -1);
+
+// Reads all GUIs and their controls. Fills guis, guiobjs arrays and gui_version on success.
+HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVersion &gui_version,
+               GUIRefCollection &guiobjs, Stream *in);
+// Writes all GUIs and their controls.
+void WriteGUI(const std::vector<GUIMain> &guis, const GUIRefCollection &guiobjs, Stream *out);
+
+// Rebuilds GUIs, connecting them to the child controls in memory.
+HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs);
+
+// Exclude the given gui control from disabled state. This means that it will not
+// be applied any "disabled" effect, nor will its parent GUI (if it matters).
+void SetExcludedFromDisabled(GUIControl *gc, bool on);
+} // namespace GUI
 
 } // namespace Common
 } // namespace AGS
@@ -497,21 +507,21 @@ extern int get_adjusted_spriteheight(int spr);
 // This function has distinct implementations in Engine and Editor
 extern void draw_gui_sprite(AGS::Common::Bitmap *ds, int spr, int x, int y,
                             AGS::Common::BlendMode blend_mode = AGS::Common::kBlend_Normal);
-extern void draw_gui_sprite(AGS::Common::Bitmap *ds, int x, int y,
-                            AGS::Common::Bitmap *image,
+extern void draw_gui_sprite(AGS::Common::Bitmap *ds, int x, int y, AGS::Common::Bitmap *image,
                             AGS::Common::BlendMode blend_mode, int alpha);
 
-extern void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int pic, int x, int y, AGS::Common::BlendMode blend_mode, AGS::Common::GraphicFlip flip);
-extern void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int x, int y,
-    AGS::Common::Bitmap *image, AGS::Common::BlendMode blend_mode, int alpha, AGS::Common::GraphicFlip flip);
+extern void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int pic, int x, int y, AGS::Common::BlendMode blend_mode,
+                                    AGS::Common::GraphicFlip flip);
+extern void draw_gui_sprite_flipped(AGS::Common::Bitmap *ds, int x, int y, AGS::Common::Bitmap *image,
+                                    AGS::Common::BlendMode blend_mode, int alpha, AGS::Common::GraphicFlip flip);
 
 // Those function have distinct implementations in Engine and Editor
-extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont,
-                             color_t text_color, const char *text);
-extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont,
-                             color_t text_color, AGS::Common::BlendMode blend_mode, const char *text);
-extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont,
-                             color_t text_color, color_t outline_color, AGS::Common::BlendMode blend_mode, const char *texx);
+extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont, color_t text_color,
+                             const char *text);
+extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont, color_t text_color,
+                             AGS::Common::BlendMode blend_mode, const char *text);
+extern void wouttext_outline(AGS::Common::Bitmap *ds, int x, int y, int usingfont, color_t text_color,
+                             color_t outline_color, AGS::Common::BlendMode blend_mode, const char *texx);
 
 extern void set_our_eip(int eip);
 extern void set_eip_guiobj(int eip);

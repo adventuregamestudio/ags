@@ -16,9 +16,10 @@
 
 using namespace AGS::Common;
 
-TEST(PixelOp, SetRGB) {
+TEST(PixelOp, SetRGB)
+{
     Palette pal;
-    std::fill(pal.begin(), pal.end(), RGB{0,0,0,0});
+    std::fill(pal.begin(), pal.end(), RGB{0, 0, 0, 0});
     PaletteOp::SetRGB(pal, 4, 255, 128, 64, 32);
     EXPECT_EQ(pal[4].r, 255);
     EXPECT_EQ(pal[4].g, 128);
@@ -26,9 +27,10 @@ TEST(PixelOp, SetRGB) {
     EXPECT_EQ(pal[4].a, 32);
 }
 
-TEST(PixelOp, Rotate) {
+TEST(PixelOp, Rotate)
+{
     Palette pal;
-    std::fill(pal.begin(), pal.end(), RGB{0,0,0,0});
+    std::fill(pal.begin(), pal.end(), RGB{0, 0, 0, 0});
     PaletteOp::SetRGB(pal, 10, 1, 1, 1);
     PaletteOp::SetRGB(pal, 11, 2, 2, 2);
     PaletteOp::SetRGB(pal, 12, 3, 3, 3);

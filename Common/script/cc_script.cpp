@@ -33,13 +33,12 @@ class ScriptExtReader : public DataExtReader
 {
 public:
     ScriptExtReader(ccScript &script, std::unique_ptr<Stream> &&in)
-        : DataExtReader(std::move(in), kDataExt_NumID8 | kDataExt_File64)
-        , _script(script)
-        {}
+        : DataExtReader(std::move(in), kDataExt_NumID8 | kDataExt_File64), _script(script)
+    {
+    }
 
 protected:
-    HError ReadBlock(Stream *in, int block_id, const String &ext_id,
-        soff_t block_len, bool &read_next) override
+    HError ReadBlock(Stream *in, int block_id, const String &ext_id, soff_t block_len, bool &read_next) override
     {
         read_next = true;
         if (ext_id.CompareNoCase("rtti") == 0)
@@ -49,7 +48,8 @@ protected:
         }
         else if (ext_id.CompareNoCase("sctoc") == 0)
         {
-            _script.sctoc.reset(new ScriptTOC(std::move(ScriptTOCSerializer::Read(in, _script.rtti.get() /* may be null */))));
+            _script.sctoc.reset(
+                new ScriptTOC(std::move(ScriptTOCSerializer::Read(in, _script.rtti.get() /* may be null */))));
             return HError::None();
         }
         return new Error(String::FromFormat("Unknown script extension: %s (%d)", ext_id.GetCStr(), block_id));
@@ -57,7 +57,6 @@ protected:
 
     ccScript &_script;
 };
-
 
 
 ccScript *ccScript::CreateFromStream(Stream *in)
@@ -92,7 +91,7 @@ ccScript::ccScript(const ccScript &src)
     *this = src;
 }
 
-ccScript &ccScript::operator =(const ccScript &src)
+ccScript &ccScript::operator=(const ccScript &src)
 {
     scriptname = src.scriptname;
     globaldata = src.globaldata;
@@ -118,7 +117,7 @@ ccScript &ccScript::operator =(const ccScript &src)
 
 void ccScript::Write(Stream *out) const
 {
-    out->Write(scfilesig,4);
+    out->Write(scfilesig, 4);
     out->WriteInt32(SCOM_VERSION_CURRENT);
     out->WriteInt32(globaldata.size());
     out->WriteInt32(code.size());
@@ -157,14 +156,15 @@ void ccScript::Write(Stream *out) const
     const auto *rtti = ccScript::rtti.get();
     if (rtti && !rtti->IsEmpty())
     {
-        WriteExtBlock("rtti", [rtti](Stream *out){ RTTISerializer::Write(*rtti, out); },
-                      kDataExt_NumID8 | kDataExt_File64, out);
+        WriteExtBlock(
+            "rtti", [rtti](Stream *out) { RTTISerializer::Write(*rtti, out); }, kDataExt_NumID8 | kDataExt_File64, out);
     }
     const auto *sctoc = ccScript::sctoc.get();
     if (sctoc && !sctoc->IsEmpty())
     {
-        WriteExtBlock("sctoc", [sctoc](Stream *out){ ScriptTOCSerializer::Write(*sctoc, out); },
-                      kDataExt_NumID8 | kDataExt_File64, out);
+        WriteExtBlock(
+            "sctoc", [sctoc](Stream *out) { ScriptTOCSerializer::Write(*sctoc, out); },
+            kDataExt_NumID8 | kDataExt_File64, out);
     }
     // Write ending
     out->WriteInt8(static_cast<uint8_t>(0xFF));
@@ -249,11 +249,13 @@ bool ccScript::Read(Stream *in)
     //-------------------------------------------------------------------------
     // Extended data
     //-------------------------------------------------------------------------
-    if (fileVer >= SCOM_VERSION_EXT) {
+    if (fileVer >= SCOM_VERSION_EXT)
+    {
         ScriptExtReader reader(*this, std::unique_ptr<Stream>(in));
         HError err = reader.Read();
         reader.ReleaseStream().release(); // FIXME: this double release is ugly
-        if (!err) {
+        if (!err)
+        {
             cc_error("!internal error reading script extensions: %s", err->FullMessage().GetCStr());
             return false;
         }

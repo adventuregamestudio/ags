@@ -29,25 +29,23 @@ namespace Common
 
 struct DebugMessage
 {
-    String       Text;
+    String Text;
     MessageGroupHandle GroupID = InvalidMessageGroup;
-    String       GroupName;
-    MessageType  MT = kDbgMsg_None;
+    String GroupName;
+    MessageType MT = kDbgMsg_None;
 
     DebugMessage() = default;
     DebugMessage(const String &text, MessageGroupHandle group_id, const String &group_name, MessageType mt)
-        : Text(text)
-        , GroupID(group_id)
-        , GroupName(group_name)
-        , MT(mt)
-    {}
+        : Text(text), GroupID(group_id), GroupName(group_name), MT(mt)
+    {
+    }
 };
 
 class IOutputHandler
 {
 public:
     virtual ~IOutputHandler() = default;
-    
+
     // Called when this output handler is registered by the DebugManager,
     // but prior it is inserted into the outputs list. This lets the output
     // class to do any extra initialization, or print something to the log
@@ -58,7 +56,7 @@ public:
     virtual void PrintMessage(const DebugMessage &msg) = 0;
 };
 
-}   // namespace Common
-}   // namespace AGS
+} // namespace Common
+} // namespace AGS
 
 #endif // __AGS_CN_DEBUG__OUTPUTHANDLER_H

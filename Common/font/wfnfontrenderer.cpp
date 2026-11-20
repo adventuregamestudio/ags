@@ -28,16 +28,14 @@ using namespace AGS::Common;
 
 // Compare a palette color's hue with the base color.
 // RGB components use Allegro's 0-63 range.
-static bool IsCompatibleWFNHue(const RGB& base, const RGB& candidate)
+static bool IsCompatibleWFNHue(const RGB &base, const RGB &candidate)
 {
     const int base_min = std::min(base.r, std::min(base.g, base.b));
     const int base_max = std::max(base.r, std::max(base.g, base.b));
     const int base_chroma = base_max - base_min;
 
-    const int candidate_min = std::min(candidate.r,
-        std::min(candidate.g, candidate.b));
-    const int candidate_max = std::max(candidate.r,
-        std::max(candidate.g, candidate.b));
+    const int candidate_min = std::min(candidate.r, std::min(candidate.g, candidate.b));
+    const int candidate_max = std::max(candidate.r, std::max(candidate.g, candidate.b));
     const int candidate_chroma = candidate_max - candidate_min;
 
     // Neutral base colors should only match other neutral colors.
@@ -49,12 +47,12 @@ static bool IsCompatibleWFNHue(const RGB& base, const RGB& candidate)
         return false;
 
     // Compare hue angles, allowing gradual hue shifts in lighter shades.
-    const auto hue_angle = [](const RGB& c) -> float
-        {
-            const float x = 2.0f * c.r - c.g - c.b;
-            const float y = 1.7320508f * (c.g - c.b);
-            return std::atan2(y, x);
-        };
+    const auto hue_angle = [](const RGB &c) -> float
+    {
+        const float x = 2.0f * c.r - c.g - c.b;
+        const float y = 1.7320508f * (c.g - c.b);
+        return std::atan2(y, x);
+    };
 
     float difference = std::abs(hue_angle(base) - hue_angle(candidate));
 
@@ -110,11 +108,11 @@ int WFNFontRenderer::GetTextHeight(const char *text, int fontNumber)
     return max_height * params.SizeMultiplier;
 }
 
-static int RenderChar(Bitmap *ds, const int at_x, const int at_y, const Rect &clip,
-    const WFNChar &wfn_char, const int scale, const color_t text_color, bool alpha_blend,
-    const color_t *shade_colors, const uint8_t base_shade, bool silhouette);
+static int RenderChar(Bitmap *ds, const int at_x, const int at_y, const Rect &clip, const WFNChar &wfn_char,
+                      const int scale, const color_t text_color, bool alpha_blend, const color_t *shade_colors,
+                      const uint8_t base_shade, bool silhouette);
 
-void WFNFontRenderer::RenderText(const char* text, int fontNumber, BITMAP* destination, int x, int y, int colour)
+void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
 {
     RenderTextInternal(text, fontNumber, destination, x, y, colour, _stencilMode);
 }
@@ -125,7 +123,7 @@ void WFNFontRenderer::BuildPaletteShadeColors(int colour, int base_shade, color_
     get_palette(current_palette);
     const int base_palette_index = colour & 0xFF;
 
-    const RGB& base = current_palette[base_palette_index];
+    const RGB &base = current_palette[base_palette_index];
 
     shade_colors[0] = 0;
     shade_colors[base_shade] = colour;
@@ -141,8 +139,7 @@ void WFNFontRenderer::BuildPaletteShadeColors(int colour, int base_shade, color_
     std::vector<PaletteShade> darker_colors;
     std::vector<PaletteShade> lighter_colors;
 
-    const int base_brightness =
-        299 * base.r + 587 * base.g + 114 * base.b;
+    const int base_brightness = 299 * base.r + 587 * base.g + 114 * base.b;
 
     for (int i = 1; i < 256; ++i)
     {
@@ -152,30 +149,29 @@ void WFNFontRenderer::BuildPaletteShadeColors(int colour, int base_shade, color_
         if (_hasPaletteEligibility && !_paletteEligible[i])
             continue;
 
-        const RGB& candidate = current_palette[i];
+        const RGB &candidate = current_palette[i];
 
         if (!IsCompatibleWFNHue(base, candidate))
             continue;
 
-        const int brightness =
-            299 * candidate.r + 587 * candidate.g + 114 * candidate.b;
+        const int brightness = 299 * candidate.r + 587 * candidate.g + 114 * candidate.b;
 
         const int distance = std::abs(i - base_palette_index);
 
         if (brightness < base_brightness)
-            darker_colors.push_back({ i, brightness, distance });
+            darker_colors.push_back({i, brightness, distance});
         else if (brightness > base_brightness)
-            lighter_colors.push_back({ i, brightness, distance });
+            lighter_colors.push_back({i, brightness, distance});
     }
 
     // Prefer nearby palette entries while preserving brightness order.
-    const auto by_brightness = [](const PaletteShade& a, const PaletteShade& b)
-        {
-            if (a.Brightness != b.Brightness)
-                return a.Brightness < b.Brightness;
+    const auto by_brightness = [](const PaletteShade &a, const PaletteShade &b)
+    {
+        if (a.Brightness != b.Brightness)
+            return a.Brightness < b.Brightness;
 
-            return a.Distance < b.Distance;
-        };
+        return a.Distance < b.Distance;
+    };
 
     std::sort(darker_colors.begin(), darker_colors.end(), by_brightness);
     std::sort(lighter_colors.begin(), lighter_colors.end(), by_brightness);
@@ -183,73 +179,68 @@ void WFNFontRenderer::BuildPaletteShadeColors(int colour, int base_shade, color_
     // Distribute compatible palette colors across the WFN shade range,
     // preserving brightness order and the exact base color.
     const auto select_shades = [&](bool darker)
+    {
+        const auto &colors = darker ? darker_colors : lighter_colors;
+
+        if (colors.empty())
         {
-            const auto& colors = darker ? darker_colors : lighter_colors;
-
-            if (colors.empty())
+            for (int shade = darker ? base_shade - 1 : base_shade + 1; darker ? shade >= 1 : shade <= 15;
+                 shade += darker ? -1 : 1)
             {
-                for (int shade = darker ? base_shade - 1 : base_shade + 1;
-                    darker ? shade >= 1 : shade <= 15;
-                    shade += darker ? -1 : 1)
-                {
-                    shade_colors[shade] = colour;
-                }
-                return;
+                shade_colors[shade] = colour;
             }
+            return;
+        }
 
-            // Prefer hue-compatible palette entries near the base index.
-            std::vector<PaletteShade> preferred_colors;
+        // Prefer hue-compatible palette entries near the base index.
+        std::vector<PaletteShade> preferred_colors;
 
-            for (const auto& candidate : colors)
+        for (const auto &candidate : colors)
+        {
+            if (candidate.Distance <= 4)
+                preferred_colors.push_back(candidate);
+        }
+
+        // Prioritize two compatible palette colors immediately after the base index.
+        std::vector<PaletteShade> adjacent_colors;
+
+        for (const auto &candidate : colors)
+        {
+            if (candidate.Index == base_palette_index + 1 || candidate.Index == base_palette_index + 2)
             {
-                if (candidate.Distance <= 4)
-                    preferred_colors.push_back(candidate);
+                adjacent_colors.push_back(candidate);
             }
+        }
 
-            // Prioritize two compatible palette colors immediately after the base index.
-            std::vector<PaletteShade> adjacent_colors;
+        if (adjacent_colors.size() >= 2)
+            preferred_colors = adjacent_colors;
 
-            for (const auto& candidate : colors)
-            {
-                if (candidate.Index == base_palette_index + 1 ||
-                    candidate.Index == base_palette_index + 2)
-                {
-                    adjacent_colors.push_back(candidate);
-                }
-            }
+        if (preferred_colors.empty())
+            preferred_colors = colors;
 
-            if (adjacent_colors.size() >= 2)
-                preferred_colors = adjacent_colors;
+        const int range = darker ? base_shade - 1 : 15 - base_shade;
+        const int count = static_cast<int>(preferred_colors.size());
 
-            if (preferred_colors.empty())
-                preferred_colors = colors;
+        for (int distance = 1; distance <= range; ++distance)
+        {
+            const int shade = darker ? base_shade - distance : base_shade + distance;
 
-            const int range = darker ? base_shade - 1 : 15 - base_shade;
-            const int count = static_cast<int>(preferred_colors.size());
+            // Spread available colors across the shade range,
+            // allowing intermediate shades to share palette entries.
+            const int step = 1 + (distance - 1) * count / range;
 
-            for (int distance = 1; distance <= range; ++distance)
-            {
-                const int shade = darker
-                    ? base_shade - distance
-                    : base_shade + distance;
+            const int index = darker ? std::max(0, count - step) : std::min(count - 1, step - 1);
 
-                // Spread available colors across the shade range,
-                // allowing intermediate shades to share palette entries.
-                const int step = 1 + (distance - 1) * count / range;
-
-                const int index = darker
-                    ? std::max(0, count - step)
-                    : std::min(count - 1, step - 1);
-
-                shade_colors[shade] = preferred_colors[index].Index;
-            }
-        };
+            shade_colors[shade] = preferred_colors[index].Index;
+        }
+    };
 
     select_shades(true);
     select_shades(false);
 }
 
-void WFNFontRenderer::RenderTextInternal(const char* text, int fontNumber, BITMAP* destination, int x, int y, int colour, bool silhouette)
+void WFNFontRenderer::RenderTextInternal(const char *text, int fontNumber, BITMAP *destination, int x, int y,
+                                         int colour, bool silhouette)
 {
     const WFNFont *font = _fontData[fontNumber].Font.get();
     const FontRenderParams &params = _fontData[fontNumber].Params;
@@ -258,8 +249,7 @@ void WFNFontRenderer::RenderTextInternal(const char* text, int fontNumber, BITMA
     Bitmap ds(destination, true);
 
     // Check if this is a alpha-blending case, and init corresponding draw mode
-    const bool alpha_blend = (ds.GetColorDepth() == 32) &&
-        ((geta32(colour) != 0xFF) || (_blendMode != kBlend_Normal));
+    const bool alpha_blend = (ds.GetColorDepth() == 32) && ((geta32(colour) != 0xFF) || (_blendMode != kBlend_Normal));
     if (alpha_blend)
     {
         drawing_mode(DRAW_MODE_TRANS, nullptr, 0, 0);
@@ -268,11 +258,11 @@ void WFNFontRenderer::RenderTextInternal(const char* text, int fontNumber, BITMA
 
     // Use the default base shade if the font specifies an invalid value.
     const uint32_t stored_base_shade = font->GetBaseShadeIndex();
-    const uint8_t base_shade = (stored_base_shade >= 1 && stored_base_shade <= 15)
-        ? static_cast<uint8_t>(stored_base_shade) : 8;
+    const uint8_t base_shade =
+        (stored_base_shade >= 1 && stored_base_shade <= 15) ? static_cast<uint8_t>(stored_base_shade) : 8;
 
     color_t shade_colors[16] = {};
-    const color_t* shade_lookup = nullptr;
+    const color_t *shade_lookup = nullptr;
 
     if (!silhouette && font->GetBitsPerPixel() == 4 && ds.GetColorDepth() == 8)
     {
@@ -285,9 +275,8 @@ void WFNFontRenderer::RenderTextInternal(const char* text, int fontNumber, BITMA
     Rect clip = ds.GetClip();
     for (int code = ugetxc(&text); code; code = ugetxc(&text))
     {
-        x += char_spacing + RenderChar(&ds, x, y, clip, font->GetChar(code),
-            params.SizeMultiplier, colour, alpha_blend, shade_lookup,
-            base_shade, silhouette);
+        x += char_spacing + RenderChar(&ds, x, y, clip, font->GetChar(code), params.SizeMultiplier, colour, alpha_blend,
+                                       shade_lookup, base_shade, silhouette);
     }
 
     if (alpha_blend)
@@ -296,13 +285,13 @@ void WFNFontRenderer::RenderTextInternal(const char* text, int fontNumber, BITMA
     }
 }
 
-static int RenderChar(Bitmap *ds, const int at_x, const int at_y, const Rect &clip,
-    const WFNChar &wfn_char, const int scale, const color_t text_color, bool alpha_blend,
-    const color_t *shade_colors, const uint8_t base_shade, bool silhouette)
+static int RenderChar(Bitmap *ds, const int at_x, const int at_y, const Rect &clip, const WFNChar &wfn_char,
+                      const int scale, const color_t text_color, bool alpha_blend, const color_t *shade_colors,
+                      const uint8_t base_shade, bool silhouette)
 {
     const int width = wfn_char.Width;
     const int height = wfn_char.Height;
-    const unsigned char* actdata = wfn_char.Data;
+    const unsigned char *actdata = wfn_char.Data;
     const size_t bytewid = wfn_char.GetRowByteCount();
     const int depth = ds->GetColorDepth();
 
@@ -344,9 +333,8 @@ static int RenderChar(Bitmap *ds, const int at_x, const int at_y, const Rect &cl
                         green = std::max(0, std::min(255, base_green + offset));
                         blue = std::max(0, std::min(255, base_blue + offset));
 
-                        pixel_color = (depth == 32)
-                            ? makeacol32(red, green, blue, geta32(text_color))
-                            : makecol_depth(depth, red, green, blue);
+                        pixel_color = (depth == 32) ? makeacol32(red, green, blue, geta32(text_color))
+                                                    : makecol_depth(depth, red, green, blue);
                     }
                     else if (!silhouette && shade_colors != nullptr)
                     {
@@ -356,8 +344,7 @@ static int RenderChar(Bitmap *ds, const int at_x, const int at_y, const Rect &cl
             }
             else
             {
-                draw_pixel =
-                    (actdata[h * bytewid + (w / 8)] & (0x80 >> (w % 8))) != 0;
+                draw_pixel = (actdata[h * bytewid + (w / 8)] & (0x80 >> (w % 8))) != 0;
             }
 
             if (draw_pixel)
@@ -366,10 +353,10 @@ static int RenderChar(Bitmap *ds, const int at_x, const int at_y, const Rect &cl
                 {
                     ds->FillRect(RectWH(x, y, scale, scale), pixel_color);
                 }
-        else if (alpha_blend)
-        {
-          ds->BlendPixel(x, y, text_color);
-        }
+                else if (alpha_blend)
+                {
+                    ds->BlendPixel(x, y, text_color);
+                }
                 else
                 {
                     ds->PutPixel(x, y, pixel_color);
@@ -383,7 +370,7 @@ static int RenderChar(Bitmap *ds, const int at_x, const int at_y, const Rect &cl
 
 bool WFNFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
-  return LoadFromDiskEx(fontNumber, fontSize, String::FromFormat("agsfnt%d.wfn", fontNumber), nullptr, nullptr);
+    return LoadFromDiskEx(fontNumber, fontSize, String::FromFormat("agsfnt%d.wfn", fontNumber), nullptr, nullptr);
 }
 
 bool WFNFontRenderer::IsBitmapFont()
@@ -397,36 +384,38 @@ int WFNFontRenderer::GetFontHeight(int fontNumber)
 }
 
 bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const String &filename,
-    const FontRenderParams *params, FontMetrics *metrics)
+                                     const FontRenderParams *params, FontMetrics *metrics)
 {
-  auto ffi = _amgr->OpenAsset(filename);
-  if (!ffi)
-     return false;
+    auto ffi = _amgr->OpenAsset(filename);
+    if (!ffi)
+        return false;
 
-  std::unique_ptr<WFNFont> font(new WFNFont());
-  WFNError err = font->ReadFromFile(ffi.get());
-  if (err == kWFNErr_HasBadCharacters)
-  {
-    Debug::Printf(kDbgMsg_Warn, "WARNING: font '%s' has mistakes in data format, some characters may be displayed incorrectly", filename.GetCStr());
-  }
-  else if (err != kWFNErr_NoError)
-  {
-    return false;
-  }
+    std::unique_ptr<WFNFont> font(new WFNFont());
+    WFNError err = font->ReadFromFile(ffi.get());
+    if (err == kWFNErr_HasBadCharacters)
+    {
+        Debug::Printf(kDbgMsg_Warn,
+                      "WARNING: font '%s' has mistakes in data format, some characters may be displayed incorrectly",
+                      filename.GetCStr());
+    }
+    else if (err != kWFNErr_NoError)
+    {
+        return false;
+    }
 
-  // Only 1-bit and 4-bit glyphs are currently supported by the WFN renderer.
-  if (font->GetBitsPerPixel() != 1 && font->GetBitsPerPixel() != 4)
-  {
-    Debug::Printf(kDbgMsg_Error, "WFNFontRenderer: unsupported font pixel depth: %u", font->GetBitsPerPixel());
-    return false;
-  }
+    // Only 1-bit and 4-bit glyphs are currently supported by the WFN renderer.
+    if (font->GetBitsPerPixel() != 1 && font->GetBitsPerPixel() != 4)
+    {
+        Debug::Printf(kDbgMsg_Error, "WFNFontRenderer: unsupported font pixel depth: %u", font->GetBitsPerPixel());
+        return false;
+    }
 
-  _fontData[fontNumber].Font = std::move(font);
-  _fontData[fontNumber].Params = params ? *params : FontRenderParams();
-  _fontData[fontNumber].CharacterSpacing = 0;
-  if (metrics)
-    GetFontMetrics(fontNumber, metrics);
-  return true;
+    _fontData[fontNumber].Font = std::move(font);
+    _fontData[fontNumber].Params = params ? *params : FontRenderParams();
+    _fontData[fontNumber].CharacterSpacing = 0;
+    if (metrics)
+        GetFontMetrics(fontNumber, metrics);
+    return true;
 }
 
 void WFNFontRenderer::SetBlendMode(BlendMode blend_mode)
@@ -459,8 +448,7 @@ void WFNFontRenderer::GetCharCodeRange(int fontNumber, std::pair<int, int> *char
     if (_fontData[fontNumber].Font->GetCharCount() == 0)
         *char_codes = std::make_pair(0, 0);
     else
-        *char_codes = std::make_pair(0,
-            static_cast<int>(_fontData[fontNumber].Font->GetCharCount() - 1));
+        *char_codes = std::make_pair(0, static_cast<int>(_fontData[fontNumber].Font->GetCharCount() - 1));
 }
 
 void WFNFontRenderer::GetValidCharCodes(int fontNumber, std::vector<int> &char_codes)
@@ -475,12 +463,12 @@ void WFNFontRenderer::GetValidCharCodes(int fontNumber, std::vector<int> &char_c
 
 void WFNFontRenderer::FreeMemory(int fontNumber)
 {
-  _fontData.erase(fontNumber);
+    _fontData.erase(fontNumber);
 }
 
 bool WFNFontRenderer::SupportsExtendedCharacters(int fontNumber)
 {
-  return _fontData[fontNumber].Font->GetCharCount() > 128;
+    return _fontData[fontNumber].Font->GetCharCount() > 128;
 }
 
 void WFNFontRenderer::SetCharacterSpacing(int fontNumber, int spacing)
@@ -491,7 +479,7 @@ void WFNFontRenderer::SetCharacterSpacing(int fontNumber, int spacing)
     }
 }
 
-void WFNFontRenderer::SetPaletteEligibility(const std::array<bool, 256>& palette_eligible)
+void WFNFontRenderer::SetPaletteEligibility(const std::array<bool, 256> &palette_eligible)
 {
     _paletteEligible = palette_eligible;
     _hasPaletteEligibility = true;

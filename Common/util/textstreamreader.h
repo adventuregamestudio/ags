@@ -31,24 +31,23 @@ class TextStreamReader : public TextReader
 {
 public:
     // TODO: use shared ptr
-    TextStreamReader(std::unique_ptr<Stream> &&stream)
-        : _stream(std::move(stream)) {}
+    TextStreamReader(std::unique_ptr<Stream> &&stream) : _stream(std::move(stream)) {}
     TextStreamReader(TextStreamReader &&reader) = default;
     ~TextStreamReader() override = default;
 
     std::unique_ptr<Stream> ReleaseStream() { return std::move(_stream); }
 
-    bool    IsValid() const override;
-    bool    EOS() const;
+    bool IsValid() const override;
+    bool EOS() const;
 
     // Read single character
-    char    ReadChar() override;
+    char ReadChar() override;
     // Read defined number of characters
-    String  ReadString(size_t length) override;
+    String ReadString(size_t length) override;
     // Read till line break
-    String  ReadLine() override;
+    String ReadLine() override;
     // Read till end of available data
-    String  ReadAll() override;
+    String ReadAll() override;
 
 private:
     std::unique_ptr<Stream> _stream;

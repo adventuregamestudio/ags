@@ -25,7 +25,13 @@
 #include "platform/types.h"
 #include "script/cc_reflect.h"
 
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 struct ccScript
@@ -35,10 +41,10 @@ public:
 
     std::string scriptname;
     std::vector<uint8_t> globaldata;
-    std::vector<int32_t> code;    // executable byte-code, 32-bit per op or arg
+    std::vector<int32_t> code; // executable byte-code, 32-bit per op or arg
     std::vector<char> strings;
-    std::vector<uint8_t> fixuptypes; // global data/string area/ etc
-    std::vector<int32_t> fixups;  // code array index to fixup (in ints)
+    std::vector<uint8_t> fixuptypes;  // global data/string area/ etc
+    std::vector<int32_t> fixups;      // code array index to fixup (in ints)
     std::vector<std::string> imports; // names of imports
     std::vector<std::string> exports; // names of exports
     std::vector<int32_t> export_addr; // export addresses: high byte is type; low 24-bits are offset
@@ -60,18 +66,18 @@ public:
     ccScript(const ccScript &src);
     virtual ~ccScript() = default; // there are few derived classes, so dtor should be virtual
 
-    ccScript &operator =(const ccScript&);
+    ccScript &operator=(const ccScript &);
 
     const std::string &GetScriptName() const;
     const std::string &GetSectionName(int32_t offset) const;
     const std::string &GetSectionOrScriptName(int32_t offset) const;
 
-    void        SetScriptName(const std::string &name);
+    void SetScriptName(const std::string &name);
 
     // write the script to disk (after compiling)
-    void        Write(Common::Stream *out) const;
+    void Write(Common::Stream *out) const;
     // read back a script written with Write
-    bool        Read(Common::Stream *in);
+    bool Read(Common::Stream *in);
 };
 
 typedef std::unique_ptr<ccScript> UScript;

@@ -28,10 +28,10 @@ namespace Common
 {
 namespace SDL2Util
 {
-    // Opens a custom SDL2 RWOps implementation that embeds AGS stream
-    SDL_RWops *OpenRWops(std::unique_ptr<Common::Stream> ags_stream);
+// Opens a custom SDL2 RWOps implementation that embeds AGS stream
+SDL_RWops *OpenRWops(std::unique_ptr<Common::Stream> ags_stream);
 } // namespace SDL2Util
-} // namespace Engine
+} // namespace Common
 } // namespace AGS
 
 #endif // __AGS_EE_UTIL__RWOPSUTIL_H

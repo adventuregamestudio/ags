@@ -45,15 +45,9 @@ public:
     // Implicitly init with nullptr
     ComPtr() = default;
     // Explicitly init with nullptr
-    explicit ComPtr(std::nullptr_t)
-    {
-        _obj = nullptr;
-    }
+    explicit ComPtr(std::nullptr_t) { _obj = nullptr; }
     // Attach a compatible raw interface ptr
-    explicit ComPtr(TInterface *obj)
-    {
-        _obj = obj;
-    }
+    explicit ComPtr(TInterface *obj) { _obj = obj; }
     // Copy another compatible ComPtr with AddRef
     ComPtr(const ComPtr<TInterface> &iptr)
     {
@@ -66,10 +60,7 @@ public:
         _obj = iptr._obj;
         iptr._obj = nullptr; // no AddRef or Release, because we moved
     }
-    ~ComPtr()
-    {
-        ReleaseImpl();
-    }
+    ~ComPtr() { ReleaseImpl(); }
 
     // Attach() explicitly wraps a raw IUnknown pointer without resetting,
     // this is primarily for assigning a return value from a factory method.
@@ -115,18 +106,18 @@ public:
         return ref_cnt;
     }
 
-    TInterface * const get() const { return _obj; }
+    TInterface *const get() const { return _obj; }
 
     operator bool() const { return _obj != nullptr; }
-    IGuardFace *operator ->() const { return static_cast<IGuardFace*>(_obj); }
+    IGuardFace *operator->() const { return static_cast<IGuardFace *>(_obj); }
 
-    MyType &operator =(std::nullptr_t)
+    MyType &operator=(std::nullptr_t)
     {
         ReleaseImpl();
         return *this;
     }
     // Copy another compatible ComPtr with AddRef
-    MyType &operator =(const ComPtr<TInterface> &iptr)
+    MyType &operator=(const ComPtr<TInterface> &iptr)
     {
         if (_obj != iptr._obj)
         {
@@ -137,7 +128,7 @@ public:
         return *this;
     }
     // Move another compatible ComPtr (pass ptr ownership)
-    MyType &operator =(ComPtr<TInterface> &&iptr)
+    MyType &operator=(ComPtr<TInterface> &&iptr)
     {
         if (_obj != iptr._obj)
         {
@@ -168,13 +159,25 @@ private:
 };
 
 // Various comparison operators for ComPtr<T>
-template <typename T>
-bool operator ==(const ComPtr<T> &iptr, std::nullptr_t) { return iptr.get() == nullptr; }
-template <typename T>
-bool operator !=(const ComPtr<T> &iptr, std::nullptr_t) { return iptr.get() != nullptr; }
-template <typename T1, typename T2>
-bool operator ==(const ComPtr<T1> &iptr1, const ComPtr<T2> &iptr2) { return iptr1.get() == iptr2.get(); }
-template <typename T1, typename T2>
-bool operator !=(const ComPtr<T1> &iptr1, const ComPtr<T2> &iptr2) { return iptr1.get() != iptr2.get(); }
+template<typename T>
+bool operator==(const ComPtr<T> &iptr, std::nullptr_t)
+{
+    return iptr.get() == nullptr;
+}
+template<typename T>
+bool operator!=(const ComPtr<T> &iptr, std::nullptr_t)
+{
+    return iptr.get() != nullptr;
+}
+template<typename T1, typename T2>
+bool operator==(const ComPtr<T1> &iptr1, const ComPtr<T2> &iptr2)
+{
+    return iptr1.get() == iptr2.get();
+}
+template<typename T1, typename T2>
+bool operator!=(const ComPtr<T1> &iptr1, const ComPtr<T2> &iptr2)
+{
+    return iptr1.get() != iptr2.get();
+}
 
 #endif // __AGS_CN_UTIL__SMARTPTR_H

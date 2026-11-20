@@ -59,7 +59,8 @@ String TextStreamReader::ReadLine()
         chars_read_last = _stream->Read(char_buffer, single_chunk_length);
         char *seek_ptr = char_buffer;
         int c;
-        for (c = 0; c < chars_read_last && *seek_ptr != '\n'; ++c, ++seek_ptr);
+        for (c = 0; c < chars_read_last && *seek_ptr != '\n'; ++c, ++seek_ptr)
+            ;
 
         int append_length = 0;
         int str_len = str.GetLength();
@@ -81,8 +82,7 @@ String TextStreamReader::ReadLine()
             char_buffer[append_length] = '\0';
             str.Append(char_buffer);
         }
-    }
-    while (!EOS() && line_break_position < 0);
+    } while (!EOS() && line_break_position < 0);
 
     // If null-terminator was found make sure stream is positioned at the next
     // byte after line end
@@ -99,8 +99,8 @@ String TextStreamReader::ReadLine()
 
 String TextStreamReader::ReadAll()
 {
-    size_t len = Math::InRangeOrDef<size_t>(
-        static_cast<uint64_t>(_stream->GetLength() - _stream->GetPosition()), SIZE_MAX);
+    size_t len =
+        Math::InRangeOrDef<size_t>(static_cast<uint64_t>(_stream->GetLength() - _stream->GetPosition()), SIZE_MAX);
     return ReadString(len);
 }
 

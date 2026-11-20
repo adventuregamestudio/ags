@@ -27,7 +27,13 @@
 #include "util/string.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 struct CharacterInfo;
@@ -35,36 +41,36 @@ struct CharacterInfo;
 
 struct GameSetupStructBase
 {
-    static const int  LEGACY_GAME_NAME_LENGTH = 50;
-    static const int  MAX_OPTIONS = 100;
-    static const int  NUM_INTS_RESERVED = 14;
+    static const int LEGACY_GAME_NAME_LENGTH = 50;
+    static const int MAX_OPTIONS = 100;
+    static const int NUM_INTS_RESERVED = 14;
     // TODO: this is left purely to load older format version, revise later
-    static const int  NUM_LEGACY_GLOBALMES = 500;
+    static const int NUM_LEGACY_GLOBALMES = 500;
 
-    Common::String    gamename;
-    GameDataVersion   gamedataver = kGameVersion_Undefined;
-    Common::String    compiled_with; // version of AGS this data was created by
-    int               options[MAX_OPTIONS] = { 0 };
-    uint8_t           paluses[256] = { 0 };
-    RGB               defpal[256] = {};
-    int               numviews = 0;
-    int               numcharacters = 0;
-    int               playercharacter = -1;
-    uint16_t          numinvitems = 0u;
-    int               numdialog = 0;
-    int               numdlgmessage = 0;    // [DEPRECATED]
-    int               numfonts = 0;
-    int               color_depth = 0;      // in bytes per pixel (ie. 1, 2, 4)
-    int               target_win = 0;
-    int               dialog_bullet = 0;    // 0 for none, otherwise slot num of bullet point
-    int               inv_hot_color = 0;    // inv cursor hotspot dot color
-    int               inv_hot_cross_color = 0; // inv cursor hotspot cross color
-    int               uniqueid = 0;         // random key identifying the game
-    int               numgui = 0;
-    int               numcursors = 0;
-    int               default_lipsync_frame = 0; // used for unknown chars
-    int               inv_hot_sprite = 0;
-    int               reserved[NUM_INTS_RESERVED] = { 0 };
+    Common::String gamename;
+    GameDataVersion gamedataver = kGameVersion_Undefined;
+    Common::String compiled_with; // version of AGS this data was created by
+    int options[MAX_OPTIONS] = {0};
+    uint8_t paluses[256] = {0};
+    RGB defpal[256] = {};
+    int numviews = 0;
+    int numcharacters = 0;
+    int playercharacter = -1;
+    uint16_t numinvitems = 0u;
+    int numdialog = 0;
+    int numdlgmessage = 0; // [DEPRECATED]
+    int numfonts = 0;
+    int color_depth = 0; // in bytes per pixel (ie. 1, 2, 4)
+    int target_win = 0;
+    int dialog_bullet = 0;       // 0 for none, otherwise slot num of bullet point
+    int inv_hot_color = 0;       // inv cursor hotspot dot color
+    int inv_hot_cross_color = 0; // inv cursor hotspot cross color
+    int uniqueid = 0;            // random key identifying the game
+    int numgui = 0;
+    int numcursors = 0;
+    int default_lipsync_frame = 0; // used for unknown chars
+    int inv_hot_sprite = 0;
+    int reserved[NUM_INTS_RESERVED] = {0};
     // Base text parser dictionary, contains parser words in the original game language.
     // This may be overridden by the parser dictionary read from translation, if one is applied.
     std::unique_ptr<AGS::Common::WordsDictionary> dict;
@@ -74,7 +80,7 @@ struct GameSetupStructBase
     GameSetupStructBase(GameSetupStructBase &&gss) = default;
     ~GameSetupStructBase() = default;
 
-    GameSetupStructBase &operator =(GameSetupStructBase &&gss) = default;
+    GameSetupStructBase &operator=(GameSetupStructBase &&gss) = default;
 
     // Tells whether the serialized game data contains certain components
     struct SerializeInfo
@@ -103,30 +109,24 @@ struct GameSetupStructBase
     inline int GetColorDepth() const { return color_depth * 8; }
 
     // Returns the expected filename of a digital audio package
-    inline AGS::Common::String GetAudioVOXName() const
-    {
-        return "audio.vox";
-    }
+    inline AGS::Common::String GetAudioVOXName() const { return "audio.vox"; }
 
     // Returns a list of game options that are forbidden to change at runtime
     inline static std::array<int, 18> GetRestrictedOptions()
     {
-        return std::array<int, 18> {{
-            OPT_DEBUGMODE, OPT_OBSOLETE_LETTERBOX, OPT_OBSOLETE_HIRES_FONTS, OPT_SPLITRESOURCES,
-            OPT_OBSOLETE_STRICTSCRIPTING, OPT_OBSOLETE_LEFTTORIGHTEVAL, OPT_COMPRESSSPRITES, OPT_OBSOLETE_STRICTSTRINGS,
-            OPT_OBSOLETE_NATIVECOORDINATES, OPT_OBSOLETE_SAFEFILEPATHS, OPT_DIALOGOPTIONSAPI, OPT_BASESCRIPTAPI,
-            OPT_SCRIPTCOMPATLEV, OPT_OBSOLETE_RELATIVEASSETRES, OPT_GAMETEXTENCODING, OPT_KEYHANDLEAPI,
-            OPT_CUSTOMENGINETAG, OPT_VOICECLIPNAMERULE
-        }};
+        return std::array<int, 18>{{OPT_DEBUGMODE, OPT_OBSOLETE_LETTERBOX, OPT_OBSOLETE_HIRES_FONTS, OPT_SPLITRESOURCES,
+                                    OPT_OBSOLETE_STRICTSCRIPTING, OPT_OBSOLETE_LEFTTORIGHTEVAL, OPT_COMPRESSSPRITES,
+                                    OPT_OBSOLETE_STRICTSTRINGS, OPT_OBSOLETE_NATIVECOORDINATES,
+                                    OPT_OBSOLETE_SAFEFILEPATHS, OPT_DIALOGOPTIONSAPI, OPT_BASESCRIPTAPI,
+                                    OPT_SCRIPTCOMPATLEV, OPT_OBSOLETE_RELATIVEASSETRES, OPT_GAMETEXTENCODING,
+                                    OPT_KEYHANDLEAPI, OPT_CUSTOMENGINETAG, OPT_VOICECLIPNAMERULE}};
     }
 
     // Returns a list of game options that must be preserved when restoring a save;
     // NOTE: restricted options are always preserved, so no need to mention them here
     inline static std::array<int, 2> GetPreservedOptions()
     {
-        return std::array<int, 2> {{
-            OPT_SAVECOMPONENTSIGNORE, OPT_AUTOTRANSPARSERSAID
-        }};
+        return std::array<int, 2>{{OPT_SAVECOMPONENTSIGNORE, OPT_AUTOTRANSPARSERSAID}};
     }
 
 private:

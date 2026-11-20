@@ -36,10 +36,10 @@ public:
     GUIListBox();
 
     // Properties
-    int  GetListBoxFlags() const { return _listBoxFlags; }
-    int  GetSelectedBgColor() const { return _selectedBgColor; }
+    int GetListBoxFlags() const { return _listBoxFlags; }
+    int GetSelectedBgColor() const { return _selectedBgColor; }
     void SetSelectedBgColor(int color);
-    int  GetSelectedTextColor() const { return _selectedTextColor; }
+    int GetSelectedTextColor() const { return _selectedTextColor; }
     void SetSelectedTextColor(int color);
     // Tells if this list box should display scrollbar (arrows) when
     // there's more items than can fit into the control
@@ -52,14 +52,14 @@ public:
     bool IsSvgIndex() const;
     uint32_t GetItemCount() const { return _items.size(); }
     String GetItem(int index) const;
-    int  GetSavedGameIndex(int index) const;
-    int  GetItemAt(int x, int y) const;
-    int  GetRowHeight() const { return _rowHeight; }
+    int GetSavedGameIndex(int index) const;
+    int GetItemAt(int x, int y) const;
+    int GetRowHeight() const { return _rowHeight; }
     // NOTE: GetSelectedItem accounts for backwards-compatible behavior,
     // when the "selection" is kept at index 0 even when there's no items
-    int  GetSelectedItem() const { return _items.size() > 0 ? _selectedItem : -1; }
+    int GetSelectedItem() const { return _items.size() > 0 ? _selectedItem : -1; }
     void SetSelectedItem(int index);
-    int  GetTopItem() const { return _topItem; }
+    int GetTopItem() const { return _topItem; }
     void SetTopItem(int index);
     uint32_t GetVisibleItemCount() const { return _visibleItemCount; }
     void SetShowArrows(bool on);
@@ -115,26 +115,26 @@ private:
     // Script events schema
     static ScriptEventSchema _eventSchema;
 
-    int                     _listBoxFlags = kListBox_DefFlags;
+    int _listBoxFlags = kListBox_DefFlags;
     // FIXME: adjust these colors using GetStandardColor where is safe to access GuiContext
-    color_t                 _selectedBgColor = DefaultSelectBgColor;
-    color_t                 _selectedTextColor = DefaultSelectFgColor;
-    int                     _rowHeight = 0;
-    int                     _itemTextPaddingX = 0;
-    int                     _itemTextPaddingY = 0;
-    uint32_t                _visibleItemCount = 0u;
+    color_t _selectedBgColor = DefaultSelectBgColor;
+    color_t _selectedTextColor = DefaultSelectFgColor;
+    int _rowHeight = 0;
+    int _itemTextPaddingX = 0;
+    int _itemTextPaddingY = 0;
+    uint32_t _visibleItemCount = 0u;
 
-    std::vector<String>     _items;
+    std::vector<String> _items;
     // CHECKME: why int16?
-    std::vector<int16_t>    _savedGameIndex;
-    int                     _selectedItem = -1;
-    int                     _topItem = 0;
-    Point                   _mousePos;
+    std::vector<int16_t> _savedGameIndex;
+    int _selectedItem = -1;
+    int _topItem = 0;
+    Point _mousePos;
 
 
     // Precalculated control regions
-    Rect  _itemsRect; // items region
-    Rect  _scrollbarRect; // arrows / scrollbar region
+    Rect _itemsRect;     // items region
+    Rect _scrollbarRect; // arrows / scrollbar region
     // Prepared text buffer/cache
     String _textToDraw;
 };

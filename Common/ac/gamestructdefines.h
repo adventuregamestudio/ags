@@ -24,80 +24,81 @@
 
 // CLNUP check what's actually needed
 // Palette sections
-#define PAL_GAMEWIDE        0
-#define PAL_LOCKED          1
-#define PAL_BACKGROUND      2
+#define PAL_GAMEWIDE   0
+#define PAL_LOCKED     1
+#define PAL_BACKGROUND 2
 
 // Game options
 
 // General game options
-#define OPT_DEBUGMODE       0
-#define OPT_OBSOLETE_SCORESOUND     1 // [DEPRECATED]
-#define OPT_OBSOLETE_WALKONLOOK     2 // [DEPRECATED]
-#define OPT_DIALOGIFACE     3
-#define OPT_ANTIGLIDE       4
-#define OPT_TWCUSTOM        5
-#define OPT_DIALOGGAP       6
-#define OPT_NOSKIPTEXT      7
-#define OPT_DISABLEOFF      8
-#define OPT_ALWAYSSPCH      9
-#define OPT_SPEECHTYPE      10
-#define OPT_PIXPERFECT      11
-#define OPT_NOWALKMODE      12
-#define OPT_OBSOLETE_LETTERBOX      13 // [DEPRECATED] old-style resolution mode
-#define OPT_FIXEDINVCURSOR  14
-#define OPT_NOLOSEINV       15
-#define OPT_OBSOLETE_HIRES_FONTS    16
-#define OPT_SPLITRESOURCES  17
-#define OPT_CHARTURNWHENWALK 18 // characters turn step-by-step when changing walking direction
-#define OPT_FADETYPE        19
-#define OPT_HANDLEINVCLICKS 20
-#define OPT_OBSOLETE_MOUSEWHEEL     21
-#define OPT_DIALOGNUMBERED  22
-#define OPT_DIALOGUPWARDS   23
-#define OPT_OBSOLETE_CROSSFADEMUSIC 24 // [DEPRECATED] old-style audio crossfade
-#define OPT_ANTIALIASFONTS  25
-#define OPT_THOUGHTGUI      26
-#define OPT_CHARTURNWHENFACE 27  // characters turn step-by-step when facing new standing direction
-#define OPT_RIGHTLEFTWRITE  28  // right-to-left text writing
-#define OPT_DUPLICATEINV    29  // if they have 2 of the item, draw it twice
-#define OPT_SAVESCREENSHOT  30  // write screenshots into savegame (on/off)
-#define OPT_PORTRAITSIDE    31
-#define OPT_OBSOLETE_STRICTSCRIPTING   32  // don't allow MoveCharacter-style commands
-#define OPT_OBSOLETE_LEFTTORIGHTEVAL   33  // [DEPRECATED] left-to-right operator evaluation
-#define OPT_COMPRESSSPRITES 34  // sprite compression type (None, RLE, LZW, Deflate)
-#define OPT_OBSOLETE_STRICTSTRINGS     35  // don't allow old-style strings, for reference only
+#define OPT_DEBUGMODE                  0
+#define OPT_OBSOLETE_SCORESOUND        1 // [DEPRECATED]
+#define OPT_OBSOLETE_WALKONLOOK        2 // [DEPRECATED]
+#define OPT_DIALOGIFACE                3
+#define OPT_ANTIGLIDE                  4
+#define OPT_TWCUSTOM                   5
+#define OPT_DIALOGGAP                  6
+#define OPT_NOSKIPTEXT                 7
+#define OPT_DISABLEOFF                 8
+#define OPT_ALWAYSSPCH                 9
+#define OPT_SPEECHTYPE                 10
+#define OPT_PIXPERFECT                 11
+#define OPT_NOWALKMODE                 12
+#define OPT_OBSOLETE_LETTERBOX         13 // [DEPRECATED] old-style resolution mode
+#define OPT_FIXEDINVCURSOR             14
+#define OPT_NOLOSEINV                  15
+#define OPT_OBSOLETE_HIRES_FONTS       16
+#define OPT_SPLITRESOURCES             17
+#define OPT_CHARTURNWHENWALK           18 // characters turn step-by-step when changing walking direction
+#define OPT_FADETYPE                   19
+#define OPT_HANDLEINVCLICKS            20
+#define OPT_OBSOLETE_MOUSEWHEEL        21
+#define OPT_DIALOGNUMBERED             22
+#define OPT_DIALOGUPWARDS              23
+#define OPT_OBSOLETE_CROSSFADEMUSIC    24 // [DEPRECATED] old-style audio crossfade
+#define OPT_ANTIALIASFONTS             25
+#define OPT_THOUGHTGUI                 26
+#define OPT_CHARTURNWHENFACE           27 // characters turn step-by-step when facing new standing direction
+#define OPT_RIGHTLEFTWRITE             28 // right-to-left text writing
+#define OPT_DUPLICATEINV               29 // if they have 2 of the item, draw it twice
+#define OPT_SAVESCREENSHOT             30 // write screenshots into savegame (on/off)
+#define OPT_PORTRAITSIDE               31
+#define OPT_OBSOLETE_STRICTSCRIPTING   32 // don't allow MoveCharacter-style commands
+#define OPT_OBSOLETE_LEFTTORIGHTEVAL   33 // [DEPRECATED] left-to-right operator evaluation
+#define OPT_COMPRESSSPRITES            34 // sprite compression type (None, RLE, LZW, Deflate)
+#define OPT_OBSOLETE_STRICTSTRINGS     35 // don't allow old-style strings, for reference only
 #define OPT_OBSOLETE_NEWGUIALPHA       36 fixme
-#define OPT_NEWGUIALPHA     36  // alpha blending method when drawing GUI and controls
-#define OPT_RUNGAMEDLGOPTS  37
+#define OPT_NEWGUIALPHA                36 // alpha blending method when drawing GUI and controls
+#define OPT_RUNGAMEDLGOPTS             37
 #define OPT_OBSOLETE_NATIVECOORDINATES 38 // [DEPRECATED] defines coordinate relation between game logic and game screen
-#define OPT_GLOBALTALKANIMSPD  39
-#define OPT_HIGHESTOPTION_321  39
-#define OPT_OBSOLETE_SPRITEALPHA   40 // [DEPRECATED] alpha blending method when drawing images on DrawingSurface
-#define OPT_OBSOLETE_SAFEFILEPATHS 41 // [DEPRECATED] restricted file path in script (not writing to the game dir, etc)
-#define OPT_DIALOGOPTIONSAPI   42 // version of dialog options API (-1 for pre-3.4.0 API)
-#define OPT_BASESCRIPTAPI      43 // version of the Script API (ScriptAPIVersion) used to compile game script
-#define OPT_SCRIPTCOMPATLEV    44 // level of API compatibility (ScriptAPIVersion) used to compile game script
-#define OPT_RENDERATSCREENRES  45 // scale sprites at the (final) screen resolution
-#define OPT_OBSOLETE_RELATIVEASSETRES  46 // relative asset resolution mode (where sprites are resized to match game type)
+#define OPT_GLOBALTALKANIMSPD          39
+#define OPT_HIGHESTOPTION_321          39
+#define OPT_OBSOLETE_SPRITEALPHA       40 // [DEPRECATED] alpha blending method when drawing images on DrawingSurface
+#define OPT_OBSOLETE_SAFEFILEPATHS     41 // [DEPRECATED] restricted file path in script (not writing to the game dir, etc)
+#define OPT_DIALOGOPTIONSAPI           42 // version of dialog options API (-1 for pre-3.4.0 API)
+#define OPT_BASESCRIPTAPI              43 // version of the Script API (ScriptAPIVersion) used to compile game script
+#define OPT_SCRIPTCOMPATLEV            44 // level of API compatibility (ScriptAPIVersion) used to compile game script
+#define OPT_RENDERATSCREENRES          45 // scale sprites at the (final) screen resolution
+#define OPT_OBSOLETE_RELATIVEASSETRES \
+    46 // relative asset resolution mode (where sprites are resized to match game type)
 #define OPT_OBSOLETE_WALKSPEEDABSOLUTE 47 // if movement speeds are independent of walkable mask resolution
-#define OPT_CLIPGUICONTROLS    48 // clip drawn gui control contents to the control's rectangle
-#define OPT_GAMETEXTENCODING   49 // how the text in the game data should be interpreted
-#define OPT_KEYHANDLEAPI       50 // key handling mode version
-#define OPT_CUSTOMENGINETAG    51 // custom engine tag (for overriding behavior)
-#define OPT_SCALECHAROFFSETS   52 // apply character scaling to the sprite offsets (z, locked offs)
-#define OPT_SAVESCREENSHOTLAYER 53 // which render layers to include into savegame screenshot
-#define OPT_VOICECLIPNAMERULE  54 // which rule to use for a voice clip name based on character's name
-#define OPT_SAVECOMPONENTSIGNORE 55 // ignore these savegame components (flag mask)
-#define OPT_GAMEFPS            56 // game speed (frame per seconds)
-#define OPT_GUICONTROLMOUSEBUT 57 // whether common gui controls should react only to LMB (0 - any, 1 - LMB)
-#define OPT_AUTOTRANSPARSERSAID 58 // automatically translate arguments to Parser functions, like Said(...).
-#define OPT_DISPLAYSINGLEDIALOGOPTION 59 // display dialog options even if only one is enabled
-#define OPT_TURNORDERPRIORITY 60 // which turn order to choose if cw and ccw turns are equally short
-#define OPT_TEXTBOXCLAIMSKEYS 61 // when does textbox control claim key events
-#define OPT_DIALOGOPTIONSDRAWMODE 62 // explicitly select dialog options draw mode (default, custom rendering, ...)
-#define OPT_HIGHESTOPTION   OPT_DIALOGOPTIONSDRAWMODE
-#define OPT_LIPSYNCTEXT        99
+#define OPT_CLIPGUICONTROLS            48 // clip drawn gui control contents to the control's rectangle
+#define OPT_GAMETEXTENCODING           49 // how the text in the game data should be interpreted
+#define OPT_KEYHANDLEAPI               50 // key handling mode version
+#define OPT_CUSTOMENGINETAG            51 // custom engine tag (for overriding behavior)
+#define OPT_SCALECHAROFFSETS           52 // apply character scaling to the sprite offsets (z, locked offs)
+#define OPT_SAVESCREENSHOTLAYER        53 // which render layers to include into savegame screenshot
+#define OPT_VOICECLIPNAMERULE          54 // which rule to use for a voice clip name based on character's name
+#define OPT_SAVECOMPONENTSIGNORE       55 // ignore these savegame components (flag mask)
+#define OPT_GAMEFPS                    56 // game speed (frame per seconds)
+#define OPT_GUICONTROLMOUSEBUT         57 // whether common gui controls should react only to LMB (0 - any, 1 - LMB)
+#define OPT_AUTOTRANSPARSERSAID        58 // automatically translate arguments to Parser functions, like Said(...).
+#define OPT_DISPLAYSINGLEDIALOGOPTION  59 // display dialog options even if only one is enabled
+#define OPT_TURNORDERPRIORITY          60 // which turn order to choose if cw and ccw turns are equally short
+#define OPT_TEXTBOXCLAIMSKEYS          61 // when does textbox control claim key events
+#define OPT_DIALOGOPTIONSDRAWMODE      62 // explicitly select dialog options draw mode (default, custom rendering, ...)
+#define OPT_HIGHESTOPTION              OPT_DIALOGOPTIONSDRAWMODE
+#define OPT_LIPSYNCTEXT                99
 
 // Compatibility engine modes (hacks)
 #define CUSTOMENG_NONE      0
@@ -105,10 +106,10 @@
 #define CUSTOMENG_CLIFFTOP  2 // Clifftop Games [UNSUPPORTED in AGS 4]
 
 // Sierra-style portrait position style
-#define PORTRAIT_LEFT       0
-#define PORTRAIT_RIGHT      1
-#define PORTRAIT_ALTERNATE  2
-#define PORTRAIT_XPOSITION  3
+#define PORTRAIT_LEFT      0
+#define PORTRAIT_RIGHT     1
+#define PORTRAIT_ALTERNATE 2
+#define PORTRAIT_XPOSITION 3
 
 // Room transition style
 enum ScreenTransitionStyle
@@ -135,48 +136,48 @@ enum SpeechStyle
 };
 
 // Contemporary font flags
-#define FFLG_SIZEMULTIPLIER        0x01  // size data means multiplier
-#define FFLG_DEFLINESPACING        0x02  // linespacing derived from the font height
+#define FFLG_SIZEMULTIPLIER 0x01 // size data means multiplier
+#define FFLG_DEFLINESPACING 0x02 // linespacing derived from the font height
 // Use nominal font's import size as a font's height in all the game logic.
 // If not set will use real font's height reported by the font file.
-#define FFLG_LOGICALNOMINALHEIGHT  0x04
+#define FFLG_LOGICALNOMINALHEIGHT 0x04
 // Do the TTF ascender fixup, where font's ascender is resized
 // to the nominal font's height. This is primarily for backwards compatibility
 // with older games.
-#define FFLG_ASCENDERFIXUP         0x08 // [DEPRECATED]
+#define FFLG_ASCENDERFIXUP 0x08 // [DEPRECATED]
 // Use a user-provided custom value as a font's height in all the game logic.
 // If not set will use real font's height reported by the font file.
-#define FFLG_LOGICALCUSTOMHEIGHT   0x10
+#define FFLG_LOGICALCUSTOMHEIGHT 0x10
 // Collection of flags defining font's load mode
-#define FFLG_LOADMODEMASK         (FFLG_LOGICALNOMINALHEIGHT | FFLG_LOGICALCUSTOMHEIGHT | FFLG_ASCENDERFIXUP)
+#define FFLG_LOADMODEMASK (FFLG_LOGICALNOMINALHEIGHT | FFLG_LOGICALCUSTOMHEIGHT | FFLG_ASCENDERFIXUP)
 // Collection of flags defining font's height definition
-#define FFLG_FONTHEIGHTMASK       (FFLG_LOGICALNOMINALHEIGHT | FFLG_LOGICALCUSTOMHEIGHT)
+#define FFLG_FONTHEIGHTMASK (FFLG_LOGICALNOMINALHEIGHT | FFLG_LOGICALCUSTOMHEIGHT)
 // Font outline types
 #define FONT_OUTLINE_NONE -1
 #define FONT_OUTLINE_AUTO -10
 
-#define DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT  14 // Yellow
+#define DIALOG_OPTIONS_HIGHLIGHT_COLOR_DEFAULT 14 // Yellow
 
 // MAXVIEWNAMELENGTH comes from unknown old engine version
 #define LEGACY_MAXVIEWNAMELENGTH 15
-#define MAXLIPSYNCFRAMES  20
-#define MAX_GUID_LENGTH   40
-#define MAX_SG_EXT_LENGTH 20
+#define MAXLIPSYNCFRAMES         20
+#define MAX_GUID_LENGTH          40
+#define MAX_SG_EXT_LENGTH        20
 #define LEGACY_MAX_SG_FOLDER_LEN 50
 
 enum GameResolutionType
 {
-    kGameResolution_Undefined   = -1,
+    kGameResolution_Undefined = -1,
     // Do not support any other since AGS 4
-    kGameResolution_Custom      = 8,
+    kGameResolution_Custom = 8,
 };
 
 // Automatic numbering of dialog options (OPT_DIALOGNUMBERED)
 enum DialogOptionNumbering
 {
     kDlgOptNoNumbering = -1,
-    kDlgOptKeysOnly    =  0, // implicit key shortcuts
-    kDlgOptNumbering   =  1  // draw option indices and use key shortcuts
+    kDlgOptKeysOnly = 0, // implicit key shortcuts
+    kDlgOptNumbering = 1 // draw option indices and use key shortcuts
 };
 
 // Version of the script api (OPT_BASESCRIPTAPI and OPT_SCRIPTCOMPATLEV).
@@ -195,7 +196,7 @@ enum ScriptAPIVersion
     kScriptAPI_v340 = 4,
     kScriptAPI_v341 = 5,
     kScriptAPI_v350 = 6,
-    kScriptAPI_v3507= 7,
+    kScriptAPI_v3507 = 7,
     kScriptAPI_v351 = 8,
     kScriptAPI_v360 = 3060000,
     kScriptAPI_v36026 = 3060026,
@@ -219,18 +220,18 @@ const char *GetScriptAPIName(ScriptAPIVersion v);
 // screen resolution, as opposed to native resolution
 enum RenderAtScreenRes
 {
-    kRenderAtScreenRes_UserDefined  = 0,
-    kRenderAtScreenRes_Enabled      = 1,
-    kRenderAtScreenRes_Disabled     = 2,
+    kRenderAtScreenRes_UserDefined = 0,
+    kRenderAtScreenRes_Enabled = 1,
+    kRenderAtScreenRes_Disabled = 2,
 };
 
 enum DialogOptionsDrawMode
 {
     // Automatic mode: if engine finds custom rendering callbacks in script,
     // then it will use them, otherwise uses standard options mode.
-    kDialogOptDraw_Auto     = 0,
+    kDialogOptDraw_Auto = 0,
     kDialogOptDraw_Standard = 1,
-    kDialogOptDraw_Custom   = 2
+    kDialogOptDraw_Custom = 2
 };
 
 
@@ -239,9 +240,9 @@ enum DialogOptionsDrawMode
 //                     serialized as 32-bit in new saves (for dynamic sprites only).
 // WARNING: 0x3B bits were taken by now deprecated flags (see SPF_OBSOLETEMASK);
 // should not reuse these bits unless explicitly set a new game data format version!
-#define SPF_OBSOLETEMASK    0x3B
-#define SPF_DYNAMICALLOC    0x04  // created by runtime script
-#define SPF_KEEPDEPTH       0x40  // sprite must explicitly retain its original color depth
+#define SPF_OBSOLETEMASK 0x3B
+#define SPF_DYNAMICALLOC 0x04 // created by runtime script
+#define SPF_KEEPDEPTH    0x40 // sprite must explicitly retain its original color depth
 // Runtime sprite flags follow
 #define SPF_OBJECTOWNED     0x0100 // owned by a game object (not created in user script)
 #define SPF_SURFACEACQUIRED 0x0400 // drawing surface acquired (in the process of drawing)
@@ -249,14 +250,16 @@ enum DialogOptionsDrawMode
 // General information about sprite (properties, size)
 struct SpriteInfo
 {
-    int      Width = 0;
-    int      Height = 0;
-    int      ColorDepth = 0;
+    int Width = 0;
+    int Height = 0;
+    int ColorDepth = 0;
     uint32_t Flags = 0u; // SPF_* flags
 
     SpriteInfo() = default;
     SpriteInfo(int w, int h, int color_depth, uint32_t flags)
-        : Width(w), Height(h), ColorDepth(color_depth), Flags(flags) {}
+        : Width(w), Height(h), ColorDepth(color_depth), Flags(flags)
+    {
+    }
 
     inline bool IsValid() const { return Width > 0 && Height > 0; }
     inline Size GetResolution() const { return Size(Width, Height); }
@@ -283,32 +286,32 @@ struct FontInfo
     };
 
     // Font's numeric ID
-    int           FontID = -1;
+    int FontID = -1;
     // Font's source filename
     AGS::Common::String Filename;
     // Font's asset filename, optional (added for consistency with 4.*)
     AGS::Common::String FileName;
     // General font's loading and rendering flags (FFLG_*)
-    uint32_t      Flags = 0u;
+    uint32_t Flags = 0u;
     // Nominal font import size (in pixels)
-    int           Size = 0;
+    int Size = 0;
     // Factor to multiply base font size by
-    int           SizeMultiplier = 1;
+    int SizeMultiplier = 1;
     // Outlining font index, or auto-outline flag
-    int           Outline = FONT_OUTLINE_NONE;
+    int Outline = FONT_OUTLINE_NONE;
     // Custom logical height (referred to when measuring text),
     // used mainly for handling broken fonts
-    int           CustomHeight = 0;
+    int CustomHeight = 0;
     // Custom vertical render offset, used mainly for handling broken fonts
-    int           YOffset = 0;
+    int YOffset = 0;
     // Custom line spacing between two lines of text (0 = use font height)
-    int           LineSpacing = 0;
+    int LineSpacing = 0;
     // Horizontal spacing between individual characters, in pixels
-    int           CharacterSpacing = 0;
+    int CharacterSpacing = 0;
     // When automatic outlining, style of the outline
     AutoOutlineStyle AutoOutlineStyle = kSquared;
     // When automatic outlining, thickness of the outline (0 = no auto outline)
-    int           AutoOutlineThickness = 0;
+    int AutoOutlineThickness = 0;
 
     inline void SetFlags(const uint32_t flags)
     {
@@ -323,10 +326,7 @@ struct FontInfo
         }
     }
 
-    inline void SetHeightFlags(int flags)
-    {
-        Flags = (Flags & ~FFLG_FONTHEIGHTMASK) | (flags & FFLG_FONTHEIGHTMASK);
-    }
+    inline void SetHeightFlags(int flags) { Flags = (Flags & ~FFLG_FONTHEIGHTMASK) | (flags & FFLG_FONTHEIGHTMASK); }
 };
 
 // GameSetupStruct and GameState struct's runtime save format
@@ -334,27 +334,27 @@ struct FontInfo
 // for now because GameSetupStruct uses this too
 enum GameStateSvgVersion
 {
-    kGSSvgVersion_Initial   = 0,
-    kGSSvgVersion_350       = 1,
-    kGSSvgVersion_350_9     = 2,
-    kGSSvgVersion_350_10    = 3,
-    kGSSvgVersion_361_14    = 4,
-    kGSSvgVersion_363       = 3060300,
-    kGSSvgVersion_363_02    = 3060302,
-    kGSSvgVersion_363_04    = 3060304,
-    kGSSvgVersion_363_13    = 3060313,
-    kGSSvgVersion_400       = 4000000,
-    kGSSvgVersion_400_03    = 4000003, // compat w kGSSvgVersion_361_14
-    kGSSvgVersion_400_08    = 4000008, // palette component range 64->256
-    kGSSvgVersion_400_14    = 4000014, // 32-bit ARGB color properties
-    kGSSvgVersion_400_17    = 4000017, // compat w kGSSvgVersion_363
-    kGSSvgVersion_400_18    = 4000018, // shaders
-    kGSSvgVersion_400_24    = 4000024, // sync with kGSSvgVersion_363_02
-    kGSSvgVersion_400_26    = 4000026, // sync with kGSSvgVersion_363_04
-    kGSSvgVersion_400_27    = 4000027, // 32-bit inventory cursor hotspot colors
-    kGSSvgVersion_400_29    = 4000029, // rotation pivot
-    kGSSvgVersion_400_33    = 4000033, // sync with kGSSvgVersion_363_13
-    kGSSvgVersion_Current   = kGSSvgVersion_400_33
+    kGSSvgVersion_Initial = 0,
+    kGSSvgVersion_350 = 1,
+    kGSSvgVersion_350_9 = 2,
+    kGSSvgVersion_350_10 = 3,
+    kGSSvgVersion_361_14 = 4,
+    kGSSvgVersion_363 = 3060300,
+    kGSSvgVersion_363_02 = 3060302,
+    kGSSvgVersion_363_04 = 3060304,
+    kGSSvgVersion_363_13 = 3060313,
+    kGSSvgVersion_400 = 4000000,
+    kGSSvgVersion_400_03 = 4000003, // compat w kGSSvgVersion_361_14
+    kGSSvgVersion_400_08 = 4000008, // palette component range 64->256
+    kGSSvgVersion_400_14 = 4000014, // 32-bit ARGB color properties
+    kGSSvgVersion_400_17 = 4000017, // compat w kGSSvgVersion_363
+    kGSSvgVersion_400_18 = 4000018, // shaders
+    kGSSvgVersion_400_24 = 4000024, // sync with kGSSvgVersion_363_02
+    kGSSvgVersion_400_26 = 4000026, // sync with kGSSvgVersion_363_04
+    kGSSvgVersion_400_27 = 4000027, // 32-bit inventory cursor hotspot colors
+    kGSSvgVersion_400_29 = 4000029, // rotation pivot
+    kGSSvgVersion_400_33 = 4000033, // sync with kGSSvgVersion_363_13
+    kGSSvgVersion_Current = kGSSvgVersion_400_33
 };
 
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

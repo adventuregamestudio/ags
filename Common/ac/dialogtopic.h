@@ -21,22 +21,28 @@
 #include "util/stream.h"
 #include "util/string.h"
 
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // Dialog Topic flags
-#define DTFLG_SHOWPARSER    0x0001  // show parser in this topic
+#define DTFLG_SHOWPARSER 0x0001 // show parser in this topic
 
 // Dialog Options flags
-#define DFLG_ON             0x00000001  // currently enabled
-#define DFLG_OFFPERM        0x00000002  // off forever (can't be trurned on)
-#define DFLG_NOREPEAT       0x00000004  // character doesn't say it when clicked
-#define DFLG_HASBEENCHOSEN  0x00000008  // dialog option is 'read'
-#define DFLG_TEXTSET        0x00000010  // option's text modified at runtime
+#define DFLG_ON            0x00000001 // currently enabled
+#define DFLG_OFFPERM       0x00000002 // off forever (can't be trurned on)
+#define DFLG_NOREPEAT      0x00000004 // character doesn't say it when clicked
+#define DFLG_HASBEENCHOSEN 0x00000008 // dialog option is 'read'
+#define DFLG_TEXTSET       0x00000010 // option's text modified at runtime
 
 // Old-style dialog script commands and keywords
-#define DCHAR_NARRATOR      999
-#define DCHAR_PLAYER        998
+#define DCHAR_NARRATOR 999
+#define DCHAR_PLAYER   998
 
 #define LEGACY_MAXTOPICOPTIONS 30
 
@@ -44,10 +50,10 @@ using namespace AGS; // FIXME later
 // TODO: move to the engine code
 enum DialogTopicSvgVersion
 {
-    kDialogTopicSvgVer_Initial  = 0,
-    kDialogTopicSvgVer_363      = 3060304, // new save format
-    kDialogTopicSvgVer_40008    = 4000008, // custom properties
-    kDialogTopicSvgVer_40026    = 4000026, // sync with kDialogTopicSvgVer_363
+    kDialogTopicSvgVer_Initial = 0,
+    kDialogTopicSvgVer_363 = 3060304,   // new save format
+    kDialogTopicSvgVer_40008 = 4000008, // custom properties
+    kDialogTopicSvgVer_40026 = 4000026, // sync with kDialogTopicSvgVer_363
 };
 
 struct DialogTopic
@@ -58,15 +64,15 @@ struct DialogTopic
         // NOTE: had no better idea how to prevent unnecessary text writing in the saves at this time.
         Common::String OriginalText;
         Common::String Text;
-        int Flags = 0; // DFLG_* flags
+        int Flags = 0;       // DFLG_* flags
         int EntryPoint = -1; // old-style dialog script entry point
     };
 
     Common::String ScriptName;
-    int           Flags = 0; // DialogTopic flags (DTFLG_*)
+    int Flags = 0; // DialogTopic flags (DTFLG_*)
     std::vector<DialogOption> Options;
-    int           StartEntryPoint = -1; // old-style dialog script entry point
-    size_t        CodeSize = 0u; // old-style dialog script size
+    int StartEntryPoint = -1; // old-style dialog script entry point
+    size_t CodeSize = 0u;     // old-style dialog script size
 
     uint32_t GetOptionCount() const { return Options.size(); }
 

@@ -28,8 +28,8 @@ using namespace AGS::Common;
         return eAudioFileVOC;
     else if (ags_stricmp(ext, "mid") == 0)
         return eAudioFileMIDI;
-    else if ((ags_stricmp(ext, "mod") == 0) || (ags_stricmp(ext, "xm") == 0)
-             || (ags_stricmp(ext, "s3m") == 0) || (ags_stricmp(ext, "it") == 0))
+    else if ((ags_stricmp(ext, "mod") == 0) || (ags_stricmp(ext, "xm") == 0) || (ags_stricmp(ext, "s3m") == 0) ||
+             (ags_stricmp(ext, "it") == 0))
         return eAudioFileMOD;
     else if (ags_stricmp(ext, "ogg") == 0)
         return eAudioFileOGG;
@@ -42,22 +42,14 @@ using namespace AGS::Common;
 {
     switch (filetype)
     {
-    case eAudioFileOGG:
-        return "ogg";
-    case eAudioFileMP3:
-        return "mp3";
-    case eAudioFileWAV:
-        return "wav";
-    case eAudioFileVOC:
-        return "voc";
-    case eAudioFileMIDI:
-        return "mid";
-    case eAudioFileMOD:
-        return "mod";
-    case eAudioFileFLAC:
-        return "flac";
-    default:
-        return "";
+    case eAudioFileOGG: return "ogg";
+    case eAudioFileMP3: return "mp3";
+    case eAudioFileWAV: return "wav";
+    case eAudioFileVOC: return "voc";
+    case eAudioFileMIDI: return "mid";
+    case eAudioFileMOD: return "mod";
+    case eAudioFileFLAC: return "flac";
+    default: return "";
     }
 }
 

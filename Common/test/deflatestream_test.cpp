@@ -19,8 +19,8 @@
 
 using namespace AGS::Common;
 
-void WriteDeflatedData(const std::vector<uint8_t> *src_buf, size_t src_size_bytes,
-    std::vector<uint8_t> &zip_buf, size_t &deflated_bytes)
+void WriteDeflatedData(const std::vector<uint8_t> *src_buf, size_t src_size_bytes, std::vector<uint8_t> &zip_buf,
+                       size_t &deflated_bytes)
 {
     std::vector<uint8_t> src_buf_temp;
     if (!src_buf)
@@ -32,8 +32,8 @@ void WriteDeflatedData(const std::vector<uint8_t> *src_buf, size_t src_size_byte
     }
 
     auto mem_src = std::make_unique<VectorStream>(*src_buf);
-    auto deflate_s = std::make_unique<DeflateStream>(
-        std::make_unique<VectorStream>(zip_buf, kStream_Write), kStream_Write);
+    auto deflate_s =
+        std::make_unique<DeflateStream>(std::make_unique<VectorStream>(zip_buf, kStream_Write), kStream_Write);
     deflated_bytes = static_cast<size_t>(CopyStream(mem_src.get(), deflate_s.get()));
     // TODO: this is really bad, stream should auto-finalize on destruct, investigate and fix
     deflate_s->Finalize(); // explicitly finalize
@@ -50,8 +50,7 @@ void TestDeflateStream(const std::vector<uint8_t> src_buf)
     ASSERT_EQ(deflated_bytes, src_buf.size());
     ASSERT_TRUE(zip_buf.size() > 0u);
 
-    auto inflate_s = std::make_unique<DeflateStream>(
-        std::make_unique<VectorStream>(zip_buf), kStream_Read);
+    auto inflate_s = std::make_unique<DeflateStream>(std::make_unique<VectorStream>(zip_buf), kStream_Read);
     auto mem_unzip = std::make_unique<VectorStream>(unzip_buf, kStream_Write);
     const soff_t inflated_bytes = CopyStream(inflate_s.get(), mem_unzip.get());
     inflate_s = nullptr;
@@ -79,19 +78,19 @@ void TestDeflateStream_RepeatSeqs(size_t buffer_size)
     src_buf.resize(InputBufferLength);
 
     std::array<std::array<uint8_t, 12>, 12> seqs = {{
-        { 1,2,3,4,5,6,7,8,9,10,11,12 },
-        { 12,11,10,9,8,7,6,5,4,3,2,1 },
-        { 1,2,3,4 },
-        { 4,2,3,1 },
-        { 1,8,1,7,1,6,1,5 },
-        { 8,7,8,6,8,5,8,4 },
-        { 4,4,3,3,3,2,2,2,2 },
-        { 12,12,11,11,11,10,10,10 },
-        { 12,1,11,2,10,3,9,4,8,5 },
-        { 1,1,1,10,10,10,2,2,9,9,3,8 },
-        { 4,4,4,4,3,3,3,2,2,1 },
-        { 1,7,4,2,9,10,5,12,3,11,6 },
-        }};
+        {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+        {12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1},
+        {1, 2, 3, 4},
+        {4, 2, 3, 1},
+        {1, 8, 1, 7, 1, 6, 1, 5},
+        {8, 7, 8, 6, 8, 5, 8, 4},
+        {4, 4, 3, 3, 3, 2, 2, 2, 2},
+        {12, 12, 11, 11, 11, 10, 10, 10},
+        {12, 1, 11, 2, 10, 3, 9, 4, 8, 5},
+        {1, 1, 1, 10, 10, 10, 2, 2, 9, 9, 3, 8},
+        {4, 4, 4, 4, 3, 3, 3, 2, 2, 1},
+        {1, 7, 4, 2, 9, 10, 5, 12, 3, 11, 6},
+    }};
 
     // Always use same seed in this test to make it determenistic
     std::srand(UINT32_MAX);
@@ -137,47 +136,56 @@ void TestDeflateStream_SemiUniqueSeq(size_t buffer_size)
     TestDeflateStream(src_buf);
 }
 
-TEST(DeflateStream, DeflateStream_OneValue_InputEqBuffer) {
+TEST(DeflateStream, DeflateStream_OneValue_InputEqBuffer)
+{
     // Input is equal to the DeflateStream's internal buffer
     TestDeflateStream_OneValue(DeflateStream::BufferSize);
 }
 
-TEST(DeflateStream, DeflateStream_OneValue_InputLtBuffer) {
+TEST(DeflateStream, DeflateStream_OneValue_InputLtBuffer)
+{
     // Input is smaller than the DeflateStream's internal buffer
     TestDeflateStream_OneValue(DeflateStream::BufferSize / 4);
 }
 
-TEST(DeflateStream, DeflateStream_OneValue_InputGtBuffer) {
+TEST(DeflateStream, DeflateStream_OneValue_InputGtBuffer)
+{
     // Input is larger than the DeflateStream's internal buffer
     TestDeflateStream_OneValue(DeflateStream::BufferSize * 2 + DeflateStream::BufferSize / 27);
 }
 
-TEST(DeflateStream, DeflateStream_RepeatSeqs_InputEqBuffer) {
+TEST(DeflateStream, DeflateStream_RepeatSeqs_InputEqBuffer)
+{
     // Input is equal to the DeflateStream's internal buffer
     TestDeflateStream_RepeatSeqs(DeflateStream::BufferSize);
 }
 
-TEST(DeflateStream, DeflateStream_RepeatSeqs_InputLtBuffer) {
+TEST(DeflateStream, DeflateStream_RepeatSeqs_InputLtBuffer)
+{
     // Input is smaller than the DeflateStream's internal buffer
     TestDeflateStream_RepeatSeqs(DeflateStream::BufferSize / 4);
 }
 
-TEST(DeflateStream, DeflateStream_RepeatSeqs_InputGtBuffer) {
+TEST(DeflateStream, DeflateStream_RepeatSeqs_InputGtBuffer)
+{
     // Input is larger than the DeflateStream's internal buffer
     TestDeflateStream_RepeatSeqs(DeflateStream::BufferSize * 2 + DeflateStream::BufferSize / 27);
 }
 
-TEST(DeflateStream, DeflateStream_SemiUnique_InputEqBuffer) {
+TEST(DeflateStream, DeflateStream_SemiUnique_InputEqBuffer)
+{
     // Input is equal to the DeflateStream's internal buffer
     TestDeflateStream_SemiUniqueSeq(DeflateStream::BufferSize);
 }
 
-TEST(DeflateStream, DeflateStream_SemiUnique_InputLtBuffer) {
+TEST(DeflateStream, DeflateStream_SemiUnique_InputLtBuffer)
+{
     // Input is smaller than the DeflateStream's internal buffer
     TestDeflateStream_SemiUniqueSeq(DeflateStream::BufferSize / 4);
 }
 
-TEST(DeflateStream, DeflateStream_SemiUnique_InputGtBuffer) {
+TEST(DeflateStream, DeflateStream_SemiUnique_InputGtBuffer)
+{
     // Input is larger than the DeflateStream's internal buffer
     TestDeflateStream_SemiUniqueSeq(DeflateStream::BufferSize * 2 + DeflateStream::BufferSize / 27);
 }
@@ -189,27 +197,31 @@ void TestDeflateStreamEOS(size_t data_size)
     size_t deflated_bytes = 0u;
     WriteDeflatedData(nullptr, data_size, zip_buf, deflated_bytes);
 
-    auto inflate_s = std::make_unique<DeflateStream>(
-        std::make_unique<VectorStream>(zip_buf), kStream_Read);
+    auto inflate_s = std::make_unique<DeflateStream>(std::make_unique<VectorStream>(zip_buf), kStream_Read);
     auto mem_unzip = std::make_unique<VectorStream>(unzip_buf, kStream_Write);
 
     size_t read_count = 0u;
-    for (; !inflate_s->EOS(); inflate_s->ReadByte(), ++read_count);
+    for (; !inflate_s->EOS(); inflate_s->ReadByte(), ++read_count)
+        ;
     ASSERT_EQ(data_size, read_count);
 }
 
-TEST(DeflateStream, DeflateStream_EOS_HalfBuffer) {
+TEST(DeflateStream, DeflateStream_EOS_HalfBuffer)
+{
     TestDeflateStreamEOS(DeflateStream::BufferSize / 2);
 }
 
-TEST(DeflateStream, DeflateStream_EOS_OneBuffer) {
+TEST(DeflateStream, DeflateStream_EOS_OneBuffer)
+{
     TestDeflateStreamEOS(DeflateStream::BufferSize);
 }
 
-TEST(DeflateStream, DeflateStream_EOS_TwoBuffers) {
+TEST(DeflateStream, DeflateStream_EOS_TwoBuffers)
+{
     TestDeflateStreamEOS(DeflateStream::BufferSize * 2);
 }
 
-TEST(DeflateStream, DeflateStream_EOS_OddBufferSize) {
+TEST(DeflateStream, DeflateStream_EOS_OddBufferSize)
+{
     TestDeflateStreamEOS(DeflateStream::BufferSize * 2 + DeflateStream::BufferSize / 27);
 }

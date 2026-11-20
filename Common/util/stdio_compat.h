@@ -28,24 +28,25 @@ const size_t MAX_PATH_SZ = 1024u;
 #endif
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
-FILE *ags_fopen(const char *path, const char *mode);
-int	 ags_fseek(FILE * stream, file_off_t offset, int whence);
-file_off_t	 ags_ftell(FILE * stream);
+    FILE *ags_fopen(const char *path, const char *mode);
+    int ags_fseek(FILE *stream, file_off_t offset, int whence);
+    file_off_t ags_ftell(FILE *stream);
 
-int ags_file_exists(const char *path);
-int ags_directory_exists(const char *path);
-int ags_path_exists(const char *path);
-file_off_t ags_file_size(const char *path);
-time_t ags_file_time(const char *path);
+    int ags_file_exists(const char *path);
+    int ags_directory_exists(const char *path);
+    int ags_path_exists(const char *path);
+    file_off_t ags_file_size(const char *path);
+    time_t ags_file_time(const char *path);
 
-int ags_file_remove(const char *path);
-int ags_file_rename(const char *src, const char *dst, int overwrite);
-int ags_file_copy(const char *src, const char *dst, int overwrite);
-int ags_file_link(const char *src, const char *dst, int overwrite);
-int ags_file_truncate(const char *path, file_off_t length);
+    int ags_file_remove(const char *path);
+    int ags_file_rename(const char *src, const char *dst, int overwrite);
+    int ags_file_copy(const char *src, const char *dst, int overwrite);
+    int ags_file_link(const char *src, const char *dst, int overwrite);
+    int ags_file_truncate(const char *path, file_off_t length);
 
 #ifdef __cplusplus
 }

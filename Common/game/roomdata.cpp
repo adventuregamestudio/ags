@@ -20,13 +20,7 @@ namespace AGS
 namespace Common
 {
 
-RoomOptions::RoomOptions()
-    : PlayerCharOff(false)
-    , PlayerView(0)
-    , FaceDirectionRatio(0.f)
-    , Flags(0)
-{
-}
+RoomOptions::RoomOptions() : PlayerCharOff(false), PlayerView(0), FaceDirectionRatio(0.f), Flags(0) {}
 
 RoomBgFrame::RoomBgFrame()
 {
@@ -38,7 +32,7 @@ RoomBgFrame::RoomBgFrame(const RoomBgFrame &src)
     *this = src;
 }
 
-RoomBgFrame &RoomBgFrame::operator =(const RoomBgFrame &src)
+RoomBgFrame &RoomBgFrame::operator=(const RoomBgFrame &src)
 {
     std::copy(src.Palette, src.Palette + 256, Palette);
     IsPaletteShared = src.IsPaletteShared;
@@ -46,27 +40,13 @@ RoomBgFrame &RoomBgFrame::operator =(const RoomBgFrame &src)
     return *this;
 }
 
-RoomEdges::RoomEdges()
-    : Left(0)
-    , Right(0)
-    , Top(0)
-    , Bottom(0)
-{
-}
+RoomEdges::RoomEdges() : Left(0), Right(0), Top(0), Bottom(0) {}
 
-RoomEdges::RoomEdges(int l, int r, int t, int b)
-    : Left(l)
-    , Right(r)
-    , Top(t)
-    , Bottom(b)
-{
-}
+RoomEdges::RoomEdges(int l, int r, int t, int b) : Left(l), Right(r), Top(t), Bottom(b) {}
 
-/* static */ ScriptEventSchema RoomHotspot::_eventSchema = {{
-        { "OnAnyClick", kHotspotEvent_AnyClick },
-        { "OnMouseMove", kHotspotEvent_MouseOver },
-        { "OnWalkOn", kHotspotEvent_StandOn }
-    }};
+/* static */ ScriptEventSchema RoomHotspot::_eventSchema = {{{"OnAnyClick", kHotspotEvent_AnyClick},
+                                                             {"OnMouseMove", kHotspotEvent_MouseOver},
+                                                             {"OnWalkOn", kHotspotEvent_StandOn}}};
 
 void RoomHotspot::RemapOldInteractions()
 {
@@ -79,7 +59,7 @@ void RoomHotspot::RemapOldInteractions()
     new_interactions[STD_MODE_LOOK] = old_interactions[1];
     new_interactions[STD_MODE_HAND] = old_interactions[2];
     new_interactions[STD_MODE_TALK] = old_interactions[4];
-    new_interactions[STD_MODE_USE]  = old_interactions[3];
+    new_interactions[STD_MODE_USE] = old_interactions[3];
     new_interactions[STD_MODE_PICKUP] = old_interactions[7];
     new_interactions[STD_MODE_CUSTOM1] = old_interactions[8];
     new_interactions[STD_MODE_CUSTOM2] = old_interactions[9];
@@ -92,9 +72,9 @@ void RoomHotspot::RemapOldInteractions()
 }
 
 /* static */ ScriptEventSchema RoomObjectInfo::_eventSchema = {{
-        { "OnAnyClick", kRoomObjectEvent_AnyClick },
-        { "OnFrameEvent", kRoomObjectEvent_OnFrameEvent },
-    }};
+    {"OnAnyClick", kRoomObjectEvent_AnyClick},
+    {"OnFrameEvent", kRoomObjectEvent_OnFrameEvent},
+}};
 
 void RoomObjectInfo::RemapOldInteractions()
 {
@@ -118,10 +98,10 @@ void RoomObjectInfo::RemapOldInteractions()
 }
 
 /* static */ ScriptEventSchema RoomRegion::_eventSchema = {{
-        { "OnStanding", kRegionEvent_Standing },
-        { "OnWalksOnto", kRegionEvent_WalkOn },
-        { "OnWalksOff", kRegionEvent_WalkOff },
-    }};
+    {"OnStanding", kRegionEvent_Standing},
+    {"OnWalksOnto", kRegionEvent_WalkOn},
+    {"OnWalksOff", kRegionEvent_WalkOff},
+}};
 
 void RoomRegion::RemapOldInteractions()
 {
@@ -135,8 +115,7 @@ void RoomRegion::RemapOldInteractions()
     Interactions = {};
 }
 
-RoomData::RoomData()
-    : RoomObjectBase(&RoomData::_eventSchema)
+RoomData::RoomData() : RoomObjectBase(&RoomData::_eventSchema)
 {
     InitDefaults();
 }
@@ -156,7 +135,7 @@ RoomData::~RoomData()
     Free();
 }
 
-RoomData &RoomData::operator =(const RoomData &src)
+RoomData &RoomData::operator=(const RoomData &src)
 {
     RoomObjectBase::operator=(src);
 
@@ -238,20 +217,20 @@ void RoomData::Free()
 
 void RoomData::InitDefaults()
 {
-    DataVersion     = kRoomVersion_Current;
-    GameID          = NO_GAME_ID_IN_ROOM_FILE;
+    DataVersion = kRoomVersion_Current;
+    GameID = NO_GAME_ID_IN_ROOM_FILE;
 
-    MaskResolution  = 1;
-    Width           = 320;
-    Height          = 200;
+    MaskResolution = 1;
+    Width = 320;
+    Height = 200;
 
-    Options         = RoomOptions();
-    Edges           = RoomEdges(0, 317, 40, 199);
+    Options = RoomOptions();
+    Edges = RoomEdges(0, 317, 40, 199);
 
-    BgFrameCount    = 1;
-    HotspotCount    = 0;
-    RegionCount     = 0;
-    WalkAreaCount   = 0;
+    BgFrameCount = 1;
+    HotspotCount = 0;
+    RegionCount = 0;
+    WalkAreaCount = 0;
     WalkBehindCount = 0;
 
     BgFrames.resize(BgFrameCount);
@@ -272,17 +251,17 @@ void RoomData::InitDefaults()
 }
 
 /* static */ ScriptEventSchema RoomData::_eventSchema = {{
-    { "OnLeaveLeft", kRoomEvent_EdgeLeft },
-    { "OnLeaveRight", kRoomEvent_EdgeRight },
-    { "OnLeaveBottom", kRoomEvent_EdgeBottom},
-    { "OnLeaveTop", kRoomEvent_EdgeTop },
-    { "OnFirstTimeEnter", kRoomEvent_FirstEnter },
-    { "OnLoad", kRoomEvent_BeforeFadein },
-    { "OnRepExec", kRoomEvent_Repexec },
-    { "OnAfterFadeIn", kRoomEvent_AfterFadein },
-    { "OnLeave", kRoomEvent_BeforeFadeout },
-    { "OnUnload", kRoomEvent_AfterFadeout },
-    }};
+    {"OnLeaveLeft", kRoomEvent_EdgeLeft},
+    {"OnLeaveRight", kRoomEvent_EdgeRight},
+    {"OnLeaveBottom", kRoomEvent_EdgeBottom},
+    {"OnLeaveTop", kRoomEvent_EdgeTop},
+    {"OnFirstTimeEnter", kRoomEvent_FirstEnter},
+    {"OnLoad", kRoomEvent_BeforeFadein},
+    {"OnRepExec", kRoomEvent_Repexec},
+    {"OnAfterFadeIn", kRoomEvent_AfterFadein},
+    {"OnLeave", kRoomEvent_BeforeFadeout},
+    {"OnUnload", kRoomEvent_AfterFadeout},
+}};
 
 void RoomData::RemapOldInteractions()
 {
@@ -334,8 +313,7 @@ float RoomData::GetMaskScale(RoomAreaMask mask) const
     case kRoomAreaWalkBehind: return 1.f; // walk-behinds always 1:1 with room size
     case kRoomAreaHotspot:
     case kRoomAreaWalkable:
-    case kRoomAreaRegion:
-        return 1.f / MaskResolution;
+    case kRoomAreaRegion: return 1.f / MaskResolution;
     default: return 0.f;
     }
 }

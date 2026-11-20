@@ -57,8 +57,7 @@ namespace AGS
 namespace Common
 {
 
-template <typename TKey, typename TValue,
-          typename TSize = size_t, typename HashFn = std::hash<TKey>>
+template<typename TKey, typename TValue, typename TSize = size_t, typename HashFn = std::hash<TKey>>
 class ResourceCache
 {
 public:
@@ -67,7 +66,7 @@ public:
     {
         // Locked items are temporarily saved from disposal when freeing cache space;
         // they still count towards the cache size though.
-        kCacheItem_Locked   = 0x0001,
+        kCacheItem_Locked = 0x0001,
         // External items are managed strictly by the external user;
         // do not count towards the cache size, do not prevent caching normal items.
         // They cannot be locked or released (considered permanently locked),
@@ -75,10 +74,7 @@ public:
         kCacheItem_External = 0x0002,
     };
 
-    ResourceCache(TSize max_size = 0u)
-        : _maxSize(max_size)
-        , _sectionLocked(_mru.end())
-    {}
+    ResourceCache(TSize max_size = 0u) : _maxSize(max_size), _sectionLocked(_mru.end()) {}
     virtual ~ResourceCache() = default;
 
     // Get the MRU cache size limit
@@ -111,10 +107,7 @@ public:
     }
 
     // Tells if particular key is in the cache
-    bool Exists(const TKey &key) const
-    {
-        return _storage.find(key) != _storage.end();
-    }
+    bool Exists(const TKey &key) const { return _storage.find(key) != _storage.end(); }
 
     // Gets the item with the given key if it exists;
     // reorders the item as recently used.
@@ -259,20 +252,24 @@ protected:
 
     struct TItem
     {
-        TMruIt       MruIt; // MRU list reference
-        TValue       Value;
-        TSize        Size = 0u;
-        uint32_t     Flags = 0u; // flags determine management rules for this item
+        TMruIt MruIt; // MRU list reference
+        TValue Value;
+        TSize Size = 0u;
+        uint32_t Flags = 0u; // flags determine management rules for this item
 
         TItem() = default;
         TItem(const TItem &item) = default;
         TItem(TItem &&item) = default;
         TItem(const TMruIt &mru_it, const TValue &value, const TSize size, uint32_t flags)
-            : MruIt(mru_it), Value(value), Size(size), Flags(flags) {}
+            : MruIt(mru_it), Value(value), Size(size), Flags(flags)
+        {
+        }
         TItem(const TMruIt &mru_it, TValue &&value, const TSize size, uint32_t flags)
-            : MruIt(mru_it), Value(std::move(value)), Size(size), Flags(flags) {}
-        TItem &operator =(const TItem &item) = default;
-        TItem &operator =(TItem &&item) = default;
+            : MruIt(mru_it), Value(std::move(value)), Size(size), Flags(flags)
+        {
+        }
+        TItem &operator=(const TItem &item) = default;
+        TItem &operator=(TItem &&item) = default;
     };
 
     // Calculates item size; expects to return 0 if an item is invalid
@@ -290,7 +287,7 @@ private:
         assert(size > 0u);
         if (size == 0u)
             return; // invalid item
-        
+
         if ((flags & kCacheItem_External) == 0)
         {
             // clear up space before adding
@@ -379,7 +376,7 @@ private:
 
     // Auto free memory mode: if enabled - will free space in case the
     // new item exceeds the cache limit.
-    bool    _autoFreeMem = true;
+    bool _autoFreeMem = true;
     // Size of tracked data stored in this cache;
     // note that this is an abstract value, which may or not refer to an
     // actual size in bytes, and depends on the implementation.
@@ -401,11 +398,11 @@ private:
     TMruList _mru;
     // A locked section border iterator, points to the *last* locked item
     // starting from the end of the list, or equals _mru.end() if there's none.
-    TMruIt   _sectionLocked;
+    TMruIt _sectionLocked;
     // Key-to-mru lookup map
     TStorage _storage;
     // Dummy value, return in case of a missing key
-    TValue  _dummy;
+    TValue _dummy;
 };
 
 } // namespace Common

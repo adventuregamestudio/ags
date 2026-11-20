@@ -74,8 +74,10 @@ String GetFileExtension(const String &path)
     const char *ptr_end = cstr + path.GetLength();
     for (const char *ptr = ptr_end; ptr >= cstr; --ptr)
     {
-        if (*ptr == '.') return String(ptr + 1);
-        if (*ptr == '/' || *ptr == PATH_ALT_SEPARATOR) break;
+        if (*ptr == '.')
+            return String(ptr + 1);
+        if (*ptr == '/' || *ptr == PATH_ALT_SEPARATOR)
+            break;
     }
     return "";
 }
@@ -86,8 +88,10 @@ String RemoveExtension(const String &filename)
     const char *ptr_end = cstr + filename.GetLength();
     for (const char *ptr = ptr_end; ptr >= cstr; --ptr)
     {
-        if (*ptr == '.') return String(cstr, ptr - cstr);
-        if (*ptr == '/' || *ptr == PATH_ALT_SEPARATOR) break;
+        if (*ptr == '.')
+            return String(cstr, ptr - cstr);
+        if (*ptr == '/' || *ptr == PATH_ALT_SEPARATOR)
+            break;
     }
     return filename;
 }
@@ -139,7 +143,7 @@ bool IsSameOrSubDir(const String &parent, const String &path)
     char relative[MAX_PATH_SZ];
     // canonicalize_filename treats "." as "./." (file in working dir)
     const char *use_parent = parent == "." ? "./" : parent.GetCStr();
-    const char *use_path   = path   == "." ? "./" : path.GetCStr();
+    const char *use_path = path == "." ? "./" : path.GetCStr();
     canonicalize_filename(can_parent, use_parent, MAX_PATH_SZ);
     canonicalize_filename(can_path, use_path, MAX_PATH_SZ);
     const char *pstr = make_relative_filename(relative, can_parent, can_path, MAX_PATH_SZ);
@@ -161,14 +165,14 @@ bool IsRelativePath(const String &path)
         return true;
 
     // All filenames that start with a '.' are relative.
-    if (path[0] == '.' )
+    if (path[0] == '.')
         return true;
 
     // Filenames that contain a device separator (DOS/Windows)
     // or start with a '/' (Unix) are considered absolute.
 #if AGS_PLATFORM_OS_WINDOWS
-   if (path.FindChar(PATH_DEVICE_SEPARATOR) != String::NoIndex)
-      return false;
+    if (path.FindChar(PATH_DEVICE_SEPARATOR) != String::NoIndex)
+        return false;
 #endif
     if ((path[0] == '/') || (path[0] == PATH_ALT_SEPARATOR))
         return false;
@@ -217,9 +221,9 @@ String MakePathNoSlash(const String &path)
         ;
     else
 #endif
-    // if the path is '/' don't strip the slash
-    if (dir_path.GetLength() > 1)
-        dir_path.TrimRight('/');
+        // if the path is '/' don't strip the slash
+        if (dir_path.GetLength() > 1)
+            dir_path.TrimRight('/');
     return dir_path;
 }
 
@@ -344,21 +348,22 @@ String FixupSharedFilename(const String &filename)
 }
 
 #if AGS_PLATFORM_OS_ANDROID
-    String GetPathInForeignAsset(const String &filename)
-    {
-        if(filename.IsEmpty()) return filename;
-
-        if(filename[0] == '/')
-        {
-            return filename.Mid(1);
-        }
-        else if(filename[0] == '.' && filename[1] == '/')
-        {
-            return filename.Mid(2);
-        }
-
+String GetPathInForeignAsset(const String &filename)
+{
+    if (filename.IsEmpty())
         return filename;
+
+    if (filename[0] == '/')
+    {
+        return filename.Mid(1);
     }
+    else if (filename[0] == '.' && filename[1] == '/')
+    {
+        return filename.Mid(2);
+    }
+
+    return filename;
+}
 #endif
 
 #if AGS_PLATFORM_OS_WINDOWS
@@ -369,7 +374,8 @@ String WidePathToUTF8(const wchar_t *ws)
     char *pbuf = (need_size <= MAX_PATH_SZ) ? buf : new char[need_size];
     WideCharToMultiByte(CP_UTF8, 0, ws, -1, pbuf, need_size, NULL, NULL);
     String s = pbuf;
-    if (pbuf != buf) delete pbuf;
+    if (pbuf != buf)
+        delete pbuf;
     return s;
 }
 #endif

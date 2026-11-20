@@ -45,58 +45,35 @@ const String MainGameSource::DefaultFilename_v3 = "game28.dta";
 const String MainGameSource::DefaultFilename_v2 = "ac2game.dta";
 const String MainGameSource::Signature = "Adventure Creator Game File v2";
 
-MainGameSource::MainGameSource()
-    : DataVersion(kGameVersion_Undefined)
-{
-}
+MainGameSource::MainGameSource() : DataVersion(kGameVersion_Undefined) {}
 
 String GetMainGameFileErrorText(MainGameFileErrorType err)
 {
     switch (err)
     {
-    case kMGFErr_NoError:
-        return "No error.";
-    case kMGFErr_FileOpenFailed:
-        return "Main game file not found or could not be opened.";
-    case kMGFErr_SignatureFailed:
-        return "Not an AGS main game file or an unsupported format.";
-    case kMGFErr_FormatVersionNotSupported:
-        return "Format version not supported.";
+    case kMGFErr_NoError: return "No error.";
+    case kMGFErr_FileOpenFailed: return "Main game file not found or could not be opened.";
+    case kMGFErr_SignatureFailed: return "Not an AGS main game file or an unsupported format.";
+    case kMGFErr_FormatVersionNotSupported: return "Format version not supported.";
     case kMGFErr_CapsNotSupported:
         return "The game requires extended capabilities which aren't supported by the engine.";
-    case kMGFErr_InvalidNativeResolution:
-        return "Unable to determine native game resolution.";
-    case kMGFErr_TooManySprites:
-        return "Too many sprites for this engine to handle.";
-    case kMGFErr_InvalidPropertySchema:
-        return "Failed to deserialize custom properties schema.";
-    case kMGFErr_InvalidPropertyValues:
-        return "Errors encountered when reading custom properties.";
-    case kMGFErr_CreateGlobalScriptFailed:
-        return "Failed to load global script.";
-    case kMGFErr_CreateDialogScriptFailed:
-        return "Failed to load dialog script.";
-    case kMGFErr_CreateScriptModuleFailed:
-        return "Failed to load script module.";
-    case kMGFErr_GameEntityFailed:
-        return "Failed to load one or more game entities.";
-    case kMGFErr_PluginDataFmtNotSupported:
-        return "Format version of plugin data is not supported.";
-    case kMGFErr_PluginDataSizeTooLarge:
-        return "Plugin data size is too large.";
-    case kMGFErr_ExtListFailed:
-        return "There was error reading game data extensions.";
-    case kMGFErr_ExtUnknown:
-        return "Unknown extension.";
+    case kMGFErr_InvalidNativeResolution: return "Unable to determine native game resolution.";
+    case kMGFErr_TooManySprites: return "Too many sprites for this engine to handle.";
+    case kMGFErr_InvalidPropertySchema: return "Failed to deserialize custom properties schema.";
+    case kMGFErr_InvalidPropertyValues: return "Errors encountered when reading custom properties.";
+    case kMGFErr_CreateGlobalScriptFailed: return "Failed to load global script.";
+    case kMGFErr_CreateDialogScriptFailed: return "Failed to load dialog script.";
+    case kMGFErr_CreateScriptModuleFailed: return "Failed to load script module.";
+    case kMGFErr_GameEntityFailed: return "Failed to load one or more game entities.";
+    case kMGFErr_PluginDataFmtNotSupported: return "Format version of plugin data is not supported.";
+    case kMGFErr_PluginDataSizeTooLarge: return "Plugin data size is too large.";
+    case kMGFErr_ExtListFailed: return "There was error reading game data extensions.";
+    case kMGFErr_ExtUnknown: return "Unknown extension.";
     }
     return "Unknown error.";
 }
 
-LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game)
-    : Game(game)
-    , SpriteCount(0)
-{
-}
+LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game) : Game(game), SpriteCount(0) {}
 
 LoadedGameEntities::~LoadedGameEntities() = default;
 
@@ -128,17 +105,15 @@ bool IsMainGameLibrary(const String &filename)
 // - agsgame.dat is a legacy file name used in some non-Windows releases,
 // - *.exe is a MS Win executable; it is included to this case because
 //   users often run AGS ports with Windows versions of games.
-String FindGameData(const String &path, std::function<bool(const String&)> fn_testfile)
+String FindGameData(const String &path, std::function<bool(const String &)> fn_testfile)
 {
     String test_file;
     Debug::Printf("Searching for game data in: %s", path.GetCStr());
     for (FindFile ff = FindFile::OpenFiles(path); !ff.AtEnd(); ff.Next())
     {
         test_file = ff.Current();
-        if (test_file.CompareRightNoCase(".ags") == 0 ||
-            test_file.CompareNoCase("ac2game.dat") == 0 ||
-            test_file.CompareNoCase("agsgame.dat") == 0 ||
-            test_file.CompareRightNoCase(".exe") == 0)
+        if (test_file.CompareRightNoCase(".ags") == 0 || test_file.CompareNoCase("ac2game.dat") == 0 ||
+            test_file.CompareNoCase("agsgame.dat") == 0 || test_file.CompareRightNoCase(".exe") == 0)
         {
             test_file = Path::ConcatPaths(path, test_file);
             if (fn_testfile(test_file))
@@ -169,9 +144,11 @@ static HGameFileError OpenMainGameFileBase(MainGameSource &src)
     src.CompiledWith = StrUtil::ReadString(in);
     if (src.DataVersion < kGameVersion_LowSupported || src.DataVersion > kGameVersion_Current)
     {
-        return new MainGameFileError(kMGFErr_FormatVersionNotSupported,
+        return new MainGameFileError(
+            kMGFErr_FormatVersionNotSupported,
             String::FromFormat("Game was compiled with %s. Required format version: %d, supported %d - %d",
-               !src.CompiledWith.IsEmpty() ? src.CompiledWith.GetCStr() : "(unknown)", src.DataVersion, kGameVersion_LowSupported, kGameVersion_Current));
+                               !src.CompiledWith.IsEmpty() ? src.CompiledWith.GetCStr() : "(unknown)", src.DataVersion,
+                               kGameVersion_LowSupported, kGameVersion_Current));
     }
     // Read required capabilities
     size_t count = in->ReadInt32();
@@ -212,7 +189,8 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManage
     }
     if (!in)
         return new MainGameFileError(kMGFErr_FileOpenFailed, "Tried filenames: %s, %s.",
-            MainGameSource::DefaultFilename_v3.GetCStr(), MainGameSource::DefaultFilename_v2.GetCStr());
+                                     MainGameSource::DefaultFilename_v3.GetCStr(),
+                                     MainGameSource::DefaultFilename_v2.GetCStr());
     src.Filename = filename;
     src.InputStream = std::move(in);
     return OpenMainGameFileBase(src);
@@ -273,7 +251,8 @@ HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
         size_t datasize = in->ReadInt32();
         // just check for silly datasizes
         if (datasize > PLUGIN_SAVEBUFFERSIZE)
-            return new MainGameFileError(kMGFErr_PluginDataSizeTooLarge, "Required: %zu, max: %zu", datasize, (size_t)PLUGIN_SAVEBUFFERSIZE);
+            return new MainGameFileError(kMGFErr_PluginDataSizeTooLarge, "Required: %zu, max: %zu", datasize,
+                                         (size_t)PLUGIN_SAVEBUFFERSIZE);
 
         PluginInfo info;
         info.Name = name;
@@ -302,27 +281,15 @@ void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, Game
 
 // Lookup table for scaling 5 bit colors up to 8 bits,
 // copied from Allegro 4 library, preventing an extra dependency.
-static const uint8_t RGBScale5[32]
-{
-    0,   8,   16,  24,  33,  41,  49,  57,
-    66,  74,  82,  90,  99,  107, 115, 123,
-    132, 140, 148, 156, 165, 173, 181, 189,
-    198, 206, 214, 222, 231, 239, 247, 255
-};
+static const uint8_t RGBScale5[32]{0,   8,   16,  24,  33,  41,  49,  57,  66,  74,  82,  90,  99,  107, 115, 123,
+                                   132, 140, 148, 156, 165, 173, 181, 189, 198, 206, 214, 222, 231, 239, 247, 255};
 
 // Lookup table for scaling 6 bit colors up to 8 bits,
 // copied from Allegro 4 library, preventing an extra dependency.
-static const uint8_t RGBScale6[64]
-{
-    0,   4,   8,   12,  16,  20,  24,  28,
-    32,  36,  40,  44,  48,  52,  56,  60,
-    65,  69,  73,  77,  81,  85,  89,  93,
-    97,  101, 105, 109, 113, 117, 121, 125,
-    130, 134, 138, 142, 146, 150, 154, 158,
-    162, 166, 170, 174, 178, 182, 186, 190,
-    195, 199, 203, 207, 211, 215, 219, 223,
-    227, 231, 235, 239, 243, 247, 251, 255
-};
+static const uint8_t RGBScale6[64]{0,   4,   8,   12,  16,  20,  24,  28,  32,  36,  40,  44,  48,  52,  56,  60,
+                                   65,  69,  73,  77,  81,  85,  89,  93,  97,  101, 105, 109, 113, 117, 121, 125,
+                                   130, 134, 138, 142, 146, 150, 154, 158, 162, 166, 170, 174, 178, 182, 186, 190,
+                                   195, 199, 203, 207, 211, 215, 219, 223, 227, 231, 235, 239, 243, 247, 251, 255};
 
 // Remaps color number from legacy to new format:
 // * palette index in 8-bit game,
@@ -409,9 +376,7 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 }
 
 // Convert audio data to the current version
-void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
-{
-}
+void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver) {}
 
 // Convert character data to the current version
 void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
@@ -510,7 +475,7 @@ void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion
         {
             gui.SetBgColor(RemapFromLegacyColourNumber(game, gui.GetBgColor(), true));
             gui.SetFgColor(RemapFromLegacyColourNumber(game, gui.GetFgColor(), !gui.IsTextWindow()
-                /* right, treat border as background for normal gui */));
+                                                       /* right, treat border as background for normal gui */));
         }
 
         for (auto &btn : ents.GuiControls.Buttons)
@@ -561,15 +526,21 @@ void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
     {
         // Configure standard cursor roles
         const std::array<CursorRole, 10> cursor_role = {
-            kCursorRole_Walk, kCursorRole_Look, kCursorRole_Interact, kCursorRole_None /* talk */,
-            kCursorRole_UseInv, kCursorRole_None /* pickup */, kCursorRole_Pointer, kCursorRole_Wait,
-            kCursorRole_None /* mode8 */, kCursorRole_None /* mode9 */
+            kCursorRole_Walk,
+            kCursorRole_Look,
+            kCursorRole_Interact,
+            kCursorRole_None /* talk */,
+            kCursorRole_UseInv,
+            kCursorRole_None /* pickup */,
+            kCursorRole_Pointer,
+            kCursorRole_Wait,
+            kCursorRole_None /* mode8 */,
+            kCursorRole_None /* mode9 */
         };
         // Configure standard cursors that have associated events
         const std::array<bool, 10> cursor_event = {
-            false /* walk */, true /* look */, true /* interact */, true /* talk */,
-            true /* use inv */, true /* pickup */, false /* pointer */, false /* wait */,
-            true /* mode8 */, true /* mode9 */
+            false /* walk */,  true /* look */,     true /* interact */, true /* talk */,  true /* use inv */,
+            true /* pickup */, false /* pointer */, false /* wait */,    true /* mode8 */, true /* mode9 */
         };
 
         for (int i = 0; i < game.numcursors && i < cursor_event.size(); ++i)
@@ -601,7 +572,8 @@ HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVer
 {
     size_t sprcount = in->ReadInt32();
     if (sprcount > (size_t)SpriteCache::MAX_SPRITE_INDEX + 1)
-        return new MainGameFileError(kMGFErr_TooManySprites, "Count: %zu, max: %zu", sprcount, (size_t)SpriteCache::MAX_SPRITE_INDEX + 1);
+        return new MainGameFileError(kMGFErr_TooManySprites, "Count: %zu, max: %zu", sprcount,
+                                     (size_t)SpriteCache::MAX_SPRITE_INDEX + 1);
 
     ents.SpriteCount = sprcount;
     ents.SpriteFlags.resize(sprcount);
@@ -615,23 +587,22 @@ class GameDataExtReader : public DataExtReader
 {
 public:
     GameDataExtReader(LoadedGameEntities &ents, GameDataVersion data_ver, std::unique_ptr<Stream> &&in)
-        : DataExtReader(std::move(in), kDataExt_NumID8 | kDataExt_File64)
-        , _ents(ents)
-        , _dataVer(data_ver)
-    {}
+        : DataExtReader(std::move(in), kDataExt_NumID8 | kDataExt_File64), _ents(ents), _dataVer(data_ver)
+    {
+    }
 
 protected:
-    HError ReadBlock(Stream *in, int block_id, const String &ext_id,
-        soff_t block_len, bool &read_next) override;
-    HError ReadCustomProperties(Stream *in, const char *obj_type, uint32_t obj_count, std::vector<StringIMap> &obj_values);
+    HError ReadBlock(Stream *in, int block_id, const String &ext_id, soff_t block_len, bool &read_next) override;
+    HError ReadCustomProperties(Stream *in, const char *obj_type, uint32_t obj_count,
+                                std::vector<StringIMap> &obj_values);
     HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents);
     HError ReadExtGUIControlGraphicProperties(Stream *in, LoadedGameEntities &ents);
-    void   ReadGUIControlExtGraphics(Stream *in, GUIControl &obj);
+    void ReadGUIControlExtGraphics(Stream *in, GUIControl &obj);
     HError ReadNewScriptEventTables(Stream *in, LoadedGameEntities &ents);
     HError ReadCharacterInventories(Stream *in, LoadedGameEntities &ents);
 
     LoadedGameEntities &_ents;
-    GameDataVersion _dataVer {};
+    GameDataVersion _dataVer{};
 };
 
 HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents)
@@ -664,7 +635,8 @@ HError GameDataExtReader::ReadInteractionScriptModules(Stream *in, LoadedGameEnt
     return HError::None();
 }
 
-HError GameDataExtReader::ReadCustomProperties(Stream *in, const char *obj_type, uint32_t obj_count, std::vector<StringIMap> &obj_values)
+HError GameDataExtReader::ReadCustomProperties(Stream *in, const char *obj_type, uint32_t obj_count,
+                                               std::vector<StringIMap> &obj_values)
 {
     HError err;
     if (!ReadAndAssertCount(in, obj_type, obj_count, err))
@@ -799,8 +771,8 @@ HError GameDataExtReader::ReadCharacterInventories(Stream *in, LoadedGameEntitie
     return HError::None();
 }
 
-HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &ext_id,
-    soff_t /*block_len*/, bool &read_next)
+HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &ext_id, soff_t /*block_len*/,
+                                    bool &read_next)
 {
     HError err;
     read_next = true;
@@ -816,8 +788,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         {
             // adjustable font outlines
             finfo.AutoOutlineThickness = in->ReadInt32();
-            finfo.AutoOutlineStyle =
-                static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
+            finfo.AutoOutlineStyle = static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
             // since kGameVersion_363
             finfo.CharacterSpacing = in->ReadInt32();
             finfo.CustomHeight = in->ReadInt32();
@@ -1021,9 +992,15 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         if (!err)
             return err;
 
-        const char *guictrl_names[kGUIControlTypeNum] = { "", "gui buttons", "gui labels", "inventory windows", "sliders", "text boxes", "list boxes" };
-        size_t guictrl_counts[kGUIControlTypeNum] = { 0, _ents.GuiControls.Buttons.size(), _ents.GuiControls.Labels.size(),
-            _ents.GuiControls.InvWindows.size(), _ents.GuiControls.Sliders.size(), _ents.GuiControls.TextBoxes.size(), _ents.GuiControls.ListBoxes.size() };
+        const char *guictrl_names[kGUIControlTypeNum] = {"",        "gui buttons", "gui labels", "inventory windows",
+                                                         "sliders", "text boxes",  "list boxes"};
+        size_t guictrl_counts[kGUIControlTypeNum] = {0,
+                                                     _ents.GuiControls.Buttons.size(),
+                                                     _ents.GuiControls.Labels.size(),
+                                                     _ents.GuiControls.InvWindows.size(),
+                                                     _ents.GuiControls.Sliders.size(),
+                                                     _ents.GuiControls.TextBoxes.size(),
+                                                     _ents.GuiControls.ListBoxes.size()};
         for (int i = kGUIButton; i < kGUIControlTypeNum; ++i)
         {
             err = ReadCustomProperties(in, guictrl_names[i], guictrl_counts[i], game.guicontrolProps[i]);
@@ -1061,12 +1038,15 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             auto &view_s = _ents.Views[view];
             uint32_t loop_count = in->ReadInt32();
             if (loop_count != view_s.numLoops)
-                return new Error(String::FromFormat("Mismatching number of loops for view %u: read %u expected %u", view, loop_count, (uint32_t)view_s.numLoops));
+                return new Error(String::FromFormat("Mismatching number of loops for view %u: read %u expected %u",
+                                                    view, loop_count, (uint32_t)view_s.numLoops));
             for (uint32_t loop = 0; loop < loop_count; ++loop)
             {
                 uint32_t frame_count = in->ReadInt32();
                 if (frame_count != view_s.loops[loop].numFrames)
-                    return new Error(String::FromFormat("Mismatching number of frames for view %u loop %u: read %u expected %u", view, loop, frame_count, (uint32_t)view_s.loops[loop].numFrames));
+                    return new Error(
+                        String::FromFormat("Mismatching number of frames for view %u loop %u: read %u expected %u",
+                                           view, loop, frame_count, (uint32_t)view_s.loops[loop].numFrames));
                 for (uint32_t frame = 0; frame < frame_count; ++frame)
                 {
                     view_s.loops[loop].frames[frame].event_name = StrUtil::ReadCStr(in);
@@ -1109,15 +1089,16 @@ class GameDataExtPreloader : public GameDataExtReader
 {
 public:
     GameDataExtPreloader(LoadedGameEntities &ents, GameDataVersion data_ver, std::unique_ptr<Stream> &&in)
-        : GameDataExtReader(ents, data_ver, std::move(in)) {}
+        : GameDataExtReader(ents, data_ver, std::move(in))
+    {
+    }
 
 protected:
-    HError ReadBlock(Stream *in, int block_id, const String &ext_id,
-        soff_t block_len, bool &read_next) override;
+    HError ReadBlock(Stream *in, int block_id, const String &ext_id, soff_t block_len, bool &read_next) override;
 };
 
-HError GameDataExtPreloader::ReadBlock(Stream *in, int /*block_id*/, const String &ext_id,
-    soff_t /*block_len*/, bool &read_next)
+HError GameDataExtPreloader::ReadBlock(Stream *in, int /*block_id*/, const String &ext_id, soff_t /*block_len*/,
+                                       bool &read_next)
 {
     // Try reading only data which belongs to the general game info
     read_next = true;
@@ -1132,7 +1113,8 @@ HError GameDataExtPreloader::ReadBlock(Stream *in, int /*block_id*/, const Strin
 }
 
 
-HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver, const String &compiled_with)
+HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver,
+                            const String &compiled_with)
 {
     GameSetupStruct &game = ents.Game;
     game.gamedataver = data_ver;
@@ -1240,7 +1222,8 @@ HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver
     return HGameFileError::None();
 }
 
-void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver, const String& compiled_with)
+void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver,
+                     const String &compiled_with)
 {
     Stream *in = s_in.get(); // for convenience
     GameSetupStruct::SerializeInfo sinfo;

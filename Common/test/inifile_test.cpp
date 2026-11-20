@@ -28,45 +28,24 @@ using namespace AGS::Common;
 #define ENDL "\n"
 #endif
 
-const char *IniFileText = ""
-"global_item=global_value" ENDL
-"[section1]" ENDL
-"item1" ENDL
-"//this is comment" ENDL
-"item2=" ENDL
-"item3=value" ENDL
-"item4=another value" ENDL
-"[this_section_should_be_deleted]" ENDL
-"item1=value1" ENDL
-"item2=value2" ENDL
-";this is comment" ENDL
-"[section3]" ENDL
-"item_to_be_deleted=value" ENDL
-"item_to_be_kept=another value" ENDL
-"     [     section4     ]      " ENDL
-"        item1     =     value  " ENDL;
+const char *IniFileText =
+    ""
+    "global_item=global_value" ENDL "[section1]" ENDL "item1" ENDL "//this is comment" ENDL "item2=" ENDL
+    "item3=value" ENDL "item4=another value" ENDL "[this_section_should_be_deleted]" ENDL "item1=value1" ENDL
+    "item2=value2" ENDL ";this is comment" ENDL "[section3]" ENDL "item_to_be_deleted=value" ENDL
+    "item_to_be_kept=another value" ENDL "     [     section4     ]      " ENDL "        item1     =     value  " ENDL;
 
-const char *IniFileText2 = ""
-"global_item=global_value" ENDL
-"[section1]" ENDL
-"item1=value1" ENDL
-"//this is comment" ENDL
-"item2=value2" ENDL
-"item3=value3" ENDL
-"new_item=new_value" ENDL
-"[section3]" ENDL
-"item_to_be_kept=another value" ENDL
-"     [     section4     ]      " ENDL
-"new_item1=new_value1" ENDL
-"        item1     =     value  " ENDL
-"new_item2=new_value2" ENDL
-"[section5]" ENDL
-"item5_1=value5_1" ENDL
-"item5_2=value5_2" ENDL
-"item5_3=value5_3" ENDL;
+const char *IniFileText2 =
+    ""
+    "global_item=global_value" ENDL "[section1]" ENDL "item1=value1" ENDL "//this is comment" ENDL "item2=value2" ENDL
+    "item3=value3" ENDL "new_item=new_value" ENDL "[section3]" ENDL "item_to_be_kept=another value" ENDL
+    "     [     section4     ]      " ENDL "new_item1=new_value1" ENDL "        item1     =     value  " ENDL
+    "new_item2=new_value2" ENDL "[section5]" ENDL "item5_1=value5_1" ENDL "item5_2=value5_2" ENDL
+    "item5_3=value5_3" ENDL;
 
 
-TEST(IniFile, ReadAndQuery) {
+TEST(IniFile, ReadAndQuery)
+{
     // Storage buffer
     std::vector<uint8_t> membuf;
 
@@ -145,7 +124,8 @@ TEST(IniFile, ReadAndQuery) {
     ASSERT_TRUE(item->GetValue() == "value");
 }
 
-TEST(IniFile, ReadAndModify) {
+TEST(IniFile, ReadAndModify)
+{
     // Storage buffer
     std::vector<uint8_t> membuf;
 
@@ -173,7 +153,8 @@ TEST(IniFile, ReadAndModify) {
     ++sec;
     IniFile::ItemIterator item = sec->Begin();
     item->SetValue("value1");
-    ++item; ++item;
+    ++item;
+    ++item;
     item->SetValue("value2");
     ++item;
     item->SetValue("value3");
@@ -182,12 +163,16 @@ TEST(IniFile, ReadAndModify) {
     item->SetValue("new_value");
 
     // Removing a section
-    sec = ini.Begin(); ++sec; ++sec;
+    sec = ini.Begin();
+    ++sec;
+    ++sec;
     ini.RemoveSection(sec);
     ASSERT_TRUE(ini.GetSectionCount() == section_count - 1u);
 
     // Removing an item
-    sec = ini.Begin(); ++sec; ++sec;
+    sec = ini.Begin();
+    ++sec;
+    ++sec;
     ASSERT_TRUE(sec->GetName() == "section3");
     item = sec->Begin();
     ASSERT_TRUE(item->GetKey() == "item_to_be_deleted");
@@ -221,7 +206,8 @@ TEST(IniFile, ReadAndModify) {
     ASSERT_TRUE(ini_content == IniFileText2);
 }
 
-TEST(IniFile, ReadKeyValueTree) {
+TEST(IniFile, ReadKeyValueTree)
+{
     // Storage buffer
     std::vector<uint8_t> membuf;
 
@@ -284,7 +270,8 @@ TEST(IniFile, ReadKeyValueTree) {
     ASSERT_TRUE(sub_tree["item5_3"] == "value5_3");
 }
 
-TEST(IniFile, WriteKeyValueTree) {
+TEST(IniFile, WriteKeyValueTree)
+{
     // Storage buffer
     std::vector<uint8_t> membuf;
 
@@ -312,7 +299,8 @@ TEST(IniFile, WriteKeyValueTree) {
     ASSERT_TRUE(tree1 == tree2);
 }
 
-TEST(IniFile, MergeTreeWithFile) {
+TEST(IniFile, MergeTreeWithFile)
+{
     // Storage buffer
     std::vector<uint8_t> membuf;
 
@@ -372,7 +360,8 @@ static const char *Endl = "\r\n";
 static const char *Endl = "\n";
 #endif
 
-TEST(IniFile, WriteTreeFormatsLinesAsIniFile) {
+TEST(IniFile, WriteTreeFormatsLinesAsIniFile)
+{
     ConfigTree tree;
     tree["audio"]["driver"] = "midi";
     tree["audio"]["volume"] = "100.0";
@@ -380,15 +369,13 @@ TEST(IniFile, WriteTreeFormatsLinesAsIniFile) {
 
     // The tree written at once
     std::vector<uint8_t> written;
-    IniUtil::Write(std::make_unique<Stream>(
-        std::make_unique<VectorStream>(written, kStream_Write)), tree);
+    IniUtil::Write(std::make_unique<Stream>(std::make_unique<VectorStream>(written, kStream_Write)), tree);
 
     // The tree merged into an empty ini file, which is then written
     IniFile ini;
     IniUtil::Merge(ini, tree);
     std::vector<uint8_t> merged;
-    ini.Write(std::make_unique<Stream>(
-        std::make_unique<VectorStream>(merged, kStream_Write)));
+    ini.Write(std::make_unique<Stream>(std::make_unique<VectorStream>(merged, kStream_Write)));
 
     ASSERT_FALSE(written.empty());
     EXPECT_TRUE(written == merged);
@@ -396,7 +383,7 @@ TEST(IniFile, WriteTreeFormatsLinesAsIniFile) {
     // The same lines in a string, with plain line breaks
     String s;
     IniUtil::WriteToString(s, tree);
-    String expect_s = String::FromFormat("[audio]%sdriver=midi%svolume=100.0%s[video]%svsync=false%s",
-        Endl, Endl, Endl, Endl, Endl);
+    String expect_s =
+        String::FromFormat("[audio]%sdriver=midi%svolume=100.0%s[video]%svsync=false%s", Endl, Endl, Endl, Endl, Endl);
     EXPECT_STREQ(expect_s.GetCStr(), s.GetCStr());
 }

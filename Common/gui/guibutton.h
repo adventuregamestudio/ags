@@ -71,25 +71,25 @@ public:
     void SetDynamicColors(bool on);
     bool IsFlatStyle() const { return ((_buttonFlags & kButton_FlatStyle) != 0); }
     void SetFlatStyle(bool on);
-    int  GetMouseOverBackColor() const { return _mouseOverBackColor; }
+    int GetMouseOverBackColor() const { return _mouseOverBackColor; }
     void SetMouseOverBackColor(int color);
-    int  GetPushedBackColor() const { return _pushedBackColor; }
+    int GetPushedBackColor() const { return _pushedBackColor; }
     void SetPushedBackColor(int color);
-    int  GetMouseOverBorderColor() const { return _mouseOverBorderColor; }
+    int GetMouseOverBorderColor() const { return _mouseOverBorderColor; }
     void SetMouseOverBorderColor(int color);
-    int  GetPushedBorderColor() const { return _pushedBorderColor; }
+    int GetPushedBorderColor() const { return _pushedBorderColor; }
     void SetPushedBorderColor(int color);
-    int  GetBorderShadeColor() const { return _borderShadeColor; }
+    int GetBorderShadeColor() const { return _borderShadeColor; }
     void SetBorderShadeColor(int color);
-    int  GetMouseOverTextColor() const { return _mouseOverTextColor; }
+    int GetMouseOverTextColor() const { return _mouseOverTextColor; }
     void SetMouseOverTextColor(int color);
-    int  GetPushedTextColor() const { return _pushedTextColor; }
+    int GetPushedTextColor() const { return _pushedTextColor; }
     void SetPushedTextColor(int color);
 
-    int  GetCurrentImage() const;
-    int  GetNormalImage() const;
-    int  GetMouseOverImage() const;
-    int  GetPushedImage() const;
+    int GetCurrentImage() const;
+    int GetNormalImage() const;
+    int GetMouseOverImage() const;
+    int GetPushedImage() const;
     SpriteTransformFlags GetImageFlags() const;
     GraphicFlip GetImageFlip() const;
     SpriteTransformFlags GetCurrentImageFlags() const;
@@ -107,7 +107,7 @@ public:
     void SetWrapText(bool on);
 
     GUIClickAction GetClickAction(GUIClickMouseButton button) const;
-    int  GetClickData(GUIClickMouseButton button) const;
+    int GetClickData(GUIClickMouseButton button) const;
     void SetClickAction(GUIClickMouseButton button, GUIClickAction action, int data);
 
     // State
@@ -122,7 +122,8 @@ public:
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
-    void SetImages(int normal, int over, int pushed, SpriteTransformFlags flags = kSprTf_None, int xoff = 0, int yoff = 0);
+    void SetImages(int normal, int over, int pushed, SpriteTransformFlags flags = kSprTf_None, int xoff = 0,
+                   int yoff = 0);
     void SetImageFlags(SpriteTransformFlags flags);
     void SetImageFlip(GraphicFlip flip);
 
@@ -131,7 +132,7 @@ public:
     void OnMouseEnter() override;
     void OnMouseLeave() override;
     void OnMouseUp() override;
-  
+
     // Serialization
     void ReadFromFile(Stream *in, GuiVersion gui_version) override;
     void ReadFromFile_Ext363(Stream *in, GuiVersion gui_version) override;
@@ -176,24 +177,24 @@ private:
     color_t _pushedTextColor = 0;
     // TODO: flags for each kind of image?
     SpriteTransformFlags _imageFlags = kSprTf_None;
-    int     _imageXOff = 0;
-    int     _imageYOff = 0;
+    int _imageXOff = 0;
+    int _imageYOff = 0;
     // Click actions for left and right mouse buttons
     // NOTE: only left click is currently in use
     GUIClickAction _clickAction[kNumGUIClicks];
-    int     _clickData[kNumGUIClicks];
+    int _clickData[kNumGUIClicks];
 
-    bool    _isPushed = false;
-    bool    _isMouseOver = false;
+    bool _isPushed = false;
+    bool _isMouseOver = false;
 
-    int     _image = -1;
-    int     _mouseOverImage = -1;
-    int     _pushedImage = -1;
+    int _image = -1;
+    int _mouseOverImage = -1;
+    int _pushedImage = -1;
     // Active displayed image (depends on button state)
-    int     _currentImage = -1;
+    int _currentImage = -1;
     SpriteTransformFlags _curImageFlags = kSprTf_None;
-    int     _curImageXOff = 0;
-    int     _curImageYOff = 0;
+    int _curImageXOff = 0;
+    int _curImageYOff = 0;
     // Active colors (depend on button state)
     color_t _currentBgColor = 0;
     color_t _currentBorderColor = 0;
@@ -203,9 +204,9 @@ private:
     // A flag indicating unnamed button; this is a convenience trick:
     // buttons are created named "New Button" in the editor, and users
     // often do not clear text when they want a graphic button.
-    bool    _unnamed = true;
+    bool _unnamed = true;
     // Prepared text buffer/cache
-    String  _textToDraw;
+    String _textToDraw;
 };
 
 } // namespace Common

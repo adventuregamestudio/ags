@@ -39,14 +39,9 @@ namespace Common
 GuiOptions GUI::Options;
 GuiContext GUI::Context;
 
-/* static */ ScriptEventSchema GUIMain::_eventSchema = {{
-        { "OnClick", kGUIEvent_OnClick }
-    }};
+/* static */ ScriptEventSchema GUIMain::_eventSchema = {{{"OnClick", kGUIEvent_OnClick}}};
 
-GUIMain::GUIMain()
-    : GUIObject(&GUIMain::_eventSchema)
-{
-}
+GUIMain::GUIMain() : GUIObject(&GUIMain::_eventSchema) {}
 
 void GUIMain::SetBgColor(int color)
 {
@@ -196,11 +191,8 @@ void GUIMain::NotifyControlState(int objid, bool mark_changed)
     _hasControlsChanged |= mark_changed;
     // Update cursor-over-control state, if necessary
     const int overctrl = _mouseOverCtrl;
-    if (!_polling &&
-        (objid >= 0) && (objid == overctrl) && ((size_t)objid < _controls.size()) &&
-        (!_controls[overctrl]->IsClickable() ||
-            !_controls[overctrl]->IsVisible() ||
-            !_controls[overctrl]->IsEnabled()))
+    if (!_polling && (objid >= 0) && (objid == overctrl) && ((size_t)objid < _controls.size()) &&
+        (!_controls[overctrl]->IsClickable() || !_controls[overctrl]->IsVisible() || !_controls[overctrl]->IsEnabled()))
     {
         _mouseOverCtrl = -1;
         _controls[overctrl]->OnMouseLeave();
@@ -326,8 +318,8 @@ void GUIMain::DrawControls(Bitmap *ds)
         const int objy = objToDraw->GetY();
 
         // Depending on draw properties - draw directly on the gui surface, or use a buffer
-        if (objToDraw->GetTransparency() == 0 && objToDraw->GetBlendMode() == kBlend_Normal
-            && objToDraw->GetScale() == Pointf(1.f, 1.f) && objToDraw->GetRotation() == 0.f)
+        if (objToDraw->GetTransparency() == 0 && objToDraw->GetBlendMode() == kBlend_Normal &&
+            objToDraw->GetScale() == Pointf(1.f, 1.f) && objToDraw->GetRotation() == 0.f)
         {
             objToDraw->Draw(ds, objx, objy);
             // Reset clip, in case control does temporary surface clipping
@@ -341,7 +333,8 @@ void GUIMain::DrawControls(Bitmap *ds)
             Bitmap *src_bmp = &tbmp;
             if (objToDraw->GetScale() != Pointf(1.f, 1.f))
             {
-                const Rect scaled_rc = RectWH(0, 0, rc.GetWidth() * objToDraw->GetScale().X, rc.GetHeight() * objToDraw->GetScale().Y);
+                const Rect scaled_rc =
+                    RectWH(0, 0, rc.GetWidth() * objToDraw->GetScale().X, rc.GetHeight() * objToDraw->GetScale().Y);
                 tbmp2.CreateTransparent(scaled_rc.GetWidth(), scaled_rc.GetHeight());
                 tbmp2.StretchBlt(src_bmp, RectWH(scaled_rc.GetSize()));
                 src_bmp = &tbmp2;
@@ -352,13 +345,13 @@ void GUIMain::DrawControls(Bitmap *ds)
                 tbmp3.CreateTransparent(rot_sz.Width, rot_sz.Height);
                 // (+ width%2 fixes one pixel offset problem)
                 tbmp3.RotateBlt(src_bmp, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
-                                src_bmp->GetWidth() / 2, src_bmp->GetHeight() / 2, objToDraw->GetRotation()); // clockwise
+                                src_bmp->GetWidth() / 2, src_bmp->GetHeight() / 2,
+                                objToDraw->GetRotation()); // clockwise
                 src_bmp = &tbmp3;
             }
             Point obj_at = objToDraw->GetGraphicSpace().AABB().GetLT();
-            draw_gui_sprite(ds, obj_at.X, obj_at.Y,
-                src_bmp, objToDraw->GetBlendMode(),
-                GfxDef::LegacyTrans255ToAlpha255(objToDraw->GetTransparency()));
+            draw_gui_sprite(ds, obj_at.X, obj_at.Y, src_bmp, objToDraw->GetBlendMode(),
+                            GfxDef::LegacyTrans255ToAlpha255(objToDraw->GetTransparency()));
         }
 
         const bool is_highlighted = _highlightCtrl == _ctrlDrawOrder[ctrl_index];
@@ -368,8 +361,7 @@ void GUIMain::DrawControls(Bitmap *ds)
             DrawBlob(ds, objx + obj_size.Width - 1 - 1, objy, draw_color);
             DrawBlob(ds, objx, objy + obj_size.Height - 1 - 1, draw_color);
             DrawBlob(ds, objx, objy, draw_color);
-            DrawBlob(ds, objx + obj_size.Width - 1 - 1,
-                    objy + obj_size.Height - 1 - 1, draw_color);
+            DrawBlob(ds, objx + obj_size.Width - 1 - 1, objy + obj_size.Height - 1 - 1, draw_color);
         }
         if (GUI::Options.OutlineControls)
         {
@@ -401,7 +393,8 @@ void GUIMain::Poll(int mx, int my, bool has_focus)
     _polling = true;
     // transform to GUI's local coordinates
     Point pt = _gs.WorldToLocal(mx, my);
-    mx = pt.X; my = pt.Y;
+    mx = pt.X;
+    my = pt.Y;
 
     // If GUI just went out of focus then reset focus on any control that had it
     if (!has_focus && _wasFocused && (_mouseOverCtrl != MOVER_MOUSEDOWNLOCKED))
@@ -433,8 +426,7 @@ void GUIMain::Poll(int mx, int my, bool has_focus)
             if (_mouseOverCtrl >= 0)
                 _controls[_mouseOverCtrl]->OnMouseLeave();
 
-            if ((ctrl_index >= 0)
-                && GUI::IsGUIEnabled(_controls[ctrl_index]) && _controls[ctrl_index]->IsClickable())
+            if ((ctrl_index >= 0) && GUI::IsGUIEnabled(_controls[ctrl_index]) && _controls[ctrl_index]->IsClickable())
             {
                 // Focus and Enter another, enabled and clickable control
                 _mouseOverCtrl = ctrl_index;
@@ -506,7 +498,7 @@ bool GUIControlZOrder(const GUIControl *e1, const GUIControl *e2)
 
 void GUIMain::ResortZOrder()
 {
-    std::vector<GUIControl*> ctrl_sort = _controls;
+    std::vector<GUIControl *> ctrl_sort = _controls;
     std::sort(ctrl_sort.begin(), ctrl_sort.end(), GUIControlZOrder);
 
     _ctrlDrawOrder.resize(ctrl_sort.size());
@@ -548,8 +540,8 @@ bool GUIMain::SetControlZOrder(int index, int zorder)
         return false; // no change
 
     const bool move_back = zorder < old_zorder; // back is at zero index
-    const int  left      = move_back ? zorder : old_zorder;
-    const int  right     = move_back ? old_zorder : zorder;
+    const int left = move_back ? zorder : old_zorder;
+    const int right = move_back ? old_zorder : zorder;
     for (size_t i = 0; i < _controls.size(); ++i)
     {
         const int i_zorder = _controls[i]->GetZOrder();
@@ -616,7 +608,7 @@ void GUIMain::OnMouseButtonUp()
     if (_mouseOverCtrl == MOVER_MOUSEDOWNLOCKED)
     {
         _mouseOverCtrl = _mouseDownCtrl;
-        _mouseWasAt.X = -1;  // force update
+        _mouseWasAt.X = -1; // force update
     }
 
     if (_mouseDownCtrl < 0)
@@ -628,23 +620,23 @@ void GUIMain::OnMouseButtonUp()
 
 void GUIMain::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-    _name          = StrUtil::ReadString(in);
+    _name = StrUtil::ReadString(in);
     _events.SetHandler(kGUIEvent_OnClick, StrUtil::ReadString(in)); // old-style event table
-    _x             = in->ReadInt32();
-    _y             = in->ReadInt32();
-    _width         = in->ReadInt32();
-    _height        = in->ReadInt32();
+    _x = in->ReadInt32();
+    _y = in->ReadInt32();
+    _width = in->ReadInt32();
+    _height = in->ReadInt32();
     const size_t ctrl_count = in->ReadInt32();
-    _popupStyle    = (GUIPopupStyle)in->ReadInt32();
+    _popupStyle = (GUIPopupStyle)in->ReadInt32();
     _popupAtMouseY = in->ReadInt32();
-    _bgColor       = in->ReadInt32();
-    _bgImage       = in->ReadInt32();
-    _fgColor       = in->ReadInt32();
-    _flags         = in->ReadInt32();
-    _transparency  = in->ReadInt32();
-    _zOrder        = in->ReadInt32();
-    _id            = in->ReadInt32();
-    _padding       = in->ReadInt32();
+    _bgColor = in->ReadInt32();
+    _bgImage = in->ReadInt32();
+    _fgColor = in->ReadInt32();
+    _flags = in->ReadInt32();
+    _transparency = in->ReadInt32();
+    _zOrder = in->ReadInt32();
+    _id = in->ReadInt32();
+    _padding = in->ReadInt32();
 
     if (ctrl_count > 0)
     {
@@ -727,9 +719,8 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
             ctrl_refs[i].second = ref_packed & 0xFFFF;
         }
     }
-    
-    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) ||
-        (svg_ver >= kGuiSvgVersion_40026))
+
+    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) || (svg_ver >= kGuiSvgVersion_40026))
     {
         _popupStyle = static_cast<GUIPopupStyle>(in->ReadInt32());
         in->ReadInt32(); // reserved
@@ -746,17 +737,17 @@ void GUIMain::ReadFromSavegame(Common::Stream *in, GuiSvgVersion svg_ver, std::v
         in->ReadInt32(); // tint rgb + s
         in->ReadInt32(); // tint light (or light level)
         // Reserved for transform options
-        in->ReadInt32(); // sprite transform flags1
-        in->ReadInt32(); // sprite transform flags2
-        _scale.X = in->ReadFloat32(); // transform scale x
-        _scale.Y = in->ReadFloat32(); // transform scale y
-        in->ReadInt32(); // transform skew x
-        in->ReadInt32(); // transform skew y
+        in->ReadInt32();               // sprite transform flags1
+        in->ReadInt32();               // sprite transform flags2
+        _scale.X = in->ReadFloat32();  // transform scale x
+        _scale.Y = in->ReadFloat32();  // transform scale y
+        in->ReadInt32();               // transform skew x
+        in->ReadInt32();               // transform skew y
         _rotation = in->ReadFloat32(); // transform rotate
-        in->ReadInt32(); // sprite pivot x
-        in->ReadInt32(); // sprite pivot y
-        in->ReadInt32(); // sprite anchor x
-        in->ReadInt32(); // sprite anchor y
+        in->ReadInt32();               // sprite pivot x
+        in->ReadInt32();               // sprite pivot y
+        in->ReadInt32();               // sprite anchor x
+        in->ReadInt32();               // sprite anchor y
     }
 
     // Some of the fields above were not valid in previous versions,
@@ -807,7 +798,7 @@ void GUIMain::SkipSavestate(Stream *in, GuiSvgVersion svg_version, std::vector<C
             (*ctrl_refs)[i].second = ref_packed & 0xFFFF;
         }
     }
-    
+
     if ((svg_version >= kGuiSvgVersion_36304) && (svg_version < kGuiSvgVersion_400) ||
         (svg_version >= kGuiSvgVersion_40026))
     {
@@ -866,17 +857,17 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
     out->WriteInt32(0); // tint rgb + s
     out->WriteInt32(0); // tint light (or light level)
     // Reserved for transform options
-    out->WriteInt32(0); // sprite transform flags1
-    out->WriteInt32(0); // sprite transform flags2
-    out->WriteFloat32(_scale.X); // transform scale x
-    out->WriteFloat32(_scale.Y); // transform scale y
-    out->WriteInt32(0); // transform skew x
-    out->WriteInt32(0); // transform skew y
+    out->WriteInt32(0);           // sprite transform flags1
+    out->WriteInt32(0);           // sprite transform flags2
+    out->WriteFloat32(_scale.X);  // transform scale x
+    out->WriteFloat32(_scale.Y);  // transform scale y
+    out->WriteInt32(0);           // transform skew x
+    out->WriteInt32(0);           // transform skew y
     out->WriteFloat32(_rotation); // transform rotate
-    out->WriteInt32(0); // sprite pivot x
-    out->WriteInt32(0); // sprite pivot y
-    out->WriteInt32(0); // sprite anchor x
-    out->WriteInt32(0); // sprite anchor y
+    out->WriteInt32(0);           // sprite pivot x
+    out->WriteInt32(0);           // sprite pivot y
+    out->WriteInt32(0);           // sprite anchor x
+    out->WriteInt32(0);           // sprite anchor y
     // kGuiSvgVersion_40018
     out->WriteInt32(_shaderID);
     out->WriteInt32(_shaderHandle);
@@ -885,8 +876,7 @@ void GUIMain::WriteToSavegame(Common::Stream *out) const
 }
 
 
-const int GuiContext::StandardColors[MaxStandardColors] =
-{
+const int GuiContext::StandardColors[MaxStandardColors] = {
     0x000000, 0x0000A0, 0x00A000, 0x00A0A0, 0xA00000, 0xA000A0, 0xA05000, 0xA0A0A0, // 0  - 7
     0x505050, 0x5050FF, 0x50FF50, 0x50FFFF, 0xFF5050, 0xFF50FF, 0xFFFF50, 0xFFFFFF, // 8  - 15
     0x000000, 0x101010, 0x202020, 0x303030, 0x404040, 0x505050, 0x606060, 0x707070, // 16 - 23
@@ -930,10 +920,8 @@ Line CalcFontGraphicalVExtent(int font)
     // * custom vertical offset set by user (if non-zero),
     const auto finfo = get_fontinfo(font);
     const auto fextent = get_font_surface_vextent(font);
-    int top = fextent.first +
-        std::min(0, finfo.YOffset); // apply YOffset only if negative
-    int bottom = fextent.second +
-        std::max(0, finfo.YOffset); // apply YOffset only if positive
+    int top = fextent.first + std::min(0, finfo.YOffset);     // apply YOffset only if negative
+    int bottom = fextent.second + std::max(0, finfo.YOffset); // apply YOffset only if positive
     return Line(0, top, 0, bottom);
 }
 
@@ -945,7 +933,8 @@ Rect CalcTextPosition(const String &text, int font, const Rect &frame, FrameAlig
     {
         int h_ext = CalcFontGraphicalHExtent(font);
         Line vextent = CalcFontGraphicalVExtent(font);
-        *gr_rect = RectWH(rc.Left + h_ext, rc.Top + vextent.Y1, rc.GetWidth() + (-h_ext) * 2, vextent.Y2 - vextent.Y1 + 1);
+        *gr_rect =
+            RectWH(rc.Left + h_ext, rc.Top + vextent.Y1, rc.GetWidth() + (-h_ext) * 2, vextent.Y2 - vextent.Y1 + 1);
     }
     return rc;
 }
@@ -974,7 +963,7 @@ Rect CalcTextGraphicalRect(const String &text, int font, const Rect &frame, Fram
 }
 
 Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, int font, int linespace,
-    const Rect &frame, FrameAlignment align, bool limit_by_frame)
+                           const Rect &frame, FrameAlignment align, bool limit_by_frame)
 {
     item_count = std::min(item_count, text.size()); // safety check
     if (item_count <= 0)
@@ -990,8 +979,7 @@ Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, i
     }
 
     Line max_line;
-    for (; line_idx < item_count && (!limit_by_frame || at_y <= frame.Bottom);
-        ++line_idx, at_y += linespace)
+    for (; line_idx < item_count && (!limit_by_frame || at_y <= frame.Bottom); ++line_idx, at_y += linespace)
     {
         Line lpos = GUI::CalcTextPositionHor(text[line_idx], font, frame.Left, frame.Right, at_y, align);
         max_line.X2 = std::max(max_line.X2, lpos.X2);
@@ -1001,7 +989,7 @@ Rect CalcTextGraphicalRect(const std::vector<String> &text, size_t item_count, i
     int h_ext = CalcFontGraphicalHExtent(font);
     Line vextent = GUI::CalcFontGraphicalVExtent(font);
     Rect text_rc = RectWH(h_ext, vextent.Y1, max_line.X2 - max_line.X1 + 1 + (-h_ext) * 2,
-        at_y - linespace + (vextent.Y2 - vextent.Y1 + 1));
+                          at_y - linespace + (vextent.Y2 - vextent.Y1 + 1));
     return text_rc;
 }
 
@@ -1018,36 +1006,36 @@ void DrawDisabledEffect(Bitmap *ds, const Rect &rc)
 }
 
 void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
-    const Rect &frame, FrameAlignment align)
+                     const Rect &frame, FrameAlignment align)
 {
     Rect pos = CalcTextPosition(text, font, frame, align);
     wouttext_outline(ds, pos.Left, pos.Top, font, text_color, outline_color, kBlend_Normal, text.GetCStr());
 }
 
-void DrawTextAligned(Bitmap* ds, const String& text, int font, color_t text_color, color_t outline_color,
-    BlendMode blend_mode, const Rect& frame, FrameAlignment align)
+void DrawTextAligned(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
+                     BlendMode blend_mode, const Rect &frame, FrameAlignment align)
 {
     Rect pos = CalcTextPosition(text, font, frame, align);
     wouttext_outline(ds, pos.Left, pos.Top, font, text_color, outline_color, blend_mode, text.GetCStr());
 }
 
-void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
-    int x1, int x2, int y, FrameAlignment align)
+void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color, int x1,
+                        int x2, int y, FrameAlignment align)
 {
     Line line = CalcTextPositionHor(text, font, x1, x2, y, align);
     wouttext_outline(ds, line.X1, y, font, text_color, outline_color, kBlend_Normal, text.GetCStr());
 }
 
 void DrawTextAlignedHor(Bitmap *ds, const String &text, int font, color_t text_color, color_t outline_color,
-    BlendMode blend_mode, int x1, int x2, int y, FrameAlignment align)
+                        BlendMode blend_mode, int x1, int x2, int y, FrameAlignment align)
 {
     Line line = CalcTextPositionHor(text, font, x1, x2, y, align);
     wouttext_outline(ds, line.X1, y, font, text_color, outline_color, blend_mode, text.GetCStr());
 }
 
-void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count,
-    int font, int linespace, color_t text_color, color_t outline_color, const Rect &frame,
-    FrameAlignment align, bool limit_by_frame)
+void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t item_count, int font, int linespace,
+                          color_t text_color, color_t outline_color, const Rect &frame, FrameAlignment align,
+                          bool limit_by_frame)
 {
     item_count = std::min(item_count, text.size()); // safety check
     if (item_count <= 0)
@@ -1064,42 +1052,42 @@ void DrawTextLinesAligned(Bitmap *ds, const std::vector<String> &text, size_t it
         line_idx += skip_lines;
     }
 
-    for (; (line_idx < item_count) && (!limit_by_frame || at_y < frame.Bottom);
-        ++line_idx, at_y += linespace)
+    for (; (line_idx < item_count) && (!limit_by_frame || at_y < frame.Bottom); ++line_idx, at_y += linespace)
     {
-        GUI::DrawTextAlignedHor(ds, text[line_idx], font, text_color, outline_color, frame.Left, frame.Right, at_y, align);
+        GUI::DrawTextAlignedHor(ds, text[line_idx], font, text_color, outline_color, frame.Left, frame.Right, at_y,
+                                align);
     }
 }
 
 GUILabelMacro FindLabelMacros(const String &text)
 {
     int macro_flags = 0;
-    std::function<bool(const String&)> fn_scan = [&macro_flags](const String &macro)->bool
-        { 
-            if (macro.CompareNoCase("gamename") == 0)
-                macro_flags |= kLabelMacro_Gamename;
-            else if (macro.CompareNoCase("overhotspot") == 0)
-                macro_flags |= kLabelMacro_Overhotspot;
-            else
-                return false;
-            return true;
-        };
+    std::function<bool(const String &)> fn_scan = [&macro_flags](const String &macro) -> bool
+    {
+        if (macro.CompareNoCase("gamename") == 0)
+            macro_flags |= kLabelMacro_Gamename;
+        else if (macro.CompareNoCase("overhotspot") == 0)
+            macro_flags |= kLabelMacro_Overhotspot;
+        else
+            return false;
+        return true;
+    };
     ScanMacroTokens(text, fn_scan);
     return (GUILabelMacro)macro_flags;
 }
 
 String ResolveMacroTokens(const String &text)
 {
-    std::function<bool(const String&, String&)> fn_resolve = [](const String &macro, String &result)->bool
-        { 
-            if (macro.CompareNoCase("gamename") == 0)
-                result = GUI::Context.GameTitle;
-            else if (macro.CompareNoCase("overhotspot") == 0)
-                result = GUI::Context.Overhotspot;
-            else
-                return false;
-            return true;
-        };
+    std::function<bool(const String &, String &)> fn_resolve = [](const String &macro, String &result) -> bool
+    {
+        if (macro.CompareNoCase("gamename") == 0)
+            result = GUI::Context.GameTitle;
+        else if (macro.CompareNoCase("overhotspot") == 0)
+            result = GUI::Context.Overhotspot;
+        else
+            return false;
+        return true;
+    };
     return AGS::Common::ResolveMacroTokens(text, fn_resolve);
 }
 
@@ -1125,7 +1113,7 @@ HError RebuildGUI(std::vector<GUIMain> &guis, GUIRefCollection &guiobjs)
 }
 
 HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVersion &gui_version,
-    GUIRefCollection &guiobjs, Stream *in)
+               GUIRefCollection &guiobjs, Stream *in)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
         return new Error("ReadGUI: unknown format or file is corrupt");
@@ -1137,8 +1125,8 @@ HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVe
     GameGuiVersion = (GuiVersion)in->ReadInt32();
     Debug::Printf(kDbgMsg_Info, "Game GUI version: %d", GameGuiVersion);
     if (GameGuiVersion < GameGuiVersion || GameGuiVersion > kGuiVersion_Current)
-        return new Error("ReadGUI: format version not supported (required %d, supported %d - %d)",
-            GameGuiVersion, kGuiVersion_LowSupported, kGuiVersion_Current);
+        return new Error("ReadGUI: format version not supported (required %d, supported %d - %d)", GameGuiVersion,
+                         kGuiVersion_LowSupported, kGuiVersion_Current);
 
     size_t gui_count = in->ReadInt32();
     guis.resize(gui_count);
@@ -1187,7 +1175,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVe
     }
     // sliders
     size_t numguislider = static_cast<uint32_t>(in->ReadInt32());
-        auto &guislider = guiobjs.Sliders;
+    auto &guislider = guiobjs.Sliders;
     guislider.resize(numguislider);
     for (size_t i = 0; i < numguislider; ++i)
     {
@@ -1195,7 +1183,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVe
     }
     // text boxes
     size_t numguitext = static_cast<uint32_t>(in->ReadInt32());
-        auto &guitext = guiobjs.TextBoxes;
+    auto &guitext = guiobjs.TextBoxes;
     guitext.resize(numguitext);
     for (size_t i = 0; i < numguitext; ++i)
     {
@@ -1203,7 +1191,7 @@ HError ReadGUI(std::vector<GUIMain> &guis, const GameDataVersion data_ver, GuiVe
     }
     // list boxes
     size_t numguilist = static_cast<uint32_t>(in->ReadInt32());
-        auto &guilist = guiobjs.ListBoxes;
+    auto &guilist = guiobjs.ListBoxes;
     guilist.resize(numguilist);
     for (size_t i = 0; i < numguilist; ++i)
     {

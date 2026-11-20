@@ -24,14 +24,19 @@ namespace AGS
 namespace Common
 {
 
-inline static bool IsAssetLibDir(const AssetLibInfo *lib) { return lib->BaseFileName.IsEmpty(); }
-inline static bool IsAssetLibFile(const AssetLibInfo *lib) { return !lib->BaseFileName.IsEmpty(); }
+inline static bool IsAssetLibDir(const AssetLibInfo *lib)
+{
+    return lib->BaseFileName.IsEmpty();
+}
+inline static bool IsAssetLibFile(const AssetLibInfo *lib)
+{
+    return !lib->BaseFileName.IsEmpty();
+}
 
 
 bool AssetManager::AssetLibEx::TestFilter(const String &filter) const
 {
-    return filter == "*" ||
-        (std::find(Filters.begin(), Filters.end(), filter) != Filters.end());
+    return filter == "*" || (std::find(Filters.begin(), Filters.end(), filter) != Filters.end());
 }
 
 // Asset library sorting function, directories have priority
@@ -152,7 +157,8 @@ AssetLibEntry AssetManager::GetLibraryEntry(size_t index) const
 {
     if (index >= _libs.size())
         return {};
-    return AssetLibEntry(IsAssetLibDir(_libs[index].get()), _libs[index]->BasePath, _libs[index]->RealLibFiles, _libs[index]->FilterString);
+    return AssetLibEntry(IsAssetLibDir(_libs[index].get()), _libs[index]->BasePath, _libs[index]->RealLibFiles,
+                         _libs[index]->FilterString);
 }
 
 const AssetLibInfo *AssetManager::GetLibraryInfo(size_t index) const
@@ -186,7 +192,8 @@ bool AssetManager::GetAssetTime(const String &asset_name, time_t &ft, const Stri
 {
     for (const auto *lib : _activeLibs)
     {
-        if (!lib->TestFilter(filter)) continue; // filter does not match
+        if (!lib->TestFilter(filter))
+            continue; // filter does not match
 
         if (IsAssetLibDir(lib))
         {
@@ -206,8 +213,7 @@ bool AssetManager::GetAssetTime(const String &asset_name, time_t &ft, const Stri
     return false;
 }
 
-void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcard,
-    const String &filter) const
+void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcard, const String &filter) const
 {
     String pattern = StrUtil::WildcardToRegex(wildcard);
     const std::regex regex(pattern.GetCStr(), std::regex_constants::icase);
@@ -215,13 +221,15 @@ void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcar
 
     for (const auto *lib : _activeLibs)
     {
-        if (!lib->TestFilter(filter)) continue; // filter does not match
+        if (!lib->TestFilter(filter))
+            continue; // filter does not match
 
         if (IsAssetLibDir(lib))
         {
             // TODO: support multipart wildcards (wildcards in each path section)
             const String pattern_parent = Path::GetParent(wildcard);
-            for (FindFile ff = FindFile::OpenFiles(Path::ConcatPaths(lib->BaseDir, pattern_parent), Path::GetFilename(wildcard));
+            for (FindFile ff =
+                     FindFile::OpenFiles(Path::ConcatPaths(lib->BaseDir, pattern_parent), Path::GetFilename(wildcard));
                  !ff.AtEnd(); ff.Next())
             {
                 assets.push_back(Path::ConcatPaths(pattern_parent, ff.Current()));
@@ -242,8 +250,7 @@ void AssetManager::FindAssets(std::vector<String> &assets, const String &wildcar
     assets.erase(std::unique(assets.begin(), assets.end(), StrEqUtf8NoCase()), assets.end());
 }
 
-void AssetManager::FindAssets(std::vector<FileEntry> &assets, const String &wildcard,
-    const String &filter) const
+void AssetManager::FindAssets(std::vector<FileEntry> &assets, const String &wildcard, const String &filter) const
 {
     // TODO: consider refactoring and merging this with FindAssets(std::vector<String> &assets);
     // there are two separate methods now, because retrieving filename only is faster than
@@ -256,14 +263,16 @@ void AssetManager::FindAssets(std::vector<FileEntry> &assets, const String &wild
     std::vector<FileEntry> lib_fileents;
     for (const auto *lib : _activeLibs)
     {
-        if (!lib->TestFilter(filter)) continue; // filter does not match
+        if (!lib->TestFilter(filter))
+            continue; // filter does not match
 
         lib_fileents.clear();
         if (IsAssetLibDir(lib))
         {
             // TODO: support multipart wildcards (wildcards in each path section)
             const String pattern_parent = Path::GetParent(wildcard);
-            for (FindFile ff = FindFile::OpenFiles(Path::ConcatPaths(lib->BaseDir, pattern_parent), Path::GetFilename(wildcard));
+            for (FindFile ff =
+                     FindFile::OpenFiles(Path::ConcatPaths(lib->BaseDir, pattern_parent), Path::GetFilename(wildcard));
                  !ff.AtEnd(); ff.Next())
             {
                 FileEntry fe = ff.GetEntry();
@@ -352,7 +361,8 @@ std::unique_ptr<Stream> AssetManager::OpenAsset(const String &asset_name, const 
 {
     for (const auto *lib : _activeLibs)
     {
-        if (!lib->TestFilter(filter)) continue; // filter does not match
+        if (!lib->TestFilter(filter))
+            continue; // filter does not match
 
         std::unique_ptr<Stream> s;
         if (IsAssetLibDir(lib))
@@ -396,14 +406,10 @@ String GetAssetErrorText(AssetError err)
 {
     switch (err)
     {
-    case kAssetNoError:
-        return "No error.";
-    case kAssetErrNoLibFile:
-        return "Asset library file not found or could not be opened.";
-    case kAssetErrLibParse:
-        return "Not an asset library or unsupported format.";
-    case kAssetErrNoManager:
-        return "Asset manager is not initialized.";
+    case kAssetNoError: return "No error.";
+    case kAssetErrNoLibFile: return "Asset library file not found or could not be opened.";
+    case kAssetErrLibParse: return "Not an asset library or unsupported format.";
+    case kAssetErrNoManager: return "Asset manager is not initialized.";
     }
     return "Unknown error.";
 }

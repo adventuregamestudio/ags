@@ -32,20 +32,13 @@ String GetTraFileErrorText(TraFileErrorType err)
 {
     switch (err)
     {
-    case kTraFileErr_NoError:
-        return "No error.";
-    case kTraFileErr_SignatureFailed:
-        return "Not an AGS translation file or an unsupported format.";
-    case kTraFileErr_FormatNotSupported:
-        return "Format version not supported.";
-    case kTraFileErr_GameIDMismatch:
-        return "Game ID does not match, translation is meant for a different game.";
-    case kTraFileErr_UnexpectedEOF:
-        return "Unexpected end of file.";
-    case kTraFileErr_UnknownBlockType:
-        return "Unknown block type.";
-    case kTraFileErr_BlockDataOverlapping:
-        return "Block data overlapping.";
+    case kTraFileErr_NoError: return "No error.";
+    case kTraFileErr_SignatureFailed: return "Not an AGS translation file or an unsupported format.";
+    case kTraFileErr_FormatNotSupported: return "Format version not supported.";
+    case kTraFileErr_GameIDMismatch: return "Game ID does not match, translation is meant for a different game.";
+    case kTraFileErr_UnexpectedEOF: return "Unexpected end of file.";
+    case kTraFileErr_UnknownBlockType: return "Unknown block type.";
+    case kTraFileErr_BlockDataOverlapping: return "Block data overlapping.";
     default: return "Unknown error.";
     }
 }
@@ -64,7 +57,7 @@ String GetTraBlockName(TraFileBlock id)
 HError OpenTraFile(Stream *in)
 {
     // Test the file signature
-    char sigbuf[16] = { 0 };
+    char sigbuf[16] = {0};
     in->Read(sigbuf, 15);
     if (ags_stricmp(TRASignature, sigbuf) != 0)
         return new TraFileError(kTraFileErr_SignatureFailed);
@@ -97,8 +90,7 @@ static HError ReadFontOverrides(Translation &tra, Stream *in)
         finfo.SetFlags(flags);
         // This corresponds to the "v360_fonts" extension in game data
         finfo.AutoOutlineThickness = in->ReadInt32();
-        finfo.AutoOutlineStyle =
-            static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
+        finfo.AutoOutlineStyle = static_cast<enum FontInfo::AutoOutlineStyle>(in->ReadInt32());
         finfo.CharacterSpacing = in->ReadInt32();
         finfo.CustomHeight = in->ReadInt32();
         in->ReadInt32(); // reserved
@@ -116,27 +108,27 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
     switch (block)
     {
     case kTraFblk_Dict:
+    {
+        std::vector<char> buf;
+        // Read lines until we find zero-length key & value
+        while (true)
         {
-            std::vector<char> buf;
-            // Read lines until we find zero-length key & value
-            while (true)
-            {
-                String src_line = ReadStringDecrypt(in, buf);
-                String dst_line = ReadStringDecrypt(in, buf);
-                if (src_line.IsEmpty() && dst_line.IsEmpty())
-                    break;
-                // Skip empty keys, skip key repeats
-                if (src_line.IsEmpty() || (tra.Dict.find(src_line) != tra.Dict.end()))
-                    continue;
-                tra.Dict.insert(std::make_pair(src_line, dst_line));
-            }
+            String src_line = ReadStringDecrypt(in, buf);
+            String dst_line = ReadStringDecrypt(in, buf);
+            if (src_line.IsEmpty() && dst_line.IsEmpty())
+                break;
+            // Skip empty keys, skip key repeats
+            if (src_line.IsEmpty() || (tra.Dict.find(src_line) != tra.Dict.end()))
+                continue;
+            tra.Dict.insert(std::make_pair(src_line, dst_line));
         }
+    }
         return HError::None();
     case kTraFblk_GameID:
-        {
-            tra.GameUid = in->ReadInt32();
-            tra.GameName = ReadStringDecrypt(in);
-        }
+    {
+        tra.GameUid = in->ReadInt32();
+        tra.GameName = ReadStringDecrypt(in);
+    }
         return HError::None();
     case kTraFblk_TextOpts:
         tra.NormalFont = in->ReadInt32();
@@ -152,8 +144,8 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
         // continue reading extensions with string ID
         break;
     default:
-        return new TraFileError(kTraFileErr_UnknownBlockType,
-            "Type: %d, known range: %d - %d.", block, kTraFblk_Dict, kTraFblk_TextOpts);
+        return new TraFileError(kTraFileErr_UnknownBlockType, "Type: %d, known range: %d - %d.", block, kTraFblk_Dict,
+                                kTraFblk_TextOpts);
     }
 
     if (ext_id.CompareNoCase("ext_sopts") == 0)
@@ -173,9 +165,8 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
         tra.ParserDict.ReadFromFile(in);
         return HError::None();
     }
-    
-    return new TraFileError(kTraFileErr_UnknownBlockType,
-        "Type: %s", ext_id.GetCStr());
+
+    return new TraFileError(kTraFileErr_UnknownBlockType, "Type: %s", ext_id.GetCStr());
 }
 
 
@@ -184,8 +175,9 @@ class TRABlockReader : public DataExtReader
 {
 public:
     TRABlockReader(Translation &tra, std::unique_ptr<Stream> &&in)
-        : DataExtReader(std::move(in), kDataExt_NumID32 | kDataExt_File32)
-        , _tra(tra) {}
+        : DataExtReader(std::move(in), kDataExt_NumID32 | kDataExt_File32), _tra(tra)
+    {
+    }
 
     // Reads only the Game ID block and stops
     HError ReadGameID()
@@ -197,16 +189,15 @@ public:
     }
 
 private:
-    String GetOldBlockName(int block_id) const override
-    { return GetTraBlockName((TraFileBlock)block_id); }
+    String GetOldBlockName(int block_id) const override { return GetTraBlockName((TraFileBlock)block_id); }
     soff_t GetOverLeeway(int block_id) const override
     {
         // TRA files made by pre-3.0 editors have a block length miscount by 1 byte
-        if (block_id == kTraFblk_GameID) return 1;
+        if (block_id == kTraFblk_GameID)
+            return 1;
         return 0;
     }
-    HError ReadBlock(Stream *in, int block_id, const String &ext_id,
-        soff_t block_len, bool &read_next) override
+    HError ReadBlock(Stream *in, int block_id, const String &ext_id, soff_t block_len, bool &read_next) override
     {
         read_next = true;
         return ReadTraBlock(_tra, _in.get(), (TraFileBlock)block_id, ext_id, block_len);
@@ -228,10 +219,9 @@ HError TestTraGameID(int game_uid, const String &game_name, std::unique_ptr<Stre
     if (!err)
         return err;
     // Test the identifiers, if they are not present then skip the test
-    if ((tra.GameUid != 0 && (game_uid != tra.GameUid)) ||
-        (!tra.GameName.IsEmpty() && (game_name != tra.GameName)))
-        return new TraFileError(kTraFileErr_GameIDMismatch,
-            "The translation is designed for '%s'", tra.GameName.GetCStr());
+    if ((tra.GameUid != 0 && (game_uid != tra.GameUid)) || (!tra.GameName.IsEmpty() && (game_name != tra.GameName)))
+        return new TraFileError(kTraFileErr_GameIDMismatch, "The translation is designed for '%s'",
+                                tra.GameName.GetCStr());
     return HError::None();
 }
 
@@ -302,9 +292,9 @@ void WriteFontOverrides(const Translation &tra, Stream *out)
         const FontFieldFlags &fields = fover.Fields;
 
         out->WriteInt32(font_override.first); // font to override
-        out->WriteInt32(finfo.FontID); // replacement font ID (or -1 if font is determined by its filename)
+        out->WriteInt32(finfo.FontID);        // replacement font ID (or -1 if font is determined by its filename)
         out->WriteInt32(static_cast<uint32_t>(fields)); // which font fields are valid
-        out->WriteInt32(0); // reserved
+        out->WriteInt32(0);                             // reserved
 
         // This corresponds to the standard font info format in game data
         out->WriteInt32(finfo.Flags);
@@ -328,17 +318,15 @@ void WriteFontOverrides(const Translation &tra, Stream *out)
 }
 
 inline void WriteTraBlock(const Translation &tra, TraFileBlock block,
-    void(*writer)(const Translation &tra, Stream *out), Stream *out)
+                          void (*writer)(const Translation &tra, Stream *out), Stream *out)
 {
-    WriteExtBlock(block, [&tra, writer](Stream *out){ writer(tra, out); },
-        kDataExt_NumID32 | kDataExt_File32, out);
+    WriteExtBlock(block, [&tra, writer](Stream *out) { writer(tra, out); }, kDataExt_NumID32 | kDataExt_File32, out);
 }
 
 inline void WriteTraBlock(const Translation &tra, const String &ext_id,
-    void(*writer)(const Translation &tra, Stream *out), Stream *out)
+                          void (*writer)(const Translation &tra, Stream *out), Stream *out)
 {
-    WriteExtBlock(ext_id, [&tra, writer](Stream *out) { writer(tra, out); },
-        kDataExt_NumID32 | kDataExt_File32, out);
+    WriteExtBlock(ext_id, [&tra, writer](Stream *out) { writer(tra, out); }, kDataExt_NumID32 | kDataExt_File32, out);
 }
 
 void WriteTraData(const Translation &tra, std::unique_ptr<Stream> &&out)

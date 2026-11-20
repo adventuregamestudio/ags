@@ -32,25 +32,14 @@ namespace Common
 class AxisScaling
 {
 public:
-    AxisScaling()
-        : _scale(kUnit)
-        , _unscale(kUnit)
-        , _srcOffset(0)
-        , _dstOffset(0)
-    {
-    }
+    AxisScaling() : _scale(kUnit), _unscale(kUnit), _srcOffset(0), _dstOffset(0) {}
 
-    bool IsIdentity() const
-    {
-        return _scale == kUnit && _srcOffset == 0 && _dstOffset == 0;
-    }
+    bool IsIdentity() const { return _scale == kUnit && _srcOffset == 0 && _dstOffset == 0; }
 
-    bool IsTranslateOnly() const
-    {
-        return _scale == kUnit;
-    }
+    bool IsTranslateOnly() const { return _scale == kUnit; }
 
-    void Init(const int32_t src_length, const int32_t dst_length, const int32_t src_offset = 0, const int32_t dst_offset = 0)
+    void Init(const int32_t src_length, const int32_t dst_length, const int32_t src_offset = 0,
+              const int32_t dst_offset = 0)
     {
         _scale = kUnit;
         _unscale = kUnit;
@@ -71,34 +60,16 @@ public:
         }
     }
 
-    void SetSrcOffset(int32_t x)
-    {
-        _srcOffset = x;
-    }
+    void SetSrcOffset(int32_t x) { _srcOffset = x; }
 
-    void SetDstOffset(int32_t x)
-    {
-        _dstOffset = x;
-    }
+    void SetDstOffset(int32_t x) { _dstOffset = x; }
 
     inline int32_t GetSrcOffset() const { return _srcOffset; }
 
-    inline int32_t ScalePt(int32_t x) const
-    {
-        return (((x - _srcOffset) * _scale) >> kShift) + _dstOffset;
-    }
-    inline int32_t ScaleDistance(int32_t x) const
-    {
-        return ((x * _scale) >> kShift);
-    }
-    inline int32_t UnScalePt(int32_t x) const
-    {
-        return ((x - _dstOffset) << kShift) / _unscale + _srcOffset;
-    }
-    inline int32_t UnScaleDistance(int32_t x) const
-    {
-        return (x << kShift) / _unscale;
-    }
+    inline int32_t ScalePt(int32_t x) const { return (((x - _srcOffset) * _scale) >> kShift) + _dstOffset; }
+    inline int32_t ScaleDistance(int32_t x) const { return ((x * _scale) >> kShift); }
+    inline int32_t UnScalePt(int32_t x) const { return ((x - _dstOffset) << kShift) / _unscale + _srcOffset; }
+    inline int32_t UnScaleDistance(int32_t x) const { return (x << kShift) / _unscale; }
 
 private:
     int32_t _scale;
@@ -112,15 +83,9 @@ struct PlaneScaling
     AxisScaling X;
     AxisScaling Y;
 
-    bool IsIdentity() const
-    {
-        return X.IsIdentity() && Y.IsIdentity();
-    }
+    bool IsIdentity() const { return X.IsIdentity() && Y.IsIdentity(); }
 
-    bool IsTranslateOnly() const
-    {
-        return X.IsTranslateOnly() && Y.IsTranslateOnly();
-    }
+    bool IsTranslateOnly() const { return X.IsTranslateOnly() && Y.IsTranslateOnly(); }
 
     void Init(const Size &src_size, const Rect &dst_rect)
     {
@@ -146,24 +111,20 @@ struct PlaneScaling
         Y.SetDstOffset(y);
     }
 
-    inline Point Scale(const Point &p) const
-    {
-        return Point(X.ScalePt(p.X), Y.ScalePt(p.Y));
-    }
+    inline Point Scale(const Point &p) const { return Point(X.ScalePt(p.X), Y.ScalePt(p.Y)); }
 
     inline Rect ScaleRange(const Rect &r) const
     {
-        return RectWH(X.ScalePt(r.Left), Y.ScalePt(r.Top), X.ScaleDistance(r.GetWidth()), Y.ScaleDistance(r.GetHeight()));
+        return RectWH(X.ScalePt(r.Left), Y.ScalePt(r.Top), X.ScaleDistance(r.GetWidth()),
+                      Y.ScaleDistance(r.GetHeight()));
     }
 
-    inline Point UnScale(const Point &p) const
-    {
-        return Point(X.UnScalePt(p.X), Y.UnScalePt(p.Y));
-    }
+    inline Point UnScale(const Point &p) const { return Point(X.UnScalePt(p.X), Y.UnScalePt(p.Y)); }
 
     inline Rect UnScaleRange(const Rect &r) const
     {
-        return RectWH(X.UnScalePt(r.Left), Y.UnScalePt(r.Top), X.UnScaleDistance(r.GetWidth()), Y.UnScaleDistance(r.GetHeight()));
+        return RectWH(X.UnScalePt(r.Left), Y.UnScalePt(r.Top), X.UnScaleDistance(r.GetWidth()),
+                      Y.UnScaleDistance(r.GetHeight()));
     }
 };
 

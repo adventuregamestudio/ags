@@ -21,8 +21,7 @@ namespace AGS
 namespace Common
 {
 
-GUIControl::GUIControl(const ScriptEventSchema *schema)
-    : GUIObject(schema)
+GUIControl::GUIControl(const ScriptEventSchema *schema) : GUIObject(schema)
 {
     UpdateControlRect();
 }
@@ -200,8 +199,8 @@ void GUIControl::UpdateControlRect()
     // This is both compatible with the pre-3.6.3 engine behavior, and helps to keep
     // control contents on the same place if border is being toggled between visible
     // and not visible at runtime for a "focused control" visual effect.
-    _innerRect = RectWH(_borderWidth + _paddingX, _borderWidth + _paddingY,
-        _width - _borderWidth * 2 - _paddingX * 2, _height - _borderWidth * 2 - _paddingY * 2);
+    _innerRect = RectWH(_borderWidth + _paddingX, _borderWidth + _paddingY, _width - _borderWidth * 2 - _paddingX * 2,
+                        _height - _borderWidth * 2 - _paddingY * 2);
 
     OnContentRectChanged();
 }
@@ -222,12 +221,12 @@ void GUIControl::WriteToFile(Stream *out) const
 
 void GUIControl::ReadFromFile(Stream *in, GuiVersion gui_version)
 {
-    _flags    = in->ReadInt32();
-    _x        = in->ReadInt32();
-    _y        = in->ReadInt32();
-    _width    = in->ReadInt32();
-    _height   = in->ReadInt32();
-    _zOrder   = in->ReadInt32();
+    _flags = in->ReadInt32();
+    _x = in->ReadInt32();
+    _y = in->ReadInt32();
+    _width = in->ReadInt32();
+    _height = in->ReadInt32();
+    _zOrder = in->ReadInt32();
     _name.Read(in);
 
     // Old-style events table (will be converted to new-style)
@@ -276,8 +275,7 @@ void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         _borderColor = in->ReadInt32();
         _borderWidth = in->ReadInt32();
     }
-    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) ||
-        (svg_ver >= kGuiSvgVersion_40026))
+    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) || (svg_ver >= kGuiSvgVersion_40026))
     {
         _paddingX = in->ReadInt32();
         _paddingY = in->ReadInt32();
@@ -296,17 +294,17 @@ void GUIControl::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         in->ReadInt32(); // tint rgb + s
         in->ReadInt32(); // tint light (or light level)
         // Reserved for transform options
-        in->ReadInt32(); // sprite transform flags1
-        in->ReadInt32(); // sprite transform flags2
+        in->ReadInt32();              // sprite transform flags1
+        in->ReadInt32();              // sprite transform flags2
         _scale.X = in->ReadFloat32(); // transform scale x
         _scale.Y = in->ReadFloat32(); // transform scale y
-        in->ReadInt32(); // transform skew x
-        in->ReadInt32(); // transform skew y
-        _rotation = in->ReadInt32(); // transform rotate
-        in->ReadInt32(); // sprite pivot x
-        in->ReadInt32(); // sprite pivot y
-        in->ReadInt32(); // sprite anchor x
-        in->ReadInt32(); // sprite anchor y
+        in->ReadInt32();              // transform skew x
+        in->ReadInt32();              // transform skew y
+        _rotation = in->ReadInt32();  // transform rotate
+        in->ReadInt32();              // sprite pivot x
+        in->ReadInt32();              // sprite pivot y
+        in->ReadInt32();              // sprite anchor x
+        in->ReadInt32();              // sprite anchor y
     }
     else
     {
@@ -363,17 +361,17 @@ void GUIControl::WriteToSavegame(Stream *out) const
     out->WriteInt32(0); // tint rgb + s
     out->WriteInt32(0); // tint light (or light level)
     // Reserved for transform options
-    out->WriteInt32(0); // sprite transform flags1
-    out->WriteInt32(0); // sprite transform flags2
+    out->WriteInt32(0);          // sprite transform flags1
+    out->WriteInt32(0);          // sprite transform flags2
     out->WriteFloat32(_scale.X); // transform scale x
     out->WriteFloat32(_scale.Y); // transform scale y
-    out->WriteInt32(0); // transform skew x
-    out->WriteInt32(0); // transform skew y
-    out->WriteInt32(_rotation); // transform rotate
-    out->WriteInt32(0); // sprite pivot x
-    out->WriteInt32(0); // sprite pivot y
-    out->WriteInt32(0); // sprite anchor x
-    out->WriteInt32(0); // sprite anchor y
+    out->WriteInt32(0);          // transform skew x
+    out->WriteInt32(0);          // transform skew y
+    out->WriteInt32(_rotation);  // transform rotate
+    out->WriteInt32(0);          // sprite pivot x
+    out->WriteInt32(0);          // sprite pivot y
+    out->WriteInt32(0);          // sprite anchor x
+    out->WriteInt32(0);          // sprite anchor y
     // kGuiSvgVersion_40018
     out->WriteInt32(_shaderID);
     out->WriteInt32(_shaderHandle);

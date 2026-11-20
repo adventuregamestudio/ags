@@ -68,7 +68,8 @@ int64_t CfgReadInt64(const ConfigTree &cfg, const String &sectn, const String &i
     return StrUtil::StringToInt64(str, def);
 }
 
-int64_t CfgReadInt64(const ConfigTree &cfg, const String &sectn, const String &item, int64_t min, int64_t max, int64_t def)
+int64_t CfgReadInt64(const ConfigTree &cfg, const String &sectn, const String &item, int64_t min, int64_t max,
+                     int64_t def)
 {
     int64_t val = CfgReadInt64(cfg, sectn, item, def);
     if ((val < min) || (val > max))
@@ -84,7 +85,8 @@ uint64_t CfgReadUInt64(const ConfigTree &cfg, const String &sectn, const String 
     return StrUtil::StringToInt64(str, def);
 }
 
-uint64_t CfgReadUInt64(const ConfigTree &cfg, const String &sectn, const String &item, uint64_t min, uint64_t max, uint64_t def)
+uint64_t CfgReadUInt64(const ConfigTree &cfg, const String &sectn, const String &item, uint64_t min, uint64_t max,
+                       uint64_t def)
 {
     uint64_t val = CfgReadUInt64(cfg, sectn, item, def);
     if ((val < min) || (val > max))
@@ -116,8 +118,8 @@ String CfgReadString(const ConfigTree &cfg, const String &sectn, const String &i
     return str;
 }
 
-void CfgReadString(char *cbuf, size_t buf_sz,
-    const ConfigTree &cfg, const String &sectn, const String &item, const String &def)
+void CfgReadString(char *cbuf, size_t buf_sz, const ConfigTree &cfg, const String &sectn, const String &item,
+                   const String &def)
 {
     String str = CfgReadString(cfg, sectn, item, def);
     snprintf(cbuf, buf_sz, "%s", str.GetCStr());
@@ -181,13 +183,13 @@ void CfgWriteString(ConfigTree &cfg, const String &sectn, const String &item, co
 // IniUtil
 //-----------------------------------------------------------------------------
 
-typedef std::unique_ptr<Stream>       UStream;
+typedef std::unique_ptr<Stream> UStream;
 typedef StringOrderMap::const_iterator StrStrOIter;
-typedef ConfigTree::const_iterator    ConfigNode;
-typedef IniFile::SectionIterator      SectionIterator;
+typedef ConfigTree::const_iterator ConfigNode;
+typedef IniFile::SectionIterator SectionIterator;
 typedef IniFile::ConstSectionIterator CSectionIterator;
-typedef IniFile::ItemIterator         ItemIterator;
-typedef IniFile::ConstItemIterator    CItemIterator;
+typedef IniFile::ItemIterator ItemIterator;
+typedef IniFile::ConstItemIterator CItemIterator;
 
 
 static bool ReadIni(const String &file, IniFile &ini)
@@ -242,7 +244,7 @@ void IniUtil::Write(std::unique_ptr<Stream> &&out, const ConfigTree &tree)
 
     for (ConfigNode it_sec = tree.begin(); it_sec != tree.end(); ++it_sec)
     {
-        const String &sec_key     = it_sec->first;
+        const String &sec_key = it_sec->first;
         const StringOrderMap &sec_tree = it_sec->second;
 
         if (!sec_tree.size())
@@ -256,7 +258,7 @@ void IniUtil::Write(std::unique_ptr<Stream> &&out, const ConfigTree &tree)
         // write all items
         for (StrStrOIter keyval = sec_tree.begin(); keyval != sec_tree.end(); ++keyval)
         {
-            const String &item_key   = keyval->first;
+            const String &item_key = keyval->first;
             const String &item_value = keyval->second;
 
             writer.WriteFormat("%s=%s", item_key.GetCStr(), item_value.GetCStr());
@@ -324,7 +326,7 @@ void IniUtil::Merge(IniFile &ini, const ConfigTree &tree)
         // Replace matching items
         for (ItemIterator item = sec->Begin(); item != sec->End(); ++item)
         {
-            String key        = item->GetKey();
+            String key = item->GetKey();
             StrStrOIter keyval = subtree.find(key);
             if (keyval == subtree.end())
                 continue; // this item is not interesting for us
@@ -339,7 +341,8 @@ void IniUtil::Merge(IniFile &ini, const ConfigTree &tree)
         // Append new items
         if (!sections_found[secname])
         {
-            for (std::map<String, bool>::const_iterator item_f = items_found.begin(); item_f != items_found.end(); ++item_f)
+            for (std::map<String, bool>::const_iterator item_f = items_found.begin(); item_f != items_found.end();
+                 ++item_f)
             {
                 if (item_f->second)
                     continue; // item was already found

@@ -16,7 +16,8 @@
 
 using namespace AGS::Common;
 
-TEST(Memory, SwapBytes) {
+TEST(Memory, SwapBytes)
+{
     const int16_t i16 = (int16_t)0xABCD;
     const int32_t i32 = (int32_t)0xABCDEF12;
     const int64_t i64 = (int64_t)0xABCDEF1234567890;
@@ -26,12 +27,13 @@ TEST(Memory, SwapBytes) {
     ASSERT_TRUE(BBOp::SwapBytesInt64(i64) == (int64_t)0x9078563412EFCDABul);
 }
 
-TEST(Memory, BBOp) {
+TEST(Memory, BBOp)
+{
     const int16_t i16 = (int16_t)0xABCD;
     const int32_t i32 = (int32_t)0xABCDEF12;
     const int64_t i64 = (int64_t)0xABCDEF1234567890;
 
-#if defined (BITBYTE_BIG_ENDIAN)
+#if defined(BITBYTE_BIG_ENDIAN)
     ASSERT_TRUE(BBOp::Int16FromLE(i16) == (int16_t)0xCDAB);
     ASSERT_TRUE(BBOp::Int32FromLE(i32) == (int32_t)0x12EFCDABu);
     ASSERT_TRUE(BBOp::Int64FromLE(i64) == (int64_t)0x9078563412EFCDABul);
@@ -50,7 +52,8 @@ TEST(Memory, BBOp) {
 #endif
 }
 
-TEST(Memory, ReadWrite) {
+TEST(Memory, ReadWrite)
+{
     int16_t dst_i16 = (int16_t)0xABCD;
     int32_t dst_i32 = (int32_t)0xABCDEF12;
     int64_t dst_i64 = (int64_t)0xABCDEF1234567890;
@@ -58,7 +61,7 @@ TEST(Memory, ReadWrite) {
     void *p_i32 = &dst_i32;
     void *p_i64 = &dst_i64;
 
-#if defined (TEST_BIGENDIAN)
+#if defined(TEST_BIGENDIAN)
     dst_i16 = BBOp::SwapBytesInt16(dst_i16);
     dst_i32 = BBOp::SwapBytesInt32(dst_i32);
     dst_i64 = BBOp::SwapBytesInt64(dst_i64);
@@ -72,7 +75,7 @@ TEST(Memory, ReadWrite) {
     Memory::WriteInt32(p_i32, (int32_t)0x12EFCDAB);
     Memory::WriteInt64(p_i64, (int64_t)0x9078563412EFCDAB);
 
-#if defined (TEST_BIGENDIAN)
+#if defined(TEST_BIGENDIAN)
     dst_i16 = BBOp::SwapBytesInt16(dst_i16);
     dst_i32 = BBOp::SwapBytesInt32(dst_i32);
     dst_i64 = BBOp::SwapBytesInt64(dst_i64);

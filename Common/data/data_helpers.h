@@ -27,130 +27,131 @@ namespace AGS
 {
 namespace Common
 {
-    // Names of the script API levels as the game source has them: the values of
-    // ScriptAPIVersion and ScriptCompatLevel in Game.agf (AGS.Types.ScriptAPIVersion
-    // in the Editor), and the SCRIPT_API_* and SCRIPT_COMPAT_* macros of the scripts;
-    // in ascending order. These are used by the tools that read the game source;
-    // the names for the user are returned by GetScriptAPIName().
-    // Extend this list together with the ScriptAPIVersion enum.
-    struct ScriptAPISourceName
-    {
-        ScriptAPIVersion Version;
-        const char *Name;
-    };
+// Names of the script API levels as the game source has them: the values of
+// ScriptAPIVersion and ScriptCompatLevel in Game.agf (AGS.Types.ScriptAPIVersion
+// in the Editor), and the SCRIPT_API_* and SCRIPT_COMPAT_* macros of the scripts;
+// in ascending order. These are used by the tools that read the game source;
+// the names for the user are returned by GetScriptAPIName().
+// Extend this list together with the ScriptAPIVersion enum.
+struct ScriptAPISourceName
+{
+    ScriptAPIVersion Version;
+    const char *Name;
+};
 
-    constexpr ScriptAPISourceName kScriptAPISourceNames[] = {
-        {kScriptAPI_v321, "v321"},       {kScriptAPI_v330, "v330"},       {kScriptAPI_v334, "v334"},
-        {kScriptAPI_v335, "v335"},       {kScriptAPI_v340, "v340"},       {kScriptAPI_v341, "v341"},
-        {kScriptAPI_v350, "v350"},       {kScriptAPI_v3507, "v3507"},     {kScriptAPI_v351, "v351"},
-        {kScriptAPI_v360, "v360"},       {kScriptAPI_v36026, "v36026"},   {kScriptAPI_v361, "v361"},
-        {kScriptAPI_v362, "v362"},       {kScriptAPI_v363, "v363"},       {kScriptAPI_v399, "v399"},
-        {kScriptAPI_v400, "v400"},       {kScriptAPI_v400_07, "v400_07"}, {kScriptAPI_v400_14, "v400_14"},
-        {kScriptAPI_v400_16, "v400_16"}, {kScriptAPI_v400_18, "v400_18"}, {kScriptAPI_v400_24, "v400_24"},
-        {kScriptAPI_v400_33, "v400_33"},
-    };
+constexpr ScriptAPISourceName kScriptAPISourceNames[] = {
+    {kScriptAPI_v321, "v321"},       {kScriptAPI_v330, "v330"},       {kScriptAPI_v334, "v334"},
+    {kScriptAPI_v335, "v335"},       {kScriptAPI_v340, "v340"},       {kScriptAPI_v341, "v341"},
+    {kScriptAPI_v350, "v350"},       {kScriptAPI_v3507, "v3507"},     {kScriptAPI_v351, "v351"},
+    {kScriptAPI_v360, "v360"},       {kScriptAPI_v36026, "v36026"},   {kScriptAPI_v361, "v361"},
+    {kScriptAPI_v362, "v362"},       {kScriptAPI_v363, "v363"},       {kScriptAPI_v399, "v399"},
+    {kScriptAPI_v400, "v400"},       {kScriptAPI_v400_07, "v400_07"}, {kScriptAPI_v400_14, "v400_14"},
+    {kScriptAPI_v400_16, "v400_16"}, {kScriptAPI_v400_18, "v400_18"}, {kScriptAPI_v400_24, "v400_24"},
+    {kScriptAPI_v400_33, "v400_33"},
+};
 
-    inline bool ReadAndAssertCount(Stream *in, const char *objname, uint32_t expected, HError &err)
-    {
-        uint32_t count = in->ReadInt32();
-        if (count != expected)
-            err = new Error(String::FromFormat("Mismatching number of %s: read %u expected %u", objname, count, expected));
-        return !err.HasError();
-    }
+inline bool ReadAndAssertCount(Stream *in, const char *objname, uint32_t expected, HError &err)
+{
+    uint32_t count = in->ReadInt32();
+    if (count != expected)
+        err = new Error(String::FromFormat("Mismatching number of %s: read %u expected %u", objname, count, expected));
+    return !err.HasError();
+}
 
-    // Reads ScriptEventSchema and ScriptEventsTables for an object list.
-    // The object list is assumed to be already precreated.
-    // NOTE: if there will be an issue with the Events member (diff name, protected),
-    // then we would require a method that sets handlers into object's event table.
-    // NOTE: made this a template function, because majority of objects in the engine
-    // do not have a shared parent class (also we work with a vector of them here...).
-    // Revise this later?
-    template <typename TObj, typename TObjIter>
-    HError ReadScriptEventsTablesForObjects(TObjIter begin, TObjIter end, const char *objname, Stream *in)
+// Reads ScriptEventSchema and ScriptEventsTables for an object list.
+// The object list is assumed to be already precreated.
+// NOTE: if there will be an issue with the Events member (diff name, protected),
+// then we would require a method that sets handlers into object's event table.
+// NOTE: made this a template function, because majority of objects in the engine
+// do not have a shared parent class (also we work with a vector of them here...).
+// Revise this later?
+template<typename TObj, typename TObjIter>
+HError ReadScriptEventsTablesForObjects(TObjIter begin, TObjIter end, const char *objname, Stream *in)
+{
+    // TODO: figure out a more optimal way for handling all the operations here,
+    // perhaps join schema read and remap into the member of the ScriptEventSchema class?
+    // join Handlers read and remap? anything else that may be improved?
+    ScriptEventSchema schema;
+    HError err = schema.Read(in);
+    if (!err)
+        return err;
+    std::vector<uint32_t> remap;
+    const bool must_remap = schema.CreateRemap(TObj::GetEventSchema(), remap);
+
+    size_t obj_count = end - begin;
+    if (!ReadAndAssertCount(in, objname, static_cast<uint32_t>(obj_count), err))
+        return err;
+
+    for (size_t i = 0; i < obj_count; ++i)
     {
-        // TODO: figure out a more optimal way for handling all the operations here,
-        // perhaps join schema read and remap into the member of the ScriptEventSchema class?
-        // join Handlers read and remap? anything else that may be improved?
-        ScriptEventSchema schema;
-        HError err = schema.Read(in);
+        ScriptEventHandlers handlers;
+        err = handlers.Read(in);
         if (!err)
             return err;
-        std::vector<uint32_t> remap;
-        const bool must_remap = schema.CreateRemap(TObj::GetEventSchema(), remap);
-
-        size_t obj_count = end - begin;
-        if (!ReadAndAssertCount(in, objname, static_cast<uint32_t>(obj_count), err))
-            return err;
-
-        for (size_t i = 0; i < obj_count; ++i)
-        {
-            ScriptEventHandlers handlers;
-            err = handlers.Read(in);
-            if (!err)
-                return err;
-            if (must_remap)
-                handlers.Remap(remap);
-            (*(begin + i)).GetEvents().SetHandlers(handlers);
-        }
-        return HError::None();
+        if (must_remap)
+            handlers.Remap(remap);
+        (*(begin + i)).GetEvents().SetHandlers(handlers);
     }
+    return HError::None();
+}
 
-    // Reads ScriptEventSchema and ScriptEventsTables for an object list.
-    // This is a variant for the objects stored in a std::vector
-    template <typename TObj>
-    HError ReadScriptEventsTablesForObjects(std::vector<TObj> &objs, const char *objname, Stream *in)
-    {
-        return ReadScriptEventsTablesForObjects<TObj, typename std::vector<TObj>::iterator>(objs.begin(), objs.end(), objname, in);
-    }
+// Reads ScriptEventSchema and ScriptEventsTables for an object list.
+// This is a variant for the objects stored in a std::vector
+template<typename TObj>
+HError ReadScriptEventsTablesForObjects(std::vector<TObj> &objs, const char *objname, Stream *in)
+{
+    return ReadScriptEventsTablesForObjects<TObj, typename std::vector<TObj>::iterator>(objs.begin(), objs.end(),
+                                                                                        objname, in);
+}
 
-    // Reads ScriptEventSchema and ScriptEventsTables for an object list.
-    // This is a variant for the objects stored in a C-style array.
-    // TODO: store these in a vector too at some point, and remove this variant.
-    template <typename TObj, size_t ObjListSize>
-    HError ReadScriptEventsTablesForObjects(TObj (&objs)[ObjListSize], size_t obj_count, const char *objname, Stream *in)
-    {
-        return ReadScriptEventsTablesForObjects<TObj, TObj*>(objs, objs + obj_count, objname, in);
-    }
+// Reads ScriptEventSchema and ScriptEventsTables for an object list.
+// This is a variant for the objects stored in a C-style array.
+// TODO: store these in a vector too at some point, and remove this variant.
+template<typename TObj, size_t ObjListSize>
+HError ReadScriptEventsTablesForObjects(TObj (&objs)[ObjListSize], size_t obj_count, const char *objname, Stream *in)
+{
+    return ReadScriptEventsTablesForObjects<TObj, TObj *>(objs, objs + obj_count, objname, in);
+}
 
-    // Searches the input string for the macro placeholder surrounded by '@',
-    // for each found placeholder calls the provided callback function.
-    // Optionally allow the last macro to be unclosed (backwards compatibility).
-    void ScanMacroTokens(const String &text, std::function<bool(const String &macro)> &fn_parse,
-        bool allow_unclosed_macros = false);
-    // Searches the input string for the macro placeholder surrounded by '@',
-    // for each found placeholder calls the provided callback function.
-    // Optionally allow the last macro to be unclosed (backwards compatibility).
-    String ResolveMacroTokens(const String &text, std::function<bool(const String &macro, String &result)> &fn_parse,
-        bool allow_unclosed_macros = false);
+// Searches the input string for the macro placeholder surrounded by '@',
+// for each found placeholder calls the provided callback function.
+// Optionally allow the last macro to be unclosed (backwards compatibility).
+void ScanMacroTokens(const String &text, std::function<bool(const String &macro)> &fn_parse,
+                     bool allow_unclosed_macros = false);
+// Searches the input string for the macro placeholder surrounded by '@',
+// for each found placeholder calls the provided callback function.
+// Optionally allow the last macro to be unclosed (backwards compatibility).
+String ResolveMacroTokens(const String &text, std::function<bool(const String &macro, String &result)> &fn_parse,
+                          bool allow_unclosed_macros = false);
 
-    // Password used for encryption; exposed for tests and editor (temporarily)
-    extern const char *EncryptPassword;
+// Password used for encryption; exposed for tests and editor (temporarily)
+extern const char *EncryptPassword;
 
-    // Text encryption/decryption functions which apply a password string
-    // using ADD operation when encrypting and SUB when decrypting by default.
-    // Optionally may switch the enc/dec operation (required for certain cases).
-    // 
-    // Decrypts text found in the given buffer, writes back to the same buffer
-    void DecryptText(char *buf, size_t buf_sz, bool inverse = false);
-    // Reads an encrypted string from the stream and decrypts into the provided buffer
-    void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz, bool inverse = false);
-    // Reads an encrypted string from the stream and returns as a string
-    String ReadStringDecrypt(Stream *in, bool inverse = false);
-    // Reads an encrypted string from the stream and returns as a string;
-    // uses provided vector as a temporary decryption buffer (avoid extra allocs)
-    String ReadStringDecrypt(Stream *in, std::vector<char> &dec_buf, bool inverse = false);
-    // Skip an encrypted string in stream
-    void SkipStringDecrypt(Stream *in);
+// Text encryption/decryption functions which apply a password string
+// using ADD operation when encrypting and SUB when decrypting by default.
+// Optionally may switch the enc/dec operation (required for certain cases).
+//
+// Decrypts text found in the given buffer, writes back to the same buffer
+void DecryptText(char *buf, size_t buf_sz, bool inverse = false);
+// Reads an encrypted string from the stream and decrypts into the provided buffer
+void ReadStringDecrypt(Stream *in, char *buf, size_t buf_sz, bool inverse = false);
+// Reads an encrypted string from the stream and returns as a string
+String ReadStringDecrypt(Stream *in, bool inverse = false);
+// Reads an encrypted string from the stream and returns as a string;
+// uses provided vector as a temporary decryption buffer (avoid extra allocs)
+String ReadStringDecrypt(Stream *in, std::vector<char> &dec_buf, bool inverse = false);
+// Skip an encrypted string in stream
+void SkipStringDecrypt(Stream *in);
 
-    // Encrypts string in-place
-    void EncryptText(char *buf, size_t buf_sz, bool inverse = false);
-    // Encrypts input string and stores result in the vector of chars;
-    // returns a pointer to the buffer.
-    const char *EncryptText(std::vector<char> &en_buf, const String &s, bool inverse = false);
-    // Encrypts empty string. A helper function in case you don't have any source text
-    const char *EncryptEmptyString(std::vector<char> &en_buf, bool inverse = false);
-    // Encrypts string and writes into the output stream
-    void WriteStringEncrypt(Stream *out, const char *s, bool inverse = false);
+// Encrypts string in-place
+void EncryptText(char *buf, size_t buf_sz, bool inverse = false);
+// Encrypts input string and stores result in the vector of chars;
+// returns a pointer to the buffer.
+const char *EncryptText(std::vector<char> &en_buf, const String &s, bool inverse = false);
+// Encrypts empty string. A helper function in case you don't have any source text
+const char *EncryptEmptyString(std::vector<char> &en_buf, bool inverse = false);
+// Encrypts string and writes into the output stream
+void WriteStringEncrypt(Stream *out, const char *s, bool inverse = false);
 
 } // namespace Common
 } // namespace AGS

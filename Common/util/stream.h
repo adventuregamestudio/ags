@@ -19,7 +19,7 @@
 // The user is advised to use advanced helper methods, such as Read/WriteX
 // and Read/WriteArrayOfX to allow the stream implementation properly control
 // endianness conversions when needed.
-// 
+//
 // Only streams with uncommon behavior should be derived directly from Stream.
 // Most I/O devices should inherit DataStream instead.
 //
@@ -43,16 +43,16 @@ namespace Common
 enum StreamMode
 {
     // kStream_None defines an invalid (non-functional) stream
-    kStream_None    = 0,
+    kStream_None = 0,
     // Following capabilities should be passed as request
     // when opening a stream subclass
-    kStream_Read    = 0x01,
-    kStream_Write   = 0x02,
+    kStream_Read = 0x01,
+    kStream_Write = 0x02,
     kStream_ReadWrite = kStream_Read | kStream_Write,
-    
+
     // Following capabilities should not be requested,
     // but are defined by each particular stream subclass
-    kStream_Seek    = 0x04
+    kStream_Seek = 0x04
 };
 
 enum StreamSeek
@@ -78,10 +78,10 @@ public:
     // Tells whether this stream's position is at its end;
     // note that unlike standard C feof this does not wait for a read attempt
     // past the stream end, and reports positive when position = length.
-    virtual bool   EOS() const = 0;
+    virtual bool EOS() const = 0;
     // Tells if there were errors during previous io operation(s);
     // the call to GetError() *resets* the error record.
-    virtual bool   GetError() const = 0;
+    virtual bool GetError() const = 0;
     // Returns the total stream's length in bytes
     virtual soff_t GetLength() const = 0;
     // Returns stream's position
@@ -103,16 +103,16 @@ public:
     // returns the new position in stream, or -1 on error.
     virtual soff_t Seek(soff_t offset, StreamSeek origin = kSeekCurrent) = 0;
     // Flush stream buffer to the underlying device
-    virtual bool   Flush() = 0;
+    virtual bool Flush() = 0;
     // Closes the stream
-    virtual void   Close() = 0;
+    virtual void Close() = 0;
 
     // Closes the stream and deallocates the object memory.
     // NOTE: this effectively deletes the stream object, making it unusable.
     // This method is purposed for the plugin API, it should be used instead
     // of regular *delete* on stream objects that may have been provided
     // by plugins.
-    virtual void   Dispose() = 0;
+    virtual void Dispose() = 0;
 
     // Virtual destructor must be located after the IAGSStream interface
     virtual ~IStreamBase() = default;
@@ -129,18 +129,17 @@ class StreamBase : public IStreamBase
 {
 public:
     StreamBase() = default;
-    StreamBase(const String &path)
-        : _path(path) {}
+    StreamBase(const String &path) : _path(path) {}
     virtual ~StreamBase() = default;
 
     //-----------------------------------------------------
     // Helpers for learning the stream's state and capabilities
     //-----------------------------------------------------
     // Tells if stream is functional, and which operations are supported
-    bool        IsValid() const  { return GetMode() != kStream_None; }
-    bool        CanRead() const  { return (GetMode() & kStream_Read) != 0; }
-    bool        CanWrite() const { return (GetMode() & kStream_Write) != 0; }
-    bool        CanSeek() const  { return (GetMode() & kStream_Seek) != 0; }
+    bool IsValid() const { return GetMode() != kStream_None; }
+    bool CanRead() const { return (GetMode() & kStream_Read) != 0; }
+    bool CanWrite() const { return (GetMode() & kStream_Write) != 0; }
+    bool CanSeek() const { return (GetMode() & kStream_Seek) != 0; }
 
     // Boolean operator, equivalent to IsValid(), for convenience
     operator bool() const { return IsValid(); }
@@ -150,14 +149,14 @@ public:
     //-----------------------------------------------------
     // Returns an optional path of a stream's source, such as a filepath;
     // primarily for diagnostic purposes
-    const char         *GetPath() const override { return _path.GetCStr(); }
+    const char *GetPath() const override { return _path.GetCStr(); }
     // Tells which mode the stream is working in, which defines
     // supported io operations, such as reading, writing, seeking, etc.
     // Invalid streams return kStream_None to indicate that they are not functional.
-    StreamMode          GetMode() const override { return kStream_None; }
+    StreamMode GetMode() const override { return kStream_None; }
     // Tells if there were errors during previous io operation(s);
     // the call to GetError() *resets* the error record.
-    bool                GetError() const override { return false; }
+    bool GetError() const override { return false; }
 
 protected:
     String _path; // optional name of the stream's source (e.g. filepath)
@@ -177,10 +176,8 @@ class Stream final
 {
 public:
     Stream() = default;
-    Stream(std::unique_ptr<IStreamBase> &&base)
-        : _base(std::move(base)) {}
-    Stream(Stream &&other)
-        : _base(std::move(other._base)) {}
+    Stream(std::unique_ptr<IStreamBase> &&base) : _base(std::move(base)) {}
+    Stream(Stream &&other) : _base(std::move(other._base)) {}
     ~Stream() = default;
 
     IStreamBase *GetStreamBase() { return _base.get(); }
@@ -192,15 +189,15 @@ public:
     // Helpers for learning the stream's state and capabilities
     //-----------------------------------------------------
     // Tells if stream is functional, and which operations are supported
-    bool        IsValid() const  { return GetMode() != kStream_None; }
-    bool        CanRead() const  { return (GetMode() & kStream_Read) != 0; }
-    bool        CanWrite() const { return (GetMode() & kStream_Write) != 0; }
-    bool        CanSeek() const  { return (GetMode() & kStream_Seek) != 0; }
+    bool IsValid() const { return GetMode() != kStream_None; }
+    bool CanRead() const { return (GetMode() & kStream_Read) != 0; }
+    bool CanWrite() const { return (GetMode() & kStream_Write) != 0; }
+    bool CanSeek() const { return (GetMode() & kStream_Seek) != 0; }
 
     // Boolean operator, equivalent to IsValid(), for convenience
     operator bool() const { return IsValid(); }
 
-    Stream &operator =(Stream &&other)
+    Stream &operator=(Stream &&other)
     {
         _base = std::move(other._base);
         return *this;
@@ -211,51 +208,42 @@ public:
     //-----------------------------------------------------
     // Returns an optional path of a stream's source, such as a filepath;
     // primarily for diagnostic purposes
-    const char  *GetPath() const { return _base->GetPath(); }
+    const char *GetPath() const { return _base->GetPath(); }
     // Tells which mode the stream is working in, which defines
     // supported io operations, such as reading, writing, seeking, etc.
     // Invalid streams return kStream_None to indicate that they are not functional.
-    StreamMode  GetMode() const { return _base->GetMode(); }
+    StreamMode GetMode() const { return _base->GetMode(); }
     // Tells whether this stream's position is at its end;
     // note that unlike standard C feof this does not wait for a read attempt
     // past the stream end, and reports positive when position = length.
-    bool        EOS() const { return _base->EOS(); }
+    bool EOS() const { return _base->EOS(); }
     // Tells if there were errors during previous io operation(s);
     // the call to GetError() *resets* the error record.
-    bool        GetError() const { return _base->GetError(); }
+    bool GetError() const { return _base->GetError(); }
     // Returns the total stream's length in bytes
-    soff_t      GetLength() const { return _base->GetLength(); }
+    soff_t GetLength() const { return _base->GetLength(); }
     // Returns stream's position
-    soff_t      GetPosition() const { return _base->GetPosition(); }
+    soff_t GetPosition() const { return _base->GetPosition(); }
 
     // Reads number of bytes into the provided buffer
-    size_t      Read(void *buffer, size_t len)
-    {
-        return _base->Read(buffer, len);
-    }
+    size_t Read(void *buffer, size_t len) { return _base->Read(buffer, len); }
     // ReadByte conforms to standard C fgetc behavior:
     // - on success returns an *unsigned char* packed in the int32
     // - on failure (EOS or other error), returns -1
-    int32_t     ReadByte() { return _base->ReadByte(); }
+    int32_t ReadByte() { return _base->ReadByte(); }
     // Writes number of bytes from the provided buffer
-    size_t      Write(const void *buffer, size_t len)
-    {
-        return _base->Write(buffer, len);
-    }
+    size_t Write(const void *buffer, size_t len) { return _base->Write(buffer, len); }
     // WriteByte conforms to standard C fputc behavior:
     // - on success, returns the written unsigned char packed in the int32
     // - on failure, returns -1
-    int32_t     WriteByte(uint8_t b) { return _base->WriteByte(b); };
+    int32_t WriteByte(uint8_t b) { return _base->WriteByte(b); };
     // Seeks to offset from the origin;
     // returns the new position in stream, or -1 on error.
-    soff_t      Seek(soff_t offset, StreamSeek origin = kSeekCurrent)
-    {
-        return _base->Seek(offset, origin);
-    }
+    soff_t Seek(soff_t offset, StreamSeek origin = kSeekCurrent) { return _base->Seek(offset, origin); }
     // Flush stream buffer to the underlying device
-    bool        Flush() { return _base->Flush(); }
+    bool Flush() { return _base->Flush(); }
     // Closes the stream
-    void        Close() { return _base->Close(); }
+    void Close() { return _base->Close(); }
 
     //-------------------------------------------------------------------------
     // Following are helper methods for reading & writing particular values.
@@ -324,15 +312,9 @@ public:
         Read(&val, sizeof(float));
         return BBOp::Float32FromBE(val);
     }
-    bool ReadBool()
-    {
-        return ReadInt8() != 0;
-    }
- 
-    size_t WriteInt8(int8_t val)
-    {
-        return Write(&val, sizeof(int8_t));
-    }
+    bool ReadBool() { return ReadInt8() != 0; }
+
+    size_t WriteInt8(int8_t val) { return Write(&val, sizeof(int8_t)); }
     size_t WriteInt16(int16_t val)
     {
         val = BBOp::Int16FromLE(val);
@@ -360,10 +342,7 @@ public:
         val = BBOp::Float32FromLE(val);
         return Write(&val, sizeof(float));
     }
-    size_t WriteBool(bool val)
-    {
-        return WriteInt8(val ? 1 : 0);
-    }
+    size_t WriteBool(bool val) { return WriteInt8(val ? 1 : 0); }
 
     //-------------------------------------------------------------------------
     // Following are helper methods for reading & writing arrays of basic types.
@@ -374,98 +353,92 @@ public:
     {
         return Read(buffer, elem_size * count) / elem_size;
     }
-    size_t ReadArrayOfInt8(int8_t *buffer, size_t count)
-    {
-        return Read(buffer, count);
-    }
+    size_t ReadArrayOfInt8(int8_t *buffer, size_t count) { return Read(buffer, count); }
     size_t ReadArrayOfInt16(int16_t *buffer, size_t count)
     {
-    #if defined (BITBYTE_BIG_ENDIAN)
+#if defined(BITBYTE_BIG_ENDIAN)
         return ReadAndConvertArrayOfInt16(buffer, count);
-    #else
+#else
         return ReadArray(buffer, sizeof(int16_t), count);
-    #endif
+#endif
     }
     size_t ReadArrayOfInt32(int32_t *buffer, size_t count)
     {
-    #if defined (BITBYTE_BIG_ENDIAN)
+#if defined(BITBYTE_BIG_ENDIAN)
         return ReadAndConvertArrayOfInt32(buffer, count);
-    #else
+#else
         return ReadArray(buffer, sizeof(int32_t), count);
-    #endif
+#endif
     }
     size_t ReadArrayOfInt64(int64_t *buffer, size_t count)
     {
-    #if defined (BITBYTE_BIG_ENDIAN)
+#if defined(BITBYTE_BIG_ENDIAN)
         return ReadAndConvertArrayOfInt64(buffer, count);
-    #else
+#else
         return ReadArray(buffer, sizeof(int64_t), count);
-    #endif
+#endif
     }
     size_t ReadArrayOfUInt24(uint8_t *buffer, size_t count)
     {
-    #if defined (BITBYTE_BIG_ENDIAN)
+#if defined(BITBYTE_BIG_ENDIAN)
         return ReadAndConvertArrayOfUInt24(buffer, count);
-    #else
+#else
         return ReadArray(buffer, sizeof(uint8_t) * 3, count);
-    #endif
+#endif
     }
     size_t ReadArrayOfFloat32(float *buffer, size_t count)
     {
-    #if defined (BITBYTE_BIG_ENDIAN)
+#if defined(BITBYTE_BIG_ENDIAN)
         return ReadAndConvertArrayOfFloat32(buffer, count);
-    #else
+#else
         return ReadArray(buffer, sizeof(float), count);
-    #endif
+#endif
     }
-    
+
     size_t WriteArray(const void *buffer, size_t elem_size, size_t count)
     {
         return Write(buffer, elem_size * count) / elem_size;
     }
-    size_t WriteArrayOfInt8(const int8_t *buffer, size_t count)
-    {
-        return Write(buffer, count);
-    }
+    size_t WriteArrayOfInt8(const int8_t *buffer, size_t count) { return Write(buffer, count); }
     size_t WriteArrayOfInt16(const int16_t *buffer, size_t count)
     {
-    #if defined (BITBYTE_BIG_ENDIAN)
+#if defined(BITBYTE_BIG_ENDIAN)
         return WriteAndConvertArrayOfInt16(buffer, count);
-    #else
+#else
         return WriteArray(buffer, sizeof(int16_t), count);
-    #endif
+#endif
     }
     size_t WriteArrayOfInt32(const int32_t *buffer, size_t count)
     {
-    #if defined (BITBYTE_BIG_ENDIAN)
+#if defined(BITBYTE_BIG_ENDIAN)
         return WriteAndConvertArrayOfInt32(buffer, count);
-    #else
+#else
         return WriteArray(buffer, sizeof(int32_t), count);
-    #endif
+#endif
     }
     size_t WriteArrayOfInt64(const int64_t *buffer, size_t count)
     {
-    #if defined (BITBYTE_BIG_ENDIAN)
+#if defined(BITBYTE_BIG_ENDIAN)
         return WriteAndConvertArrayOfInt64(buffer, count);
-    #else
+#else
         return WriteArray(buffer, sizeof(int64_t), count);
-    #endif
+#endif
     }
     size_t WriteArrayOfUInt24(const uint8_t *buffer, size_t count)
     {
-    #if defined (BITBYTE_BIG_ENDIAN)
+#if defined(BITBYTE_BIG_ENDIAN)
         return WriteAndConvertArrayOfUInt24(buffer, count);
-    #else
+#else
         return WriteArray(buffer, sizeof(uint8_t) * 3, count);
-    #endif
+#endif
     }
     size_t WriteArrayOfFloat32(const float *buffer, size_t count)
     {
-    #if defined (BITBYTE_BIG_ENDIAN)
+#if defined(BITBYTE_BIG_ENDIAN)
         return WriteAndConvertArrayOfFloat32(buffer, count);
-    #else
+#else
         return WriteArray(buffer, sizeof(float), count);
-    #endif
+#endif
     }
 
     // Read out a number of bytes
@@ -479,16 +452,16 @@ private:
 
     // Helper methods for reading/writing arrays of basic types and
     // converting their elements to opposite endianess (swapping bytes).
-    size_t  ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count);
-    size_t  ReadAndConvertArrayOfInt32(int32_t *buffer, size_t count);
-    size_t  ReadAndConvertArrayOfInt64(int64_t *buffer, size_t count);
-    size_t  ReadAndConvertArrayOfUInt24(uint8_t *buffer, size_t count);
-    size_t  ReadAndConvertArrayOfFloat32(float *buffer, size_t count);
-    size_t  WriteAndConvertArrayOfInt16(const int16_t *buffer, size_t count);
-    size_t  WriteAndConvertArrayOfInt32(const int32_t *buffer, size_t count);
-    size_t  WriteAndConvertArrayOfInt64(const int64_t *buffer, size_t count);
-    size_t  WriteAndConvertArrayOfUInt24(const uint8_t *buffer, size_t count);
-    size_t  WriteAndConvertArrayOfFloat32(const float *buffer, size_t count);
+    size_t ReadAndConvertArrayOfInt16(int16_t *buffer, size_t count);
+    size_t ReadAndConvertArrayOfInt32(int32_t *buffer, size_t count);
+    size_t ReadAndConvertArrayOfInt64(int64_t *buffer, size_t count);
+    size_t ReadAndConvertArrayOfUInt24(uint8_t *buffer, size_t count);
+    size_t ReadAndConvertArrayOfFloat32(float *buffer, size_t count);
+    size_t WriteAndConvertArrayOfInt16(const int16_t *buffer, size_t count);
+    size_t WriteAndConvertArrayOfInt32(const int32_t *buffer, size_t count);
+    size_t WriteAndConvertArrayOfInt64(const int64_t *buffer, size_t count);
+    size_t WriteAndConvertArrayOfUInt24(const uint8_t *buffer, size_t count);
+    size_t WriteAndConvertArrayOfFloat32(const float *buffer, size_t count);
 };
 
 
@@ -515,10 +488,10 @@ public:
     StreamSection(IStreamBase *base, soff_t start, soff_t end);
     ~StreamSection();
 
-    StreamMode  GetMode() const override { return _base->GetMode(); }
+    StreamMode GetMode() const override { return _base->GetMode(); }
     const char *GetPath() const override { return _base->GetPath(); }
-    bool        EOS() const override     { return _position >= _end; }
-    bool        GetError() const override { return _base->GetError(); }
+    bool EOS() const override { return _position >= _end; }
+    bool GetError() const override { return _base->GetError(); }
 
     soff_t GetLength() const override { return _end - _start; }
     soff_t GetPosition() const override { return _position - _start; }
@@ -528,8 +501,8 @@ public:
     size_t Write(const void *buffer, size_t len) override;
     int32_t WriteByte(uint8_t b) override;
     soff_t Seek(soff_t offset, StreamSeek origin = kSeekCurrent) override;
-    bool   Flush() override { return _base->Flush(); }
-    void   Close() override;
+    bool Flush() override { return _base->Flush(); }
+    void Close() override;
 
 private:
     void Open(IStreamBase *base);
@@ -552,7 +525,7 @@ inline std::unique_ptr<Stream> AsStream(std::unique_ptr<TStreamBase> &&stream_ba
 }
 
 template<typename TStreamBase, typename... Args>
-inline std::unique_ptr<Stream> AsStream(Args&& ...args)
+inline std::unique_ptr<Stream> AsStream(Args &&...args)
 {
     return std::make_unique<Stream>(std::make_unique<TStreamBase>(std::forward<Args>(args)...));
 }

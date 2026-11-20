@@ -30,35 +30,41 @@ namespace SpriteDataUtils
 
 // Image buffer pointer, a helper struct that eases switching
 // between intermediate buffers when loading, saving or converting / compressing an image.
-template <typename T> struct ImBufferPtrT
+template<typename T>
+struct ImBufferPtrT
 {
-    T        Buf = nullptr;
-    size_t   Size = 0;
-    int      BPP = 0; // byte per pixel
-    int      Stride = 0; // bytes per line
+    T Buf = nullptr;
+    size_t Size = 0;
+    int BPP = 0;    // byte per pixel
+    int Stride = 0; // bytes per line
 
     ImBufferPtrT() = default;
     ImBufferPtrT(T buf, size_t sz, int bpp, int stride) : Buf(buf), Size(sz), BPP(bpp), Stride(stride) {}
 };
-typedef ImBufferPtrT<uint8_t*> ImBufferPtr;
-typedef ImBufferPtrT<const uint8_t*> ImBufferCPtr;
+typedef ImBufferPtrT<uint8_t *> ImBufferPtr;
+typedef ImBufferPtrT<const uint8_t *> ImBufferCPtr;
 
 // Finds the given color's index in the palette, or returns SIZE_MAX if such color is not there
 static size_t lookup_palette(uint32_t col, uint32_t palette[256], uint32_t ncols)
 {
     for (size_t i = 0; i < ncols; ++i)
-        if (palette[i] == col) return i;
+        if (palette[i] == col)
+            return i;
     return SIZE_MAX;
 }
 
 // Converts a 16/32-bit image into the indexed 8-bit pixel data with palette;
 // NOTE: the palette will contain colors in the same format as the source image.
 // only succeeds if the total number of colors used in the image is < 257.
-static bool CreateIndexedBitmap(const BitmapData &image, std::vector<uint8_t> &dst_data,
-    uint32_t palette[256], uint32_t &pal_count)
+static bool CreateIndexedBitmap(const BitmapData &image, std::vector<uint8_t> &dst_data, uint32_t palette[256],
+                                uint32_t &pal_count)
 {
     const int src_bpp = image.GetBytesPerPixel();
-    if (src_bpp < 2) { assert(0); return false; }
+    if (src_bpp < 2)
+    {
+        assert(0);
+        return false;
+    }
     const size_t src_size = image.GetWidth() * image.GetHeight() * image.GetBytesPerPixel();
     const size_t dst_size = image.GetWidth() * image.GetHeight();
     dst_data.resize(dst_size);
@@ -72,22 +78,19 @@ static bool CreateIndexedBitmap(const BitmapData &image, std::vector<uint8_t> &d
         size_t pal_n;
         switch (src_bpp)
         {
-        case 2:
-            col = *((const uint16_t*)src);
-            break;
+        case 2: col = *((const uint16_t *)src); break;
         case 3:
             col = src[0] | (src[1] << 8) | (src[2] << 16); // FIXME: can do just *((const uint32_t*)src & 0xFFFFFF); ??
             break;
-        case 4:
-            col = *((const uint32_t*)src);
-            break;
+        case 4: col = *((const uint32_t *)src); break;
         default: assert(0); return false;
         }
 
         pal_n = lookup_palette(col, palette, pal_count);
         if (pal_n == SIZE_MAX)
         {
-            if (pal_count == 256) return false;
+            if (pal_count == 256)
+                return false;
             pal_n = pal_count;
             palette[pal_count++] = col;
         }
@@ -99,10 +102,11 @@ static bool CreateIndexedBitmap(const BitmapData &image, std::vector<uint8_t> &d
 // Unpacks an indexed image's pixel data into the 16/32-bit image;
 // NOTE: the palette is expected to contain colors in the same format as the destination.
 static void UnpackIndexedBitmap(PixelBuffer &image, const uint8_t *data, size_t data_size,
-    const std::array<uint32_t, 256> &palette, uint32_t pal_count)
+                                const std::array<uint32_t, 256> &palette, uint32_t pal_count)
 {
     assert(pal_count > 0 && pal_count <= 256);
-    if (pal_count == 0 || pal_count > 256) return; // meaningless
+    if (pal_count == 0 || pal_count > 256)
+        return; // meaningless
 
     const uint8_t bpp = static_cast<uint8_t>(image.GetBytesPerPixel());
     const size_t dst_size = image.GetWidth() * image.GetHeight() * image.GetBytesPerPixel();
@@ -112,29 +116,32 @@ static void UnpackIndexedBitmap(PixelBuffer &image, const uint8_t *data, size_t 
     switch (bpp)
     {
     case 2:
-        for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp) {
+        for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp)
+        {
             uint8_t index = data[p];
             assert(index < pal_count);
             uint32_t color = palette[index];
-            *((uint16_t *) dst) = color;
+            *((uint16_t *)dst) = color;
         }
         break;
     case 3:
-        for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp) {
+        for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp)
+        {
             uint8_t index = data[p];
             assert(index < pal_count);
             uint32_t color = palette[index];
-            dst[0] = color & 0xFF;          // FIXME: can use Memory::WriteInt24?
+            dst[0] = color & 0xFF; // FIXME: can use Memory::WriteInt24?
             dst[1] = (color >> 8) & 0xFF;
             dst[2] = (color >> 16) & 0xFF;
         }
         break;
     case 4:
-        for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp) {
+        for (size_t p = 0; (p < data_size) && (dst < dst_end); ++p, dst += bpp)
+        {
             uint8_t index = data[p];
             assert(index < pal_count);
             uint32_t color = palette[index];
-            *((uint32_t*)dst) = color;
+            *((uint32_t *)dst) = color;
         }
         break;
     default: assert(0); return;
@@ -170,7 +177,11 @@ void ReadSpriteHeader_321(SpriteDatHeader &hdr, Stream *in, SpriteCompression co
     // both are always present in this format for historical reasons.
     int bpp = in->ReadInt8();
     in->ReadInt8(); // unused
-    if (bpp == 0) { hdr = SpriteDatHeader(); return; } // empty slot
+    if (bpp == 0)
+    {
+        hdr = SpriteDatHeader();
+        return;
+    } // empty slot
     int w = in->ReadInt16();
     int h = in->ReadInt16();
     hdr = SpriteDatHeader(bpp, kSprFmt_Undefined, 0 /* no palette */, compress, w, h);
@@ -182,7 +193,11 @@ void ReadSpriteHeader_360(SpriteDatHeader &hdr, Stream *in)
     // both are always present in this format for historical reasons.
     int bpp = in->ReadInt8();
     SpriteFormat sformat = (SpriteFormat)in->ReadInt8();
-    if (bpp == 0) { hdr = SpriteDatHeader(); return; } // no sprite (this is not error)
+    if (bpp == 0)
+    {
+        hdr = SpriteDatHeader();
+        return;
+    } // no sprite (this is not error)
     int pal_count = (uint8_t)in->ReadInt8() + 1; // saved as (count - 1)
     SpriteCompression compress = (SpriteCompression)in->ReadInt8();
     int w = in->ReadInt16();
@@ -200,8 +215,8 @@ static inline void WriteSprHeader(const SpriteDatHeader &hdr, Stream *out)
     out->WriteInt16(hdr.Height);
 }
 
-static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bool version360, SpriteCompression compress, HError &err,
-    PALETTE *out_palette)
+static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bool version360,
+                                      SpriteCompression compress, HError &err, PALETTE *out_palette)
 {
     const int bpp = hdr.BPP, w = hdr.Width, h = hdr.Height;
     PixelBuffer image(w, h, ColorDepthToPixelFormat(bpp * 8));
@@ -220,12 +235,24 @@ static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bo
     { // read palette if format assumes one
         switch (pal_bpp)
         {
-        case 2: for (uint32_t i = 0; i < hdr.PalCount; ++i) { palette[i] = in->ReadInt16(); }
-              break;
-        case 3: for (uint32_t i = 0; i < hdr.PalCount; ++i) { palette[i] = in->ReadUInt24(); }
-              break;
-        case 4: for (uint32_t i = 0; i < hdr.PalCount; ++i) { palette[i] = in->ReadInt32(); }
-              break;
+        case 2:
+            for (uint32_t i = 0; i < hdr.PalCount; ++i)
+            {
+                palette[i] = in->ReadInt16();
+            }
+            break;
+        case 3:
+            for (uint32_t i = 0; i < hdr.PalCount; ++i)
+            {
+                palette[i] = in->ReadUInt24();
+            }
+            break;
+        case 4:
+            for (uint32_t i = 0; i < hdr.PalCount; ++i)
+            {
+                palette[i] = in->ReadInt32();
+            }
+            break;
         default: assert(0); break;
         }
         if (bpp > 1)
@@ -235,9 +262,7 @@ static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bo
         }
     }
     // (Optional) Decompress the image data into the temp buffer
-    size_t in_data_size =
-        ((version360) || compress != kSprCompress_None) ?
-        (uint32_t)in->ReadInt32() : (w * h * bpp);
+    size_t in_data_size = ((version360) || compress != kSprCompress_None) ? (uint32_t)in->ReadInt32() : (w * h * bpp);
     if (hdr.Compress != kSprCompress_None)
     {
         if (in_data_size == 0)
@@ -248,13 +273,15 @@ static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bo
         bool result;
         switch (hdr.Compress)
         {
-        case kSprCompress_RLE: result = rle_decompress(im_data.Buf, im_data.Size, im_data.BPP, in);
+        case kSprCompress_RLE: result = rle_decompress(im_data.Buf, im_data.Size, im_data.BPP, in); break;
+        case kSprCompress_LZW: result = lzw_decompress(im_data.Buf, im_data.Size, im_data.BPP, in, in_data_size); break;
+        case kSprCompress_Deflate:
+            result = inflate_decompress(im_data.Buf, im_data.Size, im_data.BPP, in, in_data_size);
             break;
-        case kSprCompress_LZW: result = lzw_decompress(im_data.Buf, im_data.Size, im_data.BPP, in, in_data_size);
+        default:
+            assert(!"Unsupported compression type!");
+            result = false;
             break;
-        case kSprCompress_Deflate: result = inflate_decompress(im_data.Buf, im_data.Size, im_data.BPP, in, in_data_size);
-            break;
-        default: assert(!"Unsupported compression type!"); result = false; break;
         }
         // TODO: test that not more than data_size was read!
         if (!result)
@@ -292,7 +319,7 @@ static PixelBuffer ReadSpriteDataImpl(const SpriteDatHeader &hdr, Stream *in, bo
 }
 
 static PixelBuffer ReadSpriteImpl(Stream *in, bool version360, SpriteCompression compress, HError &err,
-    PALETTE *out_palette)
+                                  PALETTE *out_palette)
 {
     SpriteDatHeader hdr;
     version360 ? ReadSpriteHeader_360(hdr, in) : ReadSpriteHeader_321(hdr, in, compress);
@@ -303,8 +330,7 @@ static PixelBuffer ReadSpriteImpl(Stream *in, bool version360, SpriteCompression
     }
     if (hdr.BPP < 0 || hdr.Width <= 0 || hdr.Height <= 0)
     {
-        err = new Error("LoadSprite: invalid sprite metrics (%dx%d %d-bit).",
-            hdr.Width, hdr.Height, hdr.BPP * 8);
+        err = new Error("LoadSprite: invalid sprite metrics (%dx%d %d-bit).", hdr.Width, hdr.Height, hdr.BPP * 8);
         return {};
     }
 
@@ -316,7 +342,8 @@ PixelBuffer ReadSpriteData_360(const SpriteDatHeader &hdr, Stream *in, HError &e
     return ReadSpriteDataImpl(hdr, in, true, kSprCompress_None /* read from format */, err, out_palette);
 }
 
-PixelBuffer ReadSpriteData_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompression compress, HError &err, PALETTE *out_palette)
+PixelBuffer ReadSpriteData_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompression compress, HError &err,
+                               PALETTE *out_palette)
 {
     return ReadSpriteDataImpl(hdr, in, false, compress, err, out_palette);
 }
@@ -349,9 +376,8 @@ size_t GetSpriteDataSize_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompr
 {
     soff_t data_pos = in->GetPosition();
     // NOTE: old format never had palette along with a sprite data
-    size_t data_size = (compress != kSprCompress_None) ?
-        (uint32_t)in->ReadInt32() + sizeof(uint32_t) :
-        hdr.Width * hdr.Height * hdr.BPP;
+    size_t data_size = (compress != kSprCompress_None) ? (uint32_t)in->ReadInt32() + sizeof(uint32_t)
+                                                       : hdr.Width * hdr.Height * hdr.BPP;
     in->Seek(data_pos, kSeekBegin);
     return data_size;
 }
@@ -359,7 +385,8 @@ size_t GetSpriteDataSize_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompr
 void SkipSpriteData_360(const SpriteDatHeader &hdr, Stream *in)
 {
     int pal_bpp = GetPaletteBPP(hdr.SFormat);
-    if (pal_bpp > 0) in->Seek(hdr.PalCount * pal_bpp); // skip palette
+    if (pal_bpp > 0)
+        in->Seek(hdr.PalCount * pal_bpp); // skip palette
     size_t data_sz = (uint32_t)in->ReadInt32();
     in->Seek(data_sz); // skip image data
 }
@@ -367,14 +394,13 @@ void SkipSpriteData_360(const SpriteDatHeader &hdr, Stream *in)
 void SkipSpriteData_321(const SpriteDatHeader &hdr, Stream *in, SpriteCompression compress)
 {
     // NOTE: old format never had palette along with a sprite data
-    size_t data_sz = (compress != kSprCompress_None) ?
-        (uint32_t)in->ReadInt32() : hdr.Width * hdr.Height * hdr.BPP;
+    size_t data_sz = (compress != kSprCompress_None) ? (uint32_t)in->ReadInt32() : hdr.Width * hdr.Height * hdr.BPP;
     in->Seek(data_sz); // skip image data
 }
 
 // Writes prepared image data in a proper file format, following explicit data_bpp rule
-static void WriteSpriteDataImpl(const SpriteDatHeader &hdr, Stream *out,
-    const ImBufferCPtr &im_data, const uint32_t palette[256])
+static void WriteSpriteDataImpl(const SpriteDatHeader &hdr, Stream *out, const ImBufferCPtr &im_data,
+                                const uint32_t palette[256])
 {
     WriteSprHeader(hdr, out);
     // write palette, if available
@@ -384,12 +410,24 @@ static void WriteSpriteDataImpl(const SpriteDatHeader &hdr, Stream *out,
         assert(hdr.PalCount > 0);
         switch (pal_bpp)
         {
-        case 2: for (uint32_t i = 0; i < hdr.PalCount; ++i) { out->WriteInt16(palette[i]); }
-              break;
-        case 3: for (uint32_t i = 0; i < hdr.PalCount; ++i) { out->WriteUInt24(palette[i]); }
-              break;
-        case 4: for (uint32_t i = 0; i < hdr.PalCount; ++i) { out->WriteInt32(palette[i]); }
-              break;
+        case 2:
+            for (uint32_t i = 0; i < hdr.PalCount; ++i)
+            {
+                out->WriteInt16(palette[i]);
+            }
+            break;
+        case 3:
+            for (uint32_t i = 0; i < hdr.PalCount; ++i)
+            {
+                out->WriteUInt24(palette[i]);
+            }
+            break;
+        case 4:
+            for (uint32_t i = 0; i < hdr.PalCount; ++i)
+            {
+                out->WriteInt32(palette[i]);
+            }
+            break;
         default: assert(0); break;
         }
     }
@@ -407,7 +445,7 @@ static void WriteSpriteDataImpl(const SpriteDatHeader &hdr, Stream *out,
 }
 
 static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flags, SpriteCompression compress,
-    const PALETTE *palette, std::vector<uint8_t> *mem_buf)
+                            const PALETTE *palette, std::vector<uint8_t> *mem_buf)
 {
     const int bpp = image.GetBytesPerPixel();
     const int w = image.GetWidth();
@@ -451,13 +489,13 @@ static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flag
         bool result;
         switch (compress)
         {
-        case kSprCompress_RLE: result = rle_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems);
+        case kSprCompress_RLE: result = rle_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems); break;
+        case kSprCompress_LZW: result = lzw_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems); break;
+        case kSprCompress_Deflate: result = deflate_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems); break;
+        default:
+            assert(!"Unsupported compression type!");
+            result = false;
             break;
-        case kSprCompress_LZW: result = lzw_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems);
-            break;
-        case kSprCompress_Deflate: result = deflate_compress(im_data.Buf, im_data.Size, im_data.BPP, &mems);
-            break;
-        default: assert(!"Unsupported compression type!"); result = false; break;
         }
         // mark to write as a plain byte array
         im_data = result ? ImBufferCPtr(mem_buf->data(), mem_buf->size(), 0, 0) : ImBufferCPtr();
@@ -470,8 +508,8 @@ static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flag
         const auto *pal = *palette;
         for (int i = 0; i < 256; ++i)
         {
-            conv_palette[i] = (pal[i].r << _rgb_r_shift_32) |
-                (pal[i].g << _rgb_g_shift_32) | (pal[i].b << _rgb_b_shift_32);
+            conv_palette[i] =
+                (pal[i].r << _rgb_r_shift_32) | (pal[i].g << _rgb_g_shift_32) | (pal[i].b << _rgb_b_shift_32);
         }
     }
     SpriteDatHeader hdr(bpp, sformat, pal_count, compress, w, h);
@@ -479,7 +517,7 @@ static void WriteSpriteImpl(const BitmapData &image, Stream *out, int store_flag
 }
 
 void WriteSprite_360(const BitmapData &image, Stream *out, int store_flags, SpriteCompression compress,
-    const PALETTE *palette, std::vector<uint8_t> *mem_buf)
+                     const PALETTE *palette, std::vector<uint8_t> *mem_buf)
 {
     WriteSpriteImpl(image, out, store_flags, compress, palette, mem_buf);
 }

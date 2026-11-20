@@ -17,7 +17,8 @@
 #include "util/indexedobjectpool.h"
 
 
-TEST(IndexedObjectPool, BasicTest) {
+TEST(IndexedObjectPool, BasicTest)
+{
     IndexedObjectPool<int, int, -1> pool;
 
     // Initial state
@@ -29,7 +30,7 @@ TEST(IndexedObjectPool, BasicTest) {
     const int index1 = pool.Add(1);
     const int index2 = pool.Add(2);
     ASSERT_EQ(pool.GetCount(), 3u); // only used elements
-    ASSERT_EQ(pool.size(), 3u); // all elements
+    ASSERT_EQ(pool.size(), 3u);     // all elements
     ASSERT_EQ(index0, 0);
     ASSERT_EQ(index1, 1);
     ASSERT_EQ(index2, 2);
@@ -47,7 +48,7 @@ TEST(IndexedObjectPool, BasicTest) {
     pool.Free(1);
     pool.Free(2);
     ASSERT_EQ(pool.GetCount(), 1u); // only used elements
-    ASSERT_EQ(pool.size(), 3u); // all elements
+    ASSERT_EQ(pool.size(), 3u);     // all elements
     ASSERT_EQ(pool.IsFree(0), false);
     ASSERT_EQ(pool.IsFree(1), true);
     ASSERT_EQ(pool.IsFree(2), true);
@@ -62,7 +63,7 @@ TEST(IndexedObjectPool, BasicTest) {
     const int index4 = pool.Add(4);
     const int index5 = pool.Add(5);
     ASSERT_EQ(pool.GetCount(), 4u); // only used elements
-    ASSERT_EQ(pool.size(), 4u); // all elements
+    ASSERT_EQ(pool.size(), 4u);     // all elements
     ASSERT_EQ(index3, 2);
     ASSERT_EQ(index4, 1);
     ASSERT_EQ(index5, 3);
@@ -86,9 +87,9 @@ TEST(IndexedObjectPool, BasicTest) {
     pool.Free(3);
     pool.Set(6, 2);
     pool.Set(7, 0);
-    pool.Set(8, 5); // expands to element 5
+    pool.Set(8, 5);                 // expands to element 5
     ASSERT_EQ(pool.GetCount(), 3u); // only used elements
-    ASSERT_EQ(pool.size(), 6u); // all elements
+    ASSERT_EQ(pool.size(), 6u);     // all elements
     ASSERT_EQ(pool.IsFree(0), false);
     ASSERT_EQ(pool.IsFree(1), true);
     ASSERT_EQ(pool.IsFree(2), false);
@@ -118,7 +119,8 @@ TEST(IndexedObjectPool, BasicTest) {
     ASSERT_EQ(pool.size(), 0u);
 }
 
-TEST(IndexedObjectPool, InvalidIndexIsZero) {
+TEST(IndexedObjectPool, InvalidIndexIsZero)
+{
     IndexedObjectPool<int, int, 0> pool;
 
     // Initial state
@@ -128,7 +130,7 @@ TEST(IndexedObjectPool, InvalidIndexIsZero) {
     // 0 is a invalid index, therefore first index must be 1
     const int index = pool.Add(1);
     ASSERT_EQ(pool.GetCount(), 1u); // counts only valid elements in use
-    ASSERT_EQ(pool.size(), 2u); // index 0 is persistent (internal logic), and new index 1
+    ASSERT_EQ(pool.size(), 2u);     // index 0 is persistent (internal logic), and new index 1
     ASSERT_EQ(index, 1);
     ASSERT_EQ(pool.IsFree(0), true);
     ASSERT_EQ(pool.IsFree(1), false);
@@ -149,7 +151,7 @@ TEST(IndexedObjectPool, InvalidIndexIsZero) {
     const int index2 = pool.Add();
     const int index3 = pool.Add();
     ASSERT_EQ(pool.GetCount(), 3u); // counts only valid elements in use
-    ASSERT_EQ(pool.size(), 4u); // index 0 is persistent (internal logic), and new index 1
+    ASSERT_EQ(pool.size(), 4u);     // index 0 is persistent (internal logic), and new index 1
     ASSERT_EQ(index1, 1);
     ASSERT_EQ(index2, 2);
     ASSERT_EQ(index3, 3);
@@ -177,7 +179,8 @@ TEST(IndexedObjectPool, InvalidIndexIsZero) {
     ASSERT_EQ(index7, 5);
 }
 
-TEST(IndexedObjectPool, InvalidIndexIsMax) {
+TEST(IndexedObjectPool, InvalidIndexIsMax)
+{
     IndexedObjectPool<int, int, std::numeric_limits<int>::max()> pool;
 
     // Initial state
@@ -189,7 +192,7 @@ TEST(IndexedObjectPool, InvalidIndexIsMax) {
     const int index1 = pool.Add(20);
     const int index2 = pool.Add(30);
     ASSERT_EQ(pool.GetCount(), 3u); // only used elements
-    ASSERT_EQ(pool.size(), 3u); // all elements
+    ASSERT_EQ(pool.size(), 3u);     // all elements
     ASSERT_EQ(index0, 0);
     ASSERT_EQ(index1, 1);
     ASSERT_EQ(index2, 2);
@@ -226,14 +229,15 @@ TEST(IndexedObjectPool, InvalidIndexIsMax) {
         ASSERT_EQ(cpool[1], 40);
         ASSERT_EQ(cpool[3], 50);
     }
-    
+
     // Cleared state
     pool.Clear();
     ASSERT_EQ(pool.GetCount(), 0u);
     ASSERT_EQ(pool.size(), 0u);
 }
 
-TEST(IndexedObjectPool, FixedSlots) {
+TEST(IndexedObjectPool, FixedSlots)
+{
     IndexedObjectPool<int, int, -1> pool(5);
 
     // Initial state
@@ -302,11 +306,12 @@ TEST(IndexedObjectPool, FixedSlots) {
     ASSERT_EQ(pool.size(), 5u);
 }
 
-TEST(IndexedObjectPool, SetFreeIndexes) {
+TEST(IndexedObjectPool, SetFreeIndexes)
+{
     IndexedObjectPool<int, int, -1> pool;
 
-    std::vector<int> elems = { 0,1,2,3,4,5,6,7 };
-    std::vector<bool> is_used = { true, false, true, false, true, false, true, false };
+    std::vector<int> elems = {0, 1, 2, 3, 4, 5, 6, 7};
+    std::vector<bool> is_used = {true, false, true, false, true, false, true, false};
     pool.Set(elems, is_used);
 
     ASSERT_EQ(pool.GetCount(), 4u);
@@ -372,13 +377,14 @@ TEST(IndexedObjectPool, SetFreeIndexes) {
     ASSERT_EQ(pool.IsInUse(8), true);
 }
 
-TEST(IndexedObjectPool, SetFreeIndexesWithFixedSlots) {
+TEST(IndexedObjectPool, SetFreeIndexesWithFixedSlots)
+{
     IndexedObjectPool<int, int, 0> pool(4);
 
     // Even if fixed slot is set to be free, it still cannot be re-used later,
     // (except when doing explicit Set()).
-    std::vector<int> elems = { 0,1,2,3,4,5,6,7 };
-    std::vector<bool> is_used = { true, false, true, false, true, false, true, false };
+    std::vector<int> elems = {0, 1, 2, 3, 4, 5, 6, 7};
+    std::vector<bool> is_used = {true, false, true, false, true, false, true, false};
     pool.Set(elems, is_used);
 
     ASSERT_EQ(pool.GetCount(), 3u); // index 0 cannot be "used"

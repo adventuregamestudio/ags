@@ -21,7 +21,13 @@
 #include "ac/common_defines.h"
 #include "util/string.h"
 
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 enum AudioFileType
@@ -45,8 +51,8 @@ enum AudioClipBundle
     kAudioBundle_SpeechVox = 3
 };
 
-#define LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH    30
-#define LEGACY_AUDIOCLIP_FILENAMELENGTH      15
+#define LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH 30
+#define LEGACY_AUDIOCLIP_FILENAMELENGTH   15
 
 struct ScriptAudioClip
 {

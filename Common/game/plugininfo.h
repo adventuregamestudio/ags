@@ -33,7 +33,7 @@ namespace Common
 struct PluginInfo
 {
     // (File)name of plugin
-    String      Name;
+    String Name;
     // Custom data for plugin
     std::vector<uint8_t> Data;
 

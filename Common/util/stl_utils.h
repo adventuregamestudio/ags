@@ -27,29 +27,29 @@ namespace Common
 
 namespace StlUtil
 {
-    // Move elements from one queue to another
-    template <typename T>
-    void MoveQueue(std::queue<T> &dst, std::queue<T> &src)
-    {
-        for (; !src.empty(); src.pop())
-            dst.push(src.front());
-    }
+// Move elements from one queue to another
+template<typename T>
+void MoveQueue(std::queue<T> &dst, std::queue<T> &src)
+{
+    for (; !src.empty(); src.pop())
+        dst.push(src.front());
+}
 
-    // A dirty solution for removing an element of queue from the middle;
-    // to be used as a quick hack or temporary fix only.
-    template <typename T>
-    void EraseFromQueue(std::queue<T> &q, const T &elem)
+// A dirty solution for removing an element of queue from the middle;
+// to be used as a quick hack or temporary fix only.
+template<typename T>
+void EraseFromQueue(std::queue<T> &q, const T &elem)
+{
+    std::queue<T> t;
+    for (; !q.empty(); q.pop())
     {
-        std::queue<T> t;
-        for (; !q.empty(); q.pop())
-        {
-            if (q.front() != elem)
-                t.push(q.front());
-        }
-        MoveQueue(q, t);
+        if (q.front() != elem)
+            t.push(q.front());
     }
+    MoveQueue(q, t);
+}
 
-} // namespace STLUtil
+} // namespace StlUtil
 
 } // namespace Common
 } // namespace AGS

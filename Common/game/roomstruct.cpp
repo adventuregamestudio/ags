@@ -33,16 +33,16 @@ RoomStruct::~RoomStruct()
     Free();
 }
 
-RoomStruct &RoomStruct::operator =(const RoomData &room_data)
+RoomStruct &RoomStruct::operator=(const RoomData &room_data)
 {
-    static_cast<RoomData&>(*this) = room_data;
+    static_cast<RoomData &>(*this) = room_data;
     InitBitmaps();
     return *this;
 }
 
-RoomStruct &RoomStruct::operator =(RoomData &&room_data)
+RoomStruct &RoomStruct::operator=(RoomData &&room_data)
 {
-    static_cast<RoomData&>(*this) = std::move(room_data);
+    static_cast<RoomData &>(*this) = std::move(room_data);
     InitBitmaps();
     return *this;
 }

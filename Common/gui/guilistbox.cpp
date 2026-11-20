@@ -24,12 +24,9 @@ namespace AGS
 namespace Common
 {
 
-/* static */ ScriptEventSchema GUIListBox::_eventSchema = {{
-        { "OnSelectionChanged", kListBoxEvent_OnSelChanged }
-    }};
+/* static */ ScriptEventSchema GUIListBox::_eventSchema = {{{"OnSelectionChanged", kListBoxEvent_OnSelChanged}}};
 
-GUIListBox::GUIListBox()
-    : GUITextBasedControl(&GUIListBox::_eventSchema)
+GUIListBox::GUIListBox() : GUITextBasedControl(&GUIListBox::_eventSchema)
 {
     _flags |= kGUICtrl_ShowBorder;
     UpdateControlRect();
@@ -114,8 +111,7 @@ bool GUIListBox::ShouldShowScrollArrows() const
 
 bool GUIListBox::AreArrowsShown() const
 {
-    return IsShowBorder() && ShouldShowScrollArrows() &&
-        _visibleItemCount < _items.size();
+    return IsShowBorder() && ShouldShowScrollArrows() && _visibleItemCount < _items.size();
 }
 
 bool GUIListBox::IsPosOnScrollbar(int x) const
@@ -147,8 +143,8 @@ Rect GUIListBox::CalcGraphicRect(bool clipped)
         int at_y = _itemsRect.Top + item * _rowHeight;
         uint32_t item_index = item + _topItem;
         PrepareTextToDraw(_items[item_index]);
-        Line lpos = GUI::CalcTextPositionHor(_textToDraw, _font, _itemsRect.Left, _itemsRect.Right, at_y + _itemTextPaddingY,
-            _textAlignment);
+        Line lpos = GUI::CalcTextPositionHor(_textToDraw, _font, _itemsRect.Left, _itemsRect.Right,
+                                             at_y + _itemTextPaddingY, _textAlignment);
         max_line.X2 = std::max(max_line.X2, lpos.X2);
     }
     int last_line_y = _itemsRect.Top + _itemTextPaddingY + (_visibleItemCount - 1) * _rowHeight;
@@ -200,21 +196,20 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
     if (scrollbar)
     {
         const color_t draw_color = ds->GetCompatibleColor(_borderColor);
-        ds->DrawRect(Rect(x + _scrollbarRect.Left, y + _scrollbarRect.Top, x + _scrollbarRect.Right, y + _scrollbarRect.Top + _scrollbarRect.GetHeight() / 2 - 1), draw_color);
-        ds->DrawRect(Rect(x + _scrollbarRect.Left, y + _scrollbarRect.Top + _scrollbarRect.GetHeight() / 2 - 1, x + _scrollbarRect.Right, y + _scrollbarRect.Bottom), draw_color);
+        ds->DrawRect(Rect(x + _scrollbarRect.Left, y + _scrollbarRect.Top, x + _scrollbarRect.Right,
+                          y + _scrollbarRect.Top + _scrollbarRect.GetHeight() / 2 - 1),
+                     draw_color);
+        ds->DrawRect(Rect(x + _scrollbarRect.Left, y + _scrollbarRect.Top + _scrollbarRect.GetHeight() / 2 - 1,
+                          x + _scrollbarRect.Right, y + _scrollbarRect.Bottom),
+                     draw_color);
 
         const int xstrt = x + _scrollbarRect.Left + 1;
         // Up arrow
         int ystrt = y + _scrollbarRect.Top + 3;
-        ds->FillTriangle(Triangle(xstrt, ystrt + 5,
-                xstrt + 4,
-                ystrt + 5,
-                xstrt + 2, ystrt), draw_color);
+        ds->FillTriangle(Triangle(xstrt, ystrt + 5, xstrt + 4, ystrt + 5, xstrt + 2, ystrt), draw_color);
         // Down arrow
         ystrt = (y + _scrollbarRect.Bottom - 3) - 5;
-        ds->FillTriangle(Triangle(xstrt, ystrt, xstrt + 4, ystrt,
-                 xstrt + 2,
-                 ystrt + 5), draw_color);
+        ds->FillTriangle(Triangle(xstrt, ystrt, xstrt + 4, ystrt, xstrt + 2, ystrt + 5), draw_color);
     }
 
     const Rect items_rc = Rect::MoveBy(_itemsRect, x, y);
@@ -246,9 +241,8 @@ void GUIListBox::Draw(Bitmap *ds, int x, int y)
         int item_index = item + _topItem;
         PrepareTextToDraw(_items[item_index]);
 
-        GUI::DrawTextAlignedHor(ds, _textToDraw, _font, text_color, outline_color,
-            at_x + _itemTextPaddingX, right_x - _itemTextPaddingX,
-            at_y + _itemTextPaddingY, _textAlignment);
+        GUI::DrawTextAlignedHor(ds, _textToDraw, _font, text_color, outline_color, at_x + _itemTextPaddingX,
+                                right_x - _itemTextPaddingX, at_y + _itemTextPaddingY, _textAlignment);
     }
     ds->SetClip(old_clip);
 }
@@ -284,7 +278,8 @@ void GUIListBox::RemoveItem(int index)
 
 void GUIListBox::SortItems(bool nocase, bool locale_aware, bool ascending)
 {
-    auto str_less = StrUtil::GetStrLessAutoFor(true, nocase, locale_aware ? GUI::Context.TextLocaleName.GetCStr() : nullptr);
+    auto str_less =
+        StrUtil::GetStrLessAutoFor(true, nocase, locale_aware ? GUI::Context.TextLocaleName.GetCStr() : nullptr);
     if (ascending)
         std::sort(_items.begin(), _items.end(), str_less);
     else
@@ -402,8 +397,7 @@ void GUIListBox::UpdateMetrics()
         const int scroll_width = 7;
         const int scroll_border = _borderWidth > 0 ? 1 : 0;
         const int ext_border = _borderWidth - scroll_border;
-        _scrollbarRect = RectWH(_width - ext_border - scroll_width,
-            ext_border, scroll_width, _height - ext_border * 2);
+        _scrollbarRect = RectWH(_width - ext_border - scroll_width, ext_border, scroll_width, _height - ext_border * 2);
         items_right = _scrollbarRect.Left - 1;
     }
 

@@ -61,7 +61,7 @@ TEST(CharacterInfo, SavedInventoryIsInItemOrder)
         ++at;
     // the first difference is the item count (3 instead of 0), then the (ID, quantity) pairs
     ASSERT_LE(at + 4 + 3 * 8, bytes_with.size());
-    const int32_t expected[] = { 2, 20, 4, 40, 7, 70 };
+    const int32_t expected[] = {2, 20, 4, 40, 7, 70};
     for (size_t i = 0; i < 6; ++i)
     {
         const uint8_t *p = &bytes_with[at + 4 + i * 4];

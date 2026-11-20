@@ -16,7 +16,13 @@
 #define __AC_AUDIOCLIPTYPE_H
 
 // Forward declaration
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 struct AudioClipType

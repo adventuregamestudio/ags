@@ -13,7 +13,7 @@
 //=============================================================================
 #include "script/cc_reflect.h"
 #include <algorithm>
-#include <string> // std::string
+#include <string>   // std::string
 #include <string.h> // memcpy etc
 #include "util/stream.h"
 
@@ -25,13 +25,12 @@ using namespace Common;
 // Adds a string into the string table; saves associated offset, at which
 // this sting will be packed, and increases packed length.
 // Returns last saved offset if the string is already in the table.
-static uint32_t StrTableAdd(std::map<std::string, uint32_t> &table,
-    const std::string &str, uint32_t &packed_len)
+static uint32_t StrTableAdd(std::map<std::string, uint32_t> &table, const std::string &str, uint32_t &packed_len)
 {
     const auto str_it = table.find(str);
     if (str_it != table.end())
         return str_it->second;
-    
+
     table[str] = packed_len;
     uint32_t last_len = packed_len;
     packed_len += str.size() + 1; // count null-terminator
@@ -246,19 +245,19 @@ void RTTISerializer::Write(const RTTI &rtti, Stream *out)
     const soff_t end_soff = out->GetPosition();
     out->Seek(rtti_soff, kSeekBegin);
     out->WriteInt32((uint32_t)FormatVersion::kFmtver_Latest); // format
-    out->WriteInt32((uint32_t)(typei_soff - rtti_soff)); // header size
-    out->WriteInt32((uint32_t)(end_soff - rtti_soff)); // full size
-    out->WriteInt32(RTTI::Location::FileSize); // location info size
-    out->WriteInt32((uint32_t)(loc_soff - rtti_soff)); // locations table offset
-    out->WriteInt32(rtti._locs.size()); // number of locations
-    out->WriteInt32(RTTI::Type::FileSize); // type info size
-    out->WriteInt32((uint32_t)(typei_soff - rtti_soff)); // types table offset
-    out->WriteInt32(rtti._types.size()); // number of types
-    out->WriteInt32(RTTI::Field::FileSize); // field info size
-    out->WriteInt32((uint32_t)(fieldi_soff - rtti_soff)); // fields table offset
-    out->WriteInt32(rtti._fields.size()); // number of fields
-    out->WriteInt32((uint32_t)(str_soff - rtti_soff)); // strings table offset
-    out->WriteInt32(rtti._strings.size()); // string table size
+    out->WriteInt32((uint32_t)(typei_soff - rtti_soff));      // header size
+    out->WriteInt32((uint32_t)(end_soff - rtti_soff));        // full size
+    out->WriteInt32(RTTI::Location::FileSize);                // location info size
+    out->WriteInt32((uint32_t)(loc_soff - rtti_soff));        // locations table offset
+    out->WriteInt32(rtti._locs.size());                       // number of locations
+    out->WriteInt32(RTTI::Type::FileSize);                    // type info size
+    out->WriteInt32((uint32_t)(typei_soff - rtti_soff));      // types table offset
+    out->WriteInt32(rtti._types.size());                      // number of types
+    out->WriteInt32(RTTI::Field::FileSize);                   // field info size
+    out->WriteInt32((uint32_t)(fieldi_soff - rtti_soff));     // fields table offset
+    out->WriteInt32(rtti._fields.size());                     // number of fields
+    out->WriteInt32((uint32_t)(str_soff - rtti_soff));        // strings table offset
+    out->WriteInt32(rtti._strings.size());                    // string table size
     out->Seek(end_soff, kSeekBegin);
 }
 
@@ -288,8 +287,8 @@ const RTTI::Type *RTTI::FindTypeByLocalID(uint32_t type_id) const
 {
     // TODO: this may be optimized if "typeid_to_type" map is kept after CreateQuickRefs?
     // TODO: optimize this out for joint collection, as it has typeid = table index
-    auto it = std::find_if(_types.begin(), _types.end(),
-        [type_id](const Type& type) { return type.this_id == type_id; });
+    auto it =
+        std::find_if(_types.begin(), _types.end(), [type_id](const Type &type) { return type.this_id == type_id; });
     return it == _types.end() ? nullptr : &*it;
 }
 
@@ -341,8 +340,8 @@ void RTTIBuilder::AddLocation(const std::string &name, uint32_t loc_id, uint32_t
     _rtti._locs.push_back(loc);
 }
 
-void RTTIBuilder::AddType(const std::string &name, uint32_t type_id,
-    uint32_t loc_id, uint32_t base_id, uint32_t parent_id, uint32_t flags, uint32_t size, uint32_t dim_num)
+void RTTIBuilder::AddType(const std::string &name, uint32_t type_id, uint32_t loc_id, uint32_t base_id,
+                          uint32_t parent_id, uint32_t flags, uint32_t size, uint32_t dim_num)
 {
     RTTI::Type ti;
     ti.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
@@ -356,8 +355,8 @@ void RTTIBuilder::AddType(const std::string &name, uint32_t type_id,
     _rtti._types.push_back(ti);
 }
 
-void RTTIBuilder::AddField(uint32_t owner_id, const std::string &name,
-    uint32_t offset, uint32_t f_typeid, uint32_t flags, uint32_t num_elems)
+void RTTIBuilder::AddField(uint32_t owner_id, const std::string &name, uint32_t offset, uint32_t f_typeid,
+                           uint32_t flags, uint32_t num_elems)
 {
     RTTI::Field fi;
     fi.offset = offset;
@@ -382,7 +381,7 @@ RTTI RTTIBuilder::Finalize()
     {
         auto fi_range = _fieldIdx.equal_range(ti.this_id);
         if (fi_range.first == _fieldIdx.end())
-            continue; // no fields for this type
+            continue;                          // no fields for this type
         ti.field_index = _rtti._fields.size(); // save first field index
         ti.field_num = std::distance(fi_range.first, fi_range.second);
         for (auto fi_it = fi_range.first; fi_it != fi_range.second; ++fi_it)
@@ -399,7 +398,7 @@ RTTI RTTIBuilder::Finalize()
 }
 
 uint32_t JointRTTI::JoinLocation(const Location &loc, uint32_t uid, const char *name,
-    std::unordered_map<uint32_t, uint32_t> &loc_l2g)
+                                 std::unordered_map<uint32_t, uint32_t> &loc_l2g)
 {
     if (uid <= _locs.size())
         _locs.resize(uid + 1);
@@ -411,9 +410,8 @@ uint32_t JointRTTI::JoinLocation(const Location &loc, uint32_t uid, const char *
     return new_loc.id;
 }
 
-uint32_t JointRTTI::JoinType(const Type &type, uint32_t uid, const char *name,
-    const std::vector<Field> &src_fields, const std::vector<char> &src_strings,
-    std::unordered_map<uint32_t, uint32_t> &type_l2g)
+uint32_t JointRTTI::JoinType(const Type &type, uint32_t uid, const char *name, const std::vector<Field> &src_fields,
+                             const std::vector<char> &src_strings, std::unordered_map<uint32_t, uint32_t> &type_l2g)
 {
     if (uid <= _types.size())
         _types.resize(uid + 1);
@@ -450,15 +448,14 @@ uint32_t JointRTTI::JoinType(const Type &type, uint32_t uid, const char *name,
     return new_type.this_id;
 }
 
-void JointRTTI::Join(const RTTI &rtti,
-    std::unordered_map<uint32_t, uint32_t> &loc_l2g,
-    std::unordered_map<uint32_t, uint32_t> &type_l2g)
+void JointRTTI::Join(const RTTI &rtti, std::unordered_map<uint32_t, uint32_t> &loc_l2g,
+                     std::unordered_map<uint32_t, uint32_t> &type_l2g)
 {
-    struct CompareLocs : public std::unary_function<const Location&, bool>
+    struct CompareLocs : public std::unary_function<const Location &, bool>
     {
-      explicit CompareLocs(const Location &loc) : _loc(loc) {}
-      bool operator() (const Location &arg) const { return strcmp(arg.name, _loc.name) == 0; }
-      const Location &_loc;
+        explicit CompareLocs(const Location &loc) : _loc(loc) {}
+        bool operator()(const Location &arg) const { return strcmp(arg.name, _loc.name) == 0; }
+        const Location &_loc;
     };
 
     // Will gather new entries for the cross-references post-resolution
@@ -491,8 +488,7 @@ void JointRTTI::Join(const RTTI &rtti,
     {
         // For the type lookups, construct the "fully qualified name"
         // by combining the location's name, and the type's own name.
-        const String fullname = String::FromFormat("%s::%s",
-            rtti._locs[local_type.loc_id].name, local_type.name);
+        const String fullname = String::FromFormat("%s::%s", rtti._locs[local_type.loc_id].name, local_type.name);
         // TODO: refactor adding new and replacing old entries
         auto global_it = _rttiLookup.find(fullname);
         if (global_it != _rttiLookup.end())
@@ -504,16 +500,14 @@ void JointRTTI::Join(const RTTI &rtti,
             }
             // replace existing entry; keep existing name string
             const Type &gl_type = _types[global_it->second];
-            new_types.push_back(
-                JoinType(local_type, gl_type.this_id, &_strings[gl_type.name_stri],
-                    rtti._fields, rtti._strings, type_l2g));
+            new_types.push_back(JoinType(local_type, gl_type.this_id, &_strings[gl_type.name_stri], rtti._fields,
+                                         rtti._strings, type_l2g));
         }
         else
         {
             // add a new type
-            new_types.push_back(
-                JoinType(local_type, _types.size(), &rtti._strings[local_type.name_stri],
-                    rtti._fields, rtti._strings, type_l2g));
+            new_types.push_back(JoinType(local_type, _types.size(), &rtti._strings[local_type.name_stri], rtti._fields,
+                                         rtti._strings, type_l2g));
             // add new type to a global lookup
             _rttiLookup.insert(std::make_pair(fullname, new_types.back()));
         }
@@ -650,7 +644,8 @@ ScriptTOC ScriptTOCSerializer::Read(Stream *in, const RTTI *rtti)
 
     const soff_t glvar_soff = toc_soff + glvar_table_off;
     const soff_t func_soff = toc_soff + func_table_off;
-    const soff_t func_param_soff = toc_soff + func_param_table_off;;
+    const soff_t func_param_soff = toc_soff + func_param_table_off;
+    ;
     const soff_t locvar_soff = toc_soff + locvar_table_off;
     const soff_t str_soff = toc_soff + str_table_off;
     const soff_t end_soff = toc_soff + full_sz;
@@ -818,23 +813,23 @@ void ScriptTOCSerializer::Write(const ScriptTOC &toc, Stream *out)
     // Finalize, write actual TOC header
     const soff_t end_soff = out->GetPosition();
     out->Seek(toc_soff, kSeekBegin);
-    out->WriteInt32(0); // format
-    out->WriteInt32((uint32_t)(glvar_soff - toc_soff)); // header size
-    out->WriteInt32((uint32_t)(end_soff - toc_soff)); // full size
-    out->WriteInt32(ScriptTOC::Variable::FileSize); // global var size
-    out->WriteInt32((uint32_t)(glvar_soff - toc_soff)); // global var table offset
-    out->WriteInt32(glvar_count); // number of global variables
-    out->WriteInt32(ScriptTOC::Function::FileSize); // function size
-    out->WriteInt32((uint32_t)(func_soff - toc_soff)); // function table offset
-    out->WriteInt32(toc._functions.size()); // number of functions
-    out->WriteInt32(ScriptTOC::FunctionParam::FileSize); // function param size
+    out->WriteInt32(0);                                       // format
+    out->WriteInt32((uint32_t)(glvar_soff - toc_soff));       // header size
+    out->WriteInt32((uint32_t)(end_soff - toc_soff));         // full size
+    out->WriteInt32(ScriptTOC::Variable::FileSize);           // global var size
+    out->WriteInt32((uint32_t)(glvar_soff - toc_soff));       // global var table offset
+    out->WriteInt32(glvar_count);                             // number of global variables
+    out->WriteInt32(ScriptTOC::Function::FileSize);           // function size
+    out->WriteInt32((uint32_t)(func_soff - toc_soff));        // function table offset
+    out->WriteInt32(toc._functions.size());                   // number of functions
+    out->WriteInt32(ScriptTOC::FunctionParam::FileSize);      // function param size
     out->WriteInt32((uint32_t)(func_params_soff - toc_soff)); // function param table offset
-    out->WriteInt32(toc._fparams.size()); // number of function params
-    out->WriteInt32(ScriptTOC::Variable::FileSize); // local var size
-    out->WriteInt32((uint32_t)(locvar_soff - toc_soff)); // local var table offset
-    out->WriteInt32(locvar_count); // number of local variables
-    out->WriteInt32((uint32_t)(str_soff - toc_soff)); // strings table offset
-    out->WriteInt32(toc._strings.size()); // string table size
+    out->WriteInt32(toc._fparams.size());                     // number of function params
+    out->WriteInt32(ScriptTOC::Variable::FileSize);           // local var size
+    out->WriteInt32((uint32_t)(locvar_soff - toc_soff));      // local var table offset
+    out->WriteInt32(locvar_count);                            // number of local variables
+    out->WriteInt32((uint32_t)(str_soff - toc_soff));         // strings table offset
+    out->WriteInt32(toc._strings.size());                     // string table size
     out->Seek(end_soff, kSeekBegin);
 }
 
@@ -895,7 +890,8 @@ void ScriptTOC::CreateQuickRefs(const RTTI *rtti)
                 auto &var = _locVariables[fn.local_data_index + index];
                 var.function = &fn;
                 var.prev_local = (index > 0) ? &_locVariables[fn.local_data_index + index - 1] : nullptr;
-                var.next_local = (index + 1 < fn.local_data_num) ? &_locVariables[fn.local_data_index + index + 1] : nullptr;
+                var.next_local =
+                    (index + 1 < fn.local_data_num) ? &_locVariables[fn.local_data_index + index + 1] : nullptr;
             }
         }
     }
@@ -925,25 +921,23 @@ void ScriptTOC::CreateQuickRefs(const RTTI *rtti)
     }
 }
 
-void ScriptTOCBuilder::AddGlobalVar(const std::string &name, uint32_t loc_id,
-    uint32_t offset, uint32_t v_flags, uint32_t f_type_id, uint32_t f_flags,
-    uint32_t num_elems)
+void ScriptTOCBuilder::AddGlobalVar(const std::string &name, uint32_t loc_id, uint32_t offset, uint32_t v_flags,
+                                    uint32_t f_type_id, uint32_t f_flags, uint32_t num_elems)
 {
     ScriptTOC::Variable var;
     var.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
     var.loc_id = loc_id;
     var.offset = offset;
-    var.v_flags = v_flags
-        & ~(ScriptTOC::kVariable_Local | ScriptTOC::kVariable_Parameter);
+    var.v_flags = v_flags & ~(ScriptTOC::kVariable_Local | ScriptTOC::kVariable_Parameter);
     var.f_typeid = f_type_id;
     var.f_flags = f_flags;
     var.num_elems = num_elems;
     _toc._glVariables.push_back(var);
 }
 
-void ScriptTOCBuilder::AddLocalVar(const std::string &name, uint32_t loc_id,
-    uint32_t offset, uint32_t scope_begin, uint32_t scope_end, uint32_t v_flags,
-    uint32_t f_type_id, uint32_t f_flags, uint32_t num_elems)
+void ScriptTOCBuilder::AddLocalVar(const std::string &name, uint32_t loc_id, uint32_t offset, uint32_t scope_begin,
+                                   uint32_t scope_end, uint32_t v_flags, uint32_t f_type_id, uint32_t f_flags,
+                                   uint32_t num_elems)
 {
     ScriptTOC::Variable var;
     var.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
@@ -958,9 +952,8 @@ void ScriptTOCBuilder::AddLocalVar(const std::string &name, uint32_t loc_id,
     _toc._locVariables.push_back(var);
 }
 
-uint32_t ScriptTOCBuilder::AddFunction(const std::string &name, uint32_t loc_id,
-    uint32_t scope_begin, uint32_t scope_end, uint32_t flags,
-    uint32_t rv_typeid, uint32_t rv_flags)
+uint32_t ScriptTOCBuilder::AddFunction(const std::string &name, uint32_t loc_id, uint32_t scope_begin,
+                                       uint32_t scope_end, uint32_t flags, uint32_t rv_typeid, uint32_t rv_flags)
 {
     ScriptTOC::Function func;
     func.name_stri = StrTableAdd(_strtable, name, _strpackedLen);
@@ -974,8 +967,8 @@ uint32_t ScriptTOCBuilder::AddFunction(const std::string &name, uint32_t loc_id,
     return static_cast<uint32_t>(_toc._functions.size() - 1);
 }
 
-void ScriptTOCBuilder::AddFunctionParam(uint32_t func_id, const std::string &name, uint32_t offset,
-    uint32_t f_typeid, uint32_t flags)
+void ScriptTOCBuilder::AddFunctionParam(uint32_t func_id, const std::string &name, uint32_t offset, uint32_t f_typeid,
+                                        uint32_t flags)
 {
     ScriptTOC::FunctionParam fi;
     fi.offset = offset;
@@ -996,11 +989,13 @@ ScriptTOC ScriptTOCBuilder::Finalize(const RTTI *rtti)
 
     // Sort global vars by offset
     std::sort(_toc._glVariables.begin(), _toc._glVariables.end(),
-        [](const ScriptTOC::Variable &first, const ScriptTOC::Variable &second) { return first.offset < second.offset; });
+              [](const ScriptTOC::Variable &first, const ScriptTOC::Variable &second)
+              { return first.offset < second.offset; });
 
     // Sort functions by scope
     std::sort(_toc._functions.begin(), _toc._functions.end(),
-        [](const ScriptTOC::Function &first, const ScriptTOC::Function &second) { return first.scope_begin < second.scope_begin; });
+              [](const ScriptTOC::Function &first, const ScriptTOC::Function &second)
+              { return first.scope_begin < second.scope_begin; });
 
     // Sort local entries by scope and offset
     auto &local_vars = _toc._locVariables;
@@ -1022,12 +1017,15 @@ ScriptTOC ScriptTOCBuilder::Finalize(const RTTI *rtti)
             }
         }
         // Scan sorted local data for anything that matches this function's scope
-        ScriptTOC::Variable test; test.scope_begin = fn.scope_begin; test.scope_end = fn.scope_end;
-        auto lv_range = std::equal_range(local_vars.begin(), local_vars.end(), test, ScriptTOC::ScopedVariableLessScope());
+        ScriptTOC::Variable test;
+        test.scope_begin = fn.scope_begin;
+        test.scope_end = fn.scope_end;
+        auto lv_range =
+            std::equal_range(local_vars.begin(), local_vars.end(), test, ScriptTOC::ScopedVariableLessScope());
         if (lv_range.first != lv_range.second)
         {
             fn.local_data_index = lv_range.first - local_vars.begin(); // save first entry index
-            fn.local_data_num = lv_range.second - lv_range.first; // local data number
+            fn.local_data_num = lv_range.second - lv_range.first;      // local data number
             // Fixup local entries (CHECKME: perhaps do this upon loading instead? or both?)
             for (auto it = lv_range.first; it != lv_range.second; ++it)
             {
@@ -1057,7 +1055,7 @@ String PrintRTTI(const RTTI &rtti)
     const auto &locs = rtti.GetLocations();
     const auto &types = rtti.GetTypes();
 
-    const char *hr =   "-------------------------------------------------------------------------------";
+    const char *hr = "-------------------------------------------------------------------------------";
     const char *dbhr = "===============================================================================";
     String fullstr;
     fullstr.AppendFmt("%s\nRTTI\n%s\n", dbhr, dbhr);
@@ -1081,8 +1079,8 @@ String PrintRTTI(const RTTI &rtti)
             uint32_t index = 0u;
             for (const auto *fi = ti.first_field; fi; fi = fi->next_field, ++index)
             {
-                fullstr.AppendFmt("%4u |%4u: %-24s: (%-3u) %s\n", index, fi->offset,
-                    fi->name, fi->type->this_id, fi->type->name);
+                fullstr.AppendFmt("%4u |%4u: %-24s: (%-3u) %s\n", index, fi->offset, fi->name, fi->type->this_id,
+                                  fi->type->name);
             }
         }
         else
@@ -1098,10 +1096,8 @@ String PrintRTTI(const RTTI &rtti)
 
 static void FmtField(String &s, const RTTI::Type *t, uint32_t f_flags, const char *f_name)
 {
-    s.AppendFmt("%s%s%s %s", t->name,
-        (f_flags & RTTI::kField_ManagedPtr) ? "*" : "",
-        (f_flags & RTTI::kField_Array) ? "[]" : "",
-        f_name ? f_name : "");
+    s.AppendFmt("%s%s%s %s", t->name, (f_flags & RTTI::kField_ManagedPtr) ? "*" : "",
+                (f_flags & RTTI::kField_Array) ? "[]" : "", f_name ? f_name : "");
 }
 
 String PrintScriptTOC(const ScriptTOC &toc, const char *scriptname)
@@ -1110,7 +1106,7 @@ String PrintScriptTOC(const ScriptTOC &toc, const char *scriptname)
     const auto funcs = toc.GetFunctions();
     const auto locvars = toc.GetLocalVariables();
 
-    const char *hr =   "-------------------------------------------------------------------------------";
+    const char *hr = "-------------------------------------------------------------------------------";
     const char *dbhr = "===============================================================================";
     String fullstr;
     fullstr.AppendFmt("%s\nScript '%s' Table of Contents\n%s\n", dbhr, scriptname, dbhr);

@@ -39,9 +39,9 @@ protected:
     void CloseTransform() override;
 
     TransformResult Transform(const uint8_t *input, size_t in_sz, uint8_t *output, size_t out_sz, bool finalize,
-                    size_t &in_read, size_t &out_wrote) override;
+                              size_t &in_read, size_t &out_wrote) override;
     TransformResult UnTransform(const uint8_t *input, size_t in_sz, uint8_t *output, size_t out_sz, bool finalize,
-                    size_t &in_read, size_t &out_wrote) override;
+                                size_t &in_read, size_t &out_wrote) override;
 
 private:
     struct ags_z_stream;

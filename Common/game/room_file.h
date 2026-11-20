@@ -94,18 +94,19 @@ struct RoomDataSource
     static const String Signature;
 
     // Name of the asset file
-    String              Filename;
+    String Filename;
     // Room file format version
-    RoomFileVersion     DataVersion = kRoomVersion_Undefined;
+    RoomFileVersion DataVersion = kRoomVersion_Undefined;
     // Tool identifier (like version) this game was compiled with
-    String              CompiledWith;
+    String CompiledWith;
     // A ponter to the opened stream
-    UStream             InputStream;
+    UStream InputStream;
 
     RoomDataSource() = default;
     RoomDataSource(const String &filename, UStream &&stream, RoomFileVersion data_ver = kRoomVersion_Undefined)
         : Filename(filename), InputStream(std::move(stream)), DataVersion(data_ver)
-    { }
+    {
+    }
 };
 
 // Auxiliary room data, not commonly needed for running the room at runtime,
@@ -137,9 +138,11 @@ HRoomFileError UpdateRoomData(RoomData *room, RoomFileVersion data_ver, const st
 // Loads new room data into the given RoomData object and upgrade it to the latest version
 HRoomFileError LoadRoom(RoomData *room, std::unique_ptr<Stream> &&in, const std::vector<SpriteInfo> *sprinfos);
 // Writes all room data to the stream
-HRoomFileError WriteRoomData(const RoomData *room, const RoomDataAux *room_aux, Stream *out, RoomFileVersion data_ver, const String &compiled_with);
+HRoomFileError WriteRoomData(const RoomData *room, const RoomDataAux *room_aux, Stream *out, RoomFileVersion data_ver,
+                             const String &compiled_with);
 // Writes all extended room data to the stream
-HRoomFileError WriteRoomData(const RoomDataExt *room, Stream *out, RoomFileVersion data_ver, const String &compiled_with);
+HRoomFileError WriteRoomData(const RoomDataExt *room, Stream *out, RoomFileVersion data_ver,
+                             const String &compiled_with);
 
 //
 // Helper functions for the non-standard room file reading.
@@ -150,13 +153,15 @@ HRoomFileError WriteRoomData(const RoomDataExt *room, Stream *out, RoomFileVersi
 // helps to reduce operation time and memory consumption (fwiw).
 struct RoomReadOptions
 {
-    bool PartialRead = false; // tells to ignore if a block is not fully read
+    bool PartialRead = false;   // tells to ignore if a block is not fully read
     bool SkipImageData = false; // tells to skip room images (backgrounds, masks)
 };
 
 // Reads room data from the only specified room file blocks
-HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver,
-    const std::vector<std::pair<RoomFileBlock, String>> &blocks_to_read, const RoomReadOptions &read_opts);
+HRoomFileError ReadRoomData(RoomData *room, RoomDataAux *room_aux, std::unique_ptr<Stream> &&in,
+                            RoomFileVersion data_ver,
+                            const std::vector<std::pair<RoomFileBlock, String>> &blocks_to_read,
+                            const RoomReadOptions &read_opts);
 
 // Extracts text script from the room file, if it's available.
 // Historically, text sources were kept inside packed room files before AGS 3.*.

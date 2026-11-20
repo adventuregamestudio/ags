@@ -16,7 +16,8 @@
 
 using namespace AGS::Common;
 
-TEST(StrUtil, Unescape) {
+TEST(StrUtil, Unescape)
+{
     String s = "Text\\\\Text";
     ASSERT_TRUE(StrUtil::Unescape(s) == "Text\\Text");
 
@@ -31,7 +32,8 @@ TEST(StrUtil, Unescape) {
 
     // up to 3 octal digits, max value 255
     s = "\\101\\1\\0012 \\400";
-    ASSERT_TRUE(StrUtil::Unescape(s) == "A\x01\x01" "2  0");
+    ASSERT_TRUE(StrUtil::Unescape(s) == "A\x01\x01"
+                                        "2  0");
     // a zero code is not unescaped
     s = "\\0 \\00";
     ASSERT_TRUE(StrUtil::Unescape(s) == "0 00");
@@ -45,7 +47,8 @@ TEST(StrUtil, Unescape) {
     ASSERT_TRUE(StrUtil::Unescape(s) == "\\");
 }
 
-TEST(StrUtil, Escape) {
+TEST(StrUtil, Escape)
+{
     String s = "Text";
     ASSERT_TRUE(StrUtil::Escape(s) == "Text");
 
@@ -73,7 +76,8 @@ TEST(StrUtil, GetKeyValue)
 
 TEST(StrUtil, SplitPreservingDoublequoted)
 {
-    String s = "\"path with, comma\":\"value with, comma\",\"second path\":\"second value\",\"third, comma\":\"third value,\"";
+    String s =
+        "\"path with, comma\":\"value with, comma\",\"second path\":\"second value\",\"third, comma\":\"third value,\"";
     auto result = StrUtil::SplitPreservingDoublequoted(s, ',');
     EXPECT_EQ(3, result.size());
     EXPECT_STREQ("\"path with, comma\":\"value with, comma\"", result[0].GetCStr());

@@ -42,10 +42,7 @@ public:
     // is defined by a pair of first and next-after-last line indices
     typedef std::pair<size_t, size_t> SectionPos;
 
-    inline static bool IsValidStrPos(const StrPos &pos)
-    {
-        return pos.first < pos.second;
-    }
+    inline static bool IsValidStrPos(const StrPos &pos) { return pos.first < pos.second; }
 
     // Item definition
     // Valid key indicates a key-value line; no key means unparsed
@@ -55,24 +52,24 @@ public:
     public:
         ItemDef(const String &key, const String &value);
         ItemDef(const String &line, const StrPos &key, const StrPos &value, size_t sep_at);
-        String GetLine()  const { return Line; }
-        String GetKey()   const { return SubString(Line, Key); }
+        String GetLine() const { return Line; }
+        String GetKey() const { return SubString(Line, Key); }
         String GetValue() const { return SubString(Line, Value); }
         // Tells if this is a valid key/value item, which means that it has a valid key
-        bool   IsKeyValue() const { return IsValidStrPos(Key); }
+        bool IsKeyValue() const { return IsValidStrPos(Key); }
         void SetKey(const String &key);
         void SetValue(const String &value);
 
     private:
-        String  Line;  // actual text
-        StrPos  Key;   // position of item key
-        size_t  SepAt; // position of the separator (assignment) symbol
-        StrPos  Value; // position of item value
+        String Line;  // actual text
+        StrPos Key;   // position of item key
+        size_t SepAt; // position of the separator (assignment) symbol
+        StrPos Value; // position of item value
     };
     // Linked list of items
     typedef std::list<ItemDef> LItems;
-    typedef LItems::iterator          ItemIterator;
-    typedef LItems::const_iterator    ConstItemIterator;
+    typedef LItems::iterator ItemIterator;
+    typedef LItems::const_iterator ConstItemIterator;
 
     // Section definition
     class SectionDef
@@ -84,24 +81,24 @@ public:
         String GetName() const { return SubString(Header, Name); }
         size_t GetItemCount() const { return Items.size(); }
         // Tells if this is a "global" section, which means that it has no name
-        bool   IsGlobal() const { return !IsValidStrPos(Name); }
+        bool IsGlobal() const { return !IsValidStrPos(Name); }
         ItemIterator Begin() { return Items.begin(); }
-        ItemIterator End()   { return Items.end(); }
+        ItemIterator End() { return Items.end(); }
         ConstItemIterator CBegin() const { return Items.begin(); }
-        ConstItemIterator CEnd()   const { return Items.end(); }
+        ConstItemIterator CEnd() const { return Items.end(); }
         void SetName(const String &sec_name);
         void Clear();
         ItemIterator InsertItem(ItemIterator item, const ItemDef &itemdef);
         void EraseItem(ItemIterator item);
 
     private:
-        String      Header;// section's heading line
-        StrPos      Name;  // location of section name in the header line
-        LItems      Items; // linked list of items belonging to the section
+        String Header; // section's heading line
+        StrPos Name;   // location of section name in the header line
+        LItems Items;  // linked list of items belonging to the section
     };
     // Linked list of sections
-    typedef std::list<SectionDef>     LSections;
-    typedef LSections::iterator       SectionIterator;
+    typedef std::list<SectionDef> LSections;
+    typedef LSections::iterator SectionIterator;
     typedef LSections::const_iterator ConstSectionIterator;
 
 private:
@@ -114,9 +111,9 @@ public:
     IniFile();
 
     SectionIterator Begin() { return _sections.begin(); }
-    SectionIterator End()   { return _sections.end(); }
+    SectionIterator End() { return _sections.end(); }
     ConstSectionIterator CBegin() const { return _sections.begin(); }
-    ConstSectionIterator CEnd()   const { return _sections.end(); }
+    ConstSectionIterator CEnd() const { return _sections.end(); }
 
     void Read(std::unique_ptr<Stream> &&in);
     void Write(std::unique_ptr<Stream> &&out) const;

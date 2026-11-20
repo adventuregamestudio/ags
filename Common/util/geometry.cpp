@@ -22,25 +22,19 @@
 
 bool AreRectsIntersecting(const Rect &r1, const Rect &r2)
 { // NOTE: remember that in AGS Y axis is pointed downwards (top < bottom)
-    return r1.Left <= r2.Right && r1.Right >= r2.Left &&
-        r1.Top <= r2.Bottom && r1.Bottom >= r2.Top;
+    return r1.Left <= r2.Right && r1.Right >= r2.Left && r1.Top <= r2.Bottom && r1.Bottom >= r2.Top;
 }
 
 bool IsRectInsideRect(const Rect &place, const Rect &item)
 {
-    return item.Left >= place.Left && item.Right <= place.Right &&
-        item.Top >= place.Top && item.Bottom <= place.Bottom;
+    return item.Left >= place.Left && item.Right <= place.Right && item.Top >= place.Top && item.Bottom <= place.Bottom;
 }
 
 float DistanceBetween(const Rect &r1, const Rect &r2)
 {
     // https://gamedev.stackexchange.com/a/154040
-    const Rect rect_outer(
-        std::min(r1.Left, r2.Left),
-        std::min(r1.Top, r2.Top),
-        std::max(r1.Right, r2.Right),
-        std::max(r1.Bottom, r2.Bottom)
-    );
+    const Rect rect_outer(std::min(r1.Left, r2.Left), std::min(r1.Top, r2.Top), std::max(r1.Right, r2.Right),
+                          std::max(r1.Bottom, r2.Bottom));
     const int inner_width = std::max(0, rect_outer.GetWidth() - r1.GetWidth() - r2.GetWidth());
     const int inner_height = std::max(0, rect_outer.GetHeight() - r1.GetHeight() - r2.GetHeight());
     return static_cast<float>(std::sqrt((inner_width * inner_width) + (inner_height * inner_height)));
@@ -52,7 +46,7 @@ Size ProportionalStretch(int dest_w, int dest_h, int item_w, int item_h)
     int height = item_w ? (dest_w * item_h / item_w) : 0;
     if (height > dest_h)
     {
-        width  = item_h ? (dest_h * item_w / item_h) : 0;
+        width = item_h ? (dest_h * item_w / item_h) : 0;
         height = dest_h;
     }
     return Size(width, height);
@@ -105,47 +99,40 @@ Rect OffsetRect(const Rect &r, const Point off)
 
 Rect CenterInRect(const Rect &place, const Rect &item)
 {
-    return RectWH((place.GetWidth() >> 1) - (item.GetWidth() >> 1),
-        (place.GetHeight() >> 1) - (item.GetHeight() >> 1),
-        item.GetWidth(), item.GetHeight());
+    return RectWH((place.GetWidth() >> 1) - (item.GetWidth() >> 1), (place.GetHeight() >> 1) - (item.GetHeight() >> 1),
+                  item.GetWidth(), item.GetHeight());
 }
 
 Rect ClampToRect(const Rect &place, const Rect &item)
 {
-    return Rect(
-        AGSMath::Clamp(item.Left, place.Left, place.Right),
-        AGSMath::Clamp(item.Top, place.Top, place.Bottom),
-        AGSMath::Clamp(item.Right, place.Left, place.Right),
-        AGSMath::Clamp(item.Bottom, place.Top, place.Bottom)
-    );
+    return Rect(AGSMath::Clamp(item.Left, place.Left, place.Right), AGSMath::Clamp(item.Top, place.Top, place.Bottom),
+                AGSMath::Clamp(item.Right, place.Left, place.Right),
+                AGSMath::Clamp(item.Bottom, place.Top, place.Bottom));
 }
 
 Rect PlaceInRect(const Rect &place, const Rect &item, const RectPlacement &placement)
 {
     switch (placement)
     {
-    case kPlaceCenter:
-        return CenterInRect(place, item);
-    case kPlaceStretch:
-        return place;
+    case kPlaceCenter: return CenterInRect(place, item);
+    case kPlaceStretch: return place;
     case kPlaceStretchProportional:
-        return CenterInRect(place,
-            RectWH(ProportionalStretch(place.GetWidth(), place.GetHeight(), item.GetWidth(), item.GetHeight())));
-    default:
-        return RectWH(place.Left + item.Left, place.Top + item.Top, item.GetWidth(), item.GetHeight());
+        return CenterInRect(
+            place, RectWH(ProportionalStretch(place.GetWidth(), place.GetHeight(), item.GetWidth(), item.GetHeight())));
+    default: return RectWH(place.Left + item.Left, place.Top + item.Top, item.GetWidth(), item.GetHeight());
     }
 }
 
 Rect SumRects(const Rect &r1, const Rect &r2)
 { // NOTE: remember that in AGS Y axis is pointed downwards (top < bottom)
-    return Rect(std::min(r1.Left, r2.Left), std::min(r1.Top, r2.Top),
-        std::max(r1.Right, r2.Right), std::max(r1.Bottom, r2.Bottom));
+    return Rect(std::min(r1.Left, r2.Left), std::min(r1.Top, r2.Top), std::max(r1.Right, r2.Right),
+                std::max(r1.Bottom, r2.Bottom));
 }
 
 Rect IntersectRects(const Rect &r1, const Rect &r2)
 { // NOTE: the result may be empty (negative) rect if there's no intersection
-    return Rect(std::max(r1.Left, r2.Left), std::max(r1.Top, r2.Top),
-        std::min(r1.Right, r2.Right), std::min(r1.Bottom, r2.Bottom));
+    return Rect(std::max(r1.Left, r2.Left), std::max(r1.Top, r2.Top), std::min(r1.Right, r2.Right),
+                std::min(r1.Bottom, r2.Bottom));
 }
 
 Size RotateSize(Size sz, int degrees)

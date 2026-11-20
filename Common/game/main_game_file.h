@@ -15,7 +15,7 @@
 // This unit provides functions for reading main game file into appropriate
 // data structures. Main game file contains general game data, such as global
 // options, lists of static game entities and compiled scripts modules.
-// 
+//
 // TODO: separate game data lookup and game struct reading into different
 // code files, in order to remove dependency on AssetManager if there's a
 // tool which also needs to read game data from a file, for example.
@@ -86,16 +86,16 @@ struct MainGameSource
     static const String Signature;
 
     // Name of the asset file
-    String              Filename;
+    String Filename;
     // Game file format version
-    GameDataVersion     DataVersion;
+    GameDataVersion DataVersion;
     // Tool identifier (like version) this game was compiled with
-    String              CompiledWith;
+    String CompiledWith;
     // Extended engine capabilities required by the game; their primary use
     // currently is to let "alternate" game formats indicate themselves
-    std::set<String>    Caps;
+    std::set<String> Caps;
     // A ponter to the opened stream
-    UStream             InputStream;
+    UStream InputStream;
 
     MainGameSource();
 };
@@ -118,22 +118,22 @@ struct CharDataEx
 // code refactoring.
 struct LoadedGameEntities
 {
-    GameSetupStruct        &Game; // FIXME: have an object, not ref, and std::move
+    GameSetupStruct &Game; // FIXME: have an object, not ref, and std::move
     std::vector<CharDataEx> CharEx;
-    GuiVersion              LoadedGuiVersion;
-    std::vector<GUIMain>    Guis;
-    GUICollection           GuiControls;
+    GuiVersion LoadedGuiVersion;
+    std::vector<GUIMain> Guis;
+    GUICollection GuiControls;
     std::vector<DialogTopic> Dialogs;
     std::vector<ViewStruct> Views;
-    UScript                 GlobalScript;
-    UScript                 DialogScript;
-    std::vector<String>     ScriptModuleNames;
-    std::vector<UScript>    ScriptModules;
+    UScript GlobalScript;
+    UScript DialogScript;
+    std::vector<String> ScriptModuleNames;
+    std::vector<UScript> ScriptModules;
     std::vector<PluginInfo> PluginInfos;
 
     // Original sprite data (when it was read into const-sized arrays)
-    size_t                  SpriteCount;
-    std::vector<uint8_t>    SpriteFlags; // SPF_* flags
+    size_t SpriteCount;
+    std::vector<uint8_t> SpriteFlags; // SPF_* flags
 
     LoadedGameEntities(GameSetupStruct &game);
     ~LoadedGameEntities();
@@ -142,31 +142,33 @@ struct LoadedGameEntities
 class AssetManager;
 
 // Tells if the given path (library filename) contains main game file
-bool               IsMainGameLibrary(const String &filename);
+bool IsMainGameLibrary(const String &filename);
 // Scans given directory path for a package containing main game data, returns first found or none.
-String             FindGameData(const String &path);
+String FindGameData(const String &path);
 // Scans given directory path for a package containing main game data,
 // tests each one using provided callback, returns first found or none.
-String             FindGameData(const String &path, std::function<bool(const String&)> fn_testfile);
+String FindGameData(const String &path, std::function<bool(const String &)> fn_testfile);
 // Opens main game file for reading from an arbitrary file
-HGameFileError     OpenMainGameFile(const String &filename, MainGameSource &src);
+HGameFileError OpenMainGameFile(const String &filename, MainGameSource &src);
 // Opens main game file for reading using the current Asset Manager (uses default asset name)
-HGameFileError     OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManager *mgr);
+HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManager *mgr);
 // Reads game data, applies necessary conversions to match current format version
-HGameFileError     ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&in, GameDataVersion data_ver, const String &compiled_with);
+HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&in, GameDataVersion data_ver,
+                            const String &compiled_with);
 // Pre-reads the heading game data, just enough to identify the game and its special file locations
-void               PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&in, GameDataVersion data_ver, const String &compiled_with);
+void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&in, GameDataVersion data_ver,
+                     const String &compiled_with);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
-HGameFileError     UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);
+HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);
 // Ensures that the game saves directory path is valid
-void               FixupSaveDirectory(GameSetupStruct &game);
+void FixupSaveDirectory(GameSetupStruct &game);
 // Remaps color number from legacy to new format:
 // * palette index in 8-bit game,
 // * encoded 32-bit A8R8G8B8 in 32-bit game.
 // is_bg parameter lets differentate the meaning of certain special numeric values
 // between "background" and "foreground" color, depending on a context.
-int RemapFromLegacyColourNumber(const GameSetupStruct& game, int color, bool is_bg = false);
+int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color, bool is_bg = false);
 
 } // namespace Common
 } // namespace AGS

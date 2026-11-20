@@ -24,24 +24,25 @@ namespace AGS
 namespace Common
 {
 
-static jobject gAAssetManagerRef { nullptr };
-static AAssetManager *gAAssetManager { nullptr };
+static jobject gAAssetManagerRef{nullptr};
+static AAssetManager *gAAssetManager{nullptr};
 
 void InitAndroidFile()
 {
     assert(gAAssetManager == nullptr);
     if (gAAssetManager)
         return; // already initialized
-    if(SDL_WasInit(SDL_INIT_EVERYTHING) == 0)
+    if (SDL_WasInit(SDL_INIT_EVERYTHING) == 0)
         return; // SDL has not been initialized yet
 
-    JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
+    JNIEnv *env = (JNIEnv *)SDL_AndroidGetJNIEnv();
 
     jobject activity = (jobject)SDL_AndroidGetActivity();
 
     jclass activity_class = env->GetObjectClass(activity);
 
-    jmethodID activity_class_getAssets = env->GetMethodID(activity_class, "getAssets", "()Landroid/content/res/AssetManager;");
+    jmethodID activity_class_getAssets =
+        env->GetMethodID(activity_class, "getAssets", "()Landroid/content/res/AssetManager;");
     jobject asset_manager = env->CallObjectMethod(activity, activity_class_getAssets); // activity.getAssets();
     gAAssetManagerRef = env->NewGlobalRef(asset_manager);
     if (!gAAssetManagerRef)
@@ -58,39 +59,46 @@ void ShutdownAndroidFile()
 {
     if (gAAssetManager)
     {
-        JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
+        JNIEnv *env = (JNIEnv *)SDL_AndroidGetJNIEnv();
         env->DeleteGlobalRef(gAAssetManagerRef);
         gAAssetManagerRef = nullptr;
         gAAssetManager = nullptr;
     }
 }
 
-AAssetManager* GetAAssetManager()
+AAssetManager *GetAAssetManager()
 {
-    if (!gAAssetManager) { InitAndroidFile(); }
+    if (!gAAssetManager)
+    {
+        InitAndroidFile();
+    }
     return gAAssetManager;
 }
 
 bool GetAAssetExists(const String &filename)
 {
-    AAssetManager* mgr = GetAAssetManager();
-    if(mgr == nullptr) return false;
+    AAssetManager *mgr = GetAAssetManager();
+    if (mgr == nullptr)
+        return false;
     String a_filename = Path::GetPathInForeignAsset(filename);
     // TODO: find out if it's acceptable to open/close asset to only test its existance;
     // the alternative is to use AAssetManager_openDir and read asset list using AAssetDir_getNextFileName
     AAsset *asset = AAssetManager_open(mgr, a_filename.GetCStr(), AASSET_MODE_UNKNOWN);
-    if (!asset) return false;
+    if (!asset)
+        return false;
     AAsset_close(asset);
     return true;
 }
 
 soff_t GetAAssetSize(const String &filename)
 {
-    AAssetManager* mgr = GetAAssetManager();
-    if(mgr == nullptr) return -1;
+    AAssetManager *mgr = GetAAssetManager();
+    if (mgr == nullptr)
+        return -1;
     String a_filename = Path::GetPathInForeignAsset(filename);
     AAsset *asset = AAssetManager_open(mgr, a_filename.GetCStr(), AASSET_MODE_UNKNOWN);
-    if (!asset) return -1;
+    if (!asset)
+        return -1;
     soff_t len = AAsset_getLength64(asset);
     AAsset_close(asset);
     return len;
@@ -105,8 +113,12 @@ AndroidADir::AndroidADir(AndroidADir &&aadir)
 
 AndroidADir::AndroidADir(const String &dirname)
 {
-    AAssetManager* mgr = GetAAssetManager();
-    if(mgr == nullptr) {_dir = nullptr; return; }
+    AAssetManager *mgr = GetAAssetManager();
+    if (mgr == nullptr)
+    {
+        _dir = nullptr;
+        return;
+    }
     String assetDirName = Path::GetPathInForeignAsset(dirname);
     _dir = AAssetManager_openDir(mgr, assetDirName.GetCStr());
 }
@@ -126,7 +138,8 @@ String AndroidADir::Next()
 
 String AndroidADir::Next(const std::regex &pattern)
 {
-    if (!_dir) return "";
+    if (!_dir)
+        return "";
     const char *filename = nullptr;
     std::cmatch mr;
     while ((filename = AAssetDir_getNextFileName(_dir)) != nullptr)

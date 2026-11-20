@@ -24,10 +24,7 @@ namespace AGS
 namespace Common
 {
 
-GUILabel::GUILabel()
-    : GUITextFieldControl(&ScriptEventTable::DefaultSchema())
-{
-}
+GUILabel::GUILabel() : GUITextFieldControl(&ScriptEventTable::DefaultSchema()) {}
 
 Rect GUILabel::CalcGraphicRect(bool clipped)
 {
@@ -43,8 +40,8 @@ Rect GUILabel::CalcGraphicRect(bool clipped)
         return rc;
     const int linespacing = get_font_linespacing(_font);
     const bool limit_by_label_frame = true;
-    Rect text_rc = GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), _font, linespacing,
-        _innerRect, (FrameAlignment)_textAlignment, limit_by_label_frame);
+    Rect text_rc = GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), _font, linespacing, _innerRect,
+                                              (FrameAlignment)_textAlignment, limit_by_label_frame);
     return SumRects(rc, text_rc);
 }
 
@@ -64,8 +61,8 @@ void GUILabel::Draw(Bitmap *ds, int x, int y)
     const Rect lines_rect = Rect::MoveBy(_innerRect, x, y);
     if (limit_by_label_frame && GUI::Options.ClipControls)
         ds->SetClip(lines_rect);
-    GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, linespacing, text_color,
-        outline_color, lines_rect, (FrameAlignment)_textAlignment, limit_by_label_frame);
+    GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, linespacing, text_color, outline_color,
+                              lines_rect, (FrameAlignment)_textAlignment, limit_by_label_frame);
 }
 
 void GUILabel::OnTextChanged()

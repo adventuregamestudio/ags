@@ -37,11 +37,12 @@ class BufferedStream : public StreamBase
 public:
     // Needs tuning depending on the platform.
     static const size_t BufferSize = 1024u * 8;
-    BufferedStream(std::unique_ptr<IStreamBase> &&base_stream)
-        { Open(std::move(base_stream)); }
+    BufferedStream(std::unique_ptr<IStreamBase> &&base_stream) { Open(std::move(base_stream)); }
     // Constructs a BufferedStream limited by an arbitrary offset range
     BufferedStream(std::unique_ptr<IStreamBase> &&base_stream, soff_t start_pos, soff_t end_pos)
-        { OpenSection(std::move(base_stream), start_pos, end_pos); }
+    {
+        OpenSection(std::move(base_stream), start_pos, end_pos);
+    }
     ~BufferedStream();
 
     IStreamBase *GetStreamBase() { return _base.get(); }
@@ -49,24 +50,24 @@ public:
 
     const char *GetPath() const override { return _base ? _base->GetPath() : ""; }
     StreamMode GetMode() const override { return _base ? _base->GetMode() : kStream_None; }
-    bool    GetError() const override { return _base ? _base->GetError() : false; }
+    bool GetError() const override { return _base ? _base->GetError() : false; }
 
     // Is end of stream
-    bool    EOS() const override;
+    bool EOS() const override;
     // Total length of stream (if known)
-    soff_t  GetLength() const override;
+    soff_t GetLength() const override;
     // Current position (if known)
-    soff_t  GetPosition() const override;
+    soff_t GetPosition() const override;
 
-    void    Close() override;
-    bool    Flush() override;
+    void Close() override;
+    bool Flush() override;
 
-    size_t  Read(void *buffer, size_t size) override;
+    size_t Read(void *buffer, size_t size) override;
     int32_t ReadByte() override;
-    size_t  Write(const void *buffer, size_t size) override;
+    size_t Write(const void *buffer, size_t size) override;
     int32_t WriteByte(uint8_t val) override;
 
-    soff_t  Seek(soff_t offset, StreamSeek origin) override;
+    soff_t Seek(soff_t offset, StreamSeek origin) override;
 
 private:
     void Open(std::unique_ptr<IStreamBase> &&base_stream);
@@ -78,11 +79,11 @@ private:
 
     // TODO: store IStreamBase as a shader_ptr instead? will let use it after wrapper is disposed
     std::unique_ptr<IStreamBase> _base;
-    soff_t _start = 0; // valid section starting offset
-    soff_t _end = 0; // valid section ending offset
-    soff_t _position = 0; // absolute read/write offset
-    soff_t _bufferPosition = 0; // buffer's location relative to base stream
-    std::vector<uint8_t> _buffer; // buffer, accumulating data in read or write mode
+    soff_t _start = 0;                     // valid section starting offset
+    soff_t _end = 0;                       // valid section ending offset
+    soff_t _position = 0;                  // absolute read/write offset
+    soff_t _bufferPosition = 0;            // buffer's location relative to base stream
+    std::vector<uint8_t> _buffer;          // buffer, accumulating data in read or write mode
     StreamMode _bufferMode = kStream_None; // current buffer mode (can be *only* read OR write)
 };
 

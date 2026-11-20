@@ -60,9 +60,7 @@ struct ScriptEventDefinition
     uint32_t Index = 0u;
 
     ScriptEventDefinition() = default;
-    ScriptEventDefinition(const String &name, uint32_t index)
-        : Name(name), Index(index)
-    {}
+    ScriptEventDefinition(const String &name, uint32_t index) : Name(name), Index(index) {}
 };
 
 // ScriptEventSchema defines a index-based list of events for a particular object type.
@@ -74,16 +72,8 @@ struct ScriptEventSchema
     std::unordered_map<String, uint32_t> EventMap;
 
     ScriptEventSchema() = default;
-    ScriptEventSchema(const std::vector<ScriptEventDefinition> &evt_defs)
-        : EventList(evt_defs)
-    {
-        MakeMap();
-    }
-    ScriptEventSchema(std::vector<ScriptEventDefinition> &&evt_defs)
-        : EventList(std::move(evt_defs))
-    {
-        MakeMap();
-    }
+    ScriptEventSchema(const std::vector<ScriptEventDefinition> &evt_defs) : EventList(evt_defs) { MakeMap(); }
+    ScriptEventSchema(std::vector<ScriptEventDefinition> &&evt_defs) : EventList(std::move(evt_defs)) { MakeMap(); }
 
     HError Read(Stream *in);
     void Write(Stream *out) const;
@@ -112,12 +102,18 @@ struct ScriptEventHandler
 
     inline bool IsEnabled() const { return Enabled; }
     inline bool IsChecked() const { return Checked; }
-    inline void SetChecked(bool enabled) { Checked = true; Enabled = enabled; }
+    inline void SetChecked(bool enabled)
+    {
+        Checked = true;
+        Enabled = enabled;
+    }
 
     ScriptEventHandler() = default;
     ScriptEventHandler(const String &fn_name)
         // If no function name is assigned, then we disable and mark as checked right away
-        : FunctionName(fn_name), Enabled(!fn_name.IsEmpty()), Checked(fn_name.IsEmpty()) {}
+        : FunctionName(fn_name), Enabled(!fn_name.IsEmpty()), Checked(fn_name.IsEmpty())
+    {
+    }
 };
 
 class ScriptEventsBase
@@ -126,26 +122,19 @@ public:
     ScriptEventsBase() = default;
     ScriptEventsBase(const ScriptEventsBase &script_events)
         : _scriptModule(script_events._scriptModule), _handlers(script_events._handlers)
-    {}
+    {
+    }
     ScriptEventsBase(ScriptEventsBase &&script_events)
         : _scriptModule(std::move(script_events._scriptModule)), _handlers(std::move(script_events._handlers))
-    {}
+    {
+    }
 
-    ScriptEventsBase &operator =(const ScriptEventsBase &script_events) = default;
-    ScriptEventsBase &operator =(ScriptEventsBase &&script_events) = default;
+    ScriptEventsBase &operator=(const ScriptEventsBase &script_events) = default;
+    ScriptEventsBase &operator=(ScriptEventsBase &&script_events) = default;
 
-    const String &GetScriptModule() const
-    {
-        return _scriptModule;
-    }
-    void SetScriptModule(const String &sc_module)
-    {
-        _scriptModule = sc_module;
-    }
-    bool HasHandler(uint32_t evt) const
-    {
-        return evt < _handlers.size() && _handlers[evt].IsEnabled();
-    }
+    const String &GetScriptModule() const { return _scriptModule; }
+    void SetScriptModule(const String &sc_module) { _scriptModule = sc_module; }
+    bool HasHandler(uint32_t evt) const { return evt < _handlers.size() && _handlers[evt].IsEnabled(); }
     const ScriptEventHandler &GetHandler(uint32_t evt) const
     {
         assert(evt < _handlers.size());
@@ -166,10 +155,7 @@ public:
         if (evt < _handlers.size())
             _handlers[evt] = ScriptEventHandler(fn_name);
     }
-    const std::vector<ScriptEventHandler> GetHandlers() const
-    {
-        return _handlers;
-    }
+    const std::vector<ScriptEventHandler> GetHandlers() const { return _handlers; }
     void ClearHandlers()
     {
         for (auto &h : _handlers)
@@ -193,33 +179,19 @@ struct ScriptEventHandlers : public ScriptEventsBase
 {
     ScriptEventHandlers() = default;
 
-    ScriptEventHandlers(const ScriptEventsBase &handlers)
-        : ScriptEventsBase(handlers)
-    {}
+    ScriptEventHandlers(const ScriptEventsBase &handlers) : ScriptEventsBase(handlers) {}
 
-    ScriptEventHandlers(const ScriptEventHandlers &handlers)
-        : ScriptEventsBase(handlers)
-    {}
+    ScriptEventHandlers(const ScriptEventHandlers &handlers) : ScriptEventsBase(handlers) {}
 
-    ScriptEventHandlers(ScriptEventsBase &&handlers)
-        : ScriptEventsBase(handlers)
-    {}
+    ScriptEventHandlers(ScriptEventsBase &&handlers) : ScriptEventsBase(handlers) {}
 
-    ScriptEventHandlers(ScriptEventHandlers &&handlers)
-        : ScriptEventsBase(handlers)
-    {}
+    ScriptEventHandlers(ScriptEventHandlers &&handlers) : ScriptEventsBase(handlers) {}
 
-    ScriptEventHandlers &operator =(const ScriptEventHandlers &handlers) = default;
-    ScriptEventHandlers &operator =(ScriptEventHandlers &&handlers) = default;
+    ScriptEventHandlers &operator=(const ScriptEventHandlers &handlers) = default;
+    ScriptEventHandlers &operator=(ScriptEventHandlers &&handlers) = default;
 
-    void SetHandlers(const std::vector<ScriptEventHandler> &handlers)
-    {
-        _handlers = handlers;
-    }
-    void SetHandlers(std::vector<ScriptEventHandler> &&handlers)
-    {
-        _handlers = std::move(handlers);
-    }
+    void SetHandlers(const std::vector<ScriptEventHandler> &handlers) { _handlers = handlers; }
+    void SetHandlers(std::vector<ScriptEventHandler> &&handlers) { _handlers = std::move(handlers); }
 
     // Remap handlers using a remap vector, which tells a new index for each old one;
     // if any new index is UINT32_MAX, then such handler is removed.
@@ -237,16 +209,9 @@ struct ScriptEventHandlers : public ScriptEventsBase
 // A two-part events table
 struct ScriptEventTable : public ScriptEventsBase
 {
-    ScriptEventTable()
-        : _schema(&_defaultSchema)
-    {
-    }
+    ScriptEventTable() : _schema(&_defaultSchema) {}
 
-    ScriptEventTable(const ScriptEventSchema *schema)
-        : _schema(schema)
-    {
-        ResetHandlers();
-    }
+    ScriptEventTable(const ScriptEventSchema *schema) : _schema(schema) { ResetHandlers(); }
 
     ScriptEventTable(const ScriptEventSchema *schema, const ScriptEventsBase &handlers)
         : ScriptEventsBase(handlers), _schema(schema)
@@ -254,8 +219,7 @@ struct ScriptEventTable : public ScriptEventsBase
         ResetHandlers();
     }
 
-    ScriptEventTable(const ScriptEventTable &events)
-        : ScriptEventsBase(events), _schema(events._schema)
+    ScriptEventTable(const ScriptEventTable &events) : ScriptEventsBase(events), _schema(events._schema)
     {
         ResetHandlers();
     }
@@ -267,12 +231,12 @@ struct ScriptEventTable : public ScriptEventsBase
     }
 
     ScriptEventTable(ScriptEventTable &&events)
-        : ScriptEventsBase(std::move(static_cast<ScriptEventsBase&>(events))), _schema(std::move(events._schema))
+        : ScriptEventsBase(std::move(static_cast<ScriptEventsBase &>(events))), _schema(std::move(events._schema))
     {
         ResetHandlers();
     }
 
-    ScriptEventTable &operator =(const ScriptEventTable &events)
+    ScriptEventTable &operator=(const ScriptEventTable &events)
     {
         _schema = events._schema;
         _scriptModule = events._scriptModule;
@@ -280,7 +244,7 @@ struct ScriptEventTable : public ScriptEventsBase
         return *this;
     }
 
-    ScriptEventTable &operator =(ScriptEventTable &&events)
+    ScriptEventTable &operator=(ScriptEventTable &&events)
     {
         _schema = std::move(events._schema);
         _scriptModule = std::move(events._scriptModule);

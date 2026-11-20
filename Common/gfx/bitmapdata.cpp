@@ -32,9 +32,9 @@ uint32_t BitmapData::GetPixel(int x, int y) const
     case 4: return (line[x / 2] >> (1 - x % 2)) & 0x4;
     case 8: return line[x];
     case 15: /* same as 16 */
-    case 16: return *reinterpret_cast<const uint16_t*>(&line[x * 2]);
+    case 16: return *reinterpret_cast<const uint16_t *>(&line[x * 2]);
     case 24: return Memory::ReadInt24(&line[x * 3]);
-    case 32: return *reinterpret_cast<const uint32_t*>(&line[x * 4]);
+    case 32: return *reinterpret_cast<const uint32_t *>(&line[x * 4]);
     default: assert(false); return 0;
     }
 }
@@ -49,9 +49,9 @@ void BitmapData::SetPixel(int x, int y, uint32_t value)
     case 4: line[x / 2] = line[x / 2] & ~(4 << (1 - x % 2)) | ((value & 4) << (1 - x % 2)); break;
     case 8: line[x] = static_cast<uint8_t>(value & 0xFF); break;
     case 15: /* same as 16 */
-    case 16: *reinterpret_cast<uint16_t*>(&line[x * 2]) = value; break;
+    case 16: *reinterpret_cast<uint16_t *>(&line[x * 2]) = value; break;
     case 24: Memory::WriteInt24(&line[x * 3], value); break;
-    case 32: *reinterpret_cast<uint32_t*>(&line[x * 4]) = value; break;
+    case 32: *reinterpret_cast<uint32_t *>(&line[x * 4]) = value; break;
     default: assert(false); break;
     }
 }
@@ -60,14 +60,14 @@ String PixelFormatName(PixelFormat fmt)
 {
     switch (fmt)
     {
-    case kPxFmt_Indexed1:   return "1-bit indexed";
-    case kPxFmt_Indexed4:   return "4-bit indexed";
-    case kPxFmt_Indexed8:   return "8-bit indexed";
-    case kPxFmt_R5G5B5:     return "15-bit R5G5B5";
-    case kPxFmt_R5G6B5:     return "16-bit R5G6B5";
-    case kPxFmt_R8G8B8:     return "24-bit R8G8B8";
-    case kPxFmt_A8R8G8B8:   return "32-bit A8R8G8B8";
-    default:                return "unknown";
+    case kPxFmt_Indexed1: return "1-bit indexed";
+    case kPxFmt_Indexed4: return "4-bit indexed";
+    case kPxFmt_Indexed8: return "8-bit indexed";
+    case kPxFmt_R5G5B5: return "15-bit R5G5B5";
+    case kPxFmt_R5G6B5: return "16-bit R5G6B5";
+    case kPxFmt_R8G8B8: return "24-bit R8G8B8";
+    case kPxFmt_A8R8G8B8: return "32-bit A8R8G8B8";
+    default: return "unknown";
     }
 }
 
@@ -75,15 +75,15 @@ String PixelFormatName(PixelFormat fmt)
 namespace PixelOp
 {
 
-void CopyPixels(const uint8_t *src_buffer, const int bpp, const size_t src_pitch,
-    const int width, const int height, uint8_t *dst_buffer, const size_t dst_pitch)
+void CopyPixels(const uint8_t *src_buffer, const int bpp, const size_t src_pitch, const int width, const int height,
+                uint8_t *dst_buffer, const size_t dst_pitch)
 {
     CopyPixelsRegion(src_buffer, bpp, src_pitch, 0, 0, width, height, dst_buffer, dst_pitch, 0, 0);
 }
 
-void CopyPixelsRegion(const uint8_t *src_buffer, const int bpp, const size_t src_pitch,
-    const int src_px_off, const int src_py_off, const int width_px, const int height_px,
-    uint8_t *dst_buffer, const size_t dst_pitch, const int dst_px_off, const int dst_py_off)
+void CopyPixelsRegion(const uint8_t *src_buffer, const int bpp, const size_t src_pitch, const int src_px_off,
+                      const int src_py_off, const int width_px, const int height_px, uint8_t *dst_buffer,
+                      const size_t dst_pitch, const int dst_px_off, const int dst_py_off)
 {
     // Memory::BlockCopy takes the byte offset within a row: step the buffers to the first row here
     const uint8_t *src_row = src_buffer + (src_py_off * src_pitch);
@@ -95,7 +95,8 @@ void CopyPixelsRegion(const uint8_t *src_buffer, const int bpp, const size_t src
     Memory::BlockCopy(src_row, src_pitch, src_boff, width_b, height_px, dst_row, dst_pitch, dst_boff);
 }
 
-PixelBuffer CopyPixelsRegion(const BitmapData &bm_data, const int src_x, const int src_y, const int width, const int height)
+PixelBuffer CopyPixelsRegion(const BitmapData &bm_data, const int src_x, const int src_y, const int width,
+                             const int height)
 {
     const int src_bpp = bm_data.GetBytesPerPixel();
     const size_t src_pitch = bm_data.GetStride();
@@ -107,14 +108,15 @@ PixelBuffer CopyPixelsRegion(const BitmapData &bm_data, const int src_x, const i
         return {};
 
     PixelBuffer out_buf(do_width, do_height, bm_data.GetFormat());
-    CopyPixelsRegion(bm_data.GetData(), src_bpp, src_pitch, do_src_x, do_src_y, do_width, do_height, out_buf.GetData(), out_buf.GetStride(), 0, 0);
+    CopyPixelsRegion(bm_data.GetData(), src_bpp, src_pitch, do_src_x, do_src_y, do_width, do_height, out_buf.GetData(),
+                     out_buf.GetStride(), 0, 0);
     return out_buf;
 }
 
 // TODO: quite possibly may be *at least partially* reimplemented as a template function,
 // with parameters defining pixel sizes and rgb shifts.
-bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch,
-    const int width, const int height, uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch)
+bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const size_t src_pitch, const int width,
+                 const int height, uint8_t *dst_buffer, const PixelFormat dst_fmt, const size_t dst_pitch)
 {
     if (dst_fmt == src_fmt)
     {
@@ -144,14 +146,14 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
             for (; x < src_width; ++x)
             {
                 uint8_t sp = src_ptr[x];
-                dst_ptr[x * 8]     = ((sp >> 7) & 0x1);
+                dst_ptr[x * 8] = ((sp >> 7) & 0x1);
                 dst_ptr[x * 8 + 1] = ((sp >> 6) & 0x1);
                 dst_ptr[x * 8 + 2] = ((sp >> 5) & 0x1);
                 dst_ptr[x * 8 + 3] = ((sp >> 4) & 0x1);
                 dst_ptr[x * 8 + 4] = ((sp >> 3) & 0x1);
                 dst_ptr[x * 8 + 5] = ((sp >> 2) & 0x1);
                 dst_ptr[x * 8 + 6] = ((sp >> 1) & 0x1);
-                dst_ptr[x * 8 + 7] =  (sp       & 0x1);
+                dst_ptr[x * 8 + 7] = (sp & 0x1);
             }
 
             // Last 1-7 pixels (upper portion of the source byte)
@@ -172,8 +174,8 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
             for (; x < src_width; ++x)
             {
                 uint8_t sp = src_ptr[x];
-                dst_ptr[x * 2]     = ((sp >> 4) & 0xF);
-                dst_ptr[x * 2 + 1] =  (sp       & 0xF);
+                dst_ptr[x * 2] = ((sp >> 4) & 0xF);
+                dst_ptr[x * 2 + 1] = (sp & 0xF);
             }
 
             // Last pixel (upper half of the source byte)
@@ -188,15 +190,14 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
         const uint8_t *src_end = src_buffer + src_pitch * height;
         for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
         {
-            const uint16_t *src_ptr = reinterpret_cast<const uint16_t*>(src_buffer);
+            const uint16_t *src_ptr = reinterpret_cast<const uint16_t *>(src_buffer);
             uint8_t *dst_ptr = dst_buffer;
             for (int x = 0; x < width; ++x, dst_ptr += 3)
             {
                 uint16_t c = *(src_ptr++);
-                int32_t c2 = 
-                    _rgb_scale_5[((c >> _rgb_r_shift_16) & 0x1F)] << _rgb_r_shift_24 |
-                    _rgb_scale_6[((c >> _rgb_g_shift_16) & 0x3F)] << _rgb_g_shift_24 |
-                    _rgb_scale_5[((c >> _rgb_b_shift_16) & 0x1F)] << _rgb_b_shift_24;
+                int32_t c2 = _rgb_scale_5[((c >> _rgb_r_shift_16) & 0x1F)] << _rgb_r_shift_24 |
+                             _rgb_scale_6[((c >> _rgb_g_shift_16) & 0x3F)] << _rgb_g_shift_24 |
+                             _rgb_scale_5[((c >> _rgb_b_shift_16) & 0x1F)] << _rgb_b_shift_24;
                 Memory::WriteInt24(dst_ptr, c2);
             }
         }
@@ -208,16 +209,15 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
         const uint8_t *src_end = src_buffer + src_pitch * height;
         for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
         {
-            const uint16_t *src_ptr = reinterpret_cast<const uint16_t*>(src_buffer);
-            uint32_t *dst_ptr = reinterpret_cast<uint32_t*>(dst_buffer);
+            const uint16_t *src_ptr = reinterpret_cast<const uint16_t *>(src_buffer);
+            uint32_t *dst_ptr = reinterpret_cast<uint32_t *>(dst_buffer);
             for (int x = 0; x < width; ++x)
             {
                 uint16_t c = *(src_ptr++);
-                *(dst_ptr++) =
-                    _rgb_scale_5[((c >> _rgb_r_shift_16) & 0x1F)] << _rgb_r_shift_32 |
-                    _rgb_scale_6[((c >> _rgb_g_shift_16) & 0x3F)] << _rgb_g_shift_32 |
-                    _rgb_scale_5[((c >> _rgb_b_shift_16) & 0x1F)] << _rgb_b_shift_32 |
-                    0xFF << _rgb_a_shift_32;
+                *(dst_ptr++) = _rgb_scale_5[((c >> _rgb_r_shift_16) & 0x1F)] << _rgb_r_shift_32 |
+                               _rgb_scale_6[((c >> _rgb_g_shift_16) & 0x3F)] << _rgb_g_shift_32 |
+                               _rgb_scale_5[((c >> _rgb_b_shift_16) & 0x1F)] << _rgb_b_shift_32 |
+                               0xFF << _rgb_a_shift_32;
             }
         }
         return true;
@@ -229,14 +229,13 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
         for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
         {
             const uint8_t *src_ptr = src_buffer;
-            uint16_t *dst_ptr = reinterpret_cast<uint16_t*>(dst_buffer);
+            uint16_t *dst_ptr = reinterpret_cast<uint16_t *>(dst_buffer);
             for (int x = 0; x < width; ++x, src_ptr += 3)
             {
                 uint32_t c = Memory::ReadInt24(src_ptr);
-                *(dst_ptr++) =
-                    (((c >> _rgb_r_shift_24) & 0xFF) >> 3) << _rgb_r_shift_16 |
-                    (((c >> _rgb_g_shift_24) & 0xFF) >> 2) << _rgb_g_shift_16 |
-                    (((c >> _rgb_b_shift_24) & 0xFF) >> 3) << _rgb_b_shift_16;
+                *(dst_ptr++) = (((c >> _rgb_r_shift_24) & 0xFF) >> 3) << _rgb_r_shift_16 |
+                               (((c >> _rgb_g_shift_24) & 0xFF) >> 2) << _rgb_g_shift_16 |
+                               (((c >> _rgb_b_shift_24) & 0xFF) >> 3) << _rgb_b_shift_16;
             }
         }
         return true;
@@ -248,7 +247,7 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
         for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
         {
             const uint8_t *src_ptr = src_buffer;
-            uint32_t *dst_ptr = reinterpret_cast<uint32_t*>(dst_buffer);
+            uint32_t *dst_ptr = reinterpret_cast<uint32_t *>(dst_buffer);
             for (int x = 0; x < width; ++x, src_ptr += 3)
             {
                 uint32_t c = Memory::ReadInt24(src_ptr);
@@ -263,26 +262,25 @@ bool CopyConvert(const uint8_t *src_buffer, const PixelFormat src_fmt, const siz
         const uint8_t *src_end = src_buffer + src_pitch * height;
         for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
         {
-            const uint32_t *src_ptr = reinterpret_cast<const uint32_t*>(src_buffer);
-            uint16_t *dst_ptr = reinterpret_cast<uint16_t*>(dst_buffer);
+            const uint32_t *src_ptr = reinterpret_cast<const uint32_t *>(src_buffer);
+            uint16_t *dst_ptr = reinterpret_cast<uint16_t *>(dst_buffer);
             for (int x = 0; x < width; ++x, src_ptr++)
             {
                 uint32_t c = *src_ptr;
-                *(dst_ptr++) = 
-                    (((c >> _rgb_r_shift_32) & 0xFF) >> 3) << _rgb_r_shift_16 |
-                    (((c >> _rgb_g_shift_32) & 0xFF) >> 2) << _rgb_g_shift_16 |
-                    (((c >> _rgb_b_shift_32) & 0xFF) >> 3) << _rgb_b_shift_16;
+                *(dst_ptr++) = (((c >> _rgb_r_shift_32) & 0xFF) >> 3) << _rgb_r_shift_16 |
+                               (((c >> _rgb_g_shift_32) & 0xFF) >> 2) << _rgb_g_shift_16 |
+                               (((c >> _rgb_b_shift_32) & 0xFF) >> 3) << _rgb_b_shift_16;
             }
         }
         return true;
-        }
+    }
     // 32-bit ARGB -> 24-bit RGB (cut alpha channel)
     else if (src_fmt == kPxFmt_A8R8G8B8 && dst_fmt == kPxFmt_R8G8B8)
     {
         const uint8_t *src_end = src_buffer + src_pitch * height;
         for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
         {
-            const uint32_t *src_ptr = reinterpret_cast<const uint32_t*>(src_buffer);
+            const uint32_t *src_ptr = reinterpret_cast<const uint32_t *>(src_buffer);
             uint8_t *dst_ptr = dst_buffer;
             for (int x = 0; x < width; ++x, dst_ptr += 3)
             {
@@ -298,13 +296,13 @@ bool CopyConvert(const BitmapData &src, PixelBuffer &dst, const PixelFormat dst_
 {
     if (dst.GetDataSize() != GetDataSizeForPixelFormat(dst_fmt, src.GetWidth(), src.GetHeight()))
         dst = PixelBuffer(src.GetWidth(), src.GetHeight(), dst_fmt);
-    return CopyConvert(src.GetData(), src.GetFormat(), src.GetStride(), src.GetWidth(), src.GetHeight(),
-        dst.GetData(), dst_fmt, dst.GetStride());
+    return CopyConvert(src.GetData(), src.GetFormat(), src.GetStride(), src.GetWidth(), src.GetHeight(), dst.GetData(),
+                       dst_fmt, dst.GetStride());
 }
 
-void CopySwapRGBA(const uint8_t *src_buffer, const size_t src_pitch, int src_r_shift, int src_g_shift, int src_b_shift, int src_a_shift,
-    uint8_t *dst_buffer, const size_t dst_pitch, int dst_r_shift, int dst_g_shift, int dst_b_shift, int dst_a_shift,
-    const int width, const int height, const PixelFormat px_fmt)
+void CopySwapRGBA(const uint8_t *src_buffer, const size_t src_pitch, int src_r_shift, int src_g_shift, int src_b_shift,
+                  int src_a_shift, uint8_t *dst_buffer, const size_t dst_pitch, int dst_r_shift, int dst_g_shift,
+                  int dst_b_shift, int dst_a_shift, const int width, const int height, const PixelFormat px_fmt)
 {
     const int bpp = PixelFormatToPixelBytes(px_fmt);
     if (bpp <= 1)
@@ -313,71 +311,64 @@ void CopySwapRGBA(const uint8_t *src_buffer, const size_t src_pitch, int src_r_s
     switch (bpp)
     {
     case 2:
+    {
+        const uint8_t *src_end = src_buffer + src_pitch * height;
+        for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
         {
-            const uint8_t *src_end = src_buffer + src_pitch * height;
-            for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
+            const uint16_t *src_ptr = reinterpret_cast<const uint16_t *>(src_buffer);
+            uint16_t *dst_ptr = reinterpret_cast<uint16_t *>(dst_buffer);
+            for (int x = 0; x < width; ++x)
             {
-                const uint16_t *src_ptr = reinterpret_cast<const uint16_t*>(src_buffer);
-                uint16_t *dst_ptr = reinterpret_cast<uint16_t*>(dst_buffer);
-                for (int x = 0; x < width; ++x)
-                {
-                    uint16_t c = *(src_ptr++);
-                    *(dst_ptr++) =
-                        ((c >> src_r_shift) & 0x1F) << dst_r_shift |
-                        ((c >> src_g_shift) & 0x3F) << dst_g_shift |
-                        ((c >> src_b_shift) & 0x1F) << dst_b_shift;
-                }
+                uint16_t c = *(src_ptr++);
+                *(dst_ptr++) = ((c >> src_r_shift) & 0x1F) << dst_r_shift | ((c >> src_g_shift) & 0x3F) << dst_g_shift |
+                               ((c >> src_b_shift) & 0x1F) << dst_b_shift;
             }
         }
-        break;
+    }
+    break;
     case 3:
+    {
+        const uint8_t *src_end = src_buffer + src_pitch * height;
+        for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
         {
-            const uint8_t *src_end = src_buffer + src_pitch * height;
-            for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
+            const uint8_t *src_ptr = src_buffer;
+            uint8_t *dst_ptr = dst_buffer;
+            for (int x = 0; x < width; ++x, src_ptr += 3, dst_ptr += 3)
             {
-                const uint8_t *src_ptr = src_buffer;
-                uint8_t *dst_ptr = dst_buffer;
-                for (int x = 0; x < width; ++x, src_ptr += 3, dst_ptr += 3)
-                {
-                    int32_t c = Memory::ReadInt24(src_ptr);
-                    int32_t c2 = 
-                        ((c >> src_r_shift) & 0xFF) << dst_r_shift |
-                        ((c >> src_g_shift) & 0xFF) << dst_g_shift |
-                        ((c >> src_b_shift) & 0xFF) << dst_b_shift;
-                    Memory::WriteInt24(dst_ptr, c2);
-                }
+                int32_t c = Memory::ReadInt24(src_ptr);
+                int32_t c2 = ((c >> src_r_shift) & 0xFF) << dst_r_shift | ((c >> src_g_shift) & 0xFF) << dst_g_shift |
+                             ((c >> src_b_shift) & 0xFF) << dst_b_shift;
+                Memory::WriteInt24(dst_ptr, c2);
             }
         }
-        break;
+    }
+    break;
     case 4:
+    {
+        const uint8_t *src_end = src_buffer + src_pitch * height;
+        for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
         {
-            const uint8_t *src_end = src_buffer + src_pitch * height;
-            for (; src_buffer < src_end; src_buffer += src_pitch, dst_buffer += dst_pitch)
+            const uint32_t *src_ptr = reinterpret_cast<const uint32_t *>(src_buffer);
+            uint32_t *dst_ptr = reinterpret_cast<uint32_t *>(dst_buffer);
+            for (int x = 0; x < width; ++x)
             {
-                const uint32_t *src_ptr = reinterpret_cast<const uint32_t*>(src_buffer);
-                uint32_t *dst_ptr = reinterpret_cast<uint32_t*>(dst_buffer);
-                for (int x = 0; x < width; ++x)
-                {
-                    uint32_t c = *(src_ptr++);
-                    *(dst_ptr++) =
-                        ((c >> src_r_shift) & 0xFF) << dst_r_shift |
-                        ((c >> src_g_shift) & 0xFF) << dst_g_shift |
-                        ((c >> src_b_shift) & 0xFF) << dst_b_shift |
-                        ((c >> src_a_shift) & 0xFF) << dst_a_shift;
-                }
+                uint32_t c = *(src_ptr++);
+                *(dst_ptr++) = ((c >> src_r_shift) & 0xFF) << dst_r_shift | ((c >> src_g_shift) & 0xFF) << dst_g_shift |
+                               ((c >> src_b_shift) & 0xFF) << dst_b_shift | ((c >> src_a_shift) & 0xFF) << dst_a_shift;
             }
         }
-        break;
+    }
+    break;
     }
 }
 
 void CopySwapRGBA(const uint8_t *src_buffer, int src_r_shift, int src_g_shift, int src_b_shift, int src_a_shift,
-    uint8_t *dst_buffer, int dst_r_shift, int dst_g_shift, int dst_b_shift, int dst_a_shift,
-    const int width, const int height, const PixelFormat px_fmt)
+                  uint8_t *dst_buffer, int dst_r_shift, int dst_g_shift, int dst_b_shift, int dst_a_shift,
+                  const int width, const int height, const PixelFormat px_fmt)
 {
     const size_t pitch = GetStrideForPixelFormat(px_fmt, width);
-    CopySwapRGBA(src_buffer, pitch, src_r_shift, src_g_shift, src_b_shift, src_a_shift,
-        dst_buffer, pitch, dst_r_shift, dst_g_shift, dst_b_shift, dst_a_shift, width, height, px_fmt);
+    CopySwapRGBA(src_buffer, pitch, src_r_shift, src_g_shift, src_b_shift, src_a_shift, dst_buffer, pitch, dst_r_shift,
+                 dst_g_shift, dst_b_shift, dst_a_shift, width, height, px_fmt);
 }
 
 void MakeOpaque(BitmapData &bm_data)
@@ -387,7 +378,7 @@ void MakeOpaque(BitmapData &bm_data)
 
     for (int i = 0; i < bm_data.GetHeight(); ++i)
     {
-        uint32_t *line = reinterpret_cast<uint32_t*>(bm_data.GetLine(i));
+        uint32_t *line = reinterpret_cast<uint32_t *>(bm_data.GetLine(i));
         uint32_t *line_end = line + bm_data.GetWidth();
         for (uint32_t *px = line; px != line_end; ++px)
             *px = makeacol32(getr32(*px), getg32(*px), getb32(*px), 255);
@@ -401,7 +392,7 @@ void MakeOpaqueSkipMask(BitmapData &bm_data)
 
     for (int i = 0; i < bm_data.GetHeight(); ++i)
     {
-        uint32_t *line = reinterpret_cast<uint32_t*>(bm_data.GetLine(i));
+        uint32_t *line = reinterpret_cast<uint32_t *>(bm_data.GetLine(i));
         uint32_t *line_end = line + bm_data.GetWidth();
         for (uint32_t *px = line; px != line_end; ++px)
             if (*px != MASK_COLOR_32)
@@ -416,7 +407,7 @@ void ReplaceAlphaWithRGBMask(BitmapData &bm_data, int alpha_threshold)
 
     for (int i = 0; i < bm_data.GetHeight(); ++i)
     {
-        uint32_t *line = reinterpret_cast<uint32_t*>(bm_data.GetLine(i));
+        uint32_t *line = reinterpret_cast<uint32_t *>(bm_data.GetLine(i));
         uint32_t *line_end = line + bm_data.GetWidth();
         for (uint32_t *px = line; px != line_end; ++px)
             if (geta32(*px) <= alpha_threshold)
@@ -436,15 +427,16 @@ void ReadPixelData(Stream *in, uint8_t *dst_buf, const int width, const int heig
         switch (bpp)
         {
         case 1: in->Read(dst_buf + xoff, width); break;
-        case 2: in->ReadArrayOfInt16(reinterpret_cast<int16_t*>(dst_buf + xoff), width); break;
-        case 3: in->ReadArrayOfUInt24(reinterpret_cast<uint8_t*>(dst_buf + xoff), width); break;
-        case 4: in->ReadArrayOfInt32(reinterpret_cast<int32_t*>(dst_buf + xoff), width); break;
+        case 2: in->ReadArrayOfInt16(reinterpret_cast<int16_t *>(dst_buf + xoff), width); break;
+        case 3: in->ReadArrayOfUInt24(reinterpret_cast<uint8_t *>(dst_buf + xoff), width); break;
+        case 4: in->ReadArrayOfInt32(reinterpret_cast<int32_t *>(dst_buf + xoff), width); break;
         default: assert(0); break;
         }
     }
 }
 
-void WritePixelData(Stream *out, const uint8_t *src_buf, const int width, const int height, const int bpp, const int pitch)
+void WritePixelData(Stream *out, const uint8_t *src_buf, const int width, const int height, const int bpp,
+                    const int pitch)
 {
     // CHECKME: using WriteArrayOfN below does not seem right. These methods do endinaness swap.
     // But these are byte buffers with pixel data, which interpretation depends on pixel format,
@@ -456,72 +448,72 @@ void WritePixelData(Stream *out, const uint8_t *src_buf, const int width, const 
         switch (bpp)
         {
         case 1: out->Write(src_buf + xoff, width); break;
-        case 2: out->WriteArrayOfInt16(reinterpret_cast<const int16_t*>(src_buf + xoff), width); break;
-        case 3: out->WriteArrayOfUInt24(reinterpret_cast<const uint8_t*>(src_buf + xoff), width); break;
-        case 4: out->WriteArrayOfInt32(reinterpret_cast<const int32_t*>(src_buf + xoff), width); break;
+        case 2: out->WriteArrayOfInt16(reinterpret_cast<const int16_t *>(src_buf + xoff), width); break;
+        case 3: out->WriteArrayOfUInt24(reinterpret_cast<const uint8_t *>(src_buf + xoff), width); break;
+        case 4: out->WriteArrayOfInt32(reinterpret_cast<const int32_t *>(src_buf + xoff), width); break;
         default: assert(0); break;
         }
     }
 }
 
-} // namespace PixelOperations
+} // namespace PixelOp
 
 namespace PaletteOp
 {
-    void Rotate(PALETTE pal, uint8_t first, uint8_t last, bool to_left)
-    {
-        assert(first < last);
-        if (last <= first)
-            return; // nothing to do
+void Rotate(PALETTE pal, uint8_t first, uint8_t last, bool to_left)
+{
+    assert(first < last);
+    if (last <= first)
+        return; // nothing to do
 
-        RGB wrap = pal[to_left ? first : last];
-        if (to_left)
+    RGB wrap = pal[to_left ? first : last];
+    if (to_left)
+    {
+        for (int i = first; i < last; ++i)
+            pal[i] = pal[i + 1];
+    }
+    else
+    {
+        for (int i = last; i > first; --i)
+            pal[i] = pal[i - 1];
+    }
+    pal[to_left ? last : first] = wrap;
+}
+
+void Remap(BitmapData &bm_data, const PALETTE src_pal, const PALETTE dst_pal, bool keep_transparent)
+{
+    uint8_t color_mapped_table[256];
+    for (int i = 0; i < 256; ++i)
+    {
+        if ((src_pal[i].r == 0) && (src_pal[i].g == 0) && (src_pal[i].b == 0))
         {
-            for (int i = first; i < last; ++i)
-                pal[i] = pal[i + 1];
+            color_mapped_table[i] = 0;
         }
         else
         {
-            for (int i = last; i > first; --i)
-                pal[i] = pal[i - 1];
+            color_mapped_table[i] = bestfit_color(dst_pal, src_pal[i].r, src_pal[i].g, src_pal[i].b);
         }
-        pal[to_left ? last : first] = wrap;
     }
 
-    void Remap(BitmapData &bm_data, const PALETTE src_pal, const PALETTE dst_pal, bool keep_transparent)
+    if (keep_transparent)
     {
-        uint8_t color_mapped_table[256];
-        for (int i = 0; i < 256; ++i)
+        // keep transparency
+        color_mapped_table[0] = 0;
+        // any other pixels which are being mapped to 0, map to 16 instead
+        for (int i = 1; i < 256; ++i)
         {
-            if ((src_pal[i].r == 0) && (src_pal[i].g == 0) && (src_pal[i].b == 0))
-            {
-                color_mapped_table[i] = 0;
-            }
-            else
-            {
-                color_mapped_table[i] = bestfit_color(dst_pal, src_pal[i].r, src_pal[i].g, src_pal[i].b);
-            }
+            if (color_mapped_table[i] == 0)
+                color_mapped_table[i] = 16;
         }
+    }
 
-        if (keep_transparent)
-        {
-            // keep transparency
-            color_mapped_table[0] = 0;
-            // any other pixels which are being mapped to 0, map to 16 instead
-            for (int i = 1; i < 256; ++i)
-            {
-                if (color_mapped_table[i] == 0)
-                    color_mapped_table[i] = 16;
-            }
-        }
-
-        // Remap pixels to the new palette
-        for (uint8_t *ptr = bm_data.GetData(); ptr < bm_data.GetData() + bm_data.GetDataSize(); ++ptr)
-        {
-            *ptr = color_mapped_table[*ptr];
-        }
+    // Remap pixels to the new palette
+    for (uint8_t *ptr = bm_data.GetData(); ptr < bm_data.GetData() + bm_data.GetDataSize(); ++ptr)
+    {
+        *ptr = color_mapped_table[*ptr];
     }
 }
+} // namespace PaletteOp
 
 } // namespace Common
 } // namespace AGS

@@ -36,23 +36,23 @@ FILE *ags_fopen(const char *path, const char *mode)
     WCHAR wmode[10];
     MultiByteToWideChar(CP_UTF8, 0, mode, -1, wmode, 10);
     return _wfopen(wpath, wmode);
-#else // POSIX
+#else  // POSIX
     return fopen(path, mode);
 #endif // POSIX
 }
 
-int	 ags_fseek(FILE * stream, file_off_t offset, int whence)
+int ags_fseek(FILE *stream, file_off_t offset, int whence)
 {
 #if defined(HAVE_FSEEKO) // Contemporary POSIX libc
     return fseeko(stream, offset, whence);
 #elif AGS_PLATFORM_OS_WINDOWS // MSVC
-    // MSVC 2015 has a weird bug in fseek, where it may fail to set certain
-    // position, unless stream is rewinded to 0 first. See commentary below *
-    #if (_MSC_VER <= 1900)
-        if (whence == SEEK_SET)
-            _fseeki64(stream, 0, whence); 
-    #endif
-    return _fseeki64(stream, offset, whence); 
+// MSVC 2015 has a weird bug in fseek, where it may fail to set certain
+// position, unless stream is rewinded to 0 first. See commentary below *
+#if (_MSC_VER <= 1900)
+    if (whence == SEEK_SET)
+        _fseeki64(stream, 0, whence);
+#endif
+    return _fseeki64(stream, offset, whence);
 #else // No distinct interface with off_t
     return fseek(stream, offset, whence);
 #endif
@@ -83,26 +83,27 @@ int	 ags_fseek(FILE * stream, file_off_t offset, int whence)
 //
 //-----------------------------------------------------------------------------
 
-file_off_t ags_ftell(FILE * stream) 
+file_off_t ags_ftell(FILE *stream)
 {
-    #if defined(HAVE_FSEEKO) // Contemporary POSIX libc
-        return ftello(stream);
-    #elif AGS_PLATFORM_OS_WINDOWS // MSVC
-        return _ftelli64(stream); 
-    #else // No distinct interface with off_t
-        return ftell(stream);
-    #endif
+#if defined(HAVE_FSEEKO) // Contemporary POSIX libc
+    return ftello(stream);
+#elif AGS_PLATFORM_OS_WINDOWS // MSVC
+    return _ftelli64(stream);
+#else                         // No distinct interface with off_t
+    return ftell(stream);
+#endif
 }
 
-int  ags_file_exists(const char *path) 
+int ags_file_exists(const char *path)
 {
 #if AGS_PLATFORM_OS_WINDOWS
     WCHAR wstr[MAX_PATH_SZ];
     MultiByteToWideChar(CP_UTF8, 0, path, -1, wstr, MAX_PATH_SZ);
     return PathFileExistsW(wstr) && !PathIsDirectoryW(wstr);
-#else // POSIX
+#else  // POSIX
     struct stat path_stat;
-    if (stat(path, &path_stat) != 0) {
+    if (stat(path, &path_stat) != 0)
+    {
         return 0;
     }
     return S_ISREG(path_stat.st_mode);
@@ -115,9 +116,10 @@ int ags_directory_exists(const char *path)
     WCHAR wstr[MAX_PATH_SZ];
     MultiByteToWideChar(CP_UTF8, 0, path, -1, wstr, MAX_PATH_SZ);
     return PathFileExistsW(wstr) && PathIsDirectoryW(wstr);
-#else // POSIX
+#else  // POSIX
     struct stat path_stat;
-    if (stat(path, &path_stat) != 0) {
+    if (stat(path, &path_stat) != 0)
+    {
         return 0;
     }
     return S_ISDIR(path_stat.st_mode);
@@ -130,9 +132,10 @@ int ags_path_exists(const char *path)
     WCHAR wstr[MAX_PATH_SZ];
     MultiByteToWideChar(CP_UTF8, 0, path, -1, wstr, MAX_PATH_SZ);
     return PathFileExistsW(wstr);
-#else // POSIX
+#else  // POSIX
     struct stat path_stat;
-    if (stat(path, &path_stat) != 0) {
+    if (stat(path, &path_stat) != 0)
+    {
         return 0;
     }
     return S_ISREG(path_stat.st_mode) || S_ISDIR(path_stat.st_mode);
@@ -145,13 +148,15 @@ file_off_t ags_file_size(const char *path)
     WCHAR wstr[MAX_PATH_SZ];
     MultiByteToWideChar(CP_UTF8, 0, path, -1, wstr, MAX_PATH_SZ);
     struct _stat64 path_stat;
-    if (_wstat64(wstr, &path_stat) != 0) {
+    if (_wstat64(wstr, &path_stat) != 0)
+    {
         return -1;
     }
     return path_stat.st_size;
-#else // POSIX
+#else  // POSIX
     struct stat path_stat;
-    if (stat(path, &path_stat) != 0) {
+    if (stat(path, &path_stat) != 0)
+    {
         return -1;
     }
     return path_stat.st_size;
@@ -164,13 +169,15 @@ time_t ags_file_time(const char *path)
     WCHAR wstr[MAX_PATH_SZ];
     MultiByteToWideChar(CP_UTF8, 0, path, -1, wstr, MAX_PATH_SZ);
     struct _stat64 path_stat;
-    if (_wstat64(wstr, &path_stat) != 0) {
+    if (_wstat64(wstr, &path_stat) != 0)
+    {
         return -1;
     }
     return path_stat.st_mtime;
-#else // POSIX
+#else  // POSIX
     struct stat path_stat;
-    if (stat(path, &path_stat) != 0) {
+    if (stat(path, &path_stat) != 0)
+    {
         return -1;
     }
     return path_stat.st_mtime;
@@ -183,9 +190,9 @@ int ags_file_remove(const char *path)
     WCHAR wstr[MAX_PATH_SZ];
     MultiByteToWideChar(CP_UTF8, 0, path, -1, wstr, MAX_PATH_SZ);
     return !DeleteFileW(wstr); // inverse DeleteFile's result to match 0 = success
-#else // POSIX
+#else                          // POSIX
     return remove(path);
-#endif // POSIX
+#endif                         // POSIX
 }
 
 int ags_file_rename(const char *src, const char *dst, int overwrite)
@@ -209,7 +216,7 @@ int ags_file_rename(const char *src, const char *dst, int overwrite)
     {
         return !MoveFileW(wsrc, wdst); // inverse MoveFile's result to match 0 = success
     }
-#else // POSIX
+#else  // POSIX
     if (overwrite || !ags_file_exists(dst))
         return rename(src, dst);
     return 0;
@@ -223,10 +230,10 @@ int ags_file_copy(const char *src, const char *dst, int overwrite)
     MultiByteToWideChar(CP_UTF8, 0, src, -1, wsrc, MAX_PATH_SZ);
     MultiByteToWideChar(CP_UTF8, 0, dst, -1, wdst, MAX_PATH_SZ);
     return !CopyFileW(wsrc, wdst, !overwrite); // inverse CopyFile's result to match 0 = success
-#else // POSIX
+#else                                          // POSIX
     int fd_src, fd_dst;
     int dst_flags;
-    char buf[4096]; // CHECKME: larger buffer? malloc a bigger one on heap?
+    char buf[4096];   // CHECKME: larger buffer? malloc a bigger one on heap?
     ssize_t read_num; // read returns -1 if there was an error, so we need a signed type.
 
     fd_src = open(src, O_RDONLY);
@@ -236,20 +243,26 @@ int ags_file_copy(const char *src, const char *dst, int overwrite)
     if (!overwrite)
         dst_flags |= O_EXCL;
     fd_dst = open(dst, dst_flags, 0666);
-    if (fd_dst < 0) {
+    if (fd_dst < 0)
+    {
         close(fd_src);
         return -1;
     }
 
-    while ((read_num = read(fd_src, buf, sizeof(buf))) > 0) {
+    while ((read_num = read(fd_src, buf, sizeof(buf))) > 0)
+    {
         char *out_ptr = buf;
         ssize_t wrote_num; // write returns -1 if there was an error, so we need a signed type.
-        do {
+        do
+        {
             wrote_num = write(fd_dst, out_ptr, read_num);
-            if (wrote_num >= 0) {
+            if (wrote_num >= 0)
+            {
                 read_num -= wrote_num;
                 out_ptr += wrote_num;
-            } else if (errno != EINTR) {
+            }
+            else if (errno != EINTR)
+            {
                 close(fd_src);
                 close(fd_dst);
                 return -1;
@@ -262,7 +275,7 @@ int ags_file_copy(const char *src, const char *dst, int overwrite)
         return -1;
     // At this point read_num contains either 0 or -1 as error
     return read_num;
-#endif // POSIX
+#endif                                         // POSIX
 }
 
 int ags_file_link(const char *src, const char *dst, int overwrite)
@@ -275,9 +288,9 @@ int ags_file_link(const char *src, const char *dst, int overwrite)
     MultiByteToWideChar(CP_UTF8, 0, src, -1, wsrc, MAX_PATH_SZ);
     MultiByteToWideChar(CP_UTF8, 0, dst, -1, wdst, MAX_PATH_SZ);
     return !CreateHardLinkW(wdst, wsrc, NULL); // inverse CreateHardLinkW's result to match 0 = success
-#else // POSIX
+#else                                          // POSIX
     return link(src, dst);
-#endif // POSIX
+#endif                                         // POSIX
 }
 
 int ags_file_truncate(const char *path, file_off_t length)
@@ -285,10 +298,11 @@ int ags_file_truncate(const char *path, file_off_t length)
 #if AGS_PLATFORM_OS_WINDOWS
     WCHAR wpath[MAX_PATH_SZ];
     MultiByteToWideChar(CP_UTF8, 0, path, -1, wpath, MAX_PATH_SZ);
-    HANDLE hFile = CreateFileW(wpath, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE hFile =
+        CreateFileW(wpath, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile == INVALID_HANDLE_VALUE)
         return -1;
-    LARGE_INTEGER pos = { .QuadPart = length };
+    LARGE_INTEGER pos = {.QuadPart = length};
     SetFilePointerEx(hFile, pos, NULL, FILE_BEGIN);
     SetEndOfFile(hFile);
     CloseHandle(hFile);

@@ -329,6 +329,8 @@ HError LinkGlobalScripts()
     // Register built-in types under simple aliases for dynamic cast feature
     // TODO: maybe find a better place to do this? should be done after JointRTTI is created though
     SetupBuiltinTypeAliases();
+    // Generate RTTI helper, a runtime-only RTTI data
+    RuntimeScript::GenerateRTTIHelper();
 
     // Optionally dump script's TOC into the log
     if (logScriptTOC)

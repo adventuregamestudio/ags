@@ -102,6 +102,8 @@ const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
     ScriptCommandInfo( SCMD_NEWUSEROBJECT2  , "newuserobject2"    , 3, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWARRAY2       , "newarray2"         , 3, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_DYNAMICCAST     , "dynamiccast"       , 1, kScOpNoArgIsReg),
+    ScriptCommandInfo( SCMD_GETVIRTFUNC     , "getvirtfunc"       , 2, kScOpOneArgIsReg),
+    ScriptCommandInfo( SCMD_CALLDYNAMIC     , "dynamiccall"       , 1, kScOpOneArgIsReg),
 };
 
 // FIXME: move to some "script helpers" module
@@ -197,13 +199,16 @@ std::unique_ptr<RTTIHelper> RuntimeScript::_rttiHelper;
     std::unordered_map<uint32_t, uint32_t> &type_l2g)
 {
     _jointRtti->Join(rtti, loc_l2g, type_l2g);
-    // TODO: optimize by updating only newly joint types
-    _rttiHelper->Generate(_jointRtti->AsConstRTTI());
 }
 
 /* static */ void RuntimeScript::AddGlobalTypeAliases(const String &location)
 {
     _jointRtti->AddGlobalTypeLookupAliasesForLocation(location);
+}
+
+/* static */ void RuntimeScript::GenerateRTTIHelper()
+{
+    _rttiHelper->Generate(_jointRtti->AsConstRTTI(), &simp);
 }
 
 RuntimeScript::~RuntimeScript()
@@ -402,8 +407,7 @@ bool RuntimeScript::ResolveImports(const SystemImports &simp)
         return false;
     }
 
-    ResolveImportFixups();
-    return true;
+    return ResolveImportFixups();
 }
 
 bool RuntimeScript::ResolveImportFixups()

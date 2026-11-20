@@ -23,6 +23,8 @@
 #define __AGS_EE_SCRIPT__REFLECTHELPER_H
 
 #include "script/cc_reflect.h"
+#include "script/runtimescriptvalue.h"
+#include "script/systemimports.h"
 
 namespace AGS
 {
@@ -42,17 +44,24 @@ public:
     // Generate data based on full RTTI; this overwrite whole data
     // WARNING: assumes RTTI has sequential type ids (joint RTTI); FIXME: enforce this?
     // FIXME: allow to skip existing non-GENERATED types
-    void Generate(const RTTI &rtti);
+    void Generate(const RTTI &rtti, const SystemImports *simp);
 
     // Returns a range of managed offsets (as a pair of [begin;end) iterators),
     // containing a list of managed fields offsets for the given type
     std::pair<std::vector<uint32_t>::const_iterator, std::vector<uint32_t>::const_iterator>
         GetManagedOffsetsForType(uint32_t type_id) const;
+    // Returns a virtual table containing script import indexes for the given global type
+    const std::vector<uint32_t> &
+        GetVirtualTableForType(uint32_t type_id) const;
 
 private:
     // Quick-reference for the managed pointer fields in types
     std::vector<TypeFieldsRef> _managedFieldsRef;
     std::vector<uint32_t> _managedOffsets; // includes nested regular structs!
+
+    // Virtual function tables contain script import indexes, per global type
+    std::unordered_map<uint32_t, std::vector<uint32_t>> _virtualTables;
+    std::vector<uint32_t> _dummyVT;
 };
 
 }

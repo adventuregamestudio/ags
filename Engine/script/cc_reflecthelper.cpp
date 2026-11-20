@@ -13,6 +13,8 @@
 //=============================================================================
 #include "script/cc_reflecthelper.h"
 
+using namespace AGS::Common;
+
 namespace AGS
 {
 namespace Engine
@@ -67,17 +69,37 @@ static void ResolvePtrsInStruct(const RTTI::Type &ti, const std::vector<RTTI::Ty
     }
 }
 
+static void ResolveVirtualTable(const RTTI::Type &ti, std::vector<uint32_t> &vt, const SystemImports *simp)
+{
+    // We fill the virtual table with the entries from all the types in a hierarchy,
+    // starting from the bottom and going up to the topmost parent.
+    // Only assign an entry at index if it was not assigned yet (bottom types have priority)
+    const RTTI::Type *cur_type = &ti;
+    for (; cur_type; cur_type = cur_type->parent)
+    {
+        for (const auto *vte = cur_type->first_vte; vte; vte = vte->next_vte)
+        {
+            if (vte->index >= vt.size())
+                vt.resize(vte->index + 1, UINT32_MAX);
+            if (vt[vte->index] == UINT32_MAX)
+                vt[vte->index] = simp->GetIndexOfAny(String::FromFormat("%s::%s", cur_type->name, vte->name));
+        }
+    }
+}
+
 // TODO: optimize this by (optionally?) keeping previously generated data
 // of the known types, and only generating for new types
 // FIXME: allow to skip existing non-GENERATED types
-void RTTIHelper::Generate(const RTTI &rtti)
+void RTTIHelper::Generate(const RTTI &rtti, const SystemImports *simp)
 {
     const auto &types = rtti.GetTypes();
 
     _managedFieldsRef.clear();
     _managedOffsets.clear();
+    _virtualTables.clear();
     for (const auto &ti : types)
     {
+        // Managed pointer fields
         // TODO: need to somehow NOT rely on field type having less IDs than its owner:
         // script compiler might support random declaration order at some point?!
         uint32_t man_findex = _managedOffsets.size();
@@ -86,6 +108,12 @@ void RTTIHelper::Generate(const RTTI &rtti)
         ref.field_index = man_findex;
         ref.field_num = _managedOffsets.size() - man_findex;
         _managedFieldsRef.push_back(ref);
+
+        // Virtual tables (managed structs only)
+        if (((ti.flags & RTTI::kType_Managed) != 0) && ((ti.first_vte != nullptr) || (ti.parent != nullptr)))
+        {
+            ResolveVirtualTable(ti, _virtualTables[ti.this_id], simp);
+        }
     }
 }
 
@@ -99,6 +127,13 @@ std::pair<std::vector<uint32_t>::const_iterator, std::vector<uint32_t>::const_it
     const auto &fref = _managedFieldsRef[type_id];
     return std::make_pair(_managedOffsets.begin() + fref.field_index,
         _managedOffsets.begin() + fref.field_index + fref.field_num);
+}
+
+const std::vector<uint32_t> &
+    RTTIHelper::GetVirtualTableForType(uint32_t type_id) const
+{
+    auto it_found = _virtualTables.find(type_id);
+    return (it_found != _virtualTables.end()) ? it_found->second : _dummyVT;
 }
 
 } // namespace Engine

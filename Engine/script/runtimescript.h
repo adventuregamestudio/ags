@@ -111,6 +111,7 @@ public:
     // Add lookup aliases for all RTTI types that belong to the given namespace (location).
     // In effect this lets to find certain types by their bare name, without location spec.
     static void AddGlobalTypeAliases(const String &location);
+    static void GenerateRTTIHelper();
 
     struct ResolvedExport
     {

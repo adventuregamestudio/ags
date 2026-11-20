@@ -51,8 +51,8 @@ String cc_get_callstack(int max_lines)
 }
 
 
-const char* PREFIX_SCRIPT_COMPAT = "SCRIPT_COMPAT_";
-const char* PREFIX_SCRIPT_API = "SCRIPT_API_";
+const char *PREFIX_SCRIPT_COMPAT = "SCRIPT_COMPAT_";
+const char *PREFIX_SCRIPT_API = "SCRIPT_API_";
 // All script API levels in ascending order (shared with agf2dta), then "Highest"
 static std::vector<const char *> MakeScriptAPIList()
 {
@@ -71,23 +71,26 @@ std::vector<const char *> GetScriptAPIs()
 }
 
 
-void CompilerOptions::PrintToStdout() const {
+void CompilerOptions::PrintToStdout() const
+{
     printf("\n--- Compiler Settings ---\n");
     printf("Input: %s\n", InputScriptFile.c_str());
     printf("Output: %s\n", OutputObjFile.c_str());
     printf("Headers:");
     bool comma = false;
-    for (const auto& header : HeaderFiles)
+    for (const auto &header : HeaderFiles)
     {
-        if (comma) printf(", ");
+        if (comma)
+            printf(", ");
         printf("%s", header.c_str());
         comma = true;
     }
     printf("\nCustom Macros:");
     comma = false;
-    for (const auto& macro : Macros)
+    for (const auto &macro : Macros)
     {
-        if (comma) printf(", ");
+        if (comma)
+            printf(", ");
         printf("%s:%s", macro.first.c_str(), macro.second.c_str());
         comma = true;
     }
@@ -95,32 +98,45 @@ void CompilerOptions::PrintToStdout() const {
     printf("ScriptAPIVersion: %s\n", ScriptAPI.ScriptAPIVersion.c_str());
     printf("ScriptCompatLevel: %s\n", ScriptAPI.ScriptCompatLevel.c_str());
     printf("Flags: ");
-    if (Flags.ExportAll) printf("ExportAll; ");
+    if (Flags.ExportAll)
+        printf("ExportAll; ");
     //if (Flags.ShowWarnings) printf("ShowWarnings; ");
-    if (Flags.LineNumbers) printf("LineNumbers; ");
-    if (Flags.AutoImport) printf("AutoImport; ");
-    if (Flags.DebugRun) printf("DebugRun; ");
-    if (Flags.NoImportOverride) printf("NoImportOverride; ");
-    if (Flags.EnforceObjectBasedScript) printf("EnforceObjectBasedScript; ");
-    if (Flags.EnforceNewStrings) printf("EnforceNewStrings; ");
-    if (Flags.EnforceNewAudio) printf("EnforceNewAudio; ");
-    if (Flags.UseOldCustomDialogOptionsAPI) printf("UseOldCustomDialogOptionsAPI; ");
-    if (Flags.UseOldKeyboardHandling) printf("UseOldKeyboardHandling; ");
+    if (Flags.LineNumbers)
+        printf("LineNumbers; ");
+    if (Flags.AutoImport)
+        printf("AutoImport; ");
+    if (Flags.DebugRun)
+        printf("DebugRun; ");
+    if (Flags.NoImportOverride)
+        printf("NoImportOverride; ");
+    if (Flags.EnforceObjectBasedScript)
+        printf("EnforceObjectBasedScript; ");
+    if (Flags.EnforceNewStrings)
+        printf("EnforceNewStrings; ");
+    if (Flags.EnforceNewAudio)
+        printf("EnforceNewAudio; ");
+    if (Flags.UseOldCustomDialogOptionsAPI)
+        printf("UseOldCustomDialogOptionsAPI; ");
+    if (Flags.UseOldKeyboardHandling)
+        printf("UseOldKeyboardHandling; ");
     printf("\n");
-    if (DebugMode) printf("DebugMode\n");
-    if (UnicodeMode) printf("Unicode mode\n");
-    else printf("ASCII mode\n");
+    if (DebugMode)
+        printf("DebugMode\n");
+    if (UnicodeMode)
+        printf("Unicode mode\n");
+    else
+        printf("ASCII mode\n");
 }
 
 
-int Compile(const CompilerOptions& comp_opts)
+int Compile(const CompilerOptions &comp_opts)
 {
     comp_opts.PrintToStdout();
     AGS::Preprocessor::Preprocessor pp = AGS::Preprocessor::Preprocessor();
     std::vector<std::string> scriptAPIVersionMacros;
     std::vector<std::string> scriptCompatLevelMacros;
 
-    for(int i=0; i<ScriptAPIs.size()-1; i++)
+    for (int i = 0; i < ScriptAPIs.size() - 1; i++)
     {
         scriptAPIVersionMacros.emplace_back(std::string(PREFIX_SCRIPT_API) + ScriptAPIs[i]);
         scriptCompatLevelMacros.emplace_back(std::string(PREFIX_SCRIPT_COMPAT) + ScriptAPIs[i]);
@@ -133,7 +149,8 @@ int Compile(const CompilerOptions& comp_opts)
     pp.DefineMacro("AGS_NEW_STRINGS", "1");
     pp.DefineMacro("AGS_SUPPORTS_IFVER", "1");
 
-    if(comp_opts.DebugMode) {
+    if (comp_opts.DebugMode)
+    {
         pp.DefineMacro("DEBUG", "1");
     }
 
@@ -174,10 +191,11 @@ int Compile(const CompilerOptions& comp_opts)
     for (const auto &ext : extensions)
         pp.DefineMacro(("SCRIPT_EXT_" + ext).c_str(), "1");
     // Set Script API macros (starting from lowest and until the highest requested)
-    for(int i=0; i<ScriptAPIs.size()-1; i++)
+    for (int i = 0; i < ScriptAPIs.size() - 1; i++)
     {
         pp.DefineMacro(scriptAPIVersionMacros[i].c_str(), "1");
-        if(comp_opts.ScriptAPI.ScriptAPIVersion == ScriptAPIs[i]) {
+        if (comp_opts.ScriptAPI.ScriptAPIVersion == ScriptAPIs[i])
+        {
             break;
         }
     }
@@ -185,7 +203,9 @@ int Compile(const CompilerOptions& comp_opts)
     {
         const int highest_compat = static_cast<int>(ScriptAPIs.size()) - 1;
         int lowest_compat = highest_compat;
-        for (; (lowest_compat > 0) && (comp_opts.ScriptAPI.ScriptCompatLevel != ScriptAPIs[lowest_compat]); --lowest_compat);
+        for (; (lowest_compat > 0) && (comp_opts.ScriptAPI.ScriptCompatLevel != ScriptAPIs[lowest_compat]);
+             --lowest_compat)
+            ;
         // If set to "Highest" constant then select the highest actual version
         if (lowest_compat == highest_compat)
             lowest_compat--;
@@ -196,7 +216,7 @@ int Compile(const CompilerOptions& comp_opts)
     }
 
     // define custom macros
-    for(const auto& macro: comp_opts.Macros)
+    for (const auto &macro : comp_opts.Macros)
     {
         pp.DefineMacro(macro.first.c_str(), macro.second.c_str());
     }
@@ -218,31 +238,27 @@ int Compile(const CompilerOptions& comp_opts)
 
     ccRemoveDefaultHeaders();
 #else
-    uint64_t const cc_options =
-            (comp_opts.Flags.ExportAll ? SCOPT_EXPORTALL : 0) |
-            (comp_opts.Flags.LineNumbers ? SCOPT_LINENUMBERS : 0) |
-            (comp_opts.Flags.EnforceNewStrings ? 0 : SCOPT_OLDSTRINGS) |
-            (comp_opts.UnicodeMode ? SCOPT_UTF8 : 0) |
-            SCOPT_RTTI |
-            SCOPT_RTTIOPS |
-            // the editor adds the script table of contents to debug builds
-            (comp_opts.DebugMode ? SCOPT_SCRIPT_TOC : 0) |
-            0;
+    uint64_t const cc_options = (comp_opts.Flags.ExportAll ? SCOPT_EXPORTALL : 0) |
+                                (comp_opts.Flags.LineNumbers ? SCOPT_LINENUMBERS : 0) |
+                                (comp_opts.Flags.EnforceNewStrings ? 0 : SCOPT_OLDSTRINGS) |
+                                (comp_opts.UnicodeMode ? SCOPT_UTF8 : 0) | SCOPT_RTTI | SCOPT_RTTIOPS |
+                                // the editor adds the script table of contents to debug builds
+                                (comp_opts.DebugMode ? SCOPT_SCRIPT_TOC : 0) | 0;
 #endif
 
     //-----------------------------------------------------------------------//
     // Read input files
     //-----------------------------------------------------------------------//
     std::vector<std::pair<String, String>> heads;
-    for(const auto& header: comp_opts.HeaderFiles)
+    for (const auto &header : comp_opts.HeaderFiles)
     {
         if (header.empty())
         {
-            std::cerr << "Error: empty header filename. Do you have a trailing `:` or `;`? "<< std::endl;
+            std::cerr << "Error: empty header filename. Do you have a trailing `:` or `;`? " << std::endl;
             return -1;
         }
 
-        std::unique_ptr<Stream> in (File::OpenFileRead(header.c_str()));
+        std::unique_ptr<Stream> in(File::OpenFileRead(header.c_str()));
         if (!in)
         {
             std::cerr << "Error: failed to open header for reading: " << header << std::endl;
@@ -258,7 +274,7 @@ int Compile(const CompilerOptions& comp_opts)
     }
 
     String script_input;
-    const char* src = nullptr;
+    const char *src = nullptr;
 
     if (comp_opts.InputScriptFile.empty())
     {
@@ -267,7 +283,7 @@ int Compile(const CompilerOptions& comp_opts)
     }
 
     src = comp_opts.InputScriptFile.c_str();
-    std::unique_ptr<Stream> in (File::OpenFileRead(src));
+    std::unique_ptr<Stream> in(File::OpenFileRead(src));
     if (!in)
     {
         std::cerr << "Error: failed to open script for reading: " << src << std::endl;
@@ -280,12 +296,13 @@ int Compile(const CompilerOptions& comp_opts)
     // Preprocess headers and set them for use when compiling
     //-----------------------------------------------------------------------//
     std::vector<std::pair<String, String>> preprocessed_heads;
-    for(const auto& head: heads)
+    for (const auto &head : heads)
     {
-        String preprocessed_header = pp.Preprocess(head.first,head.second);
-        preprocessed_heads.emplace_back(preprocessed_header.GetCStr(),head.second);
+        String preprocessed_header = pp.Preprocess(head.first, head.second);
+        preprocessed_heads.emplace_back(preprocessed_header.GetCStr(), head.second);
 #ifdef LEGACY_COMPILER
-        ccAddDefaultHeader((char *) preprocessed_heads.back().first.GetCStr(), (char *) preprocessed_heads.back().second.GetCStr());
+        ccAddDefaultHeader((char *)preprocessed_heads.back().first.GetCStr(),
+                           (char *)preprocessed_heads.back().second.GetCStr());
 #endif
     }
     heads.clear();
@@ -298,19 +315,20 @@ int Compile(const CompilerOptions& comp_opts)
     // with extension, like the AGS editor (see headername above)
     String script_name = comp_opts.ScriptName.empty() ? filename : String(comp_opts.ScriptName.c_str());
 
-    script_pp = pp.Preprocess(script_input,script_name);
+    script_pp = pp.Preprocess(script_input, script_name);
     if ((script_pp == nullptr) || (cc_has_error()))
     {
         const auto &error = cc_get_error();
-        std::cerr << "Error: preprocessor failed at " << script_name.GetCStr() <<
-            ", line " << error.Line << " : " << error.ErrorString.GetCStr() << std::endl;
+        std::cerr << "Error: preprocessor failed at " << script_name.GetCStr() << ", line " << error.Line << " : "
+                  << error.ErrorString.GetCStr() << std::endl;
         return -1;
     }
 
-    if(comp_opts.PreprocessOnly)
+    if (comp_opts.PreprocessOnly)
     {
-        std::unique_ptr<Stream> out (File::CreateFile(comp_opts.OutputObjFile.c_str()));
-        if (!out || !(out->CanWrite())) {
+        std::unique_ptr<Stream> out(File::CreateFile(comp_opts.OutputObjFile.c_str()));
+        if (!out || !(out->CanWrite()))
+        {
             std::cerr << "Error: failed to open for writing: " << comp_opts.OutputObjFile << std::endl;
             return -1;
         }
@@ -326,7 +344,8 @@ int Compile(const CompilerOptions& comp_opts)
     if ((script == nullptr) || (cc_has_error()))
     {
         const auto &error = cc_get_error();
-        std::cerr << "Error: compile failed at " << ccCurScriptName << ", line " << error.Line << " : " << error.ErrorString.GetCStr() << std::endl;
+        std::cerr << "Error: compile failed at " << ccCurScriptName << ", line " << error.Line << " : "
+                  << error.ErrorString.GetCStr() << std::endl;
         return -1;
     }
 #else
@@ -340,27 +359,28 @@ int Compile(const CompilerOptions& comp_opts)
     std::unique_ptr<ccScript> script(ccCompileText2(all_the_script.GetCStr(), script_name.GetCStr(), cc_options, mh));
     auto compiler_messages = mh.GetMessages();
     bool error = false;
-    for(const auto &msg : compiler_messages)
+    for (const auto &msg : compiler_messages)
     {
         bool err = msg.Severity == AGS::MessageHandler::kSV_InternalError ||
                    msg.Severity == AGS::MessageHandler::kSV_UserError;
         bool wrn = msg.Severity == AGS::MessageHandler::kSV_Warning;
         error |= err;
-        (err ? std::cerr : std::cout) <<
-            (err ? "Error: compile failed at " : (wrn ? "Warning: issue at " : "Info: at ")) <<
-            msg.Section << ", line " << msg.Lineno << " : " << msg.Message << std::endl;
+        (err ? std::cerr : std::cout) << (err ? "Error: compile failed at "
+                                              : (wrn ? "Warning: issue at " : "Info: at "))
+                                      << msg.Section << ", line " << msg.Lineno << " : " << msg.Message << std::endl;
     }
-    if(error)
+    if (error)
         return -1;
 #endif
 
     //-----------------------------------------------------------------------//
     // Write script object
     //-----------------------------------------------------------------------//
-    if(!comp_opts.OutputObjFile.empty())
+    if (!comp_opts.OutputObjFile.empty())
     {
-        std::unique_ptr<Stream> out (File::CreateFile(comp_opts.OutputObjFile.c_str()));
-        if (!out || !(out->CanWrite())) {
+        std::unique_ptr<Stream> out(File::CreateFile(comp_opts.OutputObjFile.c_str()));
+        if (!out || !(out->CanWrite()))
+        {
             std::cerr << "Error: failed to open for writing: " << comp_opts.OutputObjFile << std::endl;
             return -1;
         }

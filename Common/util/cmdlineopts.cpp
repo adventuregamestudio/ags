@@ -31,13 +31,13 @@ ParseResult Parse(int argc, const char *const argv[], const std::set<String> &op
     std::vector<String> args(argv + 1, argv + argc);
 
     // on windows, a person may use `/?` or `-?` when trying to ask for help to a command line program
-    for (auto & arg : args)
+    for (auto &arg : args)
     {
-        if (arg == "-h" ||  arg == "--help" 
+        if (arg == "-h" || arg == "--help"
 #if AGS_PLATFORM_OS_WINDOWS
             || arg == "/?" || arg == "-?"
 #endif
-            )
+        )
         {
             parseResult.HelpRequested = true;
             break; // we don't fully exit here in case this is used in a command line that requires `--console-attach`
@@ -55,13 +55,13 @@ ParseResult Parse(int argc, const char *const argv[], const std::set<String> &op
         }
 
         const bool is_opt_with_value = opt_params_with_values.find(arg) != opt_params_with_values.end();
-        if(!is_opt_with_value)
+        if (!is_opt_with_value)
         {
             bool cont = false;
             // check if it's written like `--optVal` instead of `--opt Val`
-            for(const auto& opt_param_with_value : opt_params_with_values)
+            for (const auto &opt_param_with_value : opt_params_with_values)
             {
-                if(arg.StartsWith(opt_param_with_value))
+                if (arg.StartsWith(opt_param_with_value))
                 {
                     String val = arg;
                     val.ClipLeft(opt_param_with_value.GetLength());
@@ -70,7 +70,8 @@ ParseResult Parse(int argc, const char *const argv[], const std::set<String> &op
                     break;
                 }
             }
-            if(cont) continue;
+            if (cont)
+                continue;
 
             // it's just a regular `--opt` that has no values
             parseResult.Opt.emplace(arg);

@@ -42,18 +42,20 @@ namespace Engine
 {
 
 // A helper function, formatting provided script pos and callstack into a human-readable text
-static String FormatCallStack(const ScriptExecPosition &pos, const std::deque<ScriptExecPosition> &callstack, uint32_t max_lines)
+static String FormatCallStack(const ScriptExecPosition &pos, const std::deque<ScriptExecPosition> &callstack,
+                              uint32_t max_lines)
 {
     if (!pos.Script)
         return {};
 
-    String buffer = String::FromFormat("in \"%s\", line %d\n", pos.Script->GetSectionName(pos.PC).GetCStr(), pos.LineNumber);
+    String buffer =
+        String::FromFormat("in \"%s\", line %d\n", pos.Script->GetSectionName(pos.PC).GetCStr(), pos.LineNumber);
 
     uint32_t lines_done = 0u;
     for (auto it = callstack.crbegin(); it != callstack.crend() && (lines_done < max_lines); ++lines_done, ++it)
     {
-        String lineBuffer = String::FromFormat("from \"%s\", line %d\n",
-            it->Script->GetSectionName(it->PC).GetCStr(), it->LineNumber);
+        String lineBuffer =
+            String::FromFormat("from \"%s\", line %d\n", it->Script->GetSectionName(it->PC).GetCStr(), it->LineNumber);
         buffer.Append(lineBuffer);
         if (lines_done == max_lines - 1)
             buffer.Append("(and more...)\n");
@@ -62,10 +64,10 @@ static String FormatCallStack(const ScriptExecPosition &pos, const std::deque<Sc
 }
 
 // Size of stack in RuntimeScriptValues (aka distinct variables)
-#define CC_STACK_SIZE       256
+#define CC_STACK_SIZE 256
 // Size of stack in bytes (raw data storage)
-#define CC_STACK_DATA_SIZE  (1024 * sizeof(int32_t))
-#define MAX_CALL_STACK      128
+#define CC_STACK_DATA_SIZE (1024 * sizeof(int32_t))
+#define MAX_CALL_STACK     128
 
 
 ScriptThread::ScriptThread()
@@ -73,8 +75,7 @@ ScriptThread::ScriptThread()
     Alloc();
 }
 
-ScriptThread::ScriptThread(const String &name)
-    : _name(name)
+ScriptThread::ScriptThread(const String &name) : _name(name)
 {
     Alloc();
 }
@@ -94,8 +95,8 @@ String ScriptThread::FormatCallStack(uint32_t max_lines) const
 }
 
 void ScriptThread::SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
-    const Registers &registers,
-    size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off)
+                             const Registers &registers, size_t stack_begin, size_t stackdata_begin, size_t stack_off,
+                             size_t stackdata_off)
 {
     _callstack = callstack;
     _pos = pos;
@@ -164,7 +165,8 @@ ScriptExecutor::~ScriptExecutor()
 #endif
 }
 
-ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *script, const String &funcname, const RuntimeScriptValue *params, size_t param_count)
+ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *script, const String &funcname,
+                                    const RuntimeScriptValue *params, size_t param_count)
 {
     assert(thread);
     assert(script);
@@ -200,8 +202,8 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     }
     else if (static_cast<uint32_t>(export_args) > param_count)
     {
-        cc_error("Not enough parameters to exported function '%s' (expected %d, supplied %zu)",
-            funcname.GetCStr(), export_args, param_count);
+        cc_error("Not enough parameters to exported function '%s' (expected %d, supplied %zu)", funcname.GetCStr(),
+                 export_args, param_count);
         return kScExecErr_InvalidArgNum;
     }
 
@@ -209,8 +211,8 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     if (ccGetOption(SCOPT_DEBUGRUN) != 0)
     {
         OpenExecLog();
-        WriteString(String::FromFormat("-------- [[ %s : %s ]] --------",
-            script->GetScriptName().GetCStr(), funcname.GetCStr()));
+        WriteString(String::FromFormat("-------- [[ %s : %s ]] --------", script->GetScriptName().GetCStr(),
+                                       funcname.GetCStr()));
     }
 #endif
 
@@ -247,7 +249,7 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     // scripts, because there are cases when a temporary managed object with
     // ref count 0 may be waiting on the stack. For example: when a function
     // call has one argument of managed type, and another is a function that
-    // has a blocking action inside, e.g.: 
+    // has a blocking action inside, e.g.:
     //    callFunction( doBlockingActionAndReturnResult(), String.Format(...) )
     //
     if (_threadStack.empty() && !_thread)
@@ -256,9 +258,7 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     if (new_line_hook)
         new_line_hook(nullptr, 0);
 
-    return was_aborted ?
-        kScExecErr_Aborted :
-        kScExecErr_None;
+    return was_aborted ? kScExecErr_Aborted : kScExecErr_None;
 }
 
 void ScriptExecutor::Abort()
@@ -281,7 +281,7 @@ void ScriptExecutor::PushThread(ScriptThread *thread)
         }
         _threadStack.push_back(_thread); // push always, simpler to do PopThread this way
     }
-    
+
     // Assign new current thread, get its data if it's a different one
     _thread = thread;
     if (was_thread != _thread)
@@ -352,12 +352,9 @@ void ScriptExecutor::SelectThread(ScriptThread *thread)
 void ScriptExecutor::SaveThreadState()
 {
     assert(_thread);
-    _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber), _callstack,
-        _registers,
-        _stackBegin - _thread->GetStack().data(),
-        _stackdataBegin - _thread->GetStackData().data(),
-        _registers[SREG_SP].RValue - _stackBegin,
-        _stackdataPtr - _stackdataBegin);
+    _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber), _callstack, _registers,
+                       _stackBegin - _thread->GetStack().data(), _stackdataBegin - _thread->GetStackData().data(),
+                       _registers[SREG_SP].RValue - _stackBegin, _stackdataPtr - _stackdataBegin);
 }
 
 void ScriptExecutor::ResetThreadState()
@@ -395,7 +392,7 @@ String ScriptExecutor::FormatCallStack(uint32_t max_lines) const
     }
     return callstack;
 }
-    
+
 void ScriptExecutor::SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops)
 {
     _timeoutCheckMs = sys_poll_ms;
@@ -426,30 +423,30 @@ void ScriptExecutor::NotifyAlive()
 // when executing excessive scripts, and so are disabled in Release build.
 #if (DEBUG_CC_EXEC)
 
-#define CC_ERROR_IF(COND, ERROR, ...) \
-    if (COND) \
-    { \
+#define CC_ERROR_IF(COND, ERROR, ...)   \
+    if (COND)                           \
+    {                                   \
         cc_error(ERROR, ##__VA_ARGS__); \
-        return; \
+        return;                         \
     }
 
 #define CC_ERROR_IF_RETCODE(COND, ERROR, ...) \
-    if (COND) \
-    { \
-        cc_error(ERROR, ##__VA_ARGS__); \
-        return kScExecErr_Generic; \
+    if (COND)                                 \
+    {                                         \
+        cc_error(ERROR, ##__VA_ARGS__);       \
+        return kScExecErr_Generic;            \
     }
 
 #define CC_ERROR_IF_RETVAL(COND, T, ERROR, ...) \
-    if (COND) \
-    { \
-        cc_error(ERROR, ##__VA_ARGS__); \
-        return T(); \
+    if (COND)                                   \
+    {                                           \
+        cc_error(ERROR, ##__VA_ARGS__);         \
+        return T();                             \
     }
 
-#define ASSERT_CC_ERROR() \
-    if (cc_has_error()) \
-    { \
+#define ASSERT_CC_ERROR()          \
+    if (cc_has_error())            \
+    {                              \
         return kScExecErr_Generic; \
     }
 
@@ -465,12 +462,13 @@ void ScriptExecutor::NotifyAlive()
 
 // A number of stack assertions that are always enabled:
 // ASSERT_STACK_SPACE_AVAILABLE tests that we do not exceed stack limit
-#define ASSERT_STACK_SPACE_AVAILABLE(N_VALS, N_BYTES) \
-    if ((_registers[SREG_SP].RValue + N_VALS - _stackBegin) >= CC_STACK_SIZE || \
-        (_stackdataPtr + N_BYTES - _stackdataBegin) >= CC_STACK_DATA_SIZE) \
-    { \
-        cc_error("stack overflow, attempted to grow from %zu by %zu bytes", (size_t)(_stackdataPtr - _stackdataBegin), (size_t)(N_BYTES)); \
-        return kScExecErr_Generic; \
+#define ASSERT_STACK_SPACE_AVAILABLE(N_VALS, N_BYTES)                                                                  \
+    if ((_registers[SREG_SP].RValue + N_VALS - _stackBegin) >= CC_STACK_SIZE ||                                        \
+        (_stackdataPtr + N_BYTES - _stackdataBegin) >= CC_STACK_DATA_SIZE)                                             \
+    {                                                                                                                  \
+        cc_error("stack overflow, attempted to grow from %zu by %zu bytes", (size_t)(_stackdataPtr - _stackdataBegin), \
+                 (size_t)(N_BYTES));                                                                                   \
+        return kScExecErr_Generic;                                                                                     \
     }
 
 // ASSERT_STACK_SPACE_BYTES tests that we do not exceed stack limit
@@ -482,48 +480,50 @@ void ScriptExecutor::NotifyAlive()
 #define ASSERT_STACK_SPACE_VALS(N_VALS) ASSERT_STACK_SPACE_AVAILABLE(N_VALS, sizeof(int32_t) * N_VALS)
 
 // ASSERT_STACK_SIZE tests that we do not unwind stack past its beginning
-#define ASSERT_STACK_SIZE(N) \
+#define ASSERT_STACK_SIZE(N)                          \
     if (_registers[SREG_SP].RValue - N < _stackBegin) \
-    { \
-        cc_error("stack underflow"); \
-        return kScExecErr_Generic; \
+    {                                                 \
+        cc_error("stack underflow");                  \
+        return kScExecErr_Generic;                    \
     }
 
 // ASSERT_STACK_UNWINDED tests that the stack pointer is at the expected position
-#define ASSERT_STACK_UNWINDED(STACK_VAL, DATA_PTR) \
-    if ((_registers[SREG_SP].RValue > STACK_VAL.RValue) || \
-        (_stackdataPtr > DATA_PTR)) \
-    { \
+#define ASSERT_STACK_UNWINDED(STACK_VAL, DATA_PTR)                                                                   \
+    if ((_registers[SREG_SP].RValue > STACK_VAL.RValue) || (_stackdataPtr > DATA_PTR))                               \
+    {                                                                                                                \
         cc_error("stack is not unwinded after function call, %zu bytes remain", (size_t)(_stackdataPtr - DATA_PTR)); \
-        return kScExecErr_Generic; \
+        return kScExecErr_Generic;                                                                                   \
     }
 
 // Macros to maintain the call stack
-#define PUSH_CALL_STACK() \
-    if (_callstack.size() >= MAX_CALL_STACK) { \
+#define PUSH_CALL_STACK()                                                      \
+    if (_callstack.size() >= MAX_CALL_STACK)                                   \
+    {                                                                          \
         cc_error("CallScriptFunction stack overflow (recursive call error?)"); \
-        return kScExecErr_Generic; \
-    } \
+        return kScExecErr_Generic;                                             \
+    }                                                                          \
     _callstack.push_back(ScriptExecPosition(_current, _pc, _lineNumber));
 
-#define POP_CALL_STACK() \
-    if (_callstack.size() < 1) { \
+#define POP_CALL_STACK()                                                  \
+    if (_callstack.size() < 1)                                            \
+    {                                                                     \
         cc_error("CallScriptFunction stack underflow -- internal error"); \
-        return kScExecErr_Generic; \
-    } \
-    _lineNumber = _callstack.back().LineNumber; \
-    currentline = _lineNumber; \
+        return kScExecErr_Generic;                                        \
+    }                                                                     \
+    _lineNumber = _callstack.back().LineNumber;                           \
+    currentline = _lineNumber;                                            \
     _callstack.pop_back();
 
 
-ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, const RuntimeScriptValue *params, size_t param_count)
+ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, const RuntimeScriptValue *params,
+                                    size_t param_count)
 {
     const bool is_nested_run = _current != nullptr;
     const RuntimeScript *was_running = _current;
     const int oldpc = _pc;
     const int oldlinenum = _lineNumber;
-    RuntimeScriptValue * const oldstack_begin = _stackBegin;
-    uint8_t * const oldstackdata_begin = _stackdataBegin;
+    RuntimeScriptValue *const oldstack_begin = _stackBegin;
+    uint8_t *const oldstackdata_begin = _stackdataBegin;
 
     if (is_nested_run)
     {
@@ -543,7 +543,7 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, 
     _stackBegin = _registers[SREG_SP].RValue;
     _stackdataBegin = _stackdataPtr;
     const RuntimeScriptValue oldstack = _registers[SREG_SP];
-    const uint8_t * const oldstackdata = _stackdataPtr;
+    const uint8_t *const oldstackdata = _stackdataPtr;
 
     // object pointer needs to start zeroed
     _registers[SREG_OP].SetScriptObject(nullptr, nullptr);
@@ -592,13 +592,14 @@ inline RuntimeScriptValue GetStackPtrOffsetFw(RuntimeScriptValue *stack, int32_t
 {
     int32_t total_off = 0;
     RuntimeScriptValue *stack_entry = stack;
-    while (total_off < fw_offset && (stack_entry - stack) < CC_STACK_SIZE )
+    while (total_off < fw_offset && (stack_entry - stack) < CC_STACK_SIZE)
     {
         stack_entry++;
         total_off += stack_entry->Size;
     }
     CC_ERROR_IF_RETVAL(total_off < fw_offset, RuntimeScriptValue, "accessing address beyond stack's tail");
-    CC_ERROR_IF_RETVAL(total_off > fw_offset, RuntimeScriptValue, "stack offset forward: trying to access stack data inside stack entry, stack corrupted?");
+    CC_ERROR_IF_RETVAL(total_off > fw_offset, RuntimeScriptValue,
+                       "stack offset forward: trying to access stack data inside stack entry, stack corrupted?");
     RuntimeScriptValue stack_ptr;
     stack_ptr.SetStackPtr(stack_entry);
     return stack_ptr;
@@ -607,20 +608,19 @@ inline RuntimeScriptValue GetStackPtrOffsetFw(RuntimeScriptValue *stack, int32_t
 // Applies a runtime fixup to the given arg;
 // Fixup of type `fixup` is applied to the `code` value,
 // the result is assigned to the `arg`.
-inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintptr_t code,
-    RuntimeScriptValue *stack, const char *strings)
+inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintptr_t code, RuntimeScriptValue *stack,
+                          const char *strings)
 {
     // could be relative pointer or import address
     switch (fixup)
     {
-    case FIXUP_NOFIXUP:
-        return true;
+    case FIXUP_NOFIXUP: return true;
     case FIXUP_GLOBALDATA:
-        {
-            ScriptVariable *gl_var = (ScriptVariable*)code;
-            assert(gl_var->RValue.IsValid());
-            arg.SetGlobalVar(&gl_var->RValue);
-        }
+    {
+        ScriptVariable *gl_var = (ScriptVariable *)code;
+        assert(gl_var->RValue.IsValid());
+        arg.SetGlobalVar(&gl_var->RValue);
+    }
         return true;
     case FIXUP_FUNCTION:
         // originally commented -- CHECKME: could this be used in very old versions of AGS?
@@ -628,53 +628,46 @@ inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintpt
         // This is a program counter value, presumably will be used as SCMD_CALL argument
         arg.SetInt32(static_cast<int32_t>(code));
         return true;
-    case FIXUP_STRING:
-        arg.SetStringLiteral(strings + code);
-        return true;
+    case FIXUP_STRING: arg.SetStringLiteral(strings + code); return true;
     case FIXUP_IMPORT:
+    {
+        const ScriptImport *import = simp.GetByIndex(static_cast<uint32_t>(code));
+        if (import)
         {
-            const ScriptImport *import = simp.GetByIndex(static_cast<uint32_t>(code));
-            if (import)
-            {
-                assert(import->Value.IsValid());
-                arg = import->Value;
-            }
-            else
-            {
-                cc_error("cannot resolve import, key = %" PRIdPTR, code);
-                return false;
-            }
+            assert(import->Value.IsValid());
+            arg = import->Value;
         }
+        else
+        {
+            cc_error("cannot resolve import, key = %" PRIdPTR, code);
+            return false;
+        }
+    }
         return true;
-    case FIXUP_DATADATA:
-        return false; // placeholder, fail at this as not supposed to be here
-    case FIXUP_STACK:
-        arg = GetStackPtrOffsetFw(stack, static_cast<int32_t>(code));
-        return true;
-    default:
-        cc_error("internal fixup type error: %d", fixup);
-        return false;
+    case FIXUP_DATADATA: return false; // placeholder, fail at this as not supposed to be here
+    case FIXUP_STACK: arg = GetStackPtrOffsetFw(stack, static_cast<int32_t>(code)); return true;
+    default: cc_error("internal fixup type error: %d", fixup); return false;
     }
 }
 
 
 // FIXME: get rid of this
-#define MAXNEST 50  // number of recursive function calls allowed
+#define MAXNEST 50 // number of recursive function calls allowed
 
 struct ScriptInstruction
 {
     ScriptInstruction() = default;
     ScriptInstruction(int code, int instid) : Code(code), InstanceId(instid) {}
 
-    int32_t	Code = 0;
-    int32_t	InstanceId = 0;
+    int32_t Code = 0;
+    int32_t InstanceId = 0;
 };
 
 struct ScriptOperation
 {
-	ScriptInstruction   Instruction;
-	RuntimeScriptValue	Args[MAX_SCMD_ARGS];
-	int				    ArgCount = 0;
+    ScriptInstruction Instruction;
+    RuntimeScriptValue Args[MAX_SCMD_ARGS];
+    int ArgCount = 0;
 
     // Helper functions for clarity of intent:
     // returns argN, 1-based
@@ -713,7 +706,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
     ScriptOperation codeOp;
     FunctionCallStack func_callstack(16);
     int loopIterationCheckDisabled = 0;
-    unsigned loopIterations = 0u; // any loop iterations (needed for timeout test)
+    unsigned loopIterations = 0u;      // any loop iterations (needed for timeout test)
     unsigned loopCheckIterations = 0u; // loop iterations accumulated only if check is enabled
 
 #if DEBUG_CC_EXEC
@@ -739,12 +732,13 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         codeOp.Instruction.Code &= INSTANCE_ID_REMOVEMASK; // now this is pure instruction code
 
         CC_ERROR_IF_RETCODE((codeOp.Instruction.Code < 0 || codeOp.Instruction.Code >= CC_NUM_SCCMDS),
-            "invalid instruction %d found in code stream", codeOp.Instruction.Code);
+                            "invalid instruction %d found in code stream", codeOp.Instruction.Code);
 
         codeOp.ArgCount = sccmd_info[codeOp.Instruction.Code].ArgCount;
 
         CC_ERROR_IF_RETCODE(static_cast<uint32_t>(_pc + codeOp.ArgCount) >= _codesize,
-            "unexpected end of code data (%u; %u)", static_cast<uint32_t>(_pc + codeOp.ArgCount), _codesize);
+                            "unexpected end of code data (%u; %u)", static_cast<uint32_t>(_pc + codeOp.ArgCount),
+                            _codesize);
 
 
         // Read arguments; use switch as it proved to be faster than the loop
@@ -756,11 +750,8 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         case 2:
             codeOp.Args[1].SetInt32(static_cast<int32_t>(_code[_pc + 2]));
             /* fall-through */
-        case 1:
-            codeOp.Args[0].SetInt32(static_cast<int32_t>(_code[_pc + 1]));
-            break;
-        default:
-            break;
+        case 1: codeOp.Args[0].SetInt32(static_cast<int32_t>(_code[_pc + 1])); break;
+        default: break;
         }
         //---------------------------------------------------------------------
         /* End read operation */
@@ -848,7 +839,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         case SCMD_REGTOREG:
         {
             const auto &reg1 = _registers[codeOp.Arg1i()];
-            auto       &reg2 = _registers[codeOp.Arg2i()];
+            auto &reg2 = _registers[codeOp.Arg2i()];
             reg2 = reg1;
             break;
         }
@@ -866,19 +857,13 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             const auto &arg_value = codeOp.Arg2();
             switch (arg_size)
             {
-            case sizeof(char) :
-                _registers[SREG_MAR].WriteByte(arg_value.IValue);
-                break;
-            case sizeof(int16_t) :
-                _registers[SREG_MAR].WriteInt16(arg_value.IValue);
-                break;
-            case sizeof(int32_t) :
+            case sizeof(char): _registers[SREG_MAR].WriteByte(arg_value.IValue); break;
+            case sizeof(int16_t): _registers[SREG_MAR].WriteInt16(arg_value.IValue); break;
+            case sizeof(int32_t):
                 // We do not know if this is math integer or some pointer, etc
                 _registers[SREG_MAR].WriteValue(arg_value);
                 break;
-            default:
-                cc_error("unexpected data size for WRITELIT op: %d", arg_size);
-                break;
+            default: cc_error("unexpected data size for WRITELIT op: %d", arg_size); break;
             }
             break;
         }
@@ -931,14 +916,14 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         }
         case SCMD_MULREG:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32(reg1.IValue * reg2.IValue);
             break;
         }
         case SCMD_DIVREG:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             if (reg2.IValue == 0)
             {
@@ -950,7 +935,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         }
         case SCMD_ADDREG:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             // This may be pointer arithmetics, in which case IValue stores offset from base pointer
             reg1.IValue += reg2.IValue;
@@ -958,7 +943,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         }
         case SCMD_SUBREG:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             // This may be pointer arithmetics, in which case IValue stores offset from base pointer
             reg1.IValue -= reg2.IValue;
@@ -966,84 +951,84 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         }
         case SCMD_BITAND:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32(reg1.IValue & reg2.IValue);
             break;
         }
         case SCMD_BITOR:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32(reg1.IValue | reg2.IValue);
             break;
         }
         case SCMD_ISEQUAL:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1 == reg2);
             break;
         }
         case SCMD_NOTEQUAL:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1 != reg2);
             break;
         }
         case SCMD_GREATER:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1.IValue > reg2.IValue);
             break;
         }
         case SCMD_LESSTHAN:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1.IValue < reg2.IValue);
             break;
         }
         case SCMD_GTE:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1.IValue >= reg2.IValue);
             break;
         }
         case SCMD_LTE:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1.IValue <= reg2.IValue);
             break;
         }
         case SCMD_AND:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1.IValue && reg2.IValue);
             break;
         }
         case SCMD_OR:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32AsBool(reg1.IValue || reg2.IValue);
             break;
         }
         case SCMD_XORREG:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32(reg1.IValue ^ reg2.IValue);
             break;
         }
         case SCMD_MODREG:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             if (reg2.IValue == 0)
             {
@@ -1055,7 +1040,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         }
         case SCMD_NOTREG:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             reg1 = !(reg1);
             break;
         }
@@ -1077,7 +1062,8 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             const auto &reg1 = _registers[codeOp.Arg1i()];
             if (thisbase[curnest] == 0)
                 _pc = reg1.IValue;
-            else {
+            else
+            {
                 _pc = funcstart[curnest];
                 _pc += (reg1.IValue - thisbase[curnest]);
             }
@@ -1165,14 +1151,16 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                     loopCheckIterations = 0u;
                 }
                 else if ((loopIterationCheckDisabled == 0) && (_maxWhileLoops > 0) &&
-                    (++loopCheckIterations > _maxWhileLoops))
+                         (++loopCheckIterations > _maxWhileLoops))
                 {
-                    cc_error("!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.", loopCheckIterations);
+                    cc_error(
+                        "!Script appears to be hung (a while loop ran %d times). The problem may be in a calling function; check the call stack.",
+                        loopCheckIterations);
                     return kScExecErr_Generic;
                 }
                 else if ((loopIterations & 0x3FF) == 0 && // test each 1024 loops (arbitrary)
-                    (std::chrono::duration_cast<std::chrono::milliseconds>(
-                        FastClock::now() - _lastAliveTs) > timeout))
+                         (std::chrono::duration_cast<std::chrono::milliseconds>(FastClock::now() - _lastAliveTs) >
+                          timeout))
                 { // minimal timeout occured
                     // NOTE: removed timeout_abort check for now: was working *logically* wrong;
                     // at least let user to manipulate the game window
@@ -1193,8 +1181,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         {
             const auto &reg1 = _registers[codeOp.Arg1i()];
             const auto arg_lit = codeOp.Arg2i();
-            if ((reg1.IValue < 0) ||
-                (reg1.IValue >= arg_lit))
+            if ((reg1.IValue < 0) || (reg1.IValue >= arg_lit))
             {
                 cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue, arg_lit - 1);
                 return kScExecErr_Generic;
@@ -1206,8 +1193,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             const auto &reg1 = _registers[codeOp.Arg1i()];
             void *arr_ptr = _registers[SREG_MAR].GetPtrWithOffset();
             const auto &hdr = CCDynamicArray::GetHeader(arr_ptr);
-            if ((reg1.IValue < 0) ||
-                (static_cast<uint32_t>(reg1.IValue) >= hdr.TotalSize))
+            if ((reg1.IValue < 0) || (static_cast<uint32_t>(reg1.IValue) >= hdr.TotalSize))
             {
                 if (hdr.ElemCount <= 0)
                 {
@@ -1216,7 +1202,8 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 else
                 {
                     int elementSize = (hdr.TotalSize / hdr.ElemCount);
-                    cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize, hdr.ElemCount - 1);
+                    cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize,
+                             hdr.ElemCount - 1);
                 }
                 return kScExecErr_Generic;
             }
@@ -1250,12 +1237,8 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 break;
             case kScValScriptObject:
             case kScValPluginObject:
-            case kScValPluginArgPtr:
-                address = reg1.Ptr;
-                break;
-            case kScValPluginArg:
-                address = Int32ToPtr<void>(reg1.IValue);
-                break;
+            case kScValPluginArgPtr: address = reg1.Ptr; break;
+            case kScValPluginArg: address = Int32ToPtr<void>(reg1.IValue); break;
             default:
                 // There's one possible case when the reg1 is 0, which means writing nullptr
                 CC_ERROR_IF_RETCODE(!reg1.IsNull(), "internal error: MEMWRITEPTR argument is not a dynamic object");
@@ -1290,12 +1273,8 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 break;
             case kScValScriptObject:
             case kScValPluginObject:
-            case kScValPluginArgPtr:
-                address = reg1.Ptr;
-                break;
-            case kScValPluginArg:
-                address = Int32ToPtr<void>(reg1.IValue);
-                break;
+            case kScValPluginArgPtr: address = reg1.Ptr; break;
+            case kScValPluginArg: address = Int32ToPtr<void>(reg1.IValue); break;
             default:
                 // There's one possible case when the reg1 is 0, which means writing nullptr
                 CC_ERROR_IF_RETCODE(!reg1.IsNull(), "internal error: SCMD_MEMINITPTR argument is not a dynamic object");
@@ -1371,7 +1350,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             }
             ASSERT_STACK_SPACE_VALS(num_args_to_func + 1 /* return address */);
             for (const RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
-                --prval >= func_callstack.GetHead();)
+                 --prval >= func_callstack.GetHead();)
             {
                 PushValueToStack(*prval);
             }
@@ -1380,7 +1359,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             const int32_t instance_id = codeOp.Instruction.InstanceId;
             // determine the offset into the code of the instance we want
             const RuntimeScript *next_to_run = RuntimeScript::GetLinkedScript(instance_id);
-            uintptr_t callAddr = reg1.PtrU8 - reinterpret_cast<const uint8_t*>(next_to_run->GetCode().data());
+            uintptr_t callAddr = reg1.PtrU8 - reinterpret_cast<const uint8_t *>(next_to_run->GetCode().data());
             if (callAddr % sizeof(uintptr_t) != 0)
             {
                 cc_error("call address not aligned");
@@ -1392,7 +1371,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             const RuntimeScript *was_running = _current;
             const int oldpc = _pc;
             const RuntimeScriptValue oldstack = _registers[SREG_SP];
-            const uint8_t * const oldstackdata = _stackdataPtr;
+            const uint8_t *const oldstackdata = _stackdataPtr;
 
             // Push placeholder for the return value (it will be popped before ret)
             PushValueToStack(RuntimeScriptValue().SetInt32(0));
@@ -1431,7 +1410,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
 
             // Convert pointer arguments to simple types
             for (RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
-                --prval >= func_callstack.GetHead();)
+                 --prval >= func_callstack.GetHead();)
             {
                 prval->DirectPtr();
             }
@@ -1534,17 +1513,14 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             case kScValPluginArgPtr:
                 // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
                 // Note, that this is the only case known when such object is written into reg[SREG_OP];
-                // in any other case that would count as error. 
+                // in any other case that would count as error.
             case kScValGlobalVar:
-            case kScValStackPtr:
-                _registers[SREG_OP] = reg1;
-                break;
+            case kScValStackPtr: _registers[SREG_OP] = reg1; break;
             case kScValStaticArray:
                 //FIXME: return manager type from interface?
                 //CC_ERROR_IF_RETCODE(!reg1.ArrMgr->GetDynamicManager(), "internal error: SCMD_CALLOBJ argument is not a dynamic object");
-                _registers[SREG_OP].SetScriptObject(
-                        reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue),
-                        reg1.ArrMgr->GetObjectManager());
+                _registers[SREG_OP].SetScriptObject(reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue),
+                                                    reg1.ArrMgr->GetObjectManager());
                 break;
             default:
                 cc_error("internal error: SCMD_CALLOBJ argument is not an object of built-in or user-defined type");
@@ -1555,14 +1531,14 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         }
         case SCMD_SHIFTLEFT:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32(reg1.IValue << reg2.IValue);
             break;
         }
         case SCMD_SHIFTRIGHT:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetInt32(reg1.IValue >> reg2.IValue);
             break;
@@ -1712,14 +1688,14 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         }
         case SCMD_FMULREG:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloat(reg1.FValue * reg2.FValue);
             break;
         }
         case SCMD_FDIVREG:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             if (reg2.FValue == 0.0)
             {
@@ -1731,42 +1707,42 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         }
         case SCMD_FADDREG:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloat(reg1.FValue + reg2.FValue);
             break;
         }
         case SCMD_FSUBREG:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloat(reg1.FValue - reg2.FValue);
             break;
         }
         case SCMD_FGREATER:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloatAsBool(reg1.FValue > reg2.FValue);
             break;
         }
         case SCMD_FLESSTHAN:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloatAsBool(reg1.FValue < reg2.FValue);
             break;
         }
         case SCMD_FGTE:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloatAsBool(reg1.FValue >= reg2.FValue);
             break;
         }
         case SCMD_FLTE:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             reg1.SetFloatAsBool(reg1.FValue <= reg2.FValue);
             break;
@@ -1786,7 +1762,8 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             }
             else
             {
-                cc_error("internal error: stack tail address expected on SCMD_ZEROMEMORY instruction, reg[MAR] type is %d",
+                cc_error(
+                    "internal error: stack tail address expected on SCMD_ZEROMEMORY instruction, reg[MAR] type is %d",
                     _registers[SREG_MAR].Type);
                 return kScExecErr_Generic;
             }
@@ -1795,14 +1772,14 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         case SCMD_CREATESTRING:
         {
             auto &reg1 = _registers[codeOp.Arg1i()];
-            const char *ptr = reinterpret_cast<const char*>(reg1.GetDirectPtr());
+            const char *ptr = reinterpret_cast<const char *>(reg1.GetDirectPtr());
             DynObjectRef ref = ScriptString::Create(ptr);
             reg1.SetScriptObject(ref.Obj(), &myScriptStringImpl);
             break;
         }
         case SCMD_STRINGSEQUAL:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             if ((reg1.IsNull()) || (reg2.IsNull()))
             {
@@ -1811,15 +1788,15 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             }
             else
             {
-                const char *ptr1 = reinterpret_cast<const char*>(reg1.GetDirectPtr());
-                const char *ptr2 = reinterpret_cast<const char*>(reg2.GetDirectPtr());
+                const char *ptr1 = reinterpret_cast<const char *>(reg1.GetDirectPtr());
+                const char *ptr2 = reinterpret_cast<const char *>(reg2.GetDirectPtr());
                 reg1.SetInt32AsBool(strcmp(ptr1, ptr2) == 0);
             }
             break;
         }
         case SCMD_STRINGSNOTEQ:
         {
-            auto       &reg1 = _registers[codeOp.Arg1i()];
+            auto &reg1 = _registers[codeOp.Arg1i()];
             const auto &reg2 = _registers[codeOp.Arg2i()];
             if ((reg1.IsNull()) || (reg2.IsNull()))
             {
@@ -1828,8 +1805,8 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             }
             else
             {
-                const char *ptr1 = reinterpret_cast<const char*>(reg1.GetDirectPtr());
-                const char *ptr2 = reinterpret_cast<const char*>(reg2.GetDirectPtr());
+                const char *ptr1 = reinterpret_cast<const char *>(reg1.GetDirectPtr());
+                const char *ptr2 = reinterpret_cast<const char *>(reg2.GetDirectPtr());
                 reg1.SetInt32AsBool(strcmp(ptr1, ptr2) != 0);
             }
             break;
@@ -1838,9 +1815,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             if (loopIterationCheckDisabled == 0)
                 loopIterationCheckDisabled++;
             break;
-        default:
-            cc_error("instruction %d is not implemented", codeOp.Instruction.Code);
-            return kScExecErr_Generic;
+        default: cc_error("instruction %d is not implemented", codeOp.Instruction.Code); return kScExecErr_Generic;
         }
         /* End perform operation */
         //=====================================================================
@@ -1852,31 +1827,31 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
 
 void ScriptExecutor::SetCurrentScript(const RuntimeScript *script)
 {
-    _current    = script;
+    _current = script;
     if (_current)
     {
-        _code       = _current->GetCode().data();
-        _codesize   = _current->GetCode().size();
+        _code = _current->GetCode().data();
+        _codesize = _current->GetCode().size();
         _code_fixups = _current->GetCodeFixups().data();
-        _strings    = _current->GetStrings().data();
+        _strings = _current->GetStrings().data();
         _stringsize = _current->GetStrings().size();
-        _rtti       = RuntimeScript::GetJointRTTI();
+        _rtti = RuntimeScript::GetJointRTTI();
         _typeidLocal2Global = &_current->GetLocal2GlobalTypeMap();
     }
     else
     {
-        _code       = nullptr;
-        _codesize   = 0u;
+        _code = nullptr;
+        _codesize = 0u;
         _code_fixups = nullptr;
-        _strings    = nullptr;
+        _strings = nullptr;
         _stringsize = 0u;
-        _rtti       = nullptr;
+        _rtti = nullptr;
         _typeidLocal2Global = nullptr;
     }
 }
 
 RuntimeScriptValue ScriptExecutor::CallPluginFunction(void *fn_addr, const RuntimeScriptValue *object,
-    const RuntimeScriptValue *params, int param_count)
+                                                      const RuntimeScriptValue *params, int param_count)
 {
     assert(fn_addr);
     assert(param_count == 0 || params);
@@ -1903,13 +1878,9 @@ RuntimeScriptValue ScriptExecutor::CallPluginFunction(void *fn_addr, const Runti
         switch (params[iparm].Type)
         {
         case kScValInteger:
-        case kScValFloat:   // AGS passes floats, copying their values into long variable
-        case kScValPluginArg:
-            parm_value[ival] = (intptr_t)params[iparm].IValue;
-            break;
-        default:
-            parm_value[ival] = (intptr_t)params[iparm].GetPtrWithOffset();
-            break;
+        case kScValFloat: // AGS passes floats, copying their values into long variable
+        case kScValPluginArg: parm_value[ival] = (intptr_t)params[iparm].IValue; break;
+        default: parm_value[ival] = (intptr_t)params[iparm].GetPtrWithOffset(); break;
         }
     }
 
@@ -1938,53 +1909,50 @@ RuntimeScriptValue ScriptExecutor::CallPluginFunction(void *fn_addr, const Runti
     // Needless to say that such approach would require a breaking change in plugin API.
     //
 
-    typedef intptr_t(*fntype0) ();
-    typedef intptr_t(*fntype1) (intptr_t);
-    typedef intptr_t(*fntype2) (intptr_t, intptr_t);
-    typedef intptr_t(*fntype3) (intptr_t, intptr_t, intptr_t);
-    typedef intptr_t(*fntype4) (intptr_t, intptr_t, intptr_t, intptr_t);
-    typedef intptr_t(*fntype5) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-    typedef intptr_t(*fntype6) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-    typedef intptr_t(*fntype7) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-    typedef intptr_t(*fntype8) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
-    typedef intptr_t(*fntype9) (intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t (*fntype0)();
+    typedef intptr_t (*fntype1)(intptr_t);
+    typedef intptr_t (*fntype2)(intptr_t, intptr_t);
+    typedef intptr_t (*fntype3)(intptr_t, intptr_t, intptr_t);
+    typedef intptr_t (*fntype4)(intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t (*fntype5)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t (*fntype6)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t (*fntype7)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t (*fntype8)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+    typedef intptr_t (*fntype9)(intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t,
+                                intptr_t);
 
     intptr_t result;
     switch (param_count)
     {
-    case 0:
-        result = reinterpret_cast<fntype0>(fn_addr)();
-        break;
-    case 1:
-        result = reinterpret_cast<fntype1>(fn_addr)(parm_value[0]);
-        break;
-    case 2:
-        result = reinterpret_cast<fntype2>(fn_addr)(parm_value[0], parm_value[1]);
-        break;
-    case 3:
-        result = reinterpret_cast<fntype3>(fn_addr)(parm_value[0], parm_value[1], parm_value[2]);
-        break;
+    case 0: result = reinterpret_cast<fntype0>(fn_addr)(); break;
+    case 1: result = reinterpret_cast<fntype1>(fn_addr)(parm_value[0]); break;
+    case 2: result = reinterpret_cast<fntype2>(fn_addr)(parm_value[0], parm_value[1]); break;
+    case 3: result = reinterpret_cast<fntype3>(fn_addr)(parm_value[0], parm_value[1], parm_value[2]); break;
     case 4:
         result = reinterpret_cast<fntype4>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3]);
         break;
     case 5:
-        result = reinterpret_cast<fntype5>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4]);
+        result = reinterpret_cast<fntype5>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3],
+                                                    parm_value[4]);
         break;
     case 6:
-        result = reinterpret_cast<fntype6>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5]);
+        result = reinterpret_cast<fntype6>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3],
+                                                    parm_value[4], parm_value[5]);
         break;
     case 7:
-        result = reinterpret_cast<fntype7>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6]);
+        result = reinterpret_cast<fntype7>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3],
+                                                    parm_value[4], parm_value[5], parm_value[6]);
         break;
     case 8:
-        result = reinterpret_cast<fntype8>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7]);
+        result = reinterpret_cast<fntype8>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3],
+                                                    parm_value[4], parm_value[5], parm_value[6], parm_value[7]);
         break;
     case 9:
-        result = reinterpret_cast<fntype9>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3], parm_value[4], parm_value[5], parm_value[6], parm_value[7], parm_value[8]);
+        result = reinterpret_cast<fntype9>(fn_addr)(parm_value[0], parm_value[1], parm_value[2], parm_value[3],
+                                                    parm_value[4], parm_value[5], parm_value[6], parm_value[7],
+                                                    parm_value[8]);
         break;
-    default:
-        cc_error("Too many arguments in call to plugin function");
-        return {};
+    default: cc_error("Too many arguments in call to plugin function"); return {};
     }
 
     // Assign as either a numeric value or a pointer, depending on how large the value is.
@@ -2018,7 +1986,7 @@ RuntimeScriptValue ScriptExecutor::PopValueFromStack()
     // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
     _registers[SREG_SP].RValue--;
     const RuntimeScriptValue rval = *_registers[SREG_SP].RValue; // save before invalidating
-    _stackdataPtr -= sizeof(int32_t); // formality, to keep data ptr consistent
+    _stackdataPtr -= sizeof(int32_t);                            // formality, to keep data ptr consistent
     _registers[SREG_SP].RValue->Invalidate(); // FIXME: bad, this is used to separate PushValue and PushData
     return rval;
 }
@@ -2029,7 +1997,7 @@ void ScriptExecutor::PopValuesFromStack(const int32_t num_entries = 1)
     {
         // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
         _registers[SREG_SP].RValue--;
-        _stackdataPtr -= sizeof(int32_t); // formality, to keep data ptr consistent
+        _stackdataPtr -= sizeof(int32_t);         // formality, to keep data ptr consistent
         _registers[SREG_SP].RValue->Invalidate(); // FIXME: bad, this is used to separate PushValue and PushData
     }
 }
@@ -2065,7 +2033,7 @@ RuntimeScriptValue ScriptExecutor::GetStackPtrOffsetRw(const int32_t rw_offset)
     stack_ptr.IValue += total_off - rw_offset; // possibly offset to the mid-array
     // Could be accessing array element, so state error only if stack entry does not refer to data array
     CC_ERROR_IF_RETVAL((total_off > rw_offset) && (stack_entry->Type != kScValData), RuntimeScriptValue,
-        "stack offset backward: trying to access stack data inside stack entry, stack corrupted?")
+                       "stack offset backward: trying to access stack data inside stack entry, stack corrupted?")
     return stack_ptr;
 }
 
@@ -2104,8 +2072,8 @@ void ScriptExecutor::WriteString(const String &text) const
     }
 }
 
-const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
-const char *fixupnames[] = { "null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack" };
+const char *regnames[] = {"null", "sp", "mar", "ax", "bx", "cx", "op", "dx"};
+const char *fixupnames[] = {"null", "fix_gldata", "fix_func", "fix_string", "fix_import", "fix_datadata", "fix_stack"};
 
 void ScriptExecutor::DumpInstruction(const ScriptOperation &op) const
 {
@@ -2151,23 +2119,13 @@ void ScriptExecutor::DumpInstruction(const ScriptOperation &op) const
             switch (arg.Type)
             {
             case kScValInteger:
-            case kScValPluginArg:
-                value_buf.Format("%d", arg.IValue);
-                break;
-            case kScValFloat:
-                value_buf.Format("%f", arg.FValue);
-                break;
-            case kScValStringLiteral:
-                value_buf.Format("\"%s\"", static_cast<const char*>(arg.Ptr));
-                break;
+            case kScValPluginArg: value_buf.Format("%d", arg.IValue); break;
+            case kScValFloat: value_buf.Format("%f", arg.FValue); break;
+            case kScValStringLiteral: value_buf.Format("\"%s\"", static_cast<const char *>(arg.Ptr)); break;
             case kScValStackPtr:
-            case kScValGlobalVar:
-                value_buf.Format("%p", arg.RValue);
-                break;
+            case kScValGlobalVar: value_buf.Format("%p", arg.RValue); break;
             case kScValData:
-            case kScValCodePtr:
-                value_buf.Format("%p", arg.GetPtrWithOffset());
-                break;
+            case kScValCodePtr: value_buf.Format("%p", arg.GetPtrWithOffset()); break;
             case kScValStaticArray:
             case kScValScriptObject:
             case kScValStaticFunction:
@@ -2187,9 +2145,7 @@ void ScriptExecutor::DumpInstruction(const ScriptOperation &op) const
                 }
             }
             break;
-            case kScValUndefined:
-                value_buf.SetString("undefined");
-                break;
+            case kScValUndefined: value_buf.SetString("undefined"); break;
             }
         }
 

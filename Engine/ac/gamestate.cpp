@@ -38,18 +38,15 @@ extern RoomStruct thisroom;
 extern CharacterInfo *playerchar;
 extern ScriptSystem scsystem;
 
-std::array<const char*, kNum_RBS> RBSwitchNames =
-{{
-    "dummy",                        // kRBS_Dummy
-    "smooth_walk",                  // kRBO_SmoothWalkTransition
-    "gui_text_direction",           // kRBO_ApplyGUITextDirection
-    "dialog_opt_text_alignment",    // kRBO_ApplyDialogOptionTextAlignment
-    "no_textprop_autotranslate",    // kRBO_NoTextPropertyAutoTranslate
+std::array<const char *, kNum_RBS> RBSwitchNames = {{
+    "dummy",                     // kRBS_Dummy
+    "smooth_walk",               // kRBO_SmoothWalkTransition
+    "gui_text_direction",        // kRBO_ApplyGUITextDirection
+    "dialog_opt_text_alignment", // kRBO_ApplyDialogOptionTextAlignment
+    "no_textprop_autotranslate", // kRBO_NoTextPropertyAutoTranslate
 }};
 
-GamePlayState::GamePlayState()
-{
-}
+GamePlayState::GamePlayState() {}
 
 void GamePlayState::SetGameTextLanguage(const String &language)
 {
@@ -99,8 +96,8 @@ SpriteTransform GamePlayState::GetGlobalTransform(bool full_frame_rend) const
     // NOTE: shake_screen is not applied to the sprite batches,
     // but only as a final render factor (optimization)
     // TODO: also add global flip to the same transform, instead of passing separately?
-    return SpriteTransform(_mainViewport.Left, _mainViewport.Top +
-        shake_screen_yoff * static_cast<int>(full_frame_rend));
+    return SpriteTransform(_mainViewport.Left,
+                           _mainViewport.Top + shake_screen_yoff * static_cast<int>(full_frame_rend));
 }
 
 PViewport GamePlayState::GetRoomViewport(int index) const
@@ -308,7 +305,7 @@ void GamePlayState::DeleteRoomViewport(int index)
 
     // Invalidate script object
     auto handle = _scViewportHandles[index];
-    auto scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
+    auto scobj = (ScriptViewport *)ccGetObjectAddressFromHandle(handle);
     if (scobj)
     {
         scobj->Invalidate();
@@ -329,7 +326,7 @@ void GamePlayState::DeleteRoomViewport(int index)
     {
         _roomViewports[i]->SetID(i);
         handle = _scViewportHandles[index];
-        scobj = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
+        scobj = (ScriptViewport *)ccGetObjectAddressFromHandle(handle);
         if (scobj)
             scobj->SetID(i);
     }
@@ -385,14 +382,14 @@ void GamePlayState::DeleteRoomCamera(int index)
 
     // Invalidate script object
     auto handle = _scCameraHandles[index];
-    auto scobj = (ScriptCamera*)ccGetObjectAddressFromHandle(handle);
+    auto scobj = (ScriptCamera *)ccGetObjectAddressFromHandle(handle);
     if (scobj)
     {
         scobj->Invalidate();
         ccReleaseObjectReference(handle);
     }
     // Unlink viewport
-    for (auto& viewref : _roomCameras[index]->GetLinkedViewports())
+    for (auto &viewref : _roomCameras[index]->GetLinkedViewports())
     {
         auto view = viewref.lock();
         if (view)
@@ -409,7 +406,7 @@ void GamePlayState::DeleteRoomCamera(int index)
     {
         _roomCameras[i]->SetID(i);
         handle = _scCameraHandles[index];
-        scobj = (ScriptCamera*)ccGetObjectAddressFromHandle(handle);
+        scobj = (ScriptCamera *)ccGetObjectAddressFromHandle(handle);
         if (scobj)
             scobj->SetID(i);
     }
@@ -424,14 +421,14 @@ ScriptViewport *GamePlayState::GetScriptViewport(int index)
 {
     if (index < 0 || (size_t)index >= _roomViewports.size())
         return nullptr;
-    return (ScriptViewport*)ccGetObjectAddressFromHandle(_scViewportHandles[index]);
+    return (ScriptViewport *)ccGetObjectAddressFromHandle(_scViewportHandles[index]);
 }
 
 ScriptCamera *GamePlayState::GetScriptCamera(int index)
 {
     if (index < 0 || (size_t)index >= _roomCameras.size())
         return nullptr;
-    return (ScriptCamera*)ccGetObjectAddressFromHandle(_scCameraHandles[index]);
+    return (ScriptCamera *)ccGetObjectAddressFromHandle(_scCameraHandles[index]);
 }
 
 void GamePlayState::SetScreenShader(int shader_id, int shader_handle)
@@ -490,8 +487,8 @@ void GamePlayState::SetWaitSkipResult(int how, int data)
 
 int GamePlayState::GetWaitSkipResult() const
 { // NOTE: we remove timer flag to make timeout reason = 0
-    return ((wait_skipped_by & ~SKIP_AUTOTIMER) << SKIP_RESULT_TYPE_SHIFT)
-        | (wait_skipped_by_data & SKIP_RESULT_DATA_MASK);
+    return ((wait_skipped_by & ~SKIP_AUTOTIMER) << SKIP_RESULT_TYPE_SHIFT) |
+           (wait_skipped_by_data & SKIP_RESULT_DATA_MASK);
 }
 
 bool GamePlayState::IsBlockingVoiceSpeech() const
@@ -506,8 +503,7 @@ bool GamePlayState::IsNonBlockingVoiceSpeech() const
 
 bool GamePlayState::ShouldPlayVoiceSpeech() const
 {
-    return !play.fast_forward &&
-        (play.speech_mode != kSpeech_TextOnly) && (play.voice_avail);
+    return !play.fast_forward && (play.speech_mode != kSpeech_TextOnly) && (play.voice_avail);
 }
 
 bool GamePlayState::ShouldPlayVoiceSpeechNonBlocking() const
@@ -568,7 +564,8 @@ void GamePlayState::UpdateScriptTimers()
     }
 }
 
-void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver, RestoredData &r_data)
+void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameStateSvgVersion svg_ver,
+                                     RestoredData &r_data)
 {
     in->ReadInt32(); // [DEPRECATED]
     usedmode = in->ReadInt32();
@@ -615,7 +612,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     dialog_options_pad_x = in->ReadInt32();
     dialog_options_pad_y = in->ReadInt32();
     narrator_speech = in->ReadInt32();
-    in->ReadInt32();// [DEPRECATED]
+    in->ReadInt32(); // [DEPRECATED]
     lipsync_speed = in->ReadInt32();
     close_mouth_speech_time = in->ReadInt32();
     disable_antialiasing = in->ReadInt32();
@@ -624,8 +621,8 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     speech_bubble_width = in->ReadInt32();
     min_dialogoption_width = in->ReadInt32();
     disable_dialog_parser = in->ReadInt32();
-    anim_background_speed = in->ReadInt32();  // the setting for this room
-    top_bar_backcolor= in->ReadInt32();
+    anim_background_speed = in->ReadInt32(); // the setting for this room
+    top_bar_backcolor = in->ReadInt32();
     top_bar_textcolor = in->ReadInt32();
     top_bar_bordercolor = in->ReadInt32();
     top_bar_borderwidth = in->ReadInt32();
@@ -650,12 +647,12 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     speech_portrait_y = in->ReadInt32();
     speech_display_post_time_ms = in->ReadInt32();
     dialog_options_highlight_color = in->ReadInt32();
-    randseed = in->ReadInt32();    // random seed
-    player_on_region = in->ReadInt32();    // player's current region
+    randseed = in->ReadInt32();         // random seed
+    player_on_region = in->ReadInt32(); // player's current region
     check_interaction_only = in->ReadInt32();
     bg_frame = in->ReadInt32();
-    bg_anim_delay = in->ReadInt32();  // for animating backgrounds
-    in->ReadInt32(); // [DEPRECATED]
+    bg_anim_delay = in->ReadInt32(); // for animating backgrounds
+    in->ReadInt32();                 // [DEPRECATED]
     wait_counter = in->ReadInt16();
     mbounds.Left = in->ReadInt16();
     mbounds.Right = in->ReadInt16();
@@ -664,7 +661,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     fade_effect = in->ReadInt32();
     bg_frame_locked = in->ReadInt32();
     in->Seek(sizeof(int32_t) * LEGACY_MAXGSVALUES);
-    in->ReadInt32();// [DEPRECATED]
+    in->ReadInt32(); // [DEPRECATED]
     in->ReadInt32();
     in->ReadInt32();
     audio_master_volume = in->ReadInt32();
@@ -692,7 +689,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
                 _scriptTimers[timer_id] = old_script_timers[timer_id];
         }
     }
-    in->ReadInt32();// [DEPRECATED]
+    in->ReadInt32(); // [DEPRECATED]
     speech_volume = in->ReadInt32();
     normal_font = in->ReadInt32();
     speech_font = in->ReadInt32();
@@ -704,19 +701,19 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     // TODO: investigate if parsed words should be serialized at all
     const size_t parsed_words_count = in->ReadInt32();
     std::array<uint16_t, MAX_PARSED_WORDS> parsed_words_temp;
-    in->ReadArrayOfInt16(reinterpret_cast<int16_t*>(parsed_words_temp.data()), MAX_PARSED_WORDS);
+    in->ReadArrayOfInt16(reinterpret_cast<int16_t *>(parsed_words_temp.data()), MAX_PARSED_WORDS);
     std::copy_n(parsed_words_temp.begin(), parsed_words_count, std::back_inserter(parsed_words));
     bad_parsed_word.ReadCount(in, 100);
-    in->ReadInt32();// [DEPRECATED]
-    in->Seek(LEGACY_MAXSAVEGAMES * sizeof(int16_t));// [DEPRECATED]
+    in->ReadInt32();                                 // [DEPRECATED]
+    in->Seek(LEGACY_MAXSAVEGAMES * sizeof(int16_t)); // [DEPRECATED]
     uint32_t mouse_opts = in->ReadInt32();
-    mouse_cursor_shown = (mouse_opts & 0x01) == 0; // previously this field had a reverse meaning
+    mouse_cursor_shown = (mouse_opts & 0x01) == 0;  // previously this field had a reverse meaning
     mouse_input_enabled = (mouse_opts & 0x02) != 0; // kGSSvgVersion_363_13, kGSSvgVersion_400_33
     if ((svg_ver < kGSSvgVersion_363_13) || (svg_ver >= kGSSvgVersion_400 && svg_ver < kGSSvgVersion_400_33))
     {
         mouse_input_enabled = true;
     }
-    in->ReadInt32();// [DEPRECATED]
+    in->ReadInt32(); // [DEPRECATED]
     in->ReadInt32();
     in->ReadInt32();
     shakesc_delay = in->ReadInt32();
@@ -728,7 +725,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     rtint_level = in->ReadInt32();
     rtint_light = in->ReadInt32();
     rtint_enabled = in->ReadBool();
-    in->ReadInt32();// [DEPRECATED]
+    in->ReadInt32(); // [DEPRECATED]
     skip_until_char_stops = in->ReadInt32();
     in->ReadInt32(); // was get_loc_name_last_time, should not serialize
     in->ReadInt32(); // was get_loc_name_save_cursor, should not serialize
@@ -751,8 +748,8 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
     crossfade_in_volume_per_step = in->ReadInt16();
     crossfade_final_volume_in = in->ReadInt16();
 
-    in->Seek(50);// [DEPRECATED]
-    in->Seek(50);// [DEPRECATED]
+    in->Seek(50); // [DEPRECATED]
+    in->Seek(50); // [DEPRECATED]
     in->Seek(LEGACY_MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
     in->Read(lastParserEntry, MAX_MAXSTRLEN);
     if ((svg_ver < kGSSvgVersion_361_14) || (svg_ver >= kGSSvgVersion_400 && svg_ver < kGSSvgVersion_400_03))
@@ -805,7 +802,7 @@ void GamePlayState::ReadFromSavegame(Stream *in, GameDataVersion data_ver, GameS
         speech_always_wait_for_text = speech_ex_flags & 0x01;
         in->ReadInt32(); // reserved
     }
-    
+
     if (svg_ver < kGSSvgVersion_363_02)
     {
         dialog_options_zorder = INT32_MAX;
@@ -888,20 +885,20 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(bgspeech_game_speed);
     out->WriteInt32(bgspeech_stay_on_display);
     out->WriteInt32(unfactor_speech_from_textlength);
-    out->WriteInt32(0);// [DEPRECATED]
+    out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(speech_music_drop);
     out->WriteInt32(in_cutscene);
     out->WriteInt32(fast_forward);
     out->WriteInt32(room_width);
     out->WriteInt32(room_height);
     out->WriteInt32(game_speed_modifier);
-    out->WriteInt32(0);// [DEPRECATED]
+    out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(takeover_data);
-    out->WriteInt32(replay_hotkey_unused);         // StartRecording: not supported
+    out->WriteInt32(replay_hotkey_unused); // StartRecording: not supported
     out->WriteInt32(dialog_options_pad_x);
     out->WriteInt32(dialog_options_pad_y);
     out->WriteInt32(narrator_speech);
-    out->WriteInt32(0);// [DEPRECATED]
+    out->WriteInt32(0); // [DEPRECATED]
     out->WriteInt32(lipsync_speed);
     out->WriteInt32(close_mouth_speech_time);
     out->WriteInt32(disable_antialiasing);
@@ -910,7 +907,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(speech_bubble_width);
     out->WriteInt32(min_dialogoption_width);
     out->WriteInt32(disable_dialog_parser);
-    out->WriteInt32(anim_background_speed);  // the setting for this room
+    out->WriteInt32(anim_background_speed); // the setting for this room
     out->WriteInt32(top_bar_backcolor);
     out->WriteInt32(top_bar_textcolor);
     out->WriteInt32(top_bar_bordercolor);
@@ -937,93 +934,94 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(speech_display_post_time_ms);
     out->WriteInt32(dialog_options_highlight_color);
     // ** up to here is referenced in the script "game." object
-    out->WriteInt32(randseed);    // random seed
-    out->WriteInt32( player_on_region);    // player's current region
-    out->WriteInt32( check_interaction_only);
-    out->WriteInt32( bg_frame);
-    out->WriteInt32( bg_anim_delay);  // for animating backgrounds
-    out->WriteInt32( 0);// [DEPRECATED]
+    out->WriteInt32(randseed);         // random seed
+    out->WriteInt32(player_on_region); // player's current region
+    out->WriteInt32(check_interaction_only);
+    out->WriteInt32(bg_frame);
+    out->WriteInt32(bg_anim_delay); // for animating backgrounds
+    out->WriteInt32(0);             // [DEPRECATED]
     out->WriteInt16(wait_counter);
     out->WriteInt16(mbounds.Left);
     out->WriteInt16(mbounds.Right);
     out->WriteInt16(mbounds.Top);
     out->WriteInt16(mbounds.Bottom);
-    out->WriteInt32( fade_effect);
-    out->WriteInt32( bg_frame_locked);
+    out->WriteInt32(fade_effect);
+    out->WriteInt32(bg_frame_locked);
     out->WriteByteCount(0, sizeof(int32_t) * LEGACY_MAXGSVALUES);
-    out->WriteInt32( 0);// [DEPRECATED]
-    out->WriteInt32( 0);
-    out->WriteInt32( 0);
-    out->WriteInt32( audio_master_volume);
+    out->WriteInt32(0); // [DEPRECATED]
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(audio_master_volume);
     out->Write(walkable_areas_on, MAX_WALK_AREAS);
-    out->WriteInt16( screen_flipped);
-    out->WriteInt32( entered_at_x);
-    out->WriteInt32( entered_at_y);
-    out->WriteInt32( entered_edge);
-    out->WriteInt32( speech_mode);
-    out->WriteInt32( speech_skip_style);
-    out->WriteInt32( 0);// [DEPRECATED]
-    out->WriteInt32( speech_volume);
-    out->WriteInt32( normal_font);
-    out->WriteInt32( speech_font);
-    out->WriteInt8( key_skip_wait);
-    out->WriteInt32( swap_portrait_lastchar);
-    out->WriteInt32( separate_music_lib ? 1 : 0);
-    out->WriteInt32( in_conversation);
-    out->WriteInt32( screen_tint);
+    out->WriteInt16(screen_flipped);
+    out->WriteInt32(entered_at_x);
+    out->WriteInt32(entered_at_y);
+    out->WriteInt32(entered_edge);
+    out->WriteInt32(speech_mode);
+    out->WriteInt32(speech_skip_style);
+    out->WriteInt32(0); // [DEPRECATED]
+    out->WriteInt32(speech_volume);
+    out->WriteInt32(normal_font);
+    out->WriteInt32(speech_font);
+    out->WriteInt8(key_skip_wait);
+    out->WriteInt32(swap_portrait_lastchar);
+    out->WriteInt32(separate_music_lib ? 1 : 0);
+    out->WriteInt32(in_conversation);
+    out->WriteInt32(screen_tint);
     // TODO: investigate if parsed words should be serialized at all
-    out->WriteInt32( parsed_words.size());
-    out->WriteArrayOfInt16( reinterpret_cast<const int16_t*>(parsed_words.data()), std::min<size_t>(parsed_words.size(), MAX_PARSED_WORDS));
+    out->WriteInt32(parsed_words.size());
+    out->WriteArrayOfInt16(reinterpret_cast<const int16_t *>(parsed_words.data()),
+                           std::min<size_t>(parsed_words.size(), MAX_PARSED_WORDS));
     if (parsed_words.size() < MAX_PARSED_WORDS)
         out->WriteByteCount(0, (MAX_PARSED_WORDS - parsed_words.size()) * sizeof(int16_t));
     bad_parsed_word.WriteCount(out, 100);
-    out->WriteInt32( 0);// [DEPRECATED]
-    out->WriteByteCount(0, LEGACY_MAXSAVEGAMES * sizeof(int16_t));// [DEPRECATED]
-    uint32_t mouse_opts = 0x01 * (!mouse_cursor_shown) // previously this field had a reverse meaning
-        | 0x02 * mouse_input_enabled; // kGSSvgVersion_363_13, kGSSvgVersion_400_33
-    out->WriteInt32( mouse_opts);
-    out->WriteInt32( 0);// [DEPRECATED]
-    out->WriteInt32( 0);
-    out->WriteInt32( 0);
-    out->WriteInt32( shakesc_delay);
-    out->WriteInt32( shakesc_amount);
-    out->WriteInt32( shakesc_length);
-    out->WriteInt32( rtint_red);
-    out->WriteInt32( rtint_green);
-    out->WriteInt32( rtint_blue);
-    out->WriteInt32( rtint_level);
-    out->WriteInt32( rtint_light);
+    out->WriteInt32(0);                                            // [DEPRECATED]
+    out->WriteByteCount(0, LEGACY_MAXSAVEGAMES * sizeof(int16_t)); // [DEPRECATED]
+    uint32_t mouse_opts = 0x01 * (!mouse_cursor_shown)             // previously this field had a reverse meaning
+                          | 0x02 * mouse_input_enabled;            // kGSSvgVersion_363_13, kGSSvgVersion_400_33
+    out->WriteInt32(mouse_opts);
+    out->WriteInt32(0); // [DEPRECATED]
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(shakesc_delay);
+    out->WriteInt32(shakesc_amount);
+    out->WriteInt32(shakesc_length);
+    out->WriteInt32(rtint_red);
+    out->WriteInt32(rtint_green);
+    out->WriteInt32(rtint_blue);
+    out->WriteInt32(rtint_level);
+    out->WriteInt32(rtint_light);
     out->WriteBool(rtint_enabled);
-    out->WriteInt32( 0);// [DEPRECATED]
-    out->WriteInt32( skip_until_char_stops);
-    out->WriteInt32( 0); // was get_loc_name_last_time, should not serialize
-    out->WriteInt32( 0); // was get_loc_name_save_cursor, should not serialize
-    out->WriteInt32( restore_cursor_mode_to);
-    out->WriteInt32( restore_cursor_image_to);
-    out->WriteInt16( 0 ); // legacy music queue
-    out->WriteByteCount( 0, sizeof(int16_t) * MAX_QUEUED_MUSIC);
+    out->WriteInt32(0); // [DEPRECATED]
+    out->WriteInt32(skip_until_char_stops);
+    out->WriteInt32(0); // was get_loc_name_last_time, should not serialize
+    out->WriteInt32(0); // was get_loc_name_save_cursor, should not serialize
+    out->WriteInt32(restore_cursor_mode_to);
+    out->WriteInt32(restore_cursor_image_to);
+    out->WriteInt16(0); // legacy music queue
+    out->WriteByteCount(0, sizeof(int16_t) * MAX_QUEUED_MUSIC);
     out->WriteInt16(new_music_queue_size);
     for (int i = 0; i < MAX_QUEUED_MUSIC; ++i)
     {
         new_music_queue[i].WriteToSavegame(out);
     }
 
-    out->WriteInt16( crossfading_out_channel);
-    out->WriteInt16( crossfade_step);
-    out->WriteInt16( crossfade_out_volume_per_step);
-    out->WriteInt16( crossfade_initial_volume_out);
-    out->WriteInt16( crossfading_in_channel);
-    out->WriteInt16( crossfade_in_volume_per_step);
-    out->WriteInt16( crossfade_final_volume_in);
+    out->WriteInt16(crossfading_out_channel);
+    out->WriteInt16(crossfade_step);
+    out->WriteInt16(crossfade_out_volume_per_step);
+    out->WriteInt16(crossfade_initial_volume_out);
+    out->WriteInt16(crossfading_in_channel);
+    out->WriteInt16(crossfade_in_volume_per_step);
+    out->WriteInt16(crossfade_final_volume_in);
 
-    out->WriteByteCount(0, 50);// [DEPRECATED]
-    out->WriteByteCount(0, 50);// [DEPRECATED]
+    out->WriteByteCount(0, 50); // [DEPRECATED]
+    out->WriteByteCount(0, 50); // [DEPRECATED]
     out->WriteByteCount(0, LEGACY_MAXGLOBALSTRINGS * MAX_MAXSTRLEN);
     out->Write(lastParserEntry, MAX_MAXSTRLEN);
     StrUtil::WriteString(game_name, out);
-    out->WriteInt32( ground_level_areas_disabled);
-    out->WriteInt32( next_screen_transition);
-    out->WriteInt32( gamma_adjustment);
+    out->WriteInt32(ground_level_areas_disabled);
+    out->WriteInt32(next_screen_transition);
+    out->WriteInt32(gamma_adjustment);
     out->WriteInt16(temporarily_turned_off_character);
     out->WriteInt16(0); // [DEPRECATED]
     out->WriteInt32(static_cast<uint32_t>(do_once_tokens.size()));
@@ -1031,8 +1029,8 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     {
         StrUtil::WriteString(token, out);
     }
-    out->WriteInt32( text_min_display_time_ms);
-    out->WriteInt32( ignore_user_input_after_text_timeout_ms);
+    out->WriteInt32(text_min_display_time_ms);
+    out->WriteInt32(ignore_user_input_after_text_timeout_ms);
 
     int voice_speech_flags = speech_has_voice ? 0x01 : 0;
     if (speech_voice_blocking)
@@ -1048,7 +1046,7 @@ void GamePlayState::WriteForSavegame(Stream *out) const
     out->WriteInt32(dialog_options_zorder);
     out->WriteInt32(speech_zorder); // since kGSSvgVersion_363_13, kGSSvgVersion_400_33
     uint32_t speech_ex_flags = (0x01 * speech_always_wait_for_text);
-    out->WriteInt32(speech_ex_flags); 
+    out->WriteInt32(speech_ex_flags);
     out->WriteInt32(0); // reserved
 
     // kGSSvgVersion_363_04
@@ -1089,7 +1087,7 @@ void GamePlayState::FreeViewportsAndCameras()
     _roomViewportsSorted.clear();
     for (auto handle : _scViewportHandles)
     {
-        auto scview = (ScriptViewport*)ccGetObjectAddressFromHandle(handle);
+        auto scview = (ScriptViewport *)ccGetObjectAddressFromHandle(handle);
         if (scview)
         {
             scview->Invalidate();
@@ -1100,7 +1098,7 @@ void GamePlayState::FreeViewportsAndCameras()
     _roomCameras.clear();
     for (auto handle : _scCameraHandles)
     {
-        auto sccam = (ScriptCamera*)ccGetObjectAddressFromHandle(handle);
+        auto sccam = (ScriptCamera *)ccGetObjectAddressFromHandle(handle);
         if (sccam)
         {
             sccam->Invalidate();

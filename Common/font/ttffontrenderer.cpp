@@ -23,8 +23,7 @@
 
 using namespace AGS::Common;
 
-TTFFontRenderer::TTFFontRenderer(AssetManager *amgr)
-    : _amgr(amgr)
+TTFFontRenderer::TTFFontRenderer(AssetManager *amgr) : _amgr(amgr)
 {
     TTF_Init();
 }
@@ -41,17 +40,17 @@ void TTFFontRenderer::SetLegacyAntiaAliasedFontHeightFixup(bool legacy_aa_height
 
 void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int /*fontNumber*/)
 {
-  // TTF fonts already have space at the top, so try to remove the gap
-  // TODO: adding -1 was here before (check the comment above),
-  // but how universal is this "space at the top"?
-  // Also, why is this function used only in one case of text rendering?
-  // Review this after we upgrade the font library.
-  ycoord[0]--;
+    // TTF fonts already have space at the top, so try to remove the gap
+    // TODO: adding -1 was here before (check the comment above),
+    // but how universal is this "space at the top"?
+    // Also, why is this function used only in one case of text rendering?
+    // Review this after we upgrade the font library.
+    ycoord[0]--;
 }
 
 void TTFFontRenderer::EnsureTextValidForFont(char * /*text*/, int /*fontNumber*/)
 {
-  // do nothing, TTF can handle all characters
+    // do nothing, TTF can handle all characters
 }
 
 int TTFFontRenderer::GetTextWidth(const char *text, int fontNumber)
@@ -73,21 +72,21 @@ int TTFFontRenderer::GetTextHeight(const char * /*text*/, int fontNumber)
 
 void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int color)
 {
-    if (y > destination->cb)  // optimisation
+    if (y > destination->cb) // optimisation
         return;
 
     // Check if this is a alpha-blending case, and init corresponding draw mode
     const bool is_indexed_dst = (bitmap_color_depth(destination) == 8);
-    const bool alpha_blend = (bitmap_color_depth(destination) == 32) &&
-        ((geta32(color) != 0xFF) || (_blendMode != kBlend_Normal));
+    const bool alpha_blend =
+        (bitmap_color_depth(destination) == 32) && ((geta32(color) != 0xFF) || (_blendMode != kBlend_Normal));
     const bool text_smooth = (ShouldAntiAliasText()) && (!is_indexed_dst);
 
     SDL_Color fg;
     if (is_indexed_dst)
-        fg = { (Uint8)getr8(color), (Uint8)getg8(color), (Uint8)getb8(color), (Uint8)255 };
+        fg = {(Uint8)getr8(color), (Uint8)getg8(color), (Uint8)getb8(color), (Uint8)255};
     else
-        fg = { (Uint8)getr32(color), (Uint8)getg32(color), (Uint8)getb32(color), (Uint8)geta32(color) };
-    
+        fg = {(Uint8)getr32(color), (Uint8)getg32(color), (Uint8)getb32(color), (Uint8)geta32(color)};
+
     SDL_Surface *surf = nullptr;
     if (text_smooth)
         surf = TTF_RenderUTF8_Blended(_fontData[fontNumber].Font, text, fg);
@@ -97,9 +96,9 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
     if (!surf)
         return;
 
-    Bitmap::PixelObjectPtr surf_ptr(surf, [](void *s){ SDL_FreeSurface(static_cast<SDL_Surface*>(s)); });
-    BitmapData bm_data(static_cast<uint8_t*>(surf->pixels), surf->pitch * surf->h,
-        surf->pitch, surf->w, surf->h, ColorDepthToPixelFormat(surf->format->BitsPerPixel));
+    Bitmap::PixelObjectPtr surf_ptr(surf, [](void *s) { SDL_FreeSurface(static_cast<SDL_Surface *>(s)); });
+    BitmapData bm_data(static_cast<uint8_t *>(surf->pixels), surf->pitch * surf->h, surf->pitch, surf->w, surf->h,
+                       ColorDepthToPixelFormat(surf->format->BitsPerPixel));
     Bitmap helper(std::move(surf_ptr), bm_data, false);
     Bitmap dest(destination, true);
 
@@ -136,7 +135,7 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 {
-  return LoadFromDiskEx(fontNumber, fontSize, String::FromFormat("agsfnt%d.ttf", fontNumber), nullptr, nullptr);
+    return LoadFromDiskEx(fontNumber, fontSize, String::FromFormat("agsfnt%d.ttf", fontNumber), nullptr, nullptr);
 }
 
 bool TTFFontRenderer::IsBitmapFont()
@@ -191,7 +190,7 @@ TTF_Font *TTFFontRenderer::LoadTTF(const AGS::Common::String &filename, int font
 }
 
 bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const String &filename,
-    const FontRenderParams *params, FontMetrics *metrics)
+                                     const FontRenderParams *params, FontMetrics *metrics)
 {
     if (fontSize <= 0)
         fontSize = 8; // compatibility fix
@@ -227,9 +226,7 @@ void TTFFontRenderer::GetFontMetrics(int fontNumber, FontMetrics *metrics)
     FillMetrics(_fontData[fontNumber].Font, _fontData[fontNumber].SizePt, metrics);
 }
 
-void TTFFontRenderer::AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/)
-{
-}
+void TTFFontRenderer::AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/) {}
 
 void TTFFontRenderer::SetBlendMode(BlendMode blend_mode)
 {

@@ -22,8 +22,7 @@ namespace Engine
 AudioPlayer::AudioPlayer(int handle, std::unique_ptr<SDLDecoder> decoder)
     : handle_(handle), _decoder(std::move(decoder))
 {
-    _source = std::make_unique<OpenAlSource>(
-        _decoder->GetFormat(), _decoder->GetChannels(), _decoder->GetFreq());
+    _source = std::make_unique<OpenAlSource>(_decoder->GetFormat(), _decoder->GetChannels(), _decoder->GetFreq());
 }
 
 void AudioPlayer::Init()
@@ -69,9 +68,7 @@ void AudioPlayer::Play()
 {
     switch (_playState)
     {
-    case PlayStateInitial:
-        _onLoadPlayState = PlayStatePlaying;
-        break;
+    case PlayStateInitial: _onLoadPlayState = PlayStatePlaying; break;
     case PlayStateStopped:
         _decoder->Seek(0.0f);
         /* fall-through */
@@ -79,8 +76,7 @@ void AudioPlayer::Play()
         _playState = PlayStatePlaying;
         _source->Play();
         break;
-    default:
-        break;
+    default: break;
     }
 }
 
@@ -88,15 +84,12 @@ void AudioPlayer::Pause()
 {
     switch (_playState)
     {
-    case PlayStateInitial:
-        _onLoadPlayState = PlayStatePaused;
-        break;
+    case PlayStateInitial: _onLoadPlayState = PlayStatePaused; break;
     case PlayStatePlaying:
         _playState = PlayStatePaused;
         _source->Pause();
         break;
-    default:
-        break;
+    default: break;
     }
 }
 
@@ -104,17 +97,14 @@ void AudioPlayer::Stop()
 {
     switch (_playState)
     {
-    case PlayStateInitial:
-        _onLoadPlayState = PlayStateStopped;
-        break;
+    case PlayStateInitial: _onLoadPlayState = PlayStateStopped; break;
     case PlayStatePlaying:
     case PlayStatePaused:
         _playState = PlayStateStopped;
         _source->Stop();
         _bufferPending = SoundBufferPtr(); // clear
         break;
-    default:
-        break;
+    default: break;
     }
 }
 
@@ -129,15 +119,14 @@ void AudioPlayer::Seek(float pos_ms)
     case PlayStatePlaying:
     case PlayStatePaused:
     case PlayStateStopped:
-        {
-            _source->Stop();
-            _bufferPending = SoundBufferPtr(); // clear
-            float new_pos = _decoder->Seek(pos_ms);
-            _source->SetPlaybackPosMs(new_pos);
-        }
-        break;
-    default:
-        break;
+    {
+        _source->Stop();
+        _bufferPending = SoundBufferPtr(); // clear
+        float new_pos = _decoder->Seek(pos_ms);
+        _source->SetPlaybackPosMs(new_pos);
+    }
+    break;
+    default: break;
     }
 }
 

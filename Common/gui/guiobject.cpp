@@ -19,8 +19,7 @@ namespace AGS
 namespace Common
 {
 
-GUIObject::GUIObject(const ScriptEventSchema *schema)
-    : _events(schema)
+GUIObject::GUIObject(const ScriptEventSchema *schema) : _events(schema)
 {
     UpdateGraphicSpace();
 }
@@ -178,11 +177,10 @@ void GUIObject::ClearChanged()
 void GUIObject::UpdateGraphicSpace()
 {
     Rect g_rc = CalcGraphicRect(GUI::Options.ClipControls);
-    _gs = GraphicSpace(
-        _x, _y, Pointf(0.f, 0.f), // origin
-        Size(_width, _height), // source sprite size
-        g_rc, // real graphical aabb (maybe with extra offsets)
-        _scale.X, _scale.Y, _rotation // transforms
+    _gs = GraphicSpace(_x, _y, Pointf(0.f, 0.f),     // origin
+                       Size(_width, _height),        // source sprite size
+                       g_rc,                         // real graphical aabb (maybe with extra offsets)
+                       _scale.X, _scale.Y, _rotation // transforms
     );
 }
 

@@ -23,7 +23,7 @@
 #include "script/runtimescript.h"
 #include "script/runtimescriptvalue.h"
 
-#define MAX_SCRIPT_EVT_PARAMS  5
+#define MAX_SCRIPT_EVT_PARAMS 5
 
 // A general script type, used to search for or run a function.
 // NOTE: "game" type may mean either "global script" or any script module,
@@ -32,8 +32,8 @@
 enum ScriptType
 {
     kScTypeNone,
-    kScTypeGame,    // game script modules
-    kScTypeRoom     // room script
+    kScTypeGame, // game script modules
+    kScTypeRoom  // room script
 };
 
 // ScriptFunctionRef - represents a *unresolved* reference to the script function.
@@ -43,12 +43,13 @@ struct ScriptFunctionRef
 {
     AGS::Common::String ModuleName;
     AGS::Common::String FuncName;
- 
+
     ScriptFunctionRef() = default;
-    ScriptFunctionRef(const AGS::Common::String &fn_name)
-        : FuncName(fn_name) {}
+    ScriptFunctionRef(const AGS::Common::String &fn_name) : FuncName(fn_name) {}
     ScriptFunctionRef(const AGS::Common::String &module_name, const AGS::Common::String &fn_name)
-        : ModuleName(module_name), FuncName(fn_name) {}
+        : ModuleName(module_name), FuncName(fn_name)
+    {
+    }
     bool IsEmpty() const { return FuncName.IsEmpty(); }
     operator bool() const { return FuncName.IsEmpty(); }
 };
@@ -57,17 +58,17 @@ struct ScriptFunctionRef
 enum PostScriptActionType
 {
     ePSAUndefined,
-    ePSANewRoom,            // Change to another room
-    ePSAInvScreen,          // Display InventoryScreen (built-in) [DEPRECATED]
-    ePSARestoreGame,        // Restore saved game
-    ePSARestoreGameDialog,  // Display Restore Game dialog (built-in)
-    ePSARunAGSGame,         // Load and run another AGS game
-    ePSARunDialog,          // Run Dialog (conversation)
-    ePSARestartGame,        // Restart game (restore autosave slot)
-    ePSASaveGame,           // Save game
-    ePSASaveGameDialog,     // Display Save Game dialog (built-in)
-    ePSAStopDialog,         // Stop Dialog (conversation)
-    ePSAScanSaves           // Scan save slots (results in multiple chained callbacks)
+    ePSANewRoom,           // Change to another room
+    ePSAInvScreen,         // Display InventoryScreen (built-in) [DEPRECATED]
+    ePSARestoreGame,       // Restore saved game
+    ePSARestoreGameDialog, // Display Restore Game dialog (built-in)
+    ePSARunAGSGame,        // Load and run another AGS game
+    ePSARunDialog,         // Run Dialog (conversation)
+    ePSARestartGame,       // Restart game (restore autosave slot)
+    ePSASaveGame,          // Save game
+    ePSASaveGameDialog,    // Display Save Game dialog (built-in)
+    ePSAStopDialog,        // Stop Dialog (conversation)
+    ePSAScanSaves          // Scan save slots (results in multiple chained callbacks)
 };
 
 struct PostScriptAction
@@ -83,26 +84,46 @@ struct PostScriptAction
     PostScriptAction() = default;
     PostScriptAction(PostScriptAction &&act) = default;
     PostScriptAction(PostScriptActionType type, int data, const Common::String &name, const Common::String &text = {},
-        std::unique_ptr<Common::Bitmap> &&image = {})
-        : Type(type), Name(name), Text(text), Image(std::move(image)) { Data[0] = data; }
+                     std::unique_ptr<Common::Bitmap> &&image = {})
+        : Type(type), Name(name), Text(text), Image(std::move(image))
+    {
+        Data[0] = data;
+    }
     PostScriptAction(PostScriptActionType type, int data1, int data2, const Common::String &name)
-        : Type(type), Name(name) { Data[0] = data1; Data[1] = data2; }
+        : Type(type), Name(name)
+    {
+        Data[0] = data1;
+        Data[1] = data2;
+    }
     PostScriptAction(PostScriptActionType type, int data1, int data2, int data3, const Common::String &name)
-        : Type(type), Name(name) { Data[0] = data1; Data[1] = data2; Data[2] = data3; }
-    PostScriptAction(PostScriptActionType type, int data1, int data2, int data3, int data4, int data5, int data6, const Common::String &name)
-        : Type(type), Name(name) { Data[0] = data1; Data[1] = data2; Data[2] = data3; Data[3] = data4; Data[4] = data5; Data[5] = data6; }
+        : Type(type), Name(name)
+    {
+        Data[0] = data1;
+        Data[1] = data2;
+        Data[2] = data3;
+    }
+    PostScriptAction(PostScriptActionType type, int data1, int data2, int data3, int data4, int data5, int data6,
+                     const Common::String &name)
+        : Type(type), Name(name)
+    {
+        Data[0] = data1;
+        Data[1] = data2;
+        Data[2] = data3;
+        Data[3] = data4;
+        Data[4] = data5;
+        Data[5] = data6;
+    }
 };
 
 // ExecutingScript stores scheduled actions for the current running script.
 // These actions will be executed after the current script completes.
 struct ExecutingScript
 {
-    const AGS::Engine::RuntimeScript * const Script = nullptr;
+    const AGS::Engine::RuntimeScript *const Script = nullptr;
     std::vector<PostScriptAction> PostScriptActions;
 
     ExecutingScript() = default;
-    ExecutingScript(const AGS::Engine::RuntimeScript *script)
-        : Script(script) {}
+    ExecutingScript(const AGS::Engine::RuntimeScript *script) : Script(script) {}
     void QueueAction(PostScriptAction &&act);
 };
 

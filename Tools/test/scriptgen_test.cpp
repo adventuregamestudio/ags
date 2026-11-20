@@ -54,32 +54,31 @@ TEST(ScriptGen, GameAutoScriptHeader)
     game.GUI.push_back(gui);
     game.Views.push_back(MakeEntity(1, "EGOWALK"));
 
-    const char *expected =
-        "enum CursorMode {\n"
-        "  eModeWalkto = 0,\n"
-        "  eModeLookat = 1\n"
-        "};\n"
-        "enum FontType {\n"
-        "  eUndefinedFont = -2,  eNullFont = -1,\n"
-        "  eFontNormal = 0\n"
-        "};\n"
-        "import readonly Character *character[2];\n"
-        "#define EGO 0\n"
-        "import readonly Character *cEgo;\n"
-        "import readonly Character *c500;\n"
-        "enum AudioType {\n"
-        "  eAudioTypeMusic = 1\n"
-        "};\n"
-        "import AudioClip *aMusic;\n"
-        "import readonly InventoryItem *inventory[2];\n"
-        "import readonly InventoryItem *iKey;\n"
-        "import readonly Dialog *dialog[1];\n"
-        "import readonly Dialog *dIntro;\n"
-        "import readonly GUI *gui[1];\n"
-        "import readonly GUI *gStatus;\n"
-        "#define STATUS FindGUIID(\"STATUS\")\n"
-        "import readonly Label *lblScore;\n"
-        "#define EGOWALK 1\n";
+    const char *expected = "enum CursorMode {\n"
+                           "  eModeWalkto = 0,\n"
+                           "  eModeLookat = 1\n"
+                           "};\n"
+                           "enum FontType {\n"
+                           "  eUndefinedFont = -2,  eNullFont = -1,\n"
+                           "  eFontNormal = 0\n"
+                           "};\n"
+                           "import readonly Character *character[2];\n"
+                           "#define EGO 0\n"
+                           "import readonly Character *cEgo;\n"
+                           "import readonly Character *c500;\n"
+                           "enum AudioType {\n"
+                           "  eAudioTypeMusic = 1\n"
+                           "};\n"
+                           "import AudioClip *aMusic;\n"
+                           "import readonly InventoryItem *inventory[2];\n"
+                           "import readonly InventoryItem *iKey;\n"
+                           "import readonly Dialog *dialog[1];\n"
+                           "import readonly Dialog *dIntro;\n"
+                           "import readonly GUI *gui[1];\n"
+                           "import readonly GUI *gStatus;\n"
+                           "#define STATUS FindGUIID(\"STATUS\")\n"
+                           "import readonly Label *lblScore;\n"
+                           "#define EGOWALK 1\n";
     EXPECT_STREQ(expected, MakeGameAutoScriptHeader(game).GetCStr());
 }
 
@@ -87,19 +86,18 @@ TEST(ScriptGen, GameAutoScriptHeaderEmpty)
 {
     GameRef game;
 
-    const char *expected =
-        "enum CursorMode {\n"
-        "eDummyCursor__ = 99  // $AUTOCOMPLETEIGNORE$ \n"
-        "};\n"
-        "enum FontType {\n"
-        "  eUndefinedFont = -2,  eNullFont = -1\n"
-        "};\n"
-        "import readonly Character *character[1];\n"
-        "enum AudioType {\n"
-        "eDummyAudioType__ = 99  // $AUTOCOMPLETEIGNORE$ \n"
-        "};\n"
-        "import readonly InventoryItem *inventory[1];\n"
-        "import readonly Dialog *dialog[1];\n"
-        "import readonly GUI *gui[1];\n";
+    const char *expected = "enum CursorMode {\n"
+                           "eDummyCursor__ = 99  // $AUTOCOMPLETEIGNORE$ \n"
+                           "};\n"
+                           "enum FontType {\n"
+                           "  eUndefinedFont = -2,  eNullFont = -1\n"
+                           "};\n"
+                           "import readonly Character *character[1];\n"
+                           "enum AudioType {\n"
+                           "eDummyAudioType__ = 99  // $AUTOCOMPLETEIGNORE$ \n"
+                           "};\n"
+                           "import readonly InventoryItem *inventory[1];\n"
+                           "import readonly Dialog *dialog[1];\n"
+                           "import readonly GUI *gui[1];\n";
     EXPECT_STREQ(expected, MakeGameAutoScriptHeader(game).GetCStr());
 }

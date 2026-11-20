@@ -61,17 +61,21 @@ int MyTextBox::pressedon(int /*mx*/, int /*my*/)
 
 int MyTextBox::processmessage(int mcode, int wParam, intptr_t ipParam)
 {
-    if (mcode == CTB_SETTEXT) {
-        snprintf(text, sizeof(text), "%s", (const char*)ipParam);
+    if (mcode == CTB_SETTEXT)
+    {
+        snprintf(text, sizeof(text), "%s", (const char *)ipParam);
         needredraw = 1;
-    } else if (mcode == CTB_GETTEXT)
+    }
+    else if (mcode == CTB_GETTEXT)
         strcpy((char *)ipParam, text); // FIXME! dangerous
-    else if (mcode == CTB_KEYPRESS) {
+    else if (mcode == CTB_KEYPRESS)
+    {
         // NOTE: this deprecated control does not support UTF-8
         int key = wParam;
         int uchar = static_cast<int>(ipParam);
         size_t len = strlen(text);
-        if (key == eAGSKeyCodeBackspace) {
+        if (key == eAGSKeyCodeBackspace)
+        {
             if (len > 0)
                 text[len - 1] = 0;
             drawandmouse();
@@ -89,7 +93,8 @@ int MyTextBox::processmessage(int mcode, int wParam, intptr_t ipParam)
         text[len] = uchar;
         text[len + 1] = 0;
         drawandmouse();
-    } else
+    }
+    else
         return -1;
 
     return 0;

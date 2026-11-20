@@ -40,22 +40,22 @@ extern GameSetupStruct game;
 
 int get_adjusted_spritewidth(int spr)
 {
-  return game.SpriteInfos[spr].Width;
+    return game.SpriteInfos[spr].Width;
 }
 
 int get_adjusted_spriteheight(int spr)
 {
-  return game.SpriteInfos[spr].Height;
+    return game.SpriteInfos[spr].Height;
 }
 
 void set_eip_guiobj(int eip)
 {
-  eip_guiobj = eip;
+    eip_guiobj = eip;
 }
 
 int get_eip_guiobj()
 {
-  return eip_guiobj;
+    return eip_guiobj;
 }
 
 namespace AGS
@@ -77,7 +77,8 @@ String GUI::TransformTextForDrawing(const String &text, bool translate, bool app
     return res_text;
 }
 
-size_t GUI::SplitLinesForDrawing(const String &text, bool is_translated, SplitLines &lines, int font, int width, size_t max_lines)
+size_t GUI::SplitLinesForDrawing(const String &text, bool is_translated, SplitLines &lines, int font, int width,
+                                 size_t max_lines)
 {
     // Use the engine's word wrap tool, to have RTL writing and other features
     const char *draw_text = skip_voiceover_token(text.GetCStr());
@@ -149,9 +150,11 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
     const int offset_right = draw_cursor && !reverse ? (cursor_width + 3) : 0;
 
     color_t text_color = ds->GetCompatibleColor(_textColor);
-    Rect text_rc = GUI::CalcTextPosition(_textToDraw, _font,
-        RectWH(_innerRect.Left + x + offset_left, _innerRect.Top + y, _innerRect.GetWidth() - offset_left - offset_right, _innerRect.GetHeight()),
-        text_align);
+    Rect text_rc =
+        GUI::CalcTextPosition(_textToDraw, _font,
+                              RectWH(_innerRect.Left + x + offset_left, _innerRect.Top + y,
+                                     _innerRect.GetWidth() - offset_left - offset_right, _innerRect.GetHeight()),
+                              text_align);
     wouttext_outline(ds, text_rc.Left, text_rc.Top, _font, text_color, _textToDraw.GetCStr());
 
     // Draw cursor
@@ -165,8 +168,8 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
 
 void GUIListBox::PrepareTextToDraw(const String &text)
 {
-     _textToDraw = GUI::TransformTextForDrawing(text, (_flags & kGUICtrl_Translated) != 0,
-         (GUI::Options.ApplyTextDirection));
+    _textToDraw =
+        GUI::TransformTextForDrawing(text, (_flags & kGUICtrl_Translated) != 0, (GUI::Options.ApplyTextDirection));
 }
 
 void GUIButton::PrepareTextToDraw()
@@ -178,8 +181,8 @@ void GUIButton::PrepareTextToDraw()
     }
     else
     {
-        _textToDraw = GUI::TransformTextForDrawing(_text, (_flags & kGUICtrl_Translated) != 0,
-            (GUI::Options.ApplyTextDirection));
+        _textToDraw =
+            GUI::TransformTextForDrawing(_text, (_flags & kGUICtrl_Translated) != 0, (GUI::Options.ApplyTextDirection));
     }
 }
 

@@ -75,7 +75,7 @@ void PlayFlic(int numb, int scr_flags)
         debug_script_warn("Failed to play FLIC %d: %s", numb, err->FullMessage().GetCStr());
 }
 
-void PlayVideo(const char* name, int skip, int scr_flags)
+void PlayVideo(const char *name, int skip, int scr_flags)
 {
     EndSkippingUntilCharStops();
     if (play.fast_forward)
@@ -104,9 +104,9 @@ void PlayVideo(const char* name, int skip, int scr_flags)
     // audio option
     switch ((scr_flags % 100) / 10)
     {
-    case 1: break; // keep game audio, and no video audio
+    case 1: break;                                    // keep game audio, and no video audio
     case 2: video_flags |= kVideo_EnableAudio; break; // have both game and video audio
-    default: // play video audio but stop game audio
+    default:                                          // play video audio but stop game audio
         video_flags |= kVideo_EnableAudio;
         state_flags |= kVideoState_StopGameAudio;
         break;

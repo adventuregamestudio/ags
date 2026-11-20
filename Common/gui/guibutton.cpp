@@ -26,12 +26,11 @@ namespace Common
 {
 
 /* static */ ScriptEventSchema GUIButton::_eventSchema = {{
-        { "OnClick", kButtonEvent_OnClick },
-        { "OnFrameEvent", kButtonEvent_OnFrameEvent },
-    }};
+    {"OnClick", kButtonEvent_OnClick},
+    {"OnFrameEvent", kButtonEvent_OnFrameEvent},
+}};
 
-GUIButton::GUIButton()
-    : GUITextFieldControl(&GUIButton::_eventSchema)
+GUIButton::GUIButton() : GUITextFieldControl(&GUIButton::_eventSchema)
 {
     _textAlignment = kAlignTopCenter;
     _paddingX = DefaultHorPadding;
@@ -211,7 +210,8 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
             return rc;
         // Main button graphic
         if (spriteset.DoesSpriteExist(_currentImage))
-            rc = SumRects(rc, RectWH(0, 0, get_adjusted_spritewidth(_currentImage), get_adjusted_spriteheight(_currentImage)));
+            rc = SumRects(
+                rc, RectWH(0, 0, get_adjusted_spritewidth(_currentImage), get_adjusted_spriteheight(_currentImage)));
         // Optionally merge with the inventory pic
         const int gui_inv_pic = GUI::Context.InventoryPic;
         if (_placeholder != kButtonPlace_None && gui_inv_pic >= 0)
@@ -220,15 +220,14 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
             GUIButtonPlaceholder place = _placeholder;
             if (place == kButtonPlace_InvItemAuto)
             {
-                place = ((inv_sz.Width > _width - 6) || (inv_sz.Height > _height - 6)) ?
-                    kButtonPlace_InvItemStretch : kButtonPlace_InvItemCenter;
+                place = ((inv_sz.Width > _width - 6) || (inv_sz.Height > _height - 6)) ? kButtonPlace_InvItemStretch
+                                                                                       : kButtonPlace_InvItemCenter;
             }
 
-            Rect inv_rc = (place == kButtonPlace_InvItemStretch) ?
-                RectWH(0 + 3, 0 + 3, _width - 6, _height - 6) :
-                RectWH(0 + _width / 2 - inv_sz.Width / 2,
-                       0 + _height / 2 - inv_sz.Height / 2,
-                       inv_sz.Width, inv_sz.Height);
+            Rect inv_rc = (place == kButtonPlace_InvItemStretch)
+                              ? RectWH(0 + 3, 0 + 3, _width - 6, _height - 6)
+                              : RectWH(0 + _width / 2 - inv_sz.Width / 2, 0 + _height / 2 - inv_sz.Height / 2,
+                                       inv_sz.Width, inv_sz.Height);
             rc = SumRects(rc, inv_rc);
         }
     }
@@ -242,9 +241,9 @@ Rect GUIButton::CalcGraphicRect(bool clipped)
             frame = frame.MoveBy(frame, 1, 1);
         }
 
-        Rect text_rc = IsWrapText() ?
-            GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), _font, get_font_linespacing(_font), frame, _textAlignment) :
-            GUI::CalcTextGraphicalRect(_textToDraw, _font, frame, _textAlignment);
+        Rect text_rc = IsWrapText() ? GUI::CalcTextGraphicalRect(Lines.GetVector(), Lines.Count(), _font,
+                                                                 get_font_linespacing(_font), frame, _textAlignment)
+                                    : GUI::CalcTextGraphicalRect(_textToDraw, _font, frame, _textAlignment);
         rc = SumRects(rc, text_rc);
     }
     return rc;
@@ -256,8 +255,7 @@ void GUIButton::Draw(Bitmap *ds, int x, int y)
     // When the GUI is disabled, the user should not get the message that
     // the button is now unclickable since it had never been in the first place.
     bool const has_interaction = IsClickable() || HasAction();
-    const bool draw_disabled = GUI::ShouldDrawDisabled(this)
-        && has_interaction;
+    const bool draw_disabled = GUI::ShouldDrawDisabled(this) && has_interaction;
 
     // TODO: should only change properties in reaction to particular events
     if (_currentImage <= 0 || draw_disabled)
@@ -299,8 +297,7 @@ void GUIButton::SetPushedImage(int image)
     UpdateCurrentImage();
 }
 
-void GUIButton::SetImages(int normal, int over, int pushed,
-                          SpriteTransformFlags flags, int xoff, int yoff)
+void GUIButton::SetImages(int normal, int over, int pushed, SpriteTransformFlags flags, int xoff, int yoff)
 {
     _image = normal;
     _mouseOverImage = over;
@@ -324,8 +321,7 @@ void GUIButton::SetImageFlip(GraphicFlip flip)
 
 void GUIButton::SetCurrentImage(int32_t new_image, SpriteTransformFlags flags, int xoff, int yoff)
 {
-    if (_currentImage == new_image && _curImageFlags == flags &&
-            _curImageXOff == xoff && _curImageYOff == yoff)
+    if (_currentImage == new_image && _curImageFlags == flags && _curImageXOff == xoff && _curImageYOff == yoff)
         return;
 
     _currentImage = new_image;
@@ -526,8 +522,7 @@ void GUIButton::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
         _buttonFlags = in->ReadInt32();
         _borderShadeColor = in->ReadInt32();
     }
-    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) ||
-        (svg_ver >= kGuiSvgVersion_40026))
+    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) || (svg_ver >= kGuiSvgVersion_40026))
     {
         _mouseOverBackColor = in->ReadInt32();
         _pushedBackColor = in->ReadInt32();
@@ -667,8 +662,8 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
 
     if (spriteset.DoesSpriteExist(_currentImage))
     {
-        draw_gui_sprite_flipped(ds, _currentImage, x + _curImageXOff, y + _curImageYOff,
-                                kBlend_Normal, GfxDef::GetFlipFromFlags(_curImageFlags));
+        draw_gui_sprite_flipped(ds, _currentImage, x + _curImageXOff, y + _curImageYOff, kBlend_Normal,
+                                GfxDef::GetFlipFromFlags(_curImageFlags));
     }
 
     // Draw active inventory item
@@ -679,20 +674,17 @@ void GUIButton::DrawImageButton(Bitmap *ds, int x, int y, bool draw_disabled)
         GUIButtonPlaceholder place = _placeholder;
         if (place == kButtonPlace_InvItemAuto)
         {
-            place = ((inv_sz.Width > _width - 6) || (inv_sz.Height > _height - 6)) ?
-                kButtonPlace_InvItemStretch : kButtonPlace_InvItemCenter;
+            place = ((inv_sz.Width > _width - 6) || (inv_sz.Height > _height - 6)) ? kButtonPlace_InvItemStretch
+                                                                                   : kButtonPlace_InvItemCenter;
         }
 
         if (place == kButtonPlace_InvItemStretch)
         {
-            ds->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, _width - 6, _height - 6),
-                kBitmap_Transparency);
+            ds->StretchBlt(spriteset[gui_inv_pic], RectWH(x + 3, y + 3, _width - 6, _height - 6), kBitmap_Transparency);
         }
         else
         {
-            draw_gui_sprite(ds, gui_inv_pic,
-                x + _width / 2 - inv_sz.Width / 2,
-                y + _height / 2 - inv_sz.Height / 2);
+            draw_gui_sprite(ds, gui_inv_pic, x + _width / 2 - inv_sz.Width / 2, y + _height / 2 - inv_sz.Height / 2);
         }
     }
 
@@ -717,9 +709,7 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
     // but that will require to update all gui controls when translation is changed in game
     PrepareTextToDraw();
 
-    const color_t outline_color = draw_disabled ?
-        ds->GetCompatibleColor(8) :
-        ds->GetCompatibleColor(_textOutlineColor);
+    const color_t outline_color = draw_disabled ? ds->GetCompatibleColor(8) : ds->GetCompatibleColor(_textOutlineColor);
     Rect frame = Rect::MoveBy(_innerRect, x, y);
     if (_isPushed && _isMouseOver && !IsFlatStyle())
     {
@@ -727,19 +717,19 @@ void GUIButton::DrawText(Bitmap *ds, int x, int y, bool draw_disabled)
         // when moved down, allow text to appear on padding, but not the border.
         frame = frame.MoveBy(frame, 1, 1);
         if (IsShowBorder())
-            frame = Rect::Clamp(frame, Rect(x + _borderWidth, y + _borderWidth, x + _width - 1 - _borderWidth, y + _height - 1 + _borderWidth));
+            frame = Rect::Clamp(frame, Rect(x + _borderWidth, y + _borderWidth, x + _width - 1 - _borderWidth,
+                                            y + _height - 1 + _borderWidth));
     }
 
     if (GUI::Options.ClipControls)
         ds->SetClip(frame);
 
-    const color_t text_color = draw_disabled ?
-        GUI::GetStandardColorForBitmap(8) :
-        ds->GetCompatibleColor(_currentTextColor);
+    const color_t text_color =
+        draw_disabled ? GUI::GetStandardColorForBitmap(8) : ds->GetCompatibleColor(_currentTextColor);
 
     if (IsWrapText())
-        GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, get_font_linespacing(_font),
-            text_color, outline_color, frame, _textAlignment);
+        GUI::DrawTextLinesAligned(ds, Lines.GetVector(), Lines.Count(), _font, get_font_linespacing(_font), text_color,
+                                  outline_color, frame, _textAlignment);
     else
         GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, outline_color, frame, _textAlignment);
 }
@@ -750,15 +740,13 @@ void GUIButton::DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled)
     // where they also use "shadow color" to produce pseudo-3D effect.
     // TODO: use color constants instead of literal numbers.
     // TODO: move the bw-compat default color selection to Upgrade GUI process.
-    const color_t back_color =
-        (GUI::GameGuiVersion < kGuiVersion_363_04)
-        ? GUI::GetStandardColorForBitmap(7) : ds->GetCompatibleColor(_currentBgColor);
-    const color_t light_color =
-        (GUI::GameGuiVersion < kGuiVersion_363_04)
-        ? GUI::GetStandardColorForBitmap(15) : ds->GetCompatibleColor(_currentBorderColor);
-    const color_t dark_color =
-        (GUI::GameGuiVersion < kGuiVersion_363_04)
-        ? GUI::GetStandardColorForBitmap(8) : ds->GetCompatibleColor(_borderShadeColor);
+    const color_t back_color = (GUI::GameGuiVersion < kGuiVersion_363_04) ? GUI::GetStandardColorForBitmap(7)
+                                                                          : ds->GetCompatibleColor(_currentBgColor);
+    const color_t light_color = (GUI::GameGuiVersion < kGuiVersion_363_04)
+                                    ? GUI::GetStandardColorForBitmap(15)
+                                    : ds->GetCompatibleColor(_currentBorderColor);
+    const color_t dark_color = (GUI::GameGuiVersion < kGuiVersion_363_04) ? GUI::GetStandardColorForBitmap(8)
+                                                                          : ds->GetCompatibleColor(_borderShadeColor);
 
     // Background rect
     if (IsSolidBackground())

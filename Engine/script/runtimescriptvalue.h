@@ -25,28 +25,28 @@
 
 enum ScriptValueType
 {
-    kScValUndefined,    // to detect errors
-    kScValInteger,      // as strictly 32-bit integer (for integer math)
-    kScValFloat,        // as float (for floating point math), 32-bit
-    kScValPluginArg,    // an 32-bit value, passed to a script function when called
-                        // directly by plugin; is allowed to represent object pointer
-    kScValPluginArgPtr, // a *presumably* pointer value, passed to a script function
-                        // when called directly by plugin; does not include MgrPtr
-    kScValStackPtr,     // as a pointer to stack entry
-    kScValData,         // as a container for randomly sized data (usually array)
-    kScValGlobalVar,    // as a pointer to script variable; used only for global vars,
-                        // as pointer to local vars must have StackPtr type so that the
-                        // stack allocation could work
-    kScValStringLiteral,// as a pointer to literal string (array of chars)
-    kScValStaticArray,  // as a pointer to static global array (of static or dynamic objects)
-    kScValScriptObject, // as a pointer to managed script object
-    kScValPluginObject, // as a pointer to object managed by plugin (similar to
-                        // kScValScriptObject, but has backward-compatible limitations)
-    kScValStaticFunction,// as a pointer to static function
-    kScValPluginFunction,// temporary workaround for plugins (unsafe function ptr)
-    kScValObjectFunction,// as a pointer to object member function, gets object pointer as
-                        // first parameter
-    kScValCodePtr,      // as a pointer to element in byte-code array
+    kScValUndefined,      // to detect errors
+    kScValInteger,        // as strictly 32-bit integer (for integer math)
+    kScValFloat,          // as float (for floating point math), 32-bit
+    kScValPluginArg,      // an 32-bit value, passed to a script function when called
+                          // directly by plugin; is allowed to represent object pointer
+    kScValPluginArgPtr,   // a *presumably* pointer value, passed to a script function
+                          // when called directly by plugin; does not include MgrPtr
+    kScValStackPtr,       // as a pointer to stack entry
+    kScValData,           // as a container for randomly sized data (usually array)
+    kScValGlobalVar,      // as a pointer to script variable; used only for global vars,
+                          // as pointer to local vars must have StackPtr type so that the
+                          // stack allocation could work
+    kScValStringLiteral,  // as a pointer to literal string (array of chars)
+    kScValStaticArray,    // as a pointer to static global array (of static or dynamic objects)
+    kScValScriptObject,   // as a pointer to managed script object
+    kScValPluginObject,   // as a pointer to object managed by plugin (similar to
+                          // kScValScriptObject, but has backward-compatible limitations)
+    kScValStaticFunction, // as a pointer to static function
+    kScValPluginFunction, // temporary workaround for plugins (unsafe function ptr)
+    kScValObjectFunction, // as a pointer to object member function, gets object pointer as
+                          // first parameter
+    kScValCodePtr,        // as a pointer to element in byte-code array
 };
 
 // ScriptValueHint is a hint about ScriptValue's meaning and purpose.
@@ -56,7 +56,7 @@ enum ScriptValueType
 enum ScriptValueHint
 {
     kScValHint_Unknown,
-    kScValHint_Handle   // a managed object's handle
+    kScValHint_Handle // a managed object's handle
 };
 
 struct RuntimeScriptValue
@@ -64,20 +64,20 @@ struct RuntimeScriptValue
 public:
     RuntimeScriptValue()
     {
-        Type        = kScValUndefined;
-        IValue      = 0;
-        Ptr         = nullptr;
-        MgrPtr      = nullptr;
-        Size        = 0;
+        Type = kScValUndefined;
+        IValue = 0;
+        Ptr = nullptr;
+        MgrPtr = nullptr;
+        Size = 0;
     }
 
     RuntimeScriptValue(int32_t val)
     {
-        Type        = kScValInteger;
-        IValue      = val;
-        Ptr         = nullptr;
-        MgrPtr      = nullptr;
-        Size        = 4;
+        Type = kScValInteger;
+        IValue = val;
+        Ptr = nullptr;
+        MgrPtr = nullptr;
+        Size = 4;
     }
 
     ScriptValueType Type;
@@ -85,18 +85,18 @@ public:
     // variable/element offset relative to object (and array) address
     union
     {
-        int32_t     IValue; // access Value as int32 type
-        float       FValue;	// access Value as float type
+        int32_t IValue; // access Value as int32 type
+        float FValue;   // access Value as float type
     };
     // Pointer is used for storing... pointers - to objects, arrays,
     // functions and stack entries (other RSV)
     union
     {
-        void                *Ptr;   // generic data pointer
-        uint8_t             *PtrU8; // byte buffer pointer
-        char                *CStr;  // char buffer pointer
-        RuntimeScriptValue  *RValue;// access ptr as a pointer to Runtime Value
-        ScriptAPIFunction   *SPfn;  // access ptr as a pointer to Script API Static Function
+        void *Ptr;                       // generic data pointer
+        uint8_t *PtrU8;                  // byte buffer pointer
+        char *CStr;                      // char buffer pointer
+        RuntimeScriptValue *RValue;      // access ptr as a pointer to Runtime Value
+        ScriptAPIFunction *SPfn;         // access ptr as a pointer to Script API Static Function
         ScriptAPIObjectFunction *ObjPfn; // access ptr as a pointer to Script API Object Function
     };
     // TODO: separation to Ptr and MgrPtr is only needed so far as there's
@@ -104,9 +104,9 @@ public:
     // Once those classes are merged, it will no longer be needed.
     union
     {
-        void                *MgrPtr;// generic object manager pointer
-        IScriptObject       *ObjMgr;// script object manager
-        CCStaticObjectArray *ArrMgr;// static object array manager
+        void *MgrPtr;                // generic object manager pointer
+        IScriptObject *ObjMgr;       // script object manager
+        CCStaticObjectArray *ArrMgr; // static object array manager
     };
     // The "real" size of data, either one stored in I/FValue,
     // or the one referenced by Ptr. Used for calculating stack
@@ -114,33 +114,21 @@ public:
     // Original AGS scripts always assumed pointer is 32-bit.
     // Therefore for stored pointers Size is always 4 both for x32
     // and x64 builds, so that the script is interpreted correctly.
-    int             Size;
+    int Size;
 
-    inline bool IsValid() const
-    {
-        return Type != kScValUndefined;
-    }
+    inline bool IsValid() const { return Type != kScValUndefined; }
 
-    inline bool IsNull() const
+    inline bool IsNull() const { return Ptr == nullptr && IValue == 0; }
+
+    inline bool GetAsBool() const { return !IsNull(); }
+
+    inline void *GetPtrWithOffset() const { return PtrU8 + IValue; }
+
+    inline void *GetRValuePtrWithOffset() const
     {
-        return Ptr == nullptr && IValue == 0;
-    }
-    
-    inline bool GetAsBool() const
-    {
-        return !IsNull();
+        return static_cast<uint8_t *>(RValue->GetPtrWithOffset()) + this->IValue;
     }
 
-    inline void* GetPtrWithOffset() const
-    {
-        return PtrU8 + IValue;
-    }
-
-    inline void* GetRValuePtrWithOffset() const
-    {
-        return static_cast<uint8_t*>(RValue->GetPtrWithOffset()) + this->IValue;
-    }
-    
     inline RuntimeScriptValue &Invalidate()
     {
         *this = RuntimeScriptValue();
@@ -148,61 +136,55 @@ public:
     }
     inline RuntimeScriptValue &SetUInt8(uint8_t val)
     {
-        Type    = kScValInteger;
-        IValue  = val;
-        Ptr     = nullptr;
-        MgrPtr  = nullptr;
-        Size    = 1;
+        Type = kScValInteger;
+        IValue = val;
+        Ptr = nullptr;
+        MgrPtr = nullptr;
+        Size = 1;
         return *this;
     }
 
     inline RuntimeScriptValue &SetInt16(int16_t val)
     {
-        Type    = kScValInteger;
-        IValue  = val;
-        Ptr     = nullptr;
-        MgrPtr  = nullptr;
-        Size    = 2;
+        Type = kScValInteger;
+        IValue = val;
+        Ptr = nullptr;
+        MgrPtr = nullptr;
+        Size = 2;
         return *this;
     }
 
     inline RuntimeScriptValue &SetInt32(int32_t val)
     {
-        Type    = kScValInteger;
-        IValue  = val;
-        Ptr     = nullptr;
-        MgrPtr  = nullptr;
-        Size    = 4;
+        Type = kScValInteger;
+        IValue = val;
+        Ptr = nullptr;
+        MgrPtr = nullptr;
+        Size = 4;
         return *this;
     }
 
     inline RuntimeScriptValue &SetFloat(float val)
     {
-        Type    = kScValFloat;
-        FValue  = val;
-        Ptr     = nullptr;
-        MgrPtr  = nullptr;
-        Size    = 4;
+        Type = kScValFloat;
+        FValue = val;
+        Ptr = nullptr;
+        MgrPtr = nullptr;
+        Size = 4;
         return *this;
     }
 
-    inline RuntimeScriptValue &SetInt32AsBool(bool val)
-    {
-        return SetInt32(val ? 1 : 0);
-    }
+    inline RuntimeScriptValue &SetInt32AsBool(bool val) { return SetInt32(val ? 1 : 0); }
 
-    inline RuntimeScriptValue &SetFloatAsBool(bool val)
-    {
-        return SetFloat(val ? 1.0F : 0.0F);
-    }
+    inline RuntimeScriptValue &SetFloatAsBool(bool val) { return SetFloat(val ? 1.0F : 0.0F); }
 
     inline RuntimeScriptValue &SetPluginArgument(int32_t val)
     {
-        Type    = kScValPluginArg;
-        IValue  = val;
-        Ptr     = nullptr;
-        MgrPtr  = nullptr;
-        Size    = 4;
+        Type = kScValPluginArg;
+        IValue = val;
+        Ptr = nullptr;
+        MgrPtr = nullptr;
+        Size = 4;
         return *this;
     }
 
@@ -225,7 +207,7 @@ public:
 #if (AGS_PLATFORM_64BIT)
         if ((val & 0xFFFFFFFF00000000) != 0)
         {
-            return SetPluginArgPtr(reinterpret_cast<void*>(val));
+            return SetPluginArgPtr(reinterpret_cast<void *>(val));
         }
 #endif
         return SetPluginArgument(static_cast<int32_t>(val));
@@ -233,146 +215,140 @@ public:
 
     inline RuntimeScriptValue &SetStackPtr(RuntimeScriptValue *stack_entry)
     {
-        Type    = kScValStackPtr;
-        IValue  = 0;
-        RValue  = stack_entry;
-        MgrPtr  = nullptr;
-        Size    = 4;
+        Type = kScValStackPtr;
+        IValue = 0;
+        RValue = stack_entry;
+        MgrPtr = nullptr;
+        Size = 4;
         return *this;
     }
 
     inline RuntimeScriptValue &SetData(void *data, int size)
     {
-        Type    = kScValData;
-        IValue  = 0;
-        Ptr     = data;
-        MgrPtr  = nullptr;
-        Size    = size;
+        Type = kScValData;
+        IValue = 0;
+        Ptr = data;
+        MgrPtr = nullptr;
+        Size = size;
         return *this;
     }
 
     inline RuntimeScriptValue &SetGlobalVar(RuntimeScriptValue *glvar_value)
     {
-        Type    = kScValGlobalVar;
-        IValue  = 0;
-        RValue  = glvar_value;
-        MgrPtr  = nullptr;
-        Size    = 4;
+        Type = kScValGlobalVar;
+        IValue = 0;
+        RValue = glvar_value;
+        MgrPtr = nullptr;
+        Size = 4;
         return *this;
     }
 
     // TODO: size?
     inline RuntimeScriptValue &SetStringLiteral(const char *str)
     {
-        Type    = kScValStringLiteral;
-        IValue  = 0;
-        Ptr     = const_cast<char *>(str);
-        MgrPtr  = nullptr;
-        Size    = 4;
+        Type = kScValStringLiteral;
+        IValue = 0;
+        Ptr = const_cast<char *>(str);
+        MgrPtr = nullptr;
+        Size = 4;
         return *this;
     }
 
     inline RuntimeScriptValue &SetStaticArray(void *object, CCStaticObjectArray *manager)
     {
-        Type    = kScValStaticArray;
-        IValue  = 0;
-        Ptr     = object;
-        ArrMgr  = manager;
-        Size    = 4;
+        Type = kScValStaticArray;
+        IValue = 0;
+        Ptr = object;
+        ArrMgr = manager;
+        Size = 4;
         return *this;
     }
 
     inline RuntimeScriptValue &SetScriptObject(void *object, IScriptObject *manager)
     {
-        Type    = kScValScriptObject;
-        IValue  = 0;
-        Ptr     = object;
-        ObjMgr  = manager;
-        Size    = 4;
+        Type = kScValScriptObject;
+        IValue = 0;
+        Ptr = object;
+        ObjMgr = manager;
+        Size = 4;
         return *this;
     }
 
     inline RuntimeScriptValue &SetPluginObject(void *object, IScriptObject *manager)
     {
-        Type    = kScValPluginObject;
-        IValue  = 0;
-        Ptr     = object;
-        ObjMgr  = manager;
-        Size    = 4;
+        Type = kScValPluginObject;
+        IValue = 0;
+        Ptr = object;
+        ObjMgr = manager;
+        Size = 4;
         return *this;
     }
 
     inline RuntimeScriptValue &SetScriptObject(ScriptValueType type, void *object, IScriptObject *manager)
     {
-        Type    = type;
-        IValue  = 0;
-        Ptr     = object;
-        ObjMgr  = manager;
-        Size    = 4;
+        Type = type;
+        IValue = 0;
+        Ptr = object;
+        ObjMgr = manager;
+        Size = 4;
         return *this;
     }
 
     inline RuntimeScriptValue &SetStaticFunction(ScriptAPIFunction *pfn)
     {
-        Type    = kScValStaticFunction;
-        IValue  = 0;
-        SPfn    = pfn;
-        MgrPtr  = nullptr;
-        Size    = 4;
+        Type = kScValStaticFunction;
+        IValue = 0;
+        SPfn = pfn;
+        MgrPtr = nullptr;
+        Size = 4;
         return *this;
     }
 
     inline RuntimeScriptValue &SetPluginFunction(void *pfn)
     {
-        Type    = kScValPluginFunction;
-        IValue  = 0;
-        Ptr     = pfn;
-        MgrPtr  = nullptr;
-        Size    = 4;
+        Type = kScValPluginFunction;
+        IValue = 0;
+        Ptr = pfn;
+        MgrPtr = nullptr;
+        Size = 4;
         return *this;
     }
 
     inline RuntimeScriptValue &SetObjectFunction(ScriptAPIObjectFunction *pfn)
     {
-        Type    = kScValObjectFunction;
-        IValue  = 0;
-        ObjPfn  = pfn;
-        MgrPtr  = nullptr;
-        Size    = 4;
+        Type = kScValObjectFunction;
+        IValue = 0;
+        ObjPfn = pfn;
+        MgrPtr = nullptr;
+        Size = 4;
         return *this;
     }
 
     inline RuntimeScriptValue &SetCodePtr(void *ptr)
     {
-        Type    = kScValCodePtr;
-        IValue  = 0;
-        Ptr     = ptr;
-        MgrPtr  = nullptr;
-        Size    = 4;
+        Type = kScValCodePtr;
+        IValue = 0;
+        Ptr = ptr;
+        MgrPtr = nullptr;
+        Size = 4;
         return *this;
     }
 
-    inline RuntimeScriptValue operator !() const
-    {
-        return RuntimeScriptValue().SetInt32AsBool(!GetAsBool());
-    }
+    inline RuntimeScriptValue operator!() const { return RuntimeScriptValue().SetInt32AsBool(!GetAsBool()); }
 
-    inline bool operator ==(const RuntimeScriptValue &rval) const
+    inline bool operator==(const RuntimeScriptValue &rval) const
     {
         return ((intptr_t)Ptr + (intptr_t)IValue) == ((intptr_t)rval.Ptr + (intptr_t)rval.IValue);
     }
 
-    inline bool operator !=(const RuntimeScriptValue &rval) const
-    {
-        return !(*this == rval);
-    }
+    inline bool operator!=(const RuntimeScriptValue &rval) const { return !(*this == rval); }
 
     // FIXME: find out all certain cases when we are reading a pointer and store it
     // as 32-bit value here. There should be a solution to distinct these cases and
     // store value differently, otherwise it won't work for 64-bit build.
     inline RuntimeScriptValue ReadValue() const
     {
-        switch(this->Type)
+        switch (this->Type)
         {
         case kScValStackPtr:
         {
@@ -381,7 +357,7 @@ public:
             {
             case kScValData:
                 // read from the stack memory buffer
-                return RuntimeScriptValue().SetInt32(*(int32_t*)(GetRValuePtrWithOffset()));
+                return RuntimeScriptValue().SetInt32(*(int32_t *)(GetRValuePtrWithOffset()));
             default:
                 // return the stack entry itself
                 return *RValue;
@@ -402,15 +378,11 @@ public:
         }
         case kScValStaticArray:
         case kScValScriptObject:
-        case kScValPluginObject:
-            return RuntimeScriptValue().SetInt32(this->ObjMgr->ReadInt32(this->Ptr, this->IValue));
+        case kScValPluginObject: return RuntimeScriptValue().SetInt32(this->ObjMgr->ReadInt32(this->Ptr, this->IValue));
         case kScValPluginArg:
         case kScValData:
-        case kScValStringLiteral:
-            return RuntimeScriptValue().SetInt32(*(int32_t*)this->GetPtrWithOffset());
-        default:
-            assert(false);
-            return {};
+        case kScValStringLiteral: return RuntimeScriptValue().SetInt32(*(int32_t *)this->GetPtrWithOffset());
+        default: assert(false); return {};
         }
     }
 
@@ -429,7 +401,7 @@ public:
             {
             case kScValData:
                 // write into the stack memory buffer
-                *(int32_t*)(GetRValuePtrWithOffset()) = rval.IValue;
+                *(int32_t *)(GetRValuePtrWithOffset()) = rval.IValue;
                 break;
             default:
                 // write into the stack entry
@@ -466,12 +438,8 @@ public:
             break;
         }
         case kScValPluginArg:
-        case kScValData:
-            *((int32_t*)this->GetPtrWithOffset()) = rval.IValue;
-            break;
-        default:
-            assert(false);
-            break;
+        case kScValData: *((int32_t *)this->GetPtrWithOffset()) = rval.IValue; break;
+        default: assert(false); break;
         }
     }
 
@@ -479,12 +447,12 @@ public:
     // Helper functions for reading or writing values from/to
     // object, referenced by this Runtime Value.
     // Copy implementation depends on value type.
-    uint8_t     ReadByte() const;
-    int16_t     ReadInt16() const;
-    int32_t     ReadInt32() const;
-    void        WriteByte(uint8_t val);
-    void        WriteInt16(int16_t val);
-    void        WriteInt32(int32_t val);
+    uint8_t ReadByte() const;
+    int16_t ReadInt16() const;
+    int32_t ReadInt32() const;
+    void WriteByte(uint8_t val);
+    void WriteInt16(int16_t val);
+    void WriteInt32(int32_t val);
 
     // Convert to most simple pointer type by resolving RValue ptrs and applying offsets;
     // non pointer types are left unmodified
@@ -493,7 +461,7 @@ public:
     // tell for certain that we are expecting a pointer to the object and not its (first) field.
     RuntimeScriptValue &DirectPtrObj();
     // Resolve and return direct pointer to the referenced data; non pointer types return IValue
-    void *      GetDirectPtr() const;
+    void *GetDirectPtr() const;
 };
 
 #endif // __AGS_EE_SCRIPT__RUNTIMESCRIPTVALUE_H

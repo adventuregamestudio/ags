@@ -34,7 +34,7 @@ class PosixLibrary final : public BaseLibrary
 {
 public:
     PosixLibrary() = default;
-    PosixLibrary(const PosixLibrary&) = delete;
+    PosixLibrary(const PosixLibrary &) = delete;
     PosixLibrary(PosixLibrary &&other)
     {
         _library = other._library;
@@ -43,10 +43,7 @@ public:
         _filename = std::move(other._filename);
         _path = std::move(other._path);
     }
-    ~PosixLibrary() override
-    {
-        Unload();
-    };
+    ~PosixLibrary() override { Unload(); };
 
     String GetFilenameForLib(const String &libname) override
     {
@@ -56,7 +53,8 @@ public:
 #else
             "lib%s.so"
 #endif
-            , libname.GetCStr());
+            ,
+            libname.GetCStr());
     }
 
     bool Load(const String &libname, const std::vector<String> &lookup) override
@@ -86,10 +84,7 @@ public:
         }
     }
 
-    virtual bool IsLoaded() const override
-    {
-        return _library != nullptr;
-    }
+    virtual bool IsLoaded() const override { return _library != nullptr; }
 
     void *GetFunctionAddress(const String &fn_name) override
     {
@@ -108,8 +103,7 @@ private:
         return lib;
     }
 
-    void *TryLoadAnywhere(const String &libfile,
-        const std::vector<String> &lookup, String &path)
+    void *TryLoadAnywhere(const String &libfile, const std::vector<String> &lookup, String &path)
     {
         // Try rpath first
         path = libfile;
@@ -139,7 +133,6 @@ private:
 
 
 typedef PosixLibrary Library;
-
 
 
 } // namespace Engine

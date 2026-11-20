@@ -21,7 +21,7 @@
 #include "util/string.h"
 #include "util/string_types.h"
 
-#define IFLG_STARTWITH 1
+#define IFLG_STARTWITH                   1
 #define LEGACY_MAX_INVENTORY_NAME_LENGTH 25
 
 // Inventory item event indexes
@@ -43,8 +43,8 @@ enum InvitemSvgVersion
 struct InventoryItemInfo
 {
     AGS::Common::String name = {};
-    int  pic = 0;
-    int  cursorPic = 0, hotx = 0, hoty = 0;
+    int pic = 0;
+    int cursorPic = 0, hotx = 0, hoty = 0;
     FrameAlignment hotAlign = kAlignNone;
     uint8_t flags = 0u; // IFLG_STARTWITH
     // Interaction events (cursor-based)

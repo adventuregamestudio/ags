@@ -30,7 +30,8 @@ NewControl::NewControl(int xx, int yy, int wi, int hi)
     enabled = 1;
     needredraw = 1;
 };
-NewControl::NewControl() {
+NewControl::NewControl()
+{
     x = y = wid = hit = 0;
     state = 0;
     typeandflags = 0;
@@ -53,7 +54,8 @@ void NewControl::drawifneeded()
 {
     if (topwindowhandle != wlevel)
         return;
-    if (needredraw) {
+    if (needredraw)
+    {
         needredraw = 0;
         draw(get_gui_screen());
     }

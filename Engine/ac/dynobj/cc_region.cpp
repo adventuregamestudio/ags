@@ -23,21 +23,24 @@ using namespace AGS::Common;
 extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 
 // return the type name of the object
-const char *CCRegion::GetType() {
+const char *CCRegion::GetType()
+{
     return "Region";
 }
 
-size_t CCRegion::CalcSerializeSize(const void* /*address*/)
+size_t CCRegion::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCRegion::Serialize(const void *address, Stream *out) {
-    const ScriptRegion *shh = static_cast<const ScriptRegion*>(address);
+void CCRegion::Serialize(const void *address, Stream *out)
+{
+    const ScriptRegion *shh = static_cast<const ScriptRegion *>(address);
     out->WriteInt32(shh->id);
 }
 
-void CCRegion::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void CCRegion::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
     int num = in->ReadInt32();
     ccRegisterUnserializedPersistentObject(index, &scrRegion[num], this);
 }

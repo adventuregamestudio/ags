@@ -36,7 +36,7 @@ public:
     GUITextBox();
 
     // Properties
-    int  GetTextBoxFlags() const { return _textBoxFlags; }
+    int GetTextBoxFlags() const { return _textBoxFlags; }
 
     // Script Events
     // Gets a events schema corresponding to this object's type
@@ -46,10 +46,10 @@ public:
     // Operations
     Rect CalcGraphicRect(bool clipped) override;
     void Draw(Bitmap *ds, int x = 0, int y = 0) override;
- 
+
     // Events
     bool OnKeyPress(const KeyInput &ki) override;
- 
+
     // Serialization
     void ReadFromFile(Stream *in, GuiVersion gui_version) override;
     void ReadFromFile_Ext363(Stream *in, GuiVersion gui_version) override;
@@ -66,7 +66,7 @@ private:
     // Script events schema
     static ScriptEventSchema _eventSchema;
 
-    int     _textBoxFlags = kTextBox_DefFlags;
+    int _textBoxFlags = kTextBox_DefFlags;
 };
 
 } // namespace Common

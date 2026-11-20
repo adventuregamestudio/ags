@@ -18,10 +18,7 @@ namespace AGS
 namespace Common
 {
 
-GUITextBasedControl::GUITextBasedControl(const ScriptEventSchema *schema)
-    : GUIControl(schema)
-{
-}
+GUITextBasedControl::GUITextBasedControl(const ScriptEventSchema *schema) : GUIControl(schema) {}
 
 void GUITextBasedControl::SetFont(int font)
 {
@@ -62,10 +59,7 @@ void GUITextBasedControl::SetTextAlignment(FrameAlignment align)
     }
 }
 
-GUITextFieldControl::GUITextFieldControl(const ScriptEventSchema *schema)
-    : GUITextBasedControl(schema)
-{
-}
+GUITextFieldControl::GUITextFieldControl(const ScriptEventSchema *schema) : GUITextBasedControl(schema) {}
 
 void GUITextFieldControl::SetText(const String &text)
 {

@@ -35,22 +35,22 @@ namespace Engine
 
 enum ScriptExecError
 {
-    kScExecErr_None = 0, // ok
-    kScExecErr_Aborted = 100, // aborted by request
-    kScExecErr_Generic = -1, // any generic exec error; use cc_get_error()
-    kScExecErr_FuncNotFound = -2, // requested function is not found in script
+    kScExecErr_None = 0,           // ok
+    kScExecErr_Aborted = 100,      // aborted by request
+    kScExecErr_Generic = -1,       // any generic exec error; use cc_get_error()
+    kScExecErr_FuncNotFound = -2,  // requested function is not found in script
     kScExecErr_InvalidArgNum = -3, // invalid number of args (not in supported range)
-    kScExecErr_Busy = -4, // is busy executing script
+    kScExecErr_Busy = -4,          // is busy executing script
 };
 
 enum ScriptExecState
 {
-    kScExecState_None    = 0x00,
+    kScExecState_None = 0x00,
     kScExecState_Aborted = 0x01, // scheduled to abort
     kScExecState_Running = 0x02, // has any script loaded and in running state (may be suspended though)
-    kScExecState_Busy    = 0x04, // in the bytecode execution loop;
+    kScExecState_Busy = 0x04,    // in the bytecode execution loop;
                                  // reset while waiting for the nested engine calls
-    kScExecState_Alive   = 0x08, // updated periodically to confirm that script exec isn't stuck
+    kScExecState_Alive = 0x08,   // updated periodically to confirm that script exec isn't stuck
 };
 
 // ScriptPosition defines position in the executed script
@@ -62,7 +62,9 @@ struct ScriptExecPosition
 
     ScriptExecPosition() = default;
     ScriptExecPosition(const RuntimeScript *script, int pc, int linenumber)
-        : Script(script), PC(pc), LineNumber(linenumber) {}
+        : Script(script), PC(pc), LineNumber(linenumber)
+    {
+    }
 
     operator bool() const { return Script != nullptr; }
 
@@ -73,6 +75,7 @@ struct ScriptExecPosition
 class ScriptThread
 {
     using String = Common::String;
+
 public:
     ScriptThread();
     ScriptThread(const String &name);
@@ -87,7 +90,7 @@ public:
     std::vector<uint8_t> &GetStackData() { return _stackdata; }
     const std::deque<ScriptExecPosition> &GetCallStack() const { return _callstack; }
     // Tells if the thread is busy, that is - used to run a script
-    bool   IsBusy() const { return _inUse; }
+    bool IsBusy() const { return _inUse; }
     const ScriptExecPosition &GetPosition() const { return _pos; }
     size_t GetStackBegin() const { return _stackBeginOff; }
     size_t GetStackDataBegin() const { return _stackDataBeginOff; }
@@ -106,9 +109,8 @@ public:
     void MarkInUse(bool in_use) { _inUse = in_use; }
 
     // Save script execution state in the thread object
-    void SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
-        const Registers &registers,
-        size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off);
+    void SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack, const Registers &registers,
+                   size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off);
     // Resets execution state; this effectively invalidates the thread
     void ResetState();
 
@@ -143,97 +145,101 @@ struct FunctionCallStack;
 class ScriptExecutor
 {
     using String = Common::String;
+
 public:
     ScriptExecutor() = default;
     ~ScriptExecutor();
 
     // Begin executing the function in the given script, passing an array of parameters;
     // the script will be executed on the provided script thread.
-    ScriptExecError Run(ScriptThread *thread, const RuntimeScript *script, const String &funcname, const RuntimeScriptValue *params, size_t param_count);
+    ScriptExecError Run(ScriptThread *thread, const RuntimeScript *script, const String &funcname,
+                        const RuntimeScriptValue *params, size_t param_count);
     // Schedule abortion of the current script execution;
     // the actual stop will occur whenever control returns to the ScriptExecutor.
-    void    Abort();
+    void Abort();
 
     // Tells whether any script is loaded into and being executed;
     // note that this returns positive even when executor is suspended
-    bool    IsRunning() const { return (_flags & kScExecState_Running) != 0; }
+    bool IsRunning() const { return (_flags & kScExecState_Running) != 0; }
     // Tells if the executor is busy running bytecode, and cannot start a nested run right now
-    bool    IsBusy() const { return (_flags & kScExecState_Busy) != 0; }
+    bool IsBusy() const { return (_flags & kScExecState_Busy) != 0; }
     // Get the currently used script thread
     ScriptThread *GetRunningThread() const { return _thread; }
     // Get the currently executed script
     const RuntimeScript *GetRunningScript() const { return _current; }
     // Get current program pointer (position in bytecode)
-    int     GetPC() const { return _pc; }
+    int GetPC() const { return _pc; }
     // Get the script's execution position
-    void    GetScriptPosition(ScriptPosition &script_pos) const;
+    void GetScriptPosition(ScriptPosition &script_pos) const;
     // Gets the top entry of this instance's stack
     const RuntimeScriptValue *GetCurrentStack() const { return _registers[SREG_SP].RValue; }
     // Get latest return value
-    int     GetReturnValue() const { return _returnValue; }
+    int GetReturnValue() const { return _returnValue; }
     // FIXME: this is a hack, required for dialog script; redo this later!
-    void    SetReturnValue(int val) { _returnValue = val; }
+    void SetReturnValue(int val) { _returnValue = val; }
 
     // Get the script's execution position and callstack as human-readable text
-    String  FormatCallStack(uint32_t max_lines = UINT32_MAX) const;
-    
+    String FormatCallStack(uint32_t max_lines = UINT32_MAX) const;
+
     // Configures script executor timeout in case of a "hanging" script
-    void    SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
+    void SetExecTimeout(unsigned sys_poll_ms, unsigned abort_ms, unsigned abort_loops);
     // Notifies that the game was being updated (script not hanging)
-    void    NotifyAlive();
+    void NotifyAlive();
 
 private:
     // Begin executing the given script starting from the given bytecode index
-    ScriptExecError Run(const RuntimeScript *script, int32_t curpc, const RuntimeScriptValue *params, size_t param_count);
+    ScriptExecError Run(const RuntimeScript *script, int32_t curpc, const RuntimeScriptValue *params,
+                        size_t param_count);
     // Begin executing latest run script starting from the given bytecode index
     ScriptExecError Run(int32_t curpc);
 
     // Switches to the new script thread;
     // if there was any thread currently in running, then saves its state and
     // pushes to the thread stack.
-    void    PushThread(ScriptThread *thread);
+    void PushThread(ScriptThread *thread);
     // Pops out a script thread from the thread stack,
     // if there was any, and makes it active.
-    void    PopThread();
+    void PopThread();
     // Assigns thread state to the ScriptExecutor
-    void    SelectThread(ScriptThread *thread);
+    void SelectThread(ScriptThread *thread);
     // Saves ScriptExecutor's state to the active thread
-    void    SaveThreadState();
+    void SaveThreadState();
     // Reset current thread's state
-    void    ResetThreadState();
+    void ResetThreadState();
 
     // Sets current script and fast-access pointers
-    void    SetCurrentScript(const RuntimeScript *script);
+    void SetCurrentScript(const RuntimeScript *script);
     // For calling exported plugin functions old-style
-    RuntimeScriptValue CallPluginFunction(void *fn_addr, const RuntimeScriptValue *object, const RuntimeScriptValue *params, int param_count);
+    RuntimeScriptValue CallPluginFunction(void *fn_addr, const RuntimeScriptValue *object,
+                                          const RuntimeScriptValue *params, int param_count);
     // Stack processing
     // Push writes new value and increments stack ptr;
     // stack ptr now points to the __next empty__ entry
-    void    PushValueToStack(const RuntimeScriptValue &rval);
-    void    PushDataToStack(int32_t num_bytes);
+    void PushValueToStack(const RuntimeScriptValue &rval);
+    void PushDataToStack(int32_t num_bytes);
     // Pop decrements stack ptr, returns last stored value and invalidates! stack tail;
     // stack ptr now points to the __next empty__ entry
     RuntimeScriptValue PopValueFromStack();
     // helper function to pop & dump several values
-    void    PopValuesFromStack(int32_t num_entries);
-    void    PopDataFromStack(int32_t num_bytes);
+    void PopValuesFromStack(int32_t num_entries);
+    void PopDataFromStack(int32_t num_bytes);
     // Return stack ptr at given offset from stack tail;
     // Offset is in data bytes; program stack ptr is __not__ changed
     RuntimeScriptValue GetStackPtrOffsetRw(int32_t rw_offset);
 
     // Function call stack processing
-    void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
-    void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
+    void PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
+    void PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
 
 #if (DEBUG_CC_EXEC)
     // Opens log for dumping execution steps
-    void    OpenExecLog();
+    void OpenExecLog();
     // Closes execution log
-    void    CloseExecLog();
+    void CloseExecLog();
     // Writes a arbitrary line of text into the log
-    void    WriteString(const String &text) const;
+    void WriteString(const String &text) const;
     // Formats instruction into string output
-    void    DumpInstruction(const ScriptOperation &op) const;
+    void DumpInstruction(const ScriptOperation &op) const;
 #endif
 
     // Current used thread
@@ -242,33 +248,33 @@ private:
     // In AGS currently only one script thread is running, others are waiting in the queue.
     // An example situation is "repeatedly_execute_always" callback running while
     // other thread(s) are waiting at the blocking action or Wait().
-    std::deque<ScriptThread*> _threadStack;
+    std::deque<ScriptThread *> _threadStack;
 
     // Thread stack pointers for faster access to the current thread
     RuntimeScriptValue *_stackBegin = nullptr; // ptr to beginning of stack (or stack's section)
-    uint8_t    *_stackdataBegin = nullptr; // ptr to beginning of stackdata (or stackdata's section)
-    uint8_t    *_stackdataPtr = nullptr; // points to the next unused byte in stack data array
+    uint8_t *_stackdataBegin = nullptr;        // ptr to beginning of stackdata (or stackdata's section)
+    uint8_t *_stackdataPtr = nullptr;          // points to the next unused byte in stack data array
 
     // Current executed script
     const RuntimeScript *_current = nullptr;
     // Code pointers for faster access to the current script
     const intptr_t *_code = nullptr;
-    uint32_t    _codesize = 0; // size of code is limited under 32-bit due to bytecode format
+    uint32_t _codesize = 0; // size of code is limited under 32-bit due to bytecode format
     const uint8_t *_code_fixups = nullptr;
     const char *_strings = nullptr; // pointer to ccScript's string data
-    size_t      _stringsize = 0u;
+    size_t _stringsize = 0u;
     // Script table pointers
     const JointRTTI *_rtti = nullptr;
     const std::unordered_map<uint32_t, uint32_t> *_typeidLocal2Global = nullptr;
-    
+
     //
     // Virtual machine state
     // Registers
     RuntimeScriptValue _registers[CC_NUM_REGISTERS];
-    uint32_t    _flags = kScExecState_None; // executor state flags ScriptExecState
-    int         _pc = 0; // program counter
-    int         _lineNumber = 0; // source code line number
-    int         _returnValue = 0; // last executed function's return value
+    uint32_t _flags = kScExecState_None; // executor state flags ScriptExecState
+    int _pc = 0;                         // program counter
+    int _lineNumber = 0;                 // source code line number
+    int _returnValue = 0;                // last executed function's return value
     // Executed script callstack, contains *previous* script positions;
     // this is copied from the ScriptThread on start, and copied back when done
     std::deque<ScriptExecPosition> _callstack;

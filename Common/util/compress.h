@@ -56,8 +56,8 @@ Common::String base64_encode(const Common::String &input);
 void base64_decode(const Common::String &input, std::vector<uint8_t> &out);
 
 // Deflate compression
-bool deflate_compress(const uint8_t* data, size_t data_sz, int image_bpp, Stream* out);
-bool inflate_decompress(uint8_t* data, size_t data_sz, int image_bpp, Stream* in, size_t in_sz);
+bool deflate_compress(const uint8_t *data, size_t data_sz, int image_bpp, Stream *out);
+bool inflate_decompress(uint8_t *data, size_t data_sz, int image_bpp, Stream *in, size_t in_sz);
 
 } // namespace Common
 } // namespace AGS

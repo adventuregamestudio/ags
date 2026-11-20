@@ -17,10 +17,7 @@
 #include "media/audio/soundclip.h"
 #include "media/audio/audio_core.h"
 
-SoundClip::SoundClip(int slot, AudioFileType snd_type, bool loop)
-    : slot_(slot)
-    , soundType(snd_type)
-    , repeat(loop)
+SoundClip::SoundClip(int slot, AudioFileType snd_type, bool loop) : slot_(slot), soundType(snd_type), repeat(loop)
 {
     sourceClipID = -1;
     sourceClipType = AUDIOTYPE_UNDEFINED;
@@ -88,11 +85,9 @@ int SoundClip::posms_to_pos(int pos_ms)
     {
     case eAudioFileWAV: // Pos is in samples
         return static_cast<int>((static_cast<int64_t>(pos_ms) * freq) / 1000);
-    case eAudioFileMIDI: /* TODO: reimplement */
-    case eAudioFileMOD:  /* TODO: reimplement */
-        return 0;  /* better say that it does not work than return wrong value */
-    default:
-        return pos_ms;
+    case eAudioFileMIDI:                                  /* TODO: reimplement */
+    case eAudioFileMOD: /* TODO: reimplement */ return 0; /* better say that it does not work than return wrong value */
+    default: return pos_ms;
     }
 }
 
@@ -102,11 +97,9 @@ int SoundClip::pos_to_posms(int pos_)
     {
     case eAudioFileWAV: // Pos is in samples
         return static_cast<int>((static_cast<int64_t>(pos_) * 1000) / freq);
-    case eAudioFileMIDI: /* TODO: reimplement */
-    case eAudioFileMOD:  /* TODO: reimplement */
-        return 0;  /* better say that it does not work than return wrong value */
-    default:
-        return pos_;
+    case eAudioFileMIDI:                                  /* TODO: reimplement */
+    case eAudioFileMOD: /* TODO: reimplement */ return 0; /* better say that it does not work than return wrong value */
+    default: return pos_;
     }
 }
 
@@ -118,7 +111,10 @@ void SoundClip::seek(int pos_)
 
 void SoundClip::seek_ms(int pos_ms)
 {
-    if (slot_ < 0) { return; }
+    if (slot_ < 0)
+    {
+        return;
+    }
     auto player = audio_core_get_player(slot_);
     player->Pause();
     // TODO: for backward compatibility and MOD/XM music support
@@ -132,22 +128,38 @@ void SoundClip::seek_ms(int pos_ms)
 
 bool SoundClip::update()
 {
-    if (!is_ready()) return false;
+    if (!is_ready())
+        return false;
 
     auto player = audio_core_get_player(slot_);
     if (paramsChanged)
     {
         auto vol_f = static_cast<float>(get_final_volume()) / 255.0f;
-        if (vol_f < 0.0f) { vol_f = 0.0f; }
-        if (vol_f > 1.0f) { vol_f = 1.0f; }
+        if (vol_f < 0.0f)
+        {
+            vol_f = 0.0f;
+        }
+        if (vol_f > 1.0f)
+        {
+            vol_f = 1.0f;
+        }
 
         auto speed_f = static_cast<float>(speed) / 1000.0f;
-        if (speed_f <= 0.0) { speed_f = 1.0f; }
+        if (speed_f <= 0.0)
+        {
+            speed_f = 1.0f;
+        }
 
         // Sets the pan position, ranging from -100 (left) to +100 (right)
         auto panning_f = (static_cast<float>(panning) / 100.0f);
-        if (panning_f < -1.0f) { panning_f = -1.0f; }
-        if (panning_f > 1.0f) { panning_f = 1.0f; }
+        if (panning_f < -1.0f)
+        {
+            panning_f = -1.0f;
+        }
+        if (panning_f > 1.0f)
+        {
+            panning_f = 1.0f;
+        }
 
         player->SetVolume(vol_f);
         player->SetSpeed(speed_f);
@@ -171,8 +183,7 @@ bool SoundClip::update()
         player->Play();
         state = player->GetPlayStateNormal();
         break;
-    default: /* do nothing */
-        break;
+    default: /* do nothing */ break;
     }
     return is_ready();
 }

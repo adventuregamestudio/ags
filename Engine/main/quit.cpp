@@ -53,7 +53,7 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern SpriteCache spriteset;
 extern RoomStruct thisroom;
-extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
+extern RoomStatus troom; // used for non-saveable rooms, eg. intro
 extern int proper_exit;
 extern char check_dynamic_sprites_at_exit;
 extern int editor_debugging_initialized;
@@ -75,15 +75,13 @@ void quit_tell_editor_debugger(const String &qmsg, QuitReason qreason)
 
 void quit_check_dynamic_sprites(QuitReason qreason)
 {
-    if ((qreason & kQuitKind_NormalExit) && (check_dynamic_sprites_at_exit) && 
-        (game.options[OPT_DEBUGMODE] != 0))
+    if ((qreason & kQuitKind_NormalExit) && (check_dynamic_sprites_at_exit) && (game.options[OPT_DEBUGMODE] != 0))
     {
         // Check that the dynamic sprites have been deleted;
         // ignore those that are owned by the game objects.
         for (sprkey_t i = 1; static_cast<size_t>(i) < game.SpriteInfos.size(); i++)
         {
-            if ((game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC) &&
-                ((game.SpriteInfos[i].Flags & SPF_OBJECTOWNED) == 0))
+            if ((game.SpriteInfos[i].Flags & SPF_DYNAMICALLOC) && ((game.SpriteInfos[i].Flags & SPF_OBJECTOWNED) == 0))
             {
                 debug_script_warn("Dynamic sprite %d was never deleted", i);
             }
@@ -102,17 +100,17 @@ void quit_shutdown_audio()
 // * errmsg  - a simple error message.
 // * fullmsg - a combined message to post into the engine output (stdout, log),
 //             may include custom user text, explanation of error, callstack, etc.
-QuitReason quit_check_for_error_state(const char *qmsg, const String &error_text,
-    const String &game_version, String &errmsg, String &fullmsg)
+QuitReason quit_check_for_error_state(const char *qmsg, const String &error_text, const String &game_version,
+                                      String &errmsg, String &fullmsg)
 {
     QuitReason qreason;
     String error_is;
     String error_kind;
-    if (qmsg[0]=='|')
+    if (qmsg[0] == '|')
     {
         qreason = kQuit_GameRequest; // no error
     }
-    else if (qmsg[0]=='!')
+    else if (qmsg[0] == '!')
     {
         qmsg++;
 
@@ -126,17 +124,18 @@ QuitReason quit_check_for_error_state(const char *qmsg, const String &error_text
         {
             qmsg++;
             qreason = kQuit_ScriptAbort;
-            error_is = !error_text.IsEmpty() ? error_text :
-                "A fatal error was reported by the game script. "
-                "Please contact the game author for support.";
+            error_is = !error_text.IsEmpty() ? error_text
+                                             : "A fatal error was reported by the game script. "
+                                               "Please contact the game author for support.";
             error_kind = "Game script requested abort.";
         }
         else
         {
             qreason = kQuit_GameError;
-            error_is = !error_text.IsEmpty() ? error_text :
-                "A game error has occurred. Please contact the game author for support, as this is "
-                "likely to be a mistake in game logic or script and not an error in AGS engine.";
+            error_is = !error_text.IsEmpty()
+                           ? error_text
+                           : "A game error has occurred. Please contact the game author for support, as this is "
+                             "likely to be a mistake in game logic or script and not an error in AGS engine.";
             error_kind = "Game script or data error.";
         }
 
@@ -145,17 +144,20 @@ QuitReason quit_check_for_error_state(const char *qmsg, const String &error_text
     else if (qmsg[0] == '%')
     {
         qmsg++;
-        error_is = !error_text.IsEmpty() ? error_text :
-                "A game warning has occured, while this game is configured to treat warnings as errors.";
+        error_is = !error_text.IsEmpty()
+                       ? error_text
+                       : "A game warning has occured, while this game is configured to treat warnings as errors.";
         error_kind = "Game script or data error.";
         errmsg = qmsg;
         qreason = kQuit_GameWarning;
     }
     else
     {
-        error_is = !error_text.IsEmpty() ? error_text :
-                "An internal error has occurred in AGS engine. Please note down the following information.\n"
-                "If the problem persists, contact the game author for support or post these details on the AGS Technical Forum.\n";
+        error_is =
+            !error_text.IsEmpty()
+                ? error_text
+                : "An internal error has occurred in AGS engine. Please note down the following information.\n"
+                  "If the problem persists, contact the game author for support or post these details on the AGS Technical Forum.\n";
         error_kind = "Internal engine error.";
         errmsg = qmsg;
         qreason = kQuit_FatalError;
@@ -207,10 +209,10 @@ void quit(const char *quitmsg)
     // Simple is used to pass into debugger (IDE), full is reported with alert
     // popup and printed to the log.
     String errmsg, fullmsg;
-    QuitReason qreason = quit_check_for_error_state(quitmsg, play.GetGameErrorText(),
-        game.GameInfo["version"], errmsg, fullmsg);
+    QuitReason qreason =
+        quit_check_for_error_state(quitmsg, play.GetGameErrorText(), game.GameInfo["version"], errmsg, fullmsg);
 
-#if defined (AGS_AUTO_WRITE_USER_CONFIG)
+#if defined(AGS_AUTO_WRITE_USER_CONFIG)
     if (qreason & kQuitKind_NormalExit)
         save_config_file();
 #endif // AGS_AUTO_WRITE_USER_CONFIG
@@ -255,7 +257,7 @@ void quit(const char *quitmsg)
 
     set_our_eip(9903);
 
-    proper_exit=1;
+    proper_exit = 1;
 
     Debug::Printf(kDbgMsg_Alert, "***** ENGINE HAS SHUTDOWN");
 
@@ -266,8 +268,10 @@ void quit(const char *quitmsg)
     exit(EXIT_NORMAL);
 }
 
-extern "C" {
-    void quit_c(char*msg) {
+extern "C"
+{
+    void quit_c(char *msg)
+    {
         quit(msg);
     }
 }

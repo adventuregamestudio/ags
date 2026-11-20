@@ -41,7 +41,7 @@ ScreenOverlay::~ScreenOverlay()
 }
 
 // TODO: this may be avoided if we somehow make (dynamic) sprites reference counted when assigning ID too
-ScreenOverlay &ScreenOverlay::operator =(ScreenOverlay &&over)
+ScreenOverlay &ScreenOverlay::operator=(ScreenOverlay &&over)
 {
     *this = over;
     over._sprnum = 0;
@@ -50,9 +50,8 @@ ScreenOverlay &ScreenOverlay::operator =(ScreenOverlay &&over)
 
 Pointf ScreenOverlay::GetEffectivePivot() const
 {
-    return _pivot +
-        Pointf((static_cast<float>(_pivotOff.X) / _scaledSize.Width),
-               (static_cast<float>(_pivotOff.Y) / _scaledSize.Height));
+    return _pivot + Pointf((static_cast<float>(_pivotOff.X) / _scaledSize.Width),
+                           (static_cast<float>(_pivotOff.Y) / _scaledSize.Height));
 }
 
 Bitmap *ScreenOverlay::GetImage() const
@@ -342,14 +341,12 @@ void ScreenOverlay::OnRemove()
 void ScreenOverlay::UpdateGraphicSpace()
 {
     Bitmap *pic = GetImage();
-    _gs = GraphicSpace(
-        _x, _y, _sprAnchor, // origin
-        Size(pic->GetWidth(), pic->GetHeight()), // source sprite size
-        _scaledSize,
-        // real graphical aabb (maybe with extra offsets)
-        RectWH(_sprOffset.X, _sprOffset.Y, pic->GetWidth(), pic->GetHeight()),
-        _rotation, _pivot, _pivotOff
-    );
+    _gs = GraphicSpace(_x, _y, _sprAnchor,                      // origin
+                       Size(pic->GetWidth(), pic->GetHeight()), // source sprite size
+                       _scaledSize,
+                       // real graphical aabb (maybe with extra offsets)
+                       RectWH(_sprOffset.X, _sprOffset.Y, pic->GetWidth(), pic->GetHeight()), _rotation, _pivot,
+                       _pivotOff);
 }
 
 int ScreenOverlay::UpdateTimeout()
@@ -394,8 +391,7 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         _destSize.Width = in->ReadInt32();
         _destSize.Height = in->ReadInt32();
     }
-    if ((cmp_ver >= kOverSvgVersion_36304) && (cmp_ver < kOverSvgVersion_400) ||
-        (cmp_ver >= kOverSvgVersion_40026))
+    if ((cmp_ver >= kOverSvgVersion_36304) && (cmp_ver < kOverSvgVersion_400) || (cmp_ver >= kOverSvgVersion_40026))
     {
         _text = StrUtil::ReadString(in);
     }
@@ -412,7 +408,7 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         _sprnum = 0;
         has_bitmap = pic != 0;
     }
-    
+
     if ((cmp_ver < kOverSvgVersion_36303) || ((cmp_ver >= kOverSvgVersion_400) && (cmp_ver < kOverSvgVersion_40024)))
     {
         _flags |= kOver_Visible;
@@ -435,16 +431,16 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
         _tintLight = in->ReadInt32(); // tint light (or light level)
         // Reserved for transform options
         _spritetf = (SpriteTransformFlags)in->ReadInt32(); // sprite transform flags1
-        in->ReadInt32(); // sprite transform flags2
-        _scale.X = in->ReadFloat32(); // transform scale x
-        _scale.Y = in->ReadFloat32(); // transform scale y
-        in->ReadInt32(); // transform skew x
-        in->ReadInt32(); // transform skew y
-        _rotation = in->ReadFloat32(); // transform rotate
-        float px = in->ReadFloat32(); // sprite pivot x
-        float py = in->ReadFloat32(); // sprite pivot y
-        float ax = in->ReadFloat32(); // sprite anchor x
-        float ay = in->ReadFloat32(); // sprite anchor y
+        in->ReadInt32();                                   // sprite transform flags2
+        _scale.X = in->ReadFloat32();                      // transform scale x
+        _scale.Y = in->ReadFloat32();                      // transform scale y
+        in->ReadInt32();                                   // transform skew x
+        in->ReadInt32();                                   // transform skew y
+        _rotation = in->ReadFloat32();                     // transform rotate
+        float px = in->ReadFloat32();                      // sprite pivot x
+        float py = in->ReadFloat32();                      // sprite pivot y
+        float ax = in->ReadFloat32();                      // sprite anchor x
+        float ay = in->ReadFloat32();                      // sprite anchor y
         _sprAnchor = Pointf(ax, ay);
         _pivot = Pointf(px, py);
     }
@@ -494,7 +490,7 @@ void ScreenOverlay::ReadFromSavegame(Stream *in, bool &has_bitmap, int32_t cmp_v
 
 void ScreenOverlay::WriteToSavegame(Stream *out) const
 {
-    out->WriteInt32(0); // ddb 32-bit pointer value (nasty legacy format)
+    out->WriteInt32(0);       // ddb 32-bit pointer value (nasty legacy format)
     out->WriteInt32(_sprnum); // sprite id
     out->WriteInt32(_id);
     out->WriteInt32(_x);
@@ -524,15 +520,15 @@ void ScreenOverlay::WriteToSavegame(Stream *out) const
     out->WriteInt8(_tintLevel);
     out->WriteInt32(_tintLight); // tint light (or light level)
     // Reserved for transform options
-    out->WriteInt32(_spritetf); // sprite transform flags1
-    out->WriteInt32(0); // sprite transform flags2
-    out->WriteFloat32(_scale.X); // transform scale x
-    out->WriteFloat32(_scale.Y); // transform scale y
-    out->WriteInt32(0); // transform skew x
-    out->WriteInt32(0); // transform skew y
-    out->WriteFloat32(_rotation); // transform rotate
-    out->WriteFloat32(_pivot.X); // sprite pivot x
-    out->WriteFloat32(_pivot.Y); // sprite pivot y
+    out->WriteInt32(_spritetf);      // sprite transform flags1
+    out->WriteInt32(0);              // sprite transform flags2
+    out->WriteFloat32(_scale.X);     // transform scale x
+    out->WriteFloat32(_scale.Y);     // transform scale y
+    out->WriteInt32(0);              // transform skew x
+    out->WriteInt32(0);              // transform skew y
+    out->WriteFloat32(_rotation);    // transform rotate
+    out->WriteFloat32(_pivot.X);     // sprite pivot x
+    out->WriteFloat32(_pivot.Y);     // sprite pivot y
     out->WriteFloat32(_sprAnchor.X); // sprite anchor x
     out->WriteFloat32(_sprAnchor.Y); // sprite anchor y
     // kOverSvgVersion_40018

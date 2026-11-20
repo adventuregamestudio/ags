@@ -21,59 +21,60 @@
 
 struct TTF_Font;
 
-class TTFFontRenderer : public IAGSFontRendererInternal {
+class TTFFontRenderer : public IAGSFontRendererInternal
+{
 public:
-  // IAGSFontRenderer implementation
-  bool LoadFromDisk(int fontNumber, int fontSize) override;
-  void FreeMemory(int fontNumber) override;
-  bool SupportsExtendedCharacters(int /*fontNumber*/) override { return true; }
-  int GetTextWidth(const char *text, int fontNumber) override;
-  int GetTextHeight(const char *text, int fontNumber) override;
-  void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) override ;
-  void AdjustYCoordinateForFont(int *ycoord, int fontNumber) override;
-  void EnsureTextValidForFont(char *text, int fontNumber) override;
+    // IAGSFontRenderer implementation
+    bool LoadFromDisk(int fontNumber, int fontSize) override;
+    void FreeMemory(int fontNumber) override;
+    bool SupportsExtendedCharacters(int /*fontNumber*/) override { return true; }
+    int GetTextWidth(const char *text, int fontNumber) override;
+    int GetTextHeight(const char *text, int fontNumber) override;
+    void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) override;
+    void AdjustYCoordinateForFont(int *ycoord, int fontNumber) override;
+    void EnsureTextValidForFont(char *text, int fontNumber) override;
 
-  // IAGSFontRenderer2 implementation
-  int GetVersion() override { return 26; /* first compatible engine API version */ }
-  const char *GetRendererName() override { return "TTFFontRenderer"; }
-  const char *GetFontName(int fontNumber) override;
-  int GetFontHeight(int fontNumber) override;
-  int GetLineSpacing(int fontNumber) override { return 0; /* no specific spacing */ }
+    // IAGSFontRenderer2 implementation
+    int GetVersion() override { return 26; /* first compatible engine API version */ }
+    const char *GetRendererName() override { return "TTFFontRenderer"; }
+    const char *GetFontName(int fontNumber) override;
+    int GetFontHeight(int fontNumber) override;
+    int GetLineSpacing(int fontNumber) override { return 0; /* no specific spacing */ }
 
-  // IAGSFontRendererInternal implementation
-  bool IsBitmapFont() override;
-  bool LoadFromDiskEx(int fontNumber, int fontSize, const String &src_filename,
-      const FontRenderParams *params, FontMetrics *metrics) override;
-  void GetFontMetrics(int fontNumber, FontMetrics *metrics) override;
-  void AdjustFontForAntiAlias(int fontNumber, bool aa_mode) override;
-  void GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes) override;
-  void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
-  void SetCharacterSpacing(int fontNumber, int spacing) override;
-  void SetBlendMode(AGS::Common::BlendMode blend_mode) override;
-  // TTF rendering already uses the supplied color and preserves glyph coverage.
-  void SetStencilMode(bool /*enabled*/) override { /* no additional action needed */ }
+    // IAGSFontRendererInternal implementation
+    bool IsBitmapFont() override;
+    bool LoadFromDiskEx(int fontNumber, int fontSize, const String &src_filename, const FontRenderParams *params,
+                        FontMetrics *metrics) override;
+    void GetFontMetrics(int fontNumber, FontMetrics *metrics) override;
+    void AdjustFontForAntiAlias(int fontNumber, bool aa_mode) override;
+    void GetCharCodeRange(int fontNumber, std::pair<int, int> *char_codes) override;
+    void GetValidCharCodes(int fontNumber, std::vector<int> &char_codes) override;
+    void SetCharacterSpacing(int fontNumber, int spacing) override;
+    void SetBlendMode(AGS::Common::BlendMode blend_mode) override;
+    // TTF rendering already uses the supplied color and preserves glyph coverage.
+    void SetStencilMode(bool /*enabled*/) override { /* no additional action needed */ }
 
-  TTFFontRenderer(AGS::Common::AssetManager *amgr);
-  virtual ~TTFFontRenderer();
+    TTFFontRenderer(AGS::Common::AssetManager *amgr);
+    virtual ~TTFFontRenderer();
 
-  void SetLegacyAntiaAliasedFontHeightFixup(bool legacy_aa_height_fixup);
+    void SetLegacyAntiaAliasedFontHeightFixup(bool legacy_aa_height_fixup);
 
-  //
-  // Utility functions
-  //
-  // Try load the TTF font using provided point size, and report its metrics
-  bool MeasureFontOfPointSize(const AGS::Common::String &filename, int size_pt, FontMetrics *metrics);
-  // Try load the TTF font, find the point size which results in pixel height
-  // as close to the requested as possible; report its metrics
-  bool MeasureFontOfPixelHeight(const AGS::Common::String &filename, int pixel_height, FontMetrics *metrics);
+    //
+    // Utility functions
+    //
+    // Try load the TTF font using provided point size, and report its metrics
+    bool MeasureFontOfPointSize(const AGS::Common::String &filename, int size_pt, FontMetrics *metrics);
+    // Try load the TTF font, find the point size which results in pixel height
+    // as close to the requested as possible; report its metrics
+    bool MeasureFontOfPixelHeight(const AGS::Common::String &filename, int pixel_height, FontMetrics *metrics);
 
 private:
     TTF_Font *LoadTTF(const AGS::Common::String &filename, int font_size);
 
     struct FontData
     {
-        TTF_Font        *Font = nullptr;
-        int              SizePt = 0; // nominal font size, requested by user
+        TTF_Font *Font = nullptr;
+        int SizePt = 0; // nominal font size, requested by user
         FontRenderParams Params;
     };
     std::map<int, FontData> _fontData;

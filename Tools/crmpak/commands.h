@@ -20,45 +20,44 @@
 
 namespace CRMPak
 {
-    using String = AGS::Common::String;
+using String = AGS::Common::String;
 
-    enum ContentType
-    {
-        kContent_Undefined = 0,
-        kContent_Ash,
-        kContent_Background,
-        kContent_Hotspot,
-        kContent_Region,
-        kContent_WalkArea,
-        kContent_WalkBehind,
-        kContent_ScriptCompiled3,
-        kContent_ScriptText,
-        kNumContentTypes
-    };
+enum ContentType
+{
+    kContent_Undefined = 0,
+    kContent_Ash,
+    kContent_Background,
+    kContent_Hotspot,
+    kContent_Region,
+    kContent_WalkArea,
+    kContent_WalkBehind,
+    kContent_ScriptCompiled3,
+    kContent_ScriptText,
+    kNumContentTypes
+};
 
-    struct Content
-    {
-        ContentType Type = kContent_Undefined;
-        int Index = -1;
-        String FileName;
+struct Content
+{
+    ContentType Type = kContent_Undefined;
+    int Index = -1;
+    String FileName;
 
-        Content() = default;
-        Content(ContentType type, const String &filename)
-            : Type(type), FileName(filename)
-        {}
-        Content(ContentType type, int index, const String &filename)
-            : Type(type), Index(index), FileName(filename)
-        {}
-    };
+    Content() = default;
+    Content(ContentType type, const String &filename) : Type(type), FileName(filename) {}
+    Content(ContentType type, int index, const String &filename) : Type(type), Index(index), FileName(filename) {}
+};
 
-    const AGS::Common::CstrArr<kNumContentTypes> &GetContentNames();
+const AGS::Common::CstrArr<kNumContentTypes> &GetContentNames();
 
-    void Init();
-    int Command_Create(const String &dst_room, const std::vector<Content> &content, int import_bpp, const String &compiled_with, bool verbose);
-    int Command_Cut(const String &src_room, const String &dst_room, const std::vector<Content> &content, const String &compiled_with, bool verbose);
-    int Command_Export(const String &src_room, const std::vector<Content> &content, bool verbose);
-    int Command_Import(const String &src_room, const String &dst_room, const std::vector<Content> &content, int import_bpp, const String &compiled_with, bool verbose);
-    int Command_List(const String &src_room);
-}
+void Init();
+int Command_Create(const String &dst_room, const std::vector<Content> &content, int import_bpp,
+                   const String &compiled_with, bool verbose);
+int Command_Cut(const String &src_room, const String &dst_room, const std::vector<Content> &content,
+                const String &compiled_with, bool verbose);
+int Command_Export(const String &src_room, const std::vector<Content> &content, bool verbose);
+int Command_Import(const String &src_room, const String &dst_room, const std::vector<Content> &content, int import_bpp,
+                   const String &compiled_with, bool verbose);
+int Command_List(const String &src_room);
+} // namespace CRMPak
 
 #endif // __AGS_TOOL_CRMPAK__COMMANDS_H

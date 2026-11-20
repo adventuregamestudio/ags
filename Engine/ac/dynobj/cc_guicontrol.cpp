@@ -26,19 +26,19 @@ const char *CCGUIControl::GetType()
     return "GUIControl";
 }
 
-size_t CCGUIControl::CalcSerializeSize(const void* /*address*/)
+size_t CCGUIControl::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t) * 2;
 }
 
-void CCGUIControl::Serialize(const void* address, Stream* out)
+void CCGUIControl::Serialize(const void *address, Stream *out)
 {
     const GUIControl *guio = static_cast<const GUIControl *>(address);
     out->WriteInt32(guio->GetParentID());
     out->WriteInt32(guio->GetID());
 }
 
-void CCGUIControl::Unserialize(int index, Stream* in, size_t /*data_sz*/)
+void CCGUIControl::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     int guinum = in->ReadInt32();
     int objnum = in->ReadInt32();

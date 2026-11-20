@@ -38,24 +38,24 @@ using namespace AGS::Common;
 
 struct AGSAndroid : AGSPlatformDriver
 {
-  void MainInit() override;
-  void PostBackendExit() override;
-  const char *GetGameDataFile() override;
-  void ReadConfiguration(ConfigTree &cfg) override;
-  void Delay(int millis) override;
-  FSLocation GetAllUsersDataDirectory() override;
-  FSLocation GetUserSavedgamesDirectory() override;
-  FSLocation GetUserGlobalConfigDirectory() override;
-  FSLocation GetAppOutputDirectory() override;
-  uint64_t GetDiskFreeSpaceMB(const String &path) override;
-  eScriptSystemOSID GetSystemOSID() override;
-  void WriteStdOut(const char *fmt, ...) override;
-  void WriteStdErr(const char *fmt, ...) override;
+    void MainInit() override;
+    void PostBackendExit() override;
+    const char *GetGameDataFile() override;
+    void ReadConfiguration(ConfigTree &cfg) override;
+    void Delay(int millis) override;
+    FSLocation GetAllUsersDataDirectory() override;
+    FSLocation GetUserSavedgamesDirectory() override;
+    FSLocation GetUserGlobalConfigDirectory() override;
+    FSLocation GetAppOutputDirectory() override;
+    uint64_t GetDiskFreeSpaceMB(const String &path) override;
+    eScriptSystemOSID GetSystemOSID() override;
+    void WriteStdOut(const char *fmt, ...) override;
+    void WriteStdErr(const char *fmt, ...) override;
 
-  static MobileSetup &GetMobileSetup() { return _msetup; }
+    static MobileSetup &GetMobileSetup() { return _msetup; }
 
 private:
-  static MobileSetup _msetup; // static for the use from JNI callbacks
+    static MobileSetup _msetup; // static for the use from JNI callbacks
 };
 
 MobileSetup AGSAndroid::_msetup;
@@ -66,208 +66,157 @@ String android_app_directory = ".";
 String android_save_directory = "";
 
 // NOTE: the JVM can't use JNI outside here due to C++ name mangling
-extern "C" 
+extern "C"
 {
+    const int CONFIG_IGNORE_ACSETUP = 0;
+    const int CONFIG_CLEAR_CACHE = 1;
+    const int CONFIG_AUDIO_ENABLED = 3;
+    const int CONFIG_AUDIO_CACHESIZE = 5;
+    const int CONFIG_GFX_RENDERER = 9;
+    const int CONFIG_GFX_SMOOTHING = 10;
+    const int CONFIG_GFX_SCALING = 11;
+    const int CONFIG_ROTATION = 13;
+    const int CONFIG_ENABLED = 14;
+    const int CONFIG_DEBUG_FPS = 15;
+    const int CONFIG_GFX_SMOOTH_SPRITES = 16;
+    const int CONFIG_TRANSLATION = 17;
+    const int CONFIG_DEBUG_LOGCAT = 18;
+    const int CONFIG_MOUSE_EMULATION = 19;
+    const int CONFIG_MOUSE_METHOD = 20;
+    const int CONFIG_MOUSE_SPEED = 21;
 
-const int CONFIG_IGNORE_ACSETUP = 0;
-const int CONFIG_CLEAR_CACHE = 1;
-const int CONFIG_AUDIO_ENABLED = 3;
-const int CONFIG_AUDIO_CACHESIZE = 5;
-const int CONFIG_GFX_RENDERER = 9;
-const int CONFIG_GFX_SMOOTHING = 10;
-const int CONFIG_GFX_SCALING = 11;
-const int CONFIG_ROTATION = 13;
-const int CONFIG_ENABLED = 14;
-const int CONFIG_DEBUG_FPS = 15;
-const int CONFIG_GFX_SMOOTH_SPRITES = 16;
-const int CONFIG_TRANSLATION = 17;
-const int CONFIG_DEBUG_LOGCAT = 18;
-const int CONFIG_MOUSE_EMULATION = 19;
-const int CONFIG_MOUSE_METHOD = 20;
-const int CONFIG_MOUSE_SPEED = 21;
-
-JNIEXPORT jboolean JNICALL
-  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readConfigFile(JNIEnv* env, jobject object, jstring directory)
-{
-  const char* cdirectory = env->GetStringUTFChars(directory, NULL);
-  String dir = cdirectory;
-  env->ReleaseStringUTFChars(directory, cdirectory);
-
-  String config_file_path = ANDROID_CONFIG_FILENAME;
-  if(!dir.IsEmpty())
-    config_file_path = Path::ConcatPaths(dir, config_file_path);
-
-  ResetConfiguration(AGSAndroid::GetMobileSetup());
-
-  return ReadConfiguration(AGSAndroid::GetMobileSetup(), config_file_path.GetCStr(), true);
-}
-
-
-JNIEXPORT jboolean JNICALL
-  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_writeConfigFile(JNIEnv* env, jobject object, jstring directory)
-{
-  const char* cdirectory = env->GetStringUTFChars(directory, NULL);
-  String dir = cdirectory;
-  env->ReleaseStringUTFChars(directory, cdirectory);
-
-  String config_file_path = ANDROID_CONFIG_FILENAME;
-  if(!dir.IsEmpty())
-    config_file_path = Path::ConcatPaths(dir, config_file_path);
-
-  return WriteConfiguration(AGSAndroid::GetMobileSetup(), config_file_path.GetCStr());
-}
-
-
-JNIEXPORT jint JNICALL
-  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readIntConfigValue(JNIEnv* env,
-                                                                                 jclass object, jint id)
-{
-  const auto &setup = AGSAndroid::GetMobileSetup();
-  switch (id)
-  {
-    case CONFIG_IGNORE_ACSETUP:
-      return setup.ignore_acsetup_cfg_file;
-    case CONFIG_CLEAR_CACHE:
-      return setup.clear_cache_on_room_change;
-    case CONFIG_AUDIO_ENABLED:
-      return setup.audio_enabled;
-    case CONFIG_AUDIO_CACHESIZE:
-      return setup.audio_cachesize;
-    case CONFIG_GFX_RENDERER:
-      return setup.gfx_renderer;
-    case CONFIG_GFX_SMOOTHING:
-      return setup.gfx_smoothing;
-    case CONFIG_GFX_SCALING:
-      return setup.gfx_scaling;
-    case CONFIG_GFX_SMOOTH_SPRITES:
-      return setup.gfx_smooth_sprites;
-    case CONFIG_ROTATION:
-      return setup.rotation;
-    case CONFIG_ENABLED:
-      return setup.config_enabled;
-    case CONFIG_DEBUG_FPS:
-      return setup.show_fps;
-    case CONFIG_DEBUG_LOGCAT:
-      return setup.debug_write_to_logcat;
-    case CONFIG_MOUSE_EMULATION:
-      return setup.mouse_emulation;
-    case CONFIG_MOUSE_METHOD:
-      return setup.mouse_control_mode;
-    case CONFIG_MOUSE_SPEED:
-      return setup.mouse_speed;
-    default:
-      return 0;
-  }
-}
-
-
-JNIEXPORT jstring JNICALL
-  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readStringConfigValue(JNIEnv* env,
-                                                                                    jclass object, jint id)
-{
-  const auto &setup = AGSAndroid::GetMobileSetup();
-  switch (id)
-  {
-    case CONFIG_TRANSLATION:
-      return env->NewStringUTF(setup.translation.GetCStr());
-    default:
-      return nullptr;
-  }
-}
-
-
-JNIEXPORT void JNICALL
-  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_setIntConfigValue(JNIEnv* env, jobject object, jint id, jint value)
-{
-  auto &setup = AGSAndroid::GetMobileSetup();
-  switch (id)
-  {
-    case CONFIG_IGNORE_ACSETUP:
-      setup.ignore_acsetup_cfg_file = value;
-      break;
-    case CONFIG_CLEAR_CACHE:
-      setup.clear_cache_on_room_change = value;
-      break;
-    case CONFIG_AUDIO_ENABLED:
-      setup.audio_enabled = value;
-      break;
-    case CONFIG_AUDIO_CACHESIZE:
-      setup.audio_cachesize = value;
-      break;
-    case CONFIG_GFX_RENDERER:
-      setup.gfx_renderer = value;
-      break;
-    case CONFIG_GFX_SMOOTHING:
-      setup.gfx_smoothing = value;
-      break;
-    case CONFIG_GFX_SCALING:
-      setup.gfx_scaling = value;
-      break;
-    case CONFIG_GFX_SMOOTH_SPRITES:
-      setup.gfx_smooth_sprites = value;
-      break;
-    case CONFIG_ROTATION:
-      setup.rotation = value;
-      break;
-    case CONFIG_ENABLED:
-      setup.config_enabled = value;
-      break;
-    case CONFIG_DEBUG_FPS:
-      setup.show_fps = value;
-      break;
-    case CONFIG_DEBUG_LOGCAT:
-      setup.debug_write_to_logcat = value;
-      break;
-    case CONFIG_MOUSE_EMULATION:
-      setup.mouse_emulation = value;
-      break;
-    case CONFIG_MOUSE_METHOD:
-      setup.mouse_control_mode = value;
-    case CONFIG_MOUSE_SPEED:
-      setup.mouse_speed = value;
-      break;
-    default:
-      break;
-  }
-}
-
-
-JNIEXPORT void JNICALL
-  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_setStringConfigValue(JNIEnv* env, jobject object, jint id, jstring value)
-{
-  const char* cstring = env->GetStringUTFChars(value, NULL);
-
-  auto &setup = AGSAndroid::GetMobileSetup();
-  switch (id)
-  {
-    case CONFIG_TRANSLATION:
-      setup.translation = cstring;
-      break;
-    default:
-      break;
-  }
-
-  env->ReleaseStringUTFChars(value, cstring);
-}
-
-
-JNIEXPORT jint JNICALL
-  Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_getAvailableTranslations(JNIEnv* env, jobject object, jobjectArray translations)
-{
-    int count = 0;
-    for (FindFile ff = FindFile::OpenFiles(".", "*.tra"); !ff.AtEnd(); ff.Next())
+    JNIEXPORT jboolean JNICALL Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readConfigFile(
+        JNIEnv *env, jobject object, jstring directory)
     {
-        String filename = Path::RemoveExtension(Path::GetFilename(ff.Current()));
-        env->SetObjectArrayElement(translations, count++, env->NewStringUTF(filename.GetCStr()));
-    }
-    return count;
-}
+        const char *cdirectory = env->GetStringUTFChars(directory, NULL);
+        String dir = cdirectory;
+        env->ReleaseStringUTFChars(directory, cdirectory);
 
-JNIEXPORT void JNICALL
-Java_uk_co_adventuregamestudio_runtime_AGSRuntimeActivity_nativeSdlShowKeyboard(JNIEnv* env, jclass clazz)
-{
-  SDL_StartTextInput();
-}
+        String config_file_path = ANDROID_CONFIG_FILENAME;
+        if (!dir.IsEmpty())
+            config_file_path = Path::ConcatPaths(dir, config_file_path);
+
+        ResetConfiguration(AGSAndroid::GetMobileSetup());
+
+        return ReadConfiguration(AGSAndroid::GetMobileSetup(), config_file_path.GetCStr(), true);
+    }
+
+
+    JNIEXPORT jboolean JNICALL Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_writeConfigFile(
+        JNIEnv *env, jobject object, jstring directory)
+    {
+        const char *cdirectory = env->GetStringUTFChars(directory, NULL);
+        String dir = cdirectory;
+        env->ReleaseStringUTFChars(directory, cdirectory);
+
+        String config_file_path = ANDROID_CONFIG_FILENAME;
+        if (!dir.IsEmpty())
+            config_file_path = Path::ConcatPaths(dir, config_file_path);
+
+        return WriteConfiguration(AGSAndroid::GetMobileSetup(), config_file_path.GetCStr());
+    }
+
+
+    JNIEXPORT jint JNICALL Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readIntConfigValue(JNIEnv *env,
+                                                                                                         jclass object,
+                                                                                                         jint id)
+    {
+        const auto &setup = AGSAndroid::GetMobileSetup();
+        switch (id)
+        {
+        case CONFIG_IGNORE_ACSETUP: return setup.ignore_acsetup_cfg_file;
+        case CONFIG_CLEAR_CACHE: return setup.clear_cache_on_room_change;
+        case CONFIG_AUDIO_ENABLED: return setup.audio_enabled;
+        case CONFIG_AUDIO_CACHESIZE: return setup.audio_cachesize;
+        case CONFIG_GFX_RENDERER: return setup.gfx_renderer;
+        case CONFIG_GFX_SMOOTHING: return setup.gfx_smoothing;
+        case CONFIG_GFX_SCALING: return setup.gfx_scaling;
+        case CONFIG_GFX_SMOOTH_SPRITES: return setup.gfx_smooth_sprites;
+        case CONFIG_ROTATION: return setup.rotation;
+        case CONFIG_ENABLED: return setup.config_enabled;
+        case CONFIG_DEBUG_FPS: return setup.show_fps;
+        case CONFIG_DEBUG_LOGCAT: return setup.debug_write_to_logcat;
+        case CONFIG_MOUSE_EMULATION: return setup.mouse_emulation;
+        case CONFIG_MOUSE_METHOD: return setup.mouse_control_mode;
+        case CONFIG_MOUSE_SPEED: return setup.mouse_speed;
+        default: return 0;
+        }
+    }
+
+
+    JNIEXPORT jstring JNICALL Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_readStringConfigValue(
+        JNIEnv *env, jclass object, jint id)
+    {
+        const auto &setup = AGSAndroid::GetMobileSetup();
+        switch (id)
+        {
+        case CONFIG_TRANSLATION: return env->NewStringUTF(setup.translation.GetCStr());
+        default: return nullptr;
+        }
+    }
+
+
+    JNIEXPORT void JNICALL Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_setIntConfigValue(JNIEnv *env,
+                                                                                                        jobject object,
+                                                                                                        jint id,
+                                                                                                        jint value)
+    {
+        auto &setup = AGSAndroid::GetMobileSetup();
+        switch (id)
+        {
+        case CONFIG_IGNORE_ACSETUP: setup.ignore_acsetup_cfg_file = value; break;
+        case CONFIG_CLEAR_CACHE: setup.clear_cache_on_room_change = value; break;
+        case CONFIG_AUDIO_ENABLED: setup.audio_enabled = value; break;
+        case CONFIG_AUDIO_CACHESIZE: setup.audio_cachesize = value; break;
+        case CONFIG_GFX_RENDERER: setup.gfx_renderer = value; break;
+        case CONFIG_GFX_SMOOTHING: setup.gfx_smoothing = value; break;
+        case CONFIG_GFX_SCALING: setup.gfx_scaling = value; break;
+        case CONFIG_GFX_SMOOTH_SPRITES: setup.gfx_smooth_sprites = value; break;
+        case CONFIG_ROTATION: setup.rotation = value; break;
+        case CONFIG_ENABLED: setup.config_enabled = value; break;
+        case CONFIG_DEBUG_FPS: setup.show_fps = value; break;
+        case CONFIG_DEBUG_LOGCAT: setup.debug_write_to_logcat = value; break;
+        case CONFIG_MOUSE_EMULATION: setup.mouse_emulation = value; break;
+        case CONFIG_MOUSE_METHOD: setup.mouse_control_mode = value;
+        case CONFIG_MOUSE_SPEED: setup.mouse_speed = value; break;
+        default: break;
+        }
+    }
+
+
+    JNIEXPORT void JNICALL Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_setStringConfigValue(
+        JNIEnv *env, jobject object, jint id, jstring value)
+    {
+        const char *cstring = env->GetStringUTFChars(value, NULL);
+
+        auto &setup = AGSAndroid::GetMobileSetup();
+        switch (id)
+        {
+        case CONFIG_TRANSLATION: setup.translation = cstring; break;
+        default: break;
+        }
+
+        env->ReleaseStringUTFChars(value, cstring);
+    }
+
+
+    JNIEXPORT jint JNICALL Java_uk_co_adventuregamestudio_runtime_PreferencesActivity_getAvailableTranslations(
+        JNIEnv *env, jobject object, jobjectArray translations)
+    {
+        int count = 0;
+        for (FindFile ff = FindFile::OpenFiles(".", "*.tra"); !ff.AtEnd(); ff.Next())
+        {
+            String filename = Path::RemoveExtension(Path::GetFilename(ff.Current()));
+            env->SetObjectArrayElement(translations, count++, env->NewStringUTF(filename.GetCStr()));
+        }
+        return count;
+    }
+
+    JNIEXPORT void JNICALL Java_uk_co_adventuregamestudio_runtime_AGSRuntimeActivity_nativeSdlShowKeyboard(JNIEnv *env,
+                                                                                                           jclass clazz)
+    {
+        SDL_StartTextInput();
+    }
 
 } // END of Extern "C"
 
@@ -275,7 +224,7 @@ Java_uk_co_adventuregamestudio_runtime_AGSRuntimeActivity_nativeSdlShowKeyboard(
 void AGSAndroid::MainInit()
 {
     // retrieve the JNI environment.
-    JNIEnv* env = (JNIEnv*)SDL_AndroidGetJNIEnv();
+    JNIEnv *env = (JNIEnv *)SDL_AndroidGetJNIEnv();
 
     // retrieve the Java instance of the SDLActivity
     jobject activity = (jobject)SDL_AndroidGetActivity();
@@ -286,27 +235,29 @@ void AGSAndroid::MainInit()
 
     jfieldID fid_game_file_name = env->GetFieldID(clazz, "_game_file_name", "Ljava/lang/String;");
     jobject jobj_game_file_name = env->GetObjectField(activity, fid_game_file_name);
-    const char * _game_file_name =
-        env->GetStringUTFChars(static_cast<jstring>(jobj_game_file_name), nullptr);
-    if(_game_file_name != nullptr) {
+    const char *_game_file_name = env->GetStringUTFChars(static_cast<jstring>(jobj_game_file_name), nullptr);
+    if (_game_file_name != nullptr)
+    {
         setup.game_file_name = _game_file_name;
     }
     env->ReleaseStringUTFChars(static_cast<jstring>(jobj_game_file_name), _game_file_name);
 
     jfieldID fid_android_base_directory = env->GetFieldID(clazz, "_android_base_directory", "Ljava/lang/String;");
     jobject jobj_android_base_directory = env->GetObjectField(activity, fid_android_base_directory);
-    const char * _android_base_directory =
+    const char *_android_base_directory =
         env->GetStringUTFChars(static_cast<jstring>(jobj_android_base_directory), nullptr);
-    if(_android_base_directory != nullptr) {
+    if (_android_base_directory != nullptr)
+    {
         android_base_directory = _android_base_directory;
     }
     env->ReleaseStringUTFChars(static_cast<jstring>(jobj_android_base_directory), _android_base_directory);
 
     jfieldID fid_android_app_directory = env->GetFieldID(clazz, "_android_app_directory", "Ljava/lang/String;");
     jobject jobj_android_app_directory = env->GetObjectField(activity, fid_android_app_directory);
-    const char * _android_app_directory =
+    const char *_android_app_directory =
         env->GetStringUTFChars(static_cast<jstring>(jobj_android_app_directory), nullptr);
-    if(_android_app_directory != nullptr) {
+    if (_android_app_directory != nullptr)
+    {
         android_app_directory = _android_app_directory;
     }
     env->ReleaseStringUTFChars(static_cast<jstring>(jobj_android_app_directory), _android_app_directory);
@@ -325,12 +276,13 @@ void AGSAndroid::MainInit()
     // Get the games path.
     String path = setup.game_file_name;
     path = Path::GetDirectoryPath(path);
-    if(path != "./" && path.GetLength() > 1) {
-      // We are using AGS Player and passing a specific game
+    if (path != "./" && path.GetLength() > 1)
+    {
+        // We are using AGS Player and passing a specific game
 
-      chdir(path.GetCStr());
-      // TODO: this is an ancient GUS patch fix for MIDI playback, is this still relevant?
-      setenv("ULTRADIR", "..", 1);
+        chdir(path.GetCStr());
+        // TODO: this is an ancient GUS patch fix for MIDI playback, is this still relevant?
+        setenv("ULTRADIR", "..", 1);
     }
 
     // Read game specific configuration. (this does nothing in single game package)
@@ -343,115 +295,118 @@ void AGSAndroid::MainInit()
     env->DeleteLocalRef(clazz);
 }
 
-bool IsValidAgsGame(const String& filename)
+bool IsValidAgsGame(const String &filename)
 {
-  return (((filename.CompareRightNoCase(".ags") == 0 ||
-            filename.CompareNoCase("ac2game.dat") == 0 ||
-            filename.CompareRightNoCase(".exe") == 0)) &&
-          IsMainGameLibrary(filename));
+    return (((filename.CompareRightNoCase(".ags") == 0 || filename.CompareNoCase("ac2game.dat") == 0 ||
+              filename.CompareRightNoCase(".exe") == 0)) &&
+            IsMainGameLibrary(filename));
 }
 
 const char *AGSAndroid::GetGameDataFile()
 {
-  AAssetManager* assetManager = GetAAssetManager();
-  AAssetDir* aAssetDir = AAssetManager_openDir(assetManager,"");
+    AAssetManager *assetManager = GetAAssetManager();
+    AAssetDir *aAssetDir = AAssetManager_openDir(assetManager, "");
 
-  _msetup.game_file_name = "";
+    _msetup.game_file_name = "";
 
-  for(String f = AAssetDir_getNextFileName(aAssetDir); !f.IsNullOrSpace(); f = AAssetDir_getNextFileName(aAssetDir))
-  {
-    if(IsValidAgsGame(f))
+    for (String f = AAssetDir_getNextFileName(aAssetDir); !f.IsNullOrSpace(); f = AAssetDir_getNextFileName(aAssetDir))
     {
-      _msetup.game_file_name = f;
-      break;
+        if (IsValidAgsGame(f))
+        {
+            _msetup.game_file_name = f;
+            break;
+        }
     }
-  }
-  AAssetDir_close(aAssetDir);
-  return _msetup.game_file_name.GetCStr();
+    AAssetDir_close(aAssetDir);
+    return _msetup.game_file_name.GetCStr();
 }
 
 void AGSAndroid::ReadConfiguration(ConfigTree &cfg)
 {
-  ApplyEngineConfiguration(_msetup, cfg);
+    ApplyEngineConfiguration(_msetup, cfg);
 }
 
-void AGSAndroid::Delay(int millis) {
-  usleep(millis * 1000);
+void AGSAndroid::Delay(int millis)
+{
+    usleep(millis * 1000);
 }
 
-uint64_t AGSAndroid::GetDiskFreeSpaceMB(const String &path) {
-  // placeholder
-  return 100;
+uint64_t AGSAndroid::GetDiskFreeSpaceMB(const String &path)
+{
+    // placeholder
+    return 100;
 }
 
-eScriptSystemOSID AGSAndroid::GetSystemOSID() {
-  return eOS_Android;
+eScriptSystemOSID AGSAndroid::GetSystemOSID()
+{
+    return eOS_Android;
 }
 
-void AGSAndroid::PostBackendExit() {
-  ShutdownAndroidFile();
+void AGSAndroid::PostBackendExit()
+{
+    ShutdownAndroidFile();
 }
 
 void AGSAndroid::WriteStdOut(const char *fmt, ...)
 {
-  // TODO: this check should probably be done once when setting up output targets for logging
-  if (_msetup.debug_write_to_logcat)
-  {
-    va_list args;
-    va_start(args, fmt);
-    __android_log_vprint(ANDROID_LOG_DEBUG, "AGSNative", fmt, args);
-    // NOTE: __android_log_* functions add trailing '\n'
-    va_end(args);
-  }
+    // TODO: this check should probably be done once when setting up output targets for logging
+    if (_msetup.debug_write_to_logcat)
+    {
+        va_list args;
+        va_start(args, fmt);
+        __android_log_vprint(ANDROID_LOG_DEBUG, "AGSNative", fmt, args);
+        // NOTE: __android_log_* functions add trailing '\n'
+        va_end(args);
+    }
 }
 
 void AGSAndroid::WriteStdErr(const char *fmt, ...)
 {
-  // TODO: find out if Android needs separate implementation for stderr
-  if (_msetup.debug_write_to_logcat)
-  {
-    va_list args;
-    va_start(args, fmt);
-    __android_log_vprint(ANDROID_LOG_DEBUG, "AGSNative", fmt, args);
-    // NOTE: __android_log_* functions add trailing '\n'
-    va_end(args);
-  }
+    // TODO: find out if Android needs separate implementation for stderr
+    if (_msetup.debug_write_to_logcat)
+    {
+        va_list args;
+        va_start(args, fmt);
+        __android_log_vprint(ANDROID_LOG_DEBUG, "AGSNative", fmt, args);
+        // NOTE: __android_log_* functions add trailing '\n'
+        va_end(args);
+    }
 }
 
 static void MakeGameSaveDirectory()
 {
-  // Test the app dir for write access, if failed then switch to "base dir"
-  if (File::TestCreateFile("./tmptest.tmp"))
-    android_save_directory = ".";
-  else
-    android_save_directory = android_base_directory;
+    // Test the app dir for write access, if failed then switch to "base dir"
+    if (File::TestCreateFile("./tmptest.tmp"))
+        android_save_directory = ".";
+    else
+        android_save_directory = android_base_directory;
 }
 
 FSLocation AGSAndroid::GetAllUsersDataDirectory()
 {
-  if (android_save_directory.IsEmpty())
-    MakeGameSaveDirectory();
-  return FSLocation(android_save_directory);
+    if (android_save_directory.IsEmpty())
+        MakeGameSaveDirectory();
+    return FSLocation(android_save_directory);
 }
 
 FSLocation AGSAndroid::GetUserSavedgamesDirectory()
 {
-  if (android_save_directory.IsEmpty())
-    MakeGameSaveDirectory();
-  return FSLocation(android_save_directory);
+    if (android_save_directory.IsEmpty())
+        MakeGameSaveDirectory();
+    return FSLocation(android_save_directory);
 }
 
 FSLocation AGSAndroid::GetUserGlobalConfigDirectory()
 {
-  return FSLocation(android_base_directory);
+    return FSLocation(android_base_directory);
 }
 
 FSLocation AGSAndroid::GetAppOutputDirectory()
 {
-  return FSLocation(android_base_directory);
+    return FSLocation(android_base_directory);
 }
 
-AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
+AGSPlatformDriver *AGSPlatformDriver::CreateDriver()
 {
     return new AGSAndroid();
 }

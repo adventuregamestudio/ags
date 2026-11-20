@@ -15,7 +15,7 @@
 // TransformStream is a parent class for the data transformation streams,
 // where the contents and length of input and output data are different.
 // One example is data compression.
-// 
+//
 // Technically, TransformStream is a wrapper over a IStreamBase object,
 // which does the actual reading or writing from or to a device (file, mem).
 // TransformStream transforms on writing and un-transforms on reading:
@@ -23,7 +23,7 @@
 //    untransform, and return normal data to the user.
 // 2. In the "write" mode, it will receive normal data from the user,
 //    transform, and write transformed data into the base stream.
-// 
+//
 // Because there's no direct correspondence between data lengths and positions,
 // TransformStream does not support Seek()* and GetLength().
 // When you are reading - read data out until EOS() returns positive, or Read()
@@ -31,7 +31,7 @@
 // (*) NOTE: for compatibility with the old code transform stream does
 // support forward seeking, in which case it reads out a number of bytes.
 // This forward seeking uses *untransformed* bytes as offset units.
-// 
+//
 // Stream position is reported: that would be position in "untransformed"
 // bytes, either put into the stream or received from the stream, depending
 // on the working mode.
@@ -64,39 +64,43 @@ public:
 
     const char *GetPath() const override { return _base ? _base->GetPath() : ""; }
     StreamMode GetMode() const override { return _mode; }
-    bool    GetError() const override { return _base ? _base->GetError() : false; }
+    bool GetError() const override { return _base ? _base->GetError() : false; }
 
     // Is end of stream
-    bool    EOS() const override;
+    bool EOS() const override;
     // Total length of stream is not supported for transform streams
-    soff_t  GetLength() const override { assert(false); return 0; }
+    soff_t GetLength() const override
+    {
+        assert(false);
+        return 0;
+    }
     // Current position is not supported for transform streams
-    soff_t  GetPosition() const override { return _inputProcessed; }
+    soff_t GetPosition() const override { return _inputProcessed; }
 
-    void    Close() override;
+    void Close() override;
     // NOTE: flush does not work reliably in transform streams,
     // as transformation algorithm might require to know whether the
     // input is complete in order to write pending result.
     // Consider using Finalize() instead.
-    bool    Flush() override;
+    bool Flush() override;
 
-    size_t  Read(void *buffer, size_t size) override;
+    size_t Read(void *buffer, size_t size) override;
     int32_t ReadByte() override;
-    size_t  Write(const void *buffer, size_t size) override;
+    size_t Write(const void *buffer, size_t size) override;
     int32_t WriteByte(uint8_t val) override;
 
     // Seek operation is formally not supported for transform streams.
     // For compatibility with the old code we still allow "forward seeking",
     // which is implemented as reading out and discarding a number of bytes.
     // This forward seeking uses *untransformed* bytes as offset units.
-    soff_t  Seek(soff_t offset, StreamSeek origin) override;
+    soff_t Seek(soff_t offset, StreamSeek origin) override;
 
-    soff_t  GetProcessedInput() const { return _inputProcessed; }
+    soff_t GetProcessedInput() const { return _inputProcessed; }
     // Finalizes transformation in the write mode.
     // This is similar to Flush() in regular streams, and guarantees that
     // any pending transformation will be forced to complete.
     // No write operation is expected to work after this.
-    void    Finalize();
+    void Finalize();
 
 protected:
     enum class TransformResult
@@ -116,9 +120,9 @@ protected:
     virtual void CloseTransform() = 0;
 
     virtual TransformResult Transform(const uint8_t *input, size_t in_sz, uint8_t *output, size_t out_sz, bool finalize,
-                           size_t &in_read, size_t &out_wrote) = 0;
-    virtual TransformResult UnTransform(const uint8_t *input, size_t in_sz, uint8_t *output, size_t out_sz, bool finalize,
-                           size_t &in_read, size_t &out_wrote) = 0;
+                                      size_t &in_read, size_t &out_wrote) = 0;
+    virtual TransformResult UnTransform(const uint8_t *input, size_t in_sz, uint8_t *output, size_t out_sz,
+                                        bool finalize, size_t &in_read, size_t &out_wrote) = 0;
 
 private:
     void Open(std::unique_ptr<IStreamBase> &&base_stream, StreamMode mode);
@@ -136,7 +140,7 @@ private:
     // Input buffer: where the original data is being read to
     // before passing into the transform algorithm.
     std::vector<uint8_t> _inBuffer;
-    size_t _inBufPos  = 0u;
+    size_t _inBufPos = 0u;
     size_t _inBufEnd = 0u;
     // Output buffer: where the (un)transformed data is stored.
     std::vector<uint8_t> _outBuffer;

@@ -139,6 +139,10 @@ For information on the project there's a [AGS Knowledge Base](https://github.com
 
 We've got a Coding Convention for the engine, please check it before writing the engine code: [github.com/adventuregamestudio/ags/wiki/AGS-Coding-Conventions-(Cpp)](https://github.com/adventuregamestudio/ags/wiki/AGS-Coding-Conventions-(Cpp))
 
+The layout part of the convention is in the `.clang-format` file at the root of the repository, and the C++ code is formatted with it. Format the files you change with clang-format 19.1.7 before a commit (`pip install clang-format==19.1.7`, then `clang-format -i <files>`; other versions give a different result), or let the IDE do it: Visual Studio and VS Code read the file. Third-party code is not formatted.
+
+The commits that only reformatted the code are listed in `.git-blame-ignore-revs`. GitHub's blame view skips them; for `git blame` run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once.
+
 
 [master-br]: https://github.com/adventuregamestudio/ags/tree/master
 [ags4-br]: https://github.com/adventuregamestudio/ags/tree/ags4

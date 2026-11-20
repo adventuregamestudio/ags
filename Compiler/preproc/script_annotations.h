@@ -21,17 +21,20 @@
 
 #include "util/string.h"
 
-namespace AGS {
-namespace Preprocessor {
-namespace ScriptAnnotations {
+namespace AGS
+{
+namespace Preprocessor
+{
+namespace ScriptAnnotations
+{
 
-    Common::String MakeNewScriptMarker(const Common::String &scriptName);
-    Common::String MakeNewScriptMarker(const Common::String &scriptName, const Common::String &moduleName);
-    bool ParseNewScriptMarker(const Common::String &marker, Common::String &scriptName);
-    bool ParseNewScriptMarker(const Common::String &marker, Common::String &scriptName, Common::String &moduleName);
+Common::String MakeNewScriptMarker(const Common::String &scriptName);
+Common::String MakeNewScriptMarker(const Common::String &scriptName, const Common::String &moduleName);
+bool ParseNewScriptMarker(const Common::String &marker, Common::String &scriptName);
+bool ParseNewScriptMarker(const Common::String &marker, Common::String &scriptName, Common::String &moduleName);
 
-} // ScriptAnnotations
-} // Preprocessor
-} // AGS
+} // namespace ScriptAnnotations
+} // namespace Preprocessor
+} // namespace AGS
 
 #endif // __SCRIPT_ANNOTATIONS_H

@@ -17,41 +17,47 @@
 
 using namespace AGS::Common;
 
-int ScriptViewFrame::Dispose(void* /*address*/, bool /*force*/) {
+int ScriptViewFrame::Dispose(void * /*address*/, bool /*force*/)
+{
     // always dispose a ViewFrame
     delete this;
     return 1;
 }
 
-const char *ScriptViewFrame::GetType() {
+const char *ScriptViewFrame::GetType()
+{
     return "ViewFrame";
 }
 
-size_t ScriptViewFrame::CalcSerializeSize(const void* /*address*/)
+size_t ScriptViewFrame::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t) * 3;
 }
 
-void ScriptViewFrame::Serialize(const void* /*address*/, Stream *out) {
+void ScriptViewFrame::Serialize(const void * /*address*/, Stream *out)
+{
     out->WriteInt32(view);
     out->WriteInt32(loop);
     out->WriteInt32(frame);
 }
 
-void ScriptViewFrame::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void ScriptViewFrame::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
     view = in->ReadInt32();
     loop = in->ReadInt32();
     frame = in->ReadInt32();
     ccRegisterUnserializedObject(index, this, this);
 }
 
-ScriptViewFrame::ScriptViewFrame(int p_view, int p_loop, int p_frame) {
+ScriptViewFrame::ScriptViewFrame(int p_view, int p_loop, int p_frame)
+{
     view = p_view;
     loop = p_loop;
     frame = p_frame;
 }
 
-ScriptViewFrame::ScriptViewFrame() {
+ScriptViewFrame::ScriptViewFrame()
+{
     view = -1;
     loop = -1;
     frame = -1;

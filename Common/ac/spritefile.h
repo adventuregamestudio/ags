@@ -69,8 +69,8 @@ struct SpriteFileIndex
     // but then we'd need factory methods for SpriteIndex struct
     std::vector<int16_t> Widths;
     std::vector<int16_t> Heights;
-    std::vector<int8_t>  Depths;
-    std::vector<soff_t>  Offsets;
+    std::vector<int8_t> Depths;
+    std::vector<soff_t> Offsets;
 
     // Tells the number of index entries; this does NOT always correspond to a number of valid sprites
     inline size_t GetCount() const { return Offsets.size(); }
@@ -89,57 +89,53 @@ public:
 
     SpriteFile();
     // Loads sprite reference information and inits sprite stream
-    HError      OpenFile(std::unique_ptr<Stream> &&sprite_file,
-                         std::unique_ptr<Stream> &&index_file);
+    HError OpenFile(std::unique_ptr<Stream> &&sprite_file, std::unique_ptr<Stream> &&index_file);
     // Loads sprite reference information and inits sprite stream;
     // fills in found sprites's basic metrics.
-    HError      OpenFile(std::unique_ptr<Stream> &&sprite_file,
-                         std::unique_ptr<Stream> &&index_file,
-                         std::vector<GraphicResolution> &metrics);
+    HError OpenFile(std::unique_ptr<Stream> &&sprite_file, std::unique_ptr<Stream> &&index_file,
+                    std::vector<GraphicResolution> &metrics);
     // Loads sprite reference information and inits sprite stream;
     // fills in found sprites's extended metrics.
-    HError      OpenFile(std::unique_ptr<Stream> &&sprite_file,
-                         std::unique_ptr<Stream> &&index_file,
-                         std::vector<SpriteDatHeader> &metrics);
+    HError OpenFile(std::unique_ptr<Stream> &&sprite_file, std::unique_ptr<Stream> &&index_file,
+                    std::vector<SpriteDatHeader> &metrics);
     // Closes stream; no reading will be possible unless opened again
-    void        Close();
+    void Close();
 
-    int         GetStoreFlags() const;
+    int GetStoreFlags() const;
     // Tells if bitmaps in the file are compressed
     SpriteCompression GetSpriteCompression() const;
     // Tells the highest known sprite index
-    sprkey_t    GetTopmostSprite() const;
+    sprkey_t GetTopmostSprite() const;
     // Tells the total valid sprite count (remember that sprite
     // indexes may be not sequential)
-    size_t      GetSpriteCount() const;
+    size_t GetSpriteCount() const;
 
     // Tells if the sprite of this index exists in the file
-    bool        DoesSpriteExist(sprkey_t index);
+    bool DoesSpriteExist(sprkey_t index);
     // Loads an image data and creates a ready bitmap
-    HError      LoadSprite(sprkey_t index, PixelBuffer &sprite);
+    HError LoadSprite(sprkey_t index, PixelBuffer &sprite);
     // Loads a raw sprite element data into the buffer, stores header info separately
-    HError      LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector<uint8_t> &data);
+    HError LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector<uint8_t> &data);
     // Loads all sprites's available metrics
-    HError      LoadSpriteMetrics(std::vector<SpriteDatHeader> &metrics);
+    HError LoadSpriteMetrics(std::vector<SpriteDatHeader> &metrics);
 
 private:
-    HError      OpenFileImpl(std::unique_ptr<Stream> &&sprite_file,
-                         std::unique_ptr<Stream> &&index_file,
-                         std::vector<GraphicResolution> *metrics, std::vector<SpriteDatHeader> *metrics2);
+    HError OpenFileImpl(std::unique_ptr<Stream> &&sprite_file, std::unique_ptr<Stream> &&index_file,
+                        std::vector<GraphicResolution> *metrics, std::vector<SpriteDatHeader> *metrics2);
     // Loads sprite index file
-    bool        LoadSpriteIndexFile(std::unique_ptr<Stream> && index_file, int expectedFileID,
-                        sprkey_t topmost, std::vector<GraphicResolution> *metrics);
+    bool LoadSpriteIndexFile(std::unique_ptr<Stream> &&index_file, int expectedFileID, sprkey_t topmost,
+                             std::vector<GraphicResolution> *metrics);
     // Rebuilds sprite index from the main sprite file
-    HError      RebuildSpriteIndex(Stream *in, sprkey_t topmost,
-                        std::vector<GraphicResolution> *metrics, std::vector<SpriteDatHeader>* metrics2);
+    HError RebuildSpriteIndex(Stream *in, sprkey_t topmost, std::vector<GraphicResolution> *metrics,
+                              std::vector<SpriteDatHeader> *metrics2);
     // Seek stream to sprite
-    void        SeekToSprite(sprkey_t index);
+    void SeekToSprite(sprkey_t index);
 
     // Internal sprite reference
     struct SpriteRef
     {
         soff_t Offset = 0; // data offset
-        bool   HasImage = false;
+        bool HasImage = false;
         size_t RawSize = 0; // file size of element, in bytes
         // TODO: RawSize is currently unused, due to incompleteness of spriteindex format
     };
@@ -149,9 +145,9 @@ private:
     size_t _validCount = 0u;
     std::unique_ptr<Stream> _stream; // the sprite stream
     SpriteFileVersion _version = kSprfVersion_Current;
-    int _storeFlags = 0; // storage flags, specify how sprites may be stored
+    int _storeFlags = 0;                             // storage flags, specify how sprites may be stored
     SpriteCompression _compress = kSprCompress_None; // sprite compression type
-    sprkey_t _curPos; // current stream position (sprite slot)
+    sprkey_t _curPos;                                // current stream position (sprite slot)
 };
 
 
@@ -161,11 +157,13 @@ private:
 class SpriteFileWriter
 {
 public:
-    SpriteFileWriter(std::unique_ptr<Stream> &&out)
-        : _out(std::move(out)) {}
+    SpriteFileWriter(std::unique_ptr<Stream> &&out) : _out(std::move(out)) {}
     ~SpriteFileWriter() = default;
 
-    sprkey_t GetLastWrittenSlot() const { return _index.Offsets.size() > 0 ? static_cast<sprkey_t>(_index.Offsets.size() - 1) : -1; }
+    sprkey_t GetLastWrittenSlot() const
+    {
+        return _index.Offsets.size() > 0 ? static_cast<sprkey_t>(_index.Offsets.size() - 1) : -1;
+    }
     // Get the sprite index, accumulated after write
     const SpriteFileIndex &GetIndex() const { return _index; }
 
@@ -181,7 +179,9 @@ public:
     // Writes a raw sprite data without any additional processing
     void WriteRawData(const SpriteDatHeader &hdr, const uint8_t *data, size_t data_sz);
     inline void WriteRawData(const SpriteDatHeader &hdr, const std::vector<uint8_t> &data)
-        { WriteRawData(hdr, data.data(), data.size()); }
+    {
+        WriteRawData(hdr, data.data(), data.size());
+    }
     // Finalizes current format; no further writing is possible after this
     void Finalize();
 
@@ -201,15 +201,13 @@ private:
 // Accepts available sprites as pairs of bool and BitmapData buffers, where boolean value
 // tells if sprite exists, and BitmapData may be invalid;
 // If a sprite's bitmap is missing, it will try reading one from the input file stream.
-HError SaveSpriteFile(const String &save_to_file,
-    const std::vector<std::pair<bool, BitmapData>> &sprites,
-    SpriteFile *read_from_file, // optional file to read missing sprites from
-    int store_flags, SpriteCompression compress, SpriteFileIndex &index);
+HError SaveSpriteFile(const String &save_to_file, const std::vector<std::pair<bool, BitmapData>> &sprites,
+                      SpriteFile *read_from_file, // optional file to read missing sprites from
+                      int store_flags, SpriteCompression compress, SpriteFileIndex &index);
 // Saves all sprites into the provided stream; fills an index data for external use.
-HError SaveSpriteFile(std::unique_ptr<Stream> &&out,
-    const std::vector<std::pair<bool, BitmapData>>& sprites,
-    SpriteFile* read_from_file, // optional file to read missing sprites from
-    int store_flags, SpriteCompression compress, SpriteFileIndex& index);
+HError SaveSpriteFile(std::unique_ptr<Stream> &&out, const std::vector<std::pair<bool, BitmapData>> &sprites,
+                      SpriteFile *read_from_file, // optional file to read missing sprites from
+                      int store_flags, SpriteCompression compress, SpriteFileIndex &index);
 // Saves sprite index table in a separate file
 HError SaveSpriteIndex(const String &filename, const SpriteFileIndex &index);
 

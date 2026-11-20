@@ -40,7 +40,7 @@ public:
     static const GfxFilterInfo FilterInfo;
 };
 
-} // namespace D3D
+} // namespace OGL
 } // namespace Engine
 } // namespace AGS
 

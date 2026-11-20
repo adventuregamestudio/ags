@@ -21,16 +21,22 @@
 
 #include <allegro.h> // RGB
 
-namespace AGS { namespace Common { class Bitmap; }}
+namespace AGS
+{
+namespace Common
+{
+class Bitmap;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 //=============================================================================
-    
-    extern Common::Bitmap *wnewblock(Common::Bitmap *src, int x1, int y1, int x2, int y2);
 
-    extern void wputblock(Common::Bitmap *ds, int xx, int yy, Common::Bitmap *bll, int xray);
-	// CHECKME: temporary solution for plugin system
-	extern void wputblock_raw(Common::Bitmap *ds, int xx, int yy, BITMAP *bll, int xray);
+extern Common::Bitmap *wnewblock(Common::Bitmap *src, int x1, int y1, int x2, int y2);
+
+extern void wputblock(Common::Bitmap *ds, int xx, int yy, Common::Bitmap *bll, int xray);
+// CHECKME: temporary solution for plugin system
+extern void wputblock_raw(Common::Bitmap *ds, int xx, int yy, BITMAP *bll, int xray);
 
 
 #endif // __WGT4_H

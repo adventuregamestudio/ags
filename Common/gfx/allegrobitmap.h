@@ -37,7 +37,7 @@ class Bitmap
 public:
     // Pixel object deleter function that hides the deleted type under void* pointer;
     // this prevents Bitmap class from getting extra fixed type dependencies.
-    typedef void(*PixelObjectDeleter)(void*);
+    typedef void (*PixelObjectDeleter)(void *);
     // Pixel object owning pointer. Allows to initialize Bitmap with any arbitrary
     // data with a custom deleter function.
     typedef std::unique_ptr<void, PixelObjectDeleter> PixelObjectPtr;
@@ -62,8 +62,8 @@ public:
     Bitmap(Bitmap &&bmp);
     ~Bitmap();
 
-    Bitmap &operator =(const Bitmap &bmp);
-    Bitmap &operator =(Bitmap &&bmp) = default;
+    Bitmap &operator=(const Bitmap &bmp);
+    Bitmap &operator=(Bitmap &&bmp) = default;
 
     // Sets default color depth of the created bitmaps (in bits per pixel)
     static void SetColorDepth(int color_depth);
@@ -75,126 +75,87 @@ public:
     // TODO: color_depth = 0 is used to call Allegro's create_bitmap, which uses
     // some global color depth setting; not sure if this is OK to use for generic class,
     // revise this in future
-    bool    Create(int width, int height, int color_depth = 0);
+    bool Create(int width, int height, int color_depth = 0);
     // Create Bitmap and clear to transparent color
-    bool    CreateTransparent(int width, int height, int color_depth = 0);
+    bool CreateTransparent(int width, int height, int color_depth = 0);
     // Create Bitmap and attach prepared pixel buffer
-    bool    Create(PixelBuffer &&pxbuf);
+    bool Create(PixelBuffer &&pxbuf);
     // Creates a sub-bitmap of the given bitmap; the sub-bitmap is a reference to
     // particular region inside a parent.
     // WARNING: the parent bitmap MUST be kept in memory for as long as sub-bitmap exists!
-    bool    CreateSubBitmap(const Bitmap *src, const Rect &rc);
+    bool CreateSubBitmap(const Bitmap *src, const Rect &rc);
     // Resizes existing sub-bitmap within the borders of its parent
-    bool    ResizeSubBitmap(int width, int height);
+    bool ResizeSubBitmap(int width, int height);
     // Creates a plain copy of the given bitmap, optionally converting to a different color depth;
     // pass color depth 0 to keep the original one.
-    bool	CreateCopy(const Bitmap *src, int color_depth = 0);
+    bool CreateCopy(const Bitmap *src, int color_depth = 0);
     // TODO: this is a temporary solution for plugin support
     // Wraps a raw allegro BITMAP object, optionally owns it (will delete on disposal)
-    bool    WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data);
+    bool WrapAllegroBitmap(BITMAP *al_bmp, bool shared_data);
     // Releases a reference to raw allegro BITMAP object without deleting it;
     // WARNING: this is meant strictly as a workaround in case third-party lib
     // have deleted our owned BITMAP object.
-    void    ForgetAllegroBitmap();
+    void ForgetAllegroBitmap();
     // Wraps an arbitrary pixel data object, optionally owns it (will delete on disposal);
     // BitmapData is used to pass pixel buffer pointer and metrics, while PixelObjectPtr
     // stores *something* that ought to be deleted using its own function.
-    bool    WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, bool shared_data);
+    bool WrapPixelObject(PixelObjectPtr &&data_obj, BitmapData &bm_data, bool shared_data);
     // Releases pixel data from ownership and returns it to the caller
     PixelBuffer ReleasePixelData();
     // Deallocate bitmap
-    void	Destroy();
+    void Destroy();
 
     // FIXME: skip_alpha parameter is added as a hotfix, to be able to reduce
     // image file size when writing 32-bit images which are known to be opaque (like screenshots).
     // Normally this should be replaced with a "destination pixel format OR color depth" parameter.
-    bool    SaveToFile(const char* filename, bool skip_alpha, const RGB *palette);
+    bool SaveToFile(const char *filename, bool skip_alpha, const RGB *palette);
     inline bool SaveToFile(const String &filename, bool skip_alpha, const RGB *palette)
-            { return SaveToFile(filename.GetCStr(), skip_alpha, palette); }
+    {
+        return SaveToFile(filename.GetCStr(), skip_alpha, palette);
+    }
     inline bool SaveToFile(const String &filename, const RGB *palette = nullptr)
-            { return SaveToFile(filename.GetCStr(), false, palette); }
+    {
+        return SaveToFile(filename.GetCStr(), false, palette);
+    }
     inline bool SaveToFile(const char *filename, const RGB *palette = nullptr)
-            { return SaveToFile(filename, false, palette); }
+    {
+        return SaveToFile(filename, false, palette);
+    }
 
     // TODO: This is temporary solution for cases when we cannot replace
-	// use of raw BITMAP struct with Bitmap
-    inline BITMAP *GetAllegroBitmap()
-    {
-        return _alBitmap;
-    }
+    // use of raw BITMAP struct with Bitmap
+    inline BITMAP *GetAllegroBitmap() { return _alBitmap; }
 
-    inline const BITMAP *GetAllegroBitmap() const
-    {
-        return _alBitmap;
-    }
+    inline const BITMAP *GetAllegroBitmap() const { return _alBitmap; }
 
     // Is this a subbitmap, referencing a part of another, bigger one?
-    inline bool IsSubBitmap() const
-    {
-        return is_sub_bitmap(_alBitmap) != 0;
-    }
+    inline bool IsSubBitmap() const { return is_sub_bitmap(_alBitmap) != 0; }
     // Do both bitmaps share same data (usually: subbitmaps, or parent/subbitmap)
-    inline bool IsSameBitmap(Bitmap *other) const
-    {
-        return is_same_bitmap(_alBitmap, other->_alBitmap) != 0;
-    }
+    inline bool IsSameBitmap(Bitmap *other) const { return is_same_bitmap(_alBitmap, other->_alBitmap) != 0; }
     // Checks if bitmap cannot be used
-    inline bool IsNull() const
-    {
-        return !_alBitmap;
-    }
+    inline bool IsNull() const { return !_alBitmap; }
     // Checks if bitmap has zero size: either width or height (or both) is zero
-    inline bool IsEmpty() const
-    {
-        return GetWidth() == 0 || GetHeight() == 0;
-    }
-    inline int  GetWidth() const
-    {
-        return _alBitmap->w;
-    }
-    inline int  GetHeight() const
-    {
-        return _alBitmap->h;
-    }
-    inline Size GetSize() const
-    {
-        return Size(_alBitmap->w, _alBitmap->h);
-    }
+    inline bool IsEmpty() const { return GetWidth() == 0 || GetHeight() == 0; }
+    inline int GetWidth() const { return _alBitmap->w; }
+    inline int GetHeight() const { return _alBitmap->h; }
+    inline Size GetSize() const { return Size(_alBitmap->w, _alBitmap->h); }
     // Get sub-bitmap's offset position within its parent
-    inline Point GetSubOffset() const
-    {
-        return Point(_alBitmap->x_ofs, _alBitmap->y_ofs);
-    }
+    inline Point GetSubOffset() const { return Point(_alBitmap->x_ofs, _alBitmap->y_ofs); }
     // Get color depth in bits-per-pixel (8, 16, 32, etc)
-    inline int  GetColorDepth() const
-    {
-        return bitmap_color_depth(_alBitmap);
-    }
+    inline int GetColorDepth() const { return bitmap_color_depth(_alBitmap); }
     // Get color depth in bytes per pixel (1, 2, 4, etc)
-    inline int  GetBPP() const
-    {
-        return (GetColorDepth() + 7) / 8;
-    }
+    inline int GetBPP() const { return (GetColorDepth() + 7) / 8; }
 
     // Gets size of Bitmap's pixel data, in bytes
-	inline int  GetDataSize() const
-    {
-        return _alBitmap->dat_sz;
-    }
+    inline int GetDataSize() const { return _alBitmap->dat_sz; }
     // Gets pitch (a single scaneline) length in bytes
-	inline int  GetPitch() const
-    {
-        return _alBitmap->pitch;
-    }
+    inline int GetPitch() const { return _alBitmap->pitch; }
 
-	// Gets a pointer to underlying graphic data
-    inline const unsigned char *GetData() const
-    {
-        return _alBitmap->line[0];
-    }
+    // Gets a pointer to underlying graphic data
+    inline const unsigned char *GetData() const { return _alBitmap->line[0]; }
 
     // Get scanline for direct reading
-	inline const unsigned char *GetScanLine(int index) const
+    inline const unsigned char *GetScanLine(int index) const
     {
         assert(index >= 0 && index < GetHeight());
         return _alBitmap->line[index];
@@ -203,22 +164,21 @@ public:
     // Get bitmap data wrapped in a PixelBuffer struct
     inline const BitmapData GetBitmapData() const
     {
-        return BitmapData(GetData(), GetDataSize(), GetPitch(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
+        return BitmapData(GetData(), GetDataSize(), GetPitch(), GetWidth(), GetHeight(),
+                          ColorDepthToPixelFormat(GetColorDepth()));
     }
 
     inline BitmapData GetBitmapData()
     {
-        return BitmapData(GetDataForWriting(), GetDataSize(), GetPitch(), GetWidth(), GetHeight(), ColorDepthToPixelFormat(GetColorDepth()));
+        return BitmapData(GetDataForWriting(), GetDataSize(), GetPitch(), GetWidth(), GetHeight(),
+                          ColorDepthToPixelFormat(GetColorDepth()));
     }
 
     //=========================================================================
     // Colors
     //=========================================================================
     // Get bitmap's mask color (transparent color)
-    inline color_t GetMaskColor() const
-    {
-        return bitmap_mask_color(_alBitmap);
-    }
+    inline color_t GetMaskColor() const { return bitmap_mask_color(_alBitmap); }
 
     // Converts AGS color-index into RGB color compatible with the bitmap format.
     color_t GetCompatibleColor(int color);
@@ -227,98 +187,93 @@ public:
     // Helpers
     //=========================================================================
     // Tells if the given point lies within the bitmap bounds
-    inline bool IsOnBitmap(int x, int y) const
-    {
-        return x >= 0 && y >= 0 && x < GetWidth() && y < GetHeight();
-    }
+    inline bool IsOnBitmap(int x, int y) const { return x >= 0 && y >= 0 && x < GetWidth() && y < GetHeight(); }
 
     //=========================================================================
     // Clipping
     // TODO: consider implementing push-pop clipping stack logic.
     //=========================================================================
-    void    SetClip(const Rect &rc);
-    void    ResetClip();
-    Rect    GetClip() const;
+    void SetClip(const Rect &rc);
+    void ResetClip();
+    Rect GetClip() const;
 
     //=========================================================================
     // Blitting operations (drawing one bitmap over another)
     //=========================================================================
     // Draw other bitmap over current one
-    void    Blit(const Bitmap *src, int dst_x = 0, int dst_y = 0, BitmapMaskOption mask = kBitmap_Copy);
-    void    Blit(const Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height, BitmapMaskOption mask = kBitmap_Copy);
+    void Blit(const Bitmap *src, int dst_x = 0, int dst_y = 0, BitmapMaskOption mask = kBitmap_Copy);
+    void Blit(const Bitmap *src, int src_x, int src_y, int dst_x, int dst_y, int width, int height,
+              BitmapMaskOption mask = kBitmap_Copy);
     // Draw other bitmap in a masked mode (kBitmap_Transparency)
-    void    MaskedBlit(const Bitmap *src, int dst_x = 0, int dst_y = 0);
+    void MaskedBlit(const Bitmap *src, int dst_x = 0, int dst_y = 0);
     // Draw other bitmap, stretching or shrinking its size to given values
-    void    StretchBlt(const Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
-    void    StretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+    void StretchBlt(const Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+    void StretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
     // Antia-aliased stretch-blit
-    void    AAStretchBlt(const Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
-    void    AAStretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+    void AAStretchBlt(const Bitmap *src, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
+    void AAStretchBlt(const Bitmap *src, const Rect &src_rc, const Rect &dst_rc, BitmapMaskOption mask = kBitmap_Copy);
     // TODO: find more general way to call these operations, probably require pointer to Blending data struct?
     // Draw bitmap using translucency preset
-    void    TransBlendBlt(const Bitmap *src, int dst_x = 0, int dst_y = 0);
+    void TransBlendBlt(const Bitmap *src, int dst_x = 0, int dst_y = 0);
     // Draw bitmap using lighting preset
-    void    LitBlendBlt(const Bitmap *src, int dst_x, int dst_y, int light_amount);
+    void LitBlendBlt(const Bitmap *src, int dst_x, int dst_y, int light_amount);
     // TODO: generic "draw transformed" function? What about mask option?
     // TODO: "flip self" function
-    void    FlipBlt(const Bitmap *src, int dst_x, int dst_y, GraphicFlip flip);
+    void FlipBlt(const Bitmap *src, int dst_x, int dst_y, GraphicFlip flip);
     // Draws rotated bitmap, using angle given in degrees.
     // Warning: does not resize destination bitmap; if it's not large enough
     // then the resulting image may end up cropped.
-    void    RotateBlt(const Bitmap *src, int dst_x, int dst_y, int angle);
-    void    RotateBlt(const Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, int angle);
+    void RotateBlt(const Bitmap *src, int dst_x, int dst_y, int angle);
+    void RotateBlt(const Bitmap *src, int dst_x, int dst_y, int pivot_x, int pivot_y, int angle);
 
     //=========================================================================
     // Pixel operations
     //=========================================================================
     // Fills the whole bitmap with given color (black by default)
-    void	Clear(color_t color = 0);
-    void    ClearTransparent();
+    void Clear(color_t color = 0);
+    void ClearTransparent();
     // The PutPixel and GetPixel are supposed to be safe and therefore
     // relatively slow operations. They should not be used for changing large
     // blocks of bitmap memory - reading/writing from/to scan lines should be
     // done in such cases.
-    void	PutPixel(int x, int y, color_t color);
-    void    BlendPixel(int x, int y, color_t color);
-    int		GetPixel(int x, int y) const;
+    void PutPixel(int x, int y, color_t color);
+    void BlendPixel(int x, int y, color_t color);
+    int GetPixel(int x, int y) const;
 
     //=========================================================================
     // Vector drawing operations
     //=========================================================================
-    void    DrawArc(int x, int y, int radius, int angle1, int angle2, color_t color);
-    void    DrawCircle(const Circle &circle, color_t color);
-    void    DrawEllipse(int x, int y, int radiusx, int radiusy, color_t color);
-    void    DrawLine(const Line &ln, color_t color);
-    void    DrawPie(int x, int y, int radius, int angle1, int angle2, color_t color);
-    void    DrawRect(const Rect &rc, color_t color);
-    void    DrawTriangle(const Triangle &tr, color_t color);
-    void    FillCircle(const Circle &circle, color_t color);
-    void    FillEllipse(int x, int y, int radiusx, int radiusy, color_t color);
-    void    FillPie(int x, int y, int radius, int angle1, int angle2, color_t color);
-    void    FillRect(const Rect &rc, color_t color);
-    void    FillTriangle(const Triangle &tr, color_t color);
+    void DrawArc(int x, int y, int radius, int angle1, int angle2, color_t color);
+    void DrawCircle(const Circle &circle, color_t color);
+    void DrawEllipse(int x, int y, int radiusx, int radiusy, color_t color);
+    void DrawLine(const Line &ln, color_t color);
+    void DrawPie(int x, int y, int radius, int angle1, int angle2, color_t color);
+    void DrawRect(const Rect &rc, color_t color);
+    void DrawTriangle(const Triangle &tr, color_t color);
+    void FillCircle(const Circle &circle, color_t color);
+    void FillEllipse(int x, int y, int radiusx, int radiusy, color_t color);
+    void FillPie(int x, int y, int radius, int angle1, int angle2, color_t color);
+    void FillRect(const Rect &rc, color_t color);
+    void FillTriangle(const Triangle &tr, color_t color);
     // Fills the whole bitmap with given color
-    void    Fill(color_t color);
-    void    FillTransparent();
+    void Fill(color_t color);
+    void FillTransparent();
     // Floodfills an enclosed area, starting at point
-    void    FloodFill(int x, int y, color_t color);
+    void FloodFill(int x, int y, color_t color);
 
-	//=========================================================================
-	// Direct access operations
-	//=========================================================================
+    //=========================================================================
+    // Direct access operations
+    //=========================================================================
     // TODO: think how to increase safety over this (some fixed memory buffer class with iterator?)
-	// Gets scanline for directly writing into it
+    // Gets scanline for directly writing into it
     inline unsigned char *GetScanLineForWriting(int index)
     {
         assert(index >= 0 && index < GetHeight());
         return _alBitmap->line[index];
     }
-    inline unsigned char *GetDataForWriting()
-    {
-        return _alBitmap->line[0];
-    }
+    inline unsigned char *GetDataForWriting() { return _alBitmap->line[0]; }
     // Copies buffer contents into scanline
-    void    SetScanLine(int index, unsigned char *data, int data_size = -1);
+    void SetScanLine(int index, unsigned char *data, int data_size = -1);
 
 private:
     // Actual pixel data storage
@@ -326,26 +281,25 @@ private:
     // Arbitrary external object that contains pixel data and is deleted with a custom deleter
     PixelObjectPtr _pixelObject = PixelObjectPtr(nullptr, nullptr);
     BITMAP *_alBitmap = nullptr;
-    bool    _ownPixelData = false; // whether owning pixel data / pixel object
+    bool _ownPixelData = false; // whether owning pixel data / pixel object
     // FIXME: use std::unique_ptr<BITMAP> with no-op deleter
-    bool    _isBmOwner = false; // whether owning BITMAP object
+    bool _isBmOwner = false; // whether owning BITMAP object
 };
-
 
 
 namespace BitmapHelper
 {
-    // Remaps AGS color number to a color value compatible to a bitmap of certain color depth
-    int AGSColorToBitmapColor(int color, int color_depth);
-    // Remaps a bitmap pixel of certain color depth to AGS color number
-    int BitmapColorToAGSColor(int color, int color_depth);
-    // Remaps AGS color number in certain color depth mode to a actual RGB
-    void AGSColorToRGB(int color, int color_depth, RGB &rgb);
-    // TODO: revise those functions later (currently needed in a few very specific cases)
-	// NOTE: the resulting object __owns__ bitmap data from now on
-	Bitmap *CreateRawBitmapOwner(BITMAP *al_bmp);
-	// NOTE: the resulting object __does not own__ bitmap data
-	Bitmap *CreateRawBitmapWrapper(BITMAP *al_bmp);
+// Remaps AGS color number to a color value compatible to a bitmap of certain color depth
+int AGSColorToBitmapColor(int color, int color_depth);
+// Remaps a bitmap pixel of certain color depth to AGS color number
+int BitmapColorToAGSColor(int color, int color_depth);
+// Remaps AGS color number in certain color depth mode to a actual RGB
+void AGSColorToRGB(int color, int color_depth, RGB &rgb);
+// TODO: revise those functions later (currently needed in a few very specific cases)
+// NOTE: the resulting object __owns__ bitmap data from now on
+Bitmap *CreateRawBitmapOwner(BITMAP *al_bmp);
+// NOTE: the resulting object __does not own__ bitmap data
+Bitmap *CreateRawBitmapWrapper(BITMAP *al_bmp);
 } // namespace BitmapHelper
 
 } // namespace Common

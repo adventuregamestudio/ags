@@ -32,20 +32,14 @@ namespace AGS
 namespace Engine
 {
 
-template <class TGfxDriverClass, class TGfxFilterClass>
+template<class TGfxDriverClass, class TGfxFilterClass>
 class GfxDriverFactoryBase : public IGfxDriverFactory
 {
 protected:
-    ~GfxDriverFactoryBase() override
-    {
-        delete _driver;
-    }
+    ~GfxDriverFactoryBase() override { delete _driver; }
 
 public:
-    void Shutdown() override
-    {
-        delete this;
-    }
+    void Shutdown() override { delete this; }
 
     IGraphicsDriver *GetDriver() override
     {
@@ -94,15 +88,12 @@ public:
     }
 
 protected:
-    GfxDriverFactoryBase()
-        : _driver(nullptr)
-    {
-    }
+    GfxDriverFactoryBase() : _driver(nullptr) {}
 
     virtual TGfxDriverClass *EnsureDriverCreated() = 0;
     virtual TGfxFilterClass *CreateFilter(const String &id) = 0;
 
-    TGfxDriverClass         *_driver;
+    TGfxDriverClass *_driver;
 };
 
 } // namespace Engine

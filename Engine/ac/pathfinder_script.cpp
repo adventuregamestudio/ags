@@ -145,10 +145,10 @@ ScriptMotionPath *MotionPath_Create(void *path_arr, float speedx, float speedy, 
     ValidateAnimParams("MotionPath.Create", "", repeat, direction);
 
     MoveList mlist;
-    MoveListOp::CalculateMoveList(mlist, path, speedx, speedy, 0u,
+    MoveListOp::CalculateMoveList(
+        mlist, path, speedx, speedy, 0u,
         RunPathParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction)));
-    return static_cast<ScriptMotionPath*>(
-        ScriptMotionPath::Create(add_movelist(std::move(mlist))).Obj());
+    return static_cast<ScriptMotionPath *>(ScriptMotionPath::Create(add_movelist(std::move(mlist))).Obj());
 }
 
 ScriptMotionPath *MotionPath_Create2(void *path_arr, void *speedx_arr, void *speedy_arr, int repeat, int direction)
@@ -182,10 +182,10 @@ ScriptMotionPath *MotionPath_Create2(void *path_arr, void *speedx_arr, void *spe
     for (size_t i = 0; i < speedxs.size() && i < speedys.size(); ++i)
         speeds.emplace_back(speedxs[i], speedys[i]);
     MoveList mlist;
-    MoveListOp::CalculateMoveList(mlist, path, speeds, 0u,
+    MoveListOp::CalculateMoveList(
+        mlist, path, speeds, 0u,
         RunPathParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction)));
-    return static_cast<ScriptMotionPath *>(
-        ScriptMotionPath::Create(add_movelist(std::move(mlist))).Obj());
+    return static_cast<ScriptMotionPath *>(ScriptMotionPath::Create(add_movelist(std::move(mlist))).Obj());
 }
 
 static bool ValidateMoveList(const char *api_name, ScriptMotionPath *mpath)
@@ -208,8 +208,8 @@ static bool ValidateMoveListAndStageIndex(const char *api_name, ScriptMotionPath
     }
     if (stage < 0 || static_cast<uint32_t>(stage) >= mlist->GetNumStages())
     {
-        debug_script_warn("%s: stage out of range for a motion path, requested %d, valid range 0..%u.",
-                          api_name, stage, mlist->GetNumStages());
+        debug_script_warn("%s: stage out of range for a motion path, requested %d, valid range 0..%u.", api_name, stage,
+                          mlist->GetNumStages());
         return false;
     }
     return true;
@@ -266,8 +266,7 @@ int MotionPath_GetDirection(ScriptMotionPath *mpath)
 {
     if (!ValidateMoveList("MotionPath.Direction", mpath))
         return 0;
-    return mpath->GetMoveList()->GetRunParams().IsForward() ?
-        FORWARDS : BACKWARDS;
+    return mpath->GetMoveList()->GetRunParams().IsForward() ? FORWARDS : BACKWARDS;
 }
 
 int MotionPath_GetRepeatStyle(ScriptMotionPath *mpath)
@@ -281,8 +280,7 @@ int MotionPath_GetWalkWhere(ScriptMotionPath *mpath)
 {
     if (!ValidateMoveList("MotionPath.WalkWhere", mpath))
         return 0;
-    return mpath->GetMoveList()->IsStageDirect() ?
-        ANYWHERE : WALKABLE_AREAS;
+    return mpath->GetMoveList()->IsStageDirect() ? ANYWHERE : WALKABLE_AREAS;
 }
 
 int MotionPath_GetStageX(ScriptMotionPath *mpath, int index)
@@ -469,36 +467,36 @@ RuntimeScriptValue Sc_MotionPath_GetVelocityY(void *self, const RuntimeScriptVal
 void RegisterPathfinderAPI()
 {
     ScFnRegister pathfinder_api[] = {
-        { "Pathfinder::FindPath",       API_FN_PAIR(Pathfinder_FindPath) },
-        { "Pathfinder::Trace",          API_FN_PAIR(Pathfinder_Trace) },
-        { "Pathfinder::IsWalkableAt",   API_FN_PAIR(Pathfinder_IsWalkableAt) },
-        { "Pathfinder::NearestWalkablePoint", API_FN_PAIR(Pathfinder_NearestWalkablePoint) },
+        {"Pathfinder::FindPath", API_FN_PAIR(Pathfinder_FindPath)},
+        {"Pathfinder::Trace", API_FN_PAIR(Pathfinder_Trace)},
+        {"Pathfinder::IsWalkableAt", API_FN_PAIR(Pathfinder_IsWalkableAt)},
+        {"Pathfinder::NearestWalkablePoint", API_FN_PAIR(Pathfinder_NearestWalkablePoint)},
 
-        { "MaskPathfinder::Create",     API_FN_PAIR(MaskPathfinder_Create) },
-        { "MaskPathfinder::SetMask",    API_FN_PAIR(MaskPathfinder_SetMask) },
+        {"MaskPathfinder::Create", API_FN_PAIR(MaskPathfinder_Create)},
+        {"MaskPathfinder::SetMask", API_FN_PAIR(MaskPathfinder_SetMask)},
 
-        { "MotionPath::Create",         API_FN_PAIR(MotionPath_Create) },
-        { "MotionPath::Create2",        API_FN_PAIR(MotionPath_Create2) },
-        { "MotionPath::GetPath",        API_FN_PAIR(MotionPath_GetPath) },
-        { "MotionPath::StepBack",       API_FN_PAIR(MotionPath_StepBack) },
-        { "MotionPath::StepForward",    API_FN_PAIR(MotionPath_StepForward) },
-        { "MotionPath::Reset",          API_FN_PAIR(MotionPath_Reset) },
-        { "MotionPath::get_Valid",      API_FN_PAIR(MotionPath_GetValid) },
-        { "MotionPath::get_Direction",  API_FN_PAIR(MotionPath_GetDirection) },
-        { "MotionPath::get_RepeatStyle",API_FN_PAIR(MotionPath_GetRepeatStyle) },
-        { "MotionPath::get_WalkWhere",  API_FN_PAIR(MotionPath_GetWalkWhere) },
-        { "MotionPath::get_IsCompleted",API_FN_PAIR(MotionPath_GetIsCompleted) },
-        { "MotionPath::get_StageCount", API_FN_PAIR(MotionPath_GetStageCount) },
-        { "MotionPath::geti_StageX",    API_FN_PAIR(MotionPath_GetStageX) },
-        { "MotionPath::geti_StageY",    API_FN_PAIR(MotionPath_GetStageY) },
-        { "MotionPath::geti_StageSpeedX", API_FN_PAIR(MotionPath_GetStageSpeedX) },
-        { "MotionPath::geti_StageSpeedY", API_FN_PAIR(MotionPath_GetStageSpeedY) },
-        { "MotionPath::get_Stage",      API_FN_PAIR(MotionPath_GetStage) },
-        { "MotionPath::get_Progress",   API_FN_PAIR(MotionPath_GetProgress) },
-        { "MotionPath::get_PositionX",  API_FN_PAIR(MotionPath_GetPositionX) },
-        { "MotionPath::get_PositionY",  API_FN_PAIR(MotionPath_GetPositionY) },
-        { "MotionPath::get_VelocityX",  API_FN_PAIR(MotionPath_GetVelocityX) },
-        { "MotionPath::get_VelocityY",  API_FN_PAIR(MotionPath_GetVelocityY) },
+        {"MotionPath::Create", API_FN_PAIR(MotionPath_Create)},
+        {"MotionPath::Create2", API_FN_PAIR(MotionPath_Create2)},
+        {"MotionPath::GetPath", API_FN_PAIR(MotionPath_GetPath)},
+        {"MotionPath::StepBack", API_FN_PAIR(MotionPath_StepBack)},
+        {"MotionPath::StepForward", API_FN_PAIR(MotionPath_StepForward)},
+        {"MotionPath::Reset", API_FN_PAIR(MotionPath_Reset)},
+        {"MotionPath::get_Valid", API_FN_PAIR(MotionPath_GetValid)},
+        {"MotionPath::get_Direction", API_FN_PAIR(MotionPath_GetDirection)},
+        {"MotionPath::get_RepeatStyle", API_FN_PAIR(MotionPath_GetRepeatStyle)},
+        {"MotionPath::get_WalkWhere", API_FN_PAIR(MotionPath_GetWalkWhere)},
+        {"MotionPath::get_IsCompleted", API_FN_PAIR(MotionPath_GetIsCompleted)},
+        {"MotionPath::get_StageCount", API_FN_PAIR(MotionPath_GetStageCount)},
+        {"MotionPath::geti_StageX", API_FN_PAIR(MotionPath_GetStageX)},
+        {"MotionPath::geti_StageY", API_FN_PAIR(MotionPath_GetStageY)},
+        {"MotionPath::geti_StageSpeedX", API_FN_PAIR(MotionPath_GetStageSpeedX)},
+        {"MotionPath::geti_StageSpeedY", API_FN_PAIR(MotionPath_GetStageSpeedY)},
+        {"MotionPath::get_Stage", API_FN_PAIR(MotionPath_GetStage)},
+        {"MotionPath::get_Progress", API_FN_PAIR(MotionPath_GetProgress)},
+        {"MotionPath::get_PositionX", API_FN_PAIR(MotionPath_GetPositionX)},
+        {"MotionPath::get_PositionY", API_FN_PAIR(MotionPath_GetPositionY)},
+        {"MotionPath::get_VelocityX", API_FN_PAIR(MotionPath_GetVelocityX)},
+        {"MotionPath::get_VelocityY", API_FN_PAIR(MotionPath_GetVelocityY)},
     };
 
     ccAddExternalFunctions(pathfinder_api);

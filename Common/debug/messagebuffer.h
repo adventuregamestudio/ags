@@ -31,9 +31,7 @@ namespace Common
 class MessageBuffer : public IOutputHandler
 {
 public:
-    MessageBuffer(size_t buffer_limit = 1024u)
-        : _bufferLimit(buffer_limit)
-    {}
+    MessageBuffer(size_t buffer_limit = 1024u) : _bufferLimit(buffer_limit) {}
 
     void OnRegister() override
     {
@@ -49,25 +47,16 @@ public:
     }
 
     // Clears buffer
-    void Clear()
-    {
-        _buffer.clear();
-    }
+    void Clear() { _buffer.clear(); }
     // Grants read access to the buffered messages
-    const std::vector<DebugMessage> GetBuffer() const
-    {
-        return _buffer;
-    }
+    const std::vector<DebugMessage> GetBuffer() const { return _buffer; }
     // Tells how many messages were lost, exceeding the buffer limit
-    size_t GetMessagesLost() const
-    {
-        return _msgLost;
-    }
+    size_t GetMessagesLost() const { return _msgLost; }
 
 private:
-    const size_t    _bufferLimit;
+    const size_t _bufferLimit;
     std::vector<DebugMessage> _buffer;
-    size_t          _msgLost = 0u;
+    size_t _msgLost = 0u;
 };
 
 } // namespace Common

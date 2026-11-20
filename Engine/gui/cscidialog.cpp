@@ -51,7 +51,7 @@ int acdialog_font;
 
 int smcode = 0;
 
-#define MAXCONTROLS 20
+#define MAXCONTROLS      20
 #define MAXSCREENWINDOWS 5
 NewControl *vobjs[MAXCONTROLS];
 OnScreenWindow oswi[MAXSCREENWINDOWS];
@@ -90,8 +90,10 @@ int CSCIDrawWindow(int xx, int yy, int wid, int hit)
 {
     ignore_bounds++;
     int drawit = -1;
-    for (int aa = 0; aa < MAXSCREENWINDOWS; aa++) {
-        if (oswi[aa].handle < 0) {
+    for (int aa = 0; aa < MAXSCREENWINDOWS; aa++)
+    {
+        if (oswi[aa].handle < 0)
+        {
             drawit = aa;
             break;
         }
@@ -108,7 +110,7 @@ int CSCIDrawWindow(int xx, int yy, int wid, int hit)
     Bitmap *ds = prepare_gui_screen(xx, yy, wid, hit, true);
     oswi[drawit].x = xx;
     oswi[drawit].y = yy;
-    __my_wbutt(ds, 0, 0, wid - 1, hit - 1);    // wbutt goes outside its area
+    __my_wbutt(ds, 0, 0, wid - 1, hit - 1); // wbutt goes outside its area
     oswi[drawit].oldtop = topwindowhandle;
     topwindowhandle = drawit;
     oswi[drawit].handle = topwindowhandle;
@@ -128,17 +130,20 @@ void CSCIEraseWindow(int handl)
     clear_gui_screen();
 }
 
-int CSCIWaitMessage(CSCIMessage * cscim)
+int CSCIWaitMessage(CSCIMessage *cscim)
 {
-    for (int uu = 0; uu < MAXCONTROLS; uu++) {
-        if (vobjs[uu] != nullptr) {
+    for (int uu = 0; uu < MAXCONTROLS; uu++)
+    {
+        if (vobjs[uu] != nullptr)
+        {
             vobjs[uu]->drawifneeded();
         }
     }
 
     prepare_gui_screen(win_x, win_y, win_width, win_height, true);
 
-    while (1) {
+    while (1)
+    {
         sys_evt_process_pending();
 
         update_audio_system_on_game_loop();
@@ -151,36 +156,47 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         // therefore we cannot process all buffered key presses here
         // (unless the whole dialog system is rewritten).
         KeyInput ki;
-        if (run_service_key_controls(ki) && !play.IsIgnoringInput()) {
+        if (run_service_key_controls(ki) && !play.IsIgnoringInput())
+        {
             int keywas = ki.Key;
             int uchar = ki.UChar;
-            if (keywas == eAGSKeyCodeReturn) {
+            if (keywas == eAGSKeyCodeReturn)
+            {
                 cscim->id = finddefaultcontrol(CNF_DEFAULT);
                 cscim->code = CM_COMMAND;
-            } else if (keywas == eAGSKeyCodeEscape) {
+            }
+            else if (keywas == eAGSKeyCodeEscape)
+            {
                 cscim->id = finddefaultcontrol(CNF_CANCEL);
                 cscim->code = CM_COMMAND;
-            } else if ((uchar == 0) && (keywas < eAGSKeyCodeSpace) && (keywas != eAGSKeyCodeBackspace)) ;
-            else if ((keywas >= eAGSKeyCodeUpArrow) & (keywas <= eAGSKeyCodePageDown) & (finddefaultcontrol(CNT_LISTBOX) >= 0))
+            }
+            else if ((uchar == 0) && (keywas < eAGSKeyCodeSpace) && (keywas != eAGSKeyCodeBackspace))
+                ;
+            else if ((keywas >= eAGSKeyCodeUpArrow) & (keywas <= eAGSKeyCodePageDown) &
+                     (finddefaultcontrol(CNT_LISTBOX) >= 0))
                 vobjs[finddefaultcontrol(CNT_LISTBOX)]->processmessage(CTB_KEYPRESS, keywas, 0);
             else if (finddefaultcontrol(CNT_TEXTBOX) >= 0)
                 vobjs[finddefaultcontrol(CNT_TEXTBOX)]->processmessage(CTB_KEYPRESS, keywas, uchar);
 
-            if (cscim->id < 0) {
+            if (cscim->id < 0)
+            {
                 cscim->code = CM_KEYPRESS;
                 cscim->wParam = keywas;
             }
         }
 
         eAGSMouseButton mbut;
-        if (run_service_mb_controls(mbut) && (mbut > kMouseNone) && !play.IsIgnoringInput()) {
-            if (checkcontrols()) {
+        if (run_service_mb_controls(mbut) && (mbut > kMouseNone) && !play.IsIgnoringInput())
+        {
+            if (checkcontrols())
+            {
                 cscim->id = controlid;
                 cscim->code = CM_COMMAND;
             }
         }
 
-        if (smcode) {
+        if (smcode)
+        {
             cscim->code = smcode;
             cscim->id = controlid;
         }
@@ -197,8 +213,10 @@ int CSCIWaitMessage(CSCIMessage * cscim)
 int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const char *title)
 {
     int usec = -1;
-    for (int hh = 1; hh < MAXCONTROLS; hh++) {
-        if (vobjs[hh] == nullptr) {
+    for (int hh = 1; hh < MAXCONTROLS; hh++)
+    {
+        if (vobjs[hh] == nullptr)
+        {
             usec = hh;
             break;
         }
@@ -207,25 +225,32 @@ int CSCICreateControl(int typeandflags, int xx, int yy, int wii, int hii, const 
     if (usec < 0)
         quit("Too many controls created");
 
-    int type = typeandflags & 0x00ff;     // 256 control types
-    if (type == CNT_PUSHBUTTON) {
+    int type = typeandflags & 0x00ff; // 256 control types
+    if (type == CNT_PUSHBUTTON)
+    {
         if (wii == -1)
             wii = get_text_width(title, cbuttfont) + 20;
 
         vobjs[usec] = new MyPushButton(xx, yy, wii, hii, title);
-
-    } else if (type == CNT_LISTBOX) {
+    }
+    else if (type == CNT_LISTBOX)
+    {
         vobjs[usec] = new MyListBox(xx, yy, wii, hii, play.std_gui_textheight);
-    } else if (type == CNT_LABEL) {
+    }
+    else if (type == CNT_LABEL)
+    {
         vobjs[usec] = new MyLabel(xx, yy, wii, title, play.std_gui_textheight);
-    } else if (type == CNT_TEXTBOX) {
+    }
+    else if (type == CNT_TEXTBOX)
+    {
         vobjs[usec] = new MyTextBox(xx, yy, wii, title, play.std_gui_textheight);
-    } else
+    }
+    else
         quit("Unknown control type requested");
 
     vobjs[usec]->typeandflags = typeandflags;
     vobjs[usec]->wlevel = topwindowhandle;
-    vobjs[usec]->draw( get_gui_screen() );
+    vobjs[usec]->draw(get_gui_screen());
     return usec;
 }
 
@@ -253,9 +278,12 @@ int checkcontrols()
     const int my = ::mousey - win_y;
 
     smcode = 0;
-    for (int kk = 0; kk < MAXCONTROLS; kk++) {
-        if (vobjs[kk] != nullptr) {
-            if (vobjs[kk]->mouseisinarea(mx, my)) {
+    for (int kk = 0; kk < MAXCONTROLS; kk++)
+    {
+        if (vobjs[kk] != nullptr)
+        {
+            if (vobjs[kk]->mouseisinarea(mx, my))
+            {
                 controlid = kk;
                 return vobjs[kk]->pressedon(mx, my);
             }
@@ -266,7 +294,8 @@ int checkcontrols()
 
 int finddefaultcontrol(int flagmask)
 {
-    for (int ff = 0; ff < MAXCONTROLS; ff++) {
+    for (int ff = 0; ff < MAXCONTROLS; ff++)
+    {
         if (vobjs[ff] == nullptr)
             continue;
 
@@ -280,6 +309,7 @@ int finddefaultcontrol(int flagmask)
     return -1;
 }
 
-int GetBaseWidth () {
+int GetBaseWidth()
+{
     return play.GetUIViewport().GetWidth();
 }

@@ -12,8 +12,8 @@ using namespace AGS::DataUtil;
 
 //------------------------------------------------------------------------------|
 static const char *HELP_STRING = "Usage:\n"
-"  trac <input.trs> [<output.tra>] [--gamename <name>][--uniqueid <idnum>]\n"
-"  trac -u <input.tra> [<output.trs>]\n";
+                                 "  trac <input.trs> [<output.tra>] [--gamename <name>][--uniqueid <idnum>]\n"
+                                 "  trac -u <input.tra> [<output.trs>]\n";
 
 static int Command_Compile(const String &src, const String &dst, const String *game_name, const int *game_uid)
 {
@@ -115,8 +115,8 @@ static int Command_Decompile(const String &src, const String &dst)
 
 int main(int argc, char *argv[])
 {
-    printf("trac v0.9.6 - AGS translation compiler and decompiler (TRS <-> TRA)\n"\
-        "Copyright (c) 2021-2026 AGS Team and contributors\n");
+    printf("trac v0.9.6 - AGS translation compiler and decompiler (TRS <-> TRA)\n"
+           "Copyright (c) 2021-2026 AGS Team and contributors\n");
 
     ParseResult cmdargs = Parse(argc, argv, {"--gamename", "--uniqueid"});
     if (cmdargs.HelpRequested)
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
             dst = Path::ReplaceExtension(src, "trs");
         return Command_Decompile(src, dst);
     }
-    
+
     String game_name;
     int game_uid = 0;
     bool use_game_uid = false;

@@ -21,38 +21,44 @@
 #include "util/string_types.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using AGS::Common::Stream;
 
 // RoomStatus runtime save format
 enum RoomStatSvgVersion
 {
-    kRoomStatSvgVersion_Initial  = 0, // [UNSUPPORTED] from 3.5.0 pre-alpha
+    kRoomStatSvgVersion_Initial = 0, // [UNSUPPORTED] from 3.5.0 pre-alpha
     // NOTE: in 3.5.0 "Room States" had lower index than "Loaded Room State" by mistake
     kRoomStatSvgVersion_350_Mismatch = 0, // an incorrect "Room States" version from 3.5.0
-    kRoomStatSvgVersion_350      = 1, // new movelist format (along with pathfinder)
-    kRoomStatSvgVersion_36016    = 2, // hotspot and object names
-    kRoomStatSvgVersion_36025    = 3, // object animation volume
-    kRoomStatSvgVersion_36041    = 4, // room state's contentFormat
-    kRoomStatSvgVersion_36109    = 5, // removed movelists, save externally
-    kRoomStatSvgVersion_36214    = 3060214, // serialize current room's changes to masks
-    kRoomStatSvgVersion_36304    = 3060304, // room object's blocking rect x,y
-    kRoomStatSvgVersion_36310    = 3060310, // audio panning and speed
-    kRoomStatSvgVersion_36314    = 3060314, // arbitrary number of room bgs
-    kRoomStatSvgVersion_36317    = 3060317, // fixes for <=2.72 interaction lists
+    kRoomStatSvgVersion_350 = 1,          // new movelist format (along with pathfinder)
+    kRoomStatSvgVersion_36016 = 2,        // hotspot and object names
+    kRoomStatSvgVersion_36025 = 3,        // object animation volume
+    kRoomStatSvgVersion_36041 = 4,        // room state's contentFormat
+    kRoomStatSvgVersion_36109 = 5,        // removed movelists, save externally
+    kRoomStatSvgVersion_36214 = 3060214,  // serialize current room's changes to masks
+    kRoomStatSvgVersion_36304 = 3060304,  // room object's blocking rect x,y
+    kRoomStatSvgVersion_36310 = 3060310,  // audio panning and speed
+    kRoomStatSvgVersion_36314 = 3060314,  // arbitrary number of room bgs
+    kRoomStatSvgVersion_36317 = 3060317,  // fixes for <=2.72 interaction lists
     //---------------------------------------------------------------------------------------
-    kRoomStatSvgVersion_400      = 4000000, // room object blendmodes etc
-    kRoomStatSvgVersion_40003    = 4000003, // room object flags as 32-bit, facedirratio
-    kRoomStatSvgVersion_40008    = 4000008, // custom properties for regions and walk-areas
-    kRoomStatSvgVersion_40016    = 4000016, // room objects expose script motion path
-    kRoomStatSvgVersion_40018    = 4000018, // shaders
-    kRoomStatSvgVersion_40020    = 4000020, // expanded and bit more consistent anim params serialization
-    kRoomStatSvgVersion_40024    = 4000024, // sync with kRoomStatSvgVersion_36214
-    kRoomStatSvgVersion_40026    = 4000026, // sync with kRoomStatSvgVersion_36304
-    kRoomStatSvgVersion_40028    = 4000028, // sync with kRoomStatSvgVersion_36310
-    kRoomStatSvgVersion_40029    = 4000029, // objects rotation pivot
-    kRoomStatSvgVersion_40033    = 4000033, // sync with kRoomStatSvgVersion_36314
-    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_40033
+    kRoomStatSvgVersion_400 = 4000000,   // room object blendmodes etc
+    kRoomStatSvgVersion_40003 = 4000003, // room object flags as 32-bit, facedirratio
+    kRoomStatSvgVersion_40008 = 4000008, // custom properties for regions and walk-areas
+    kRoomStatSvgVersion_40016 = 4000016, // room objects expose script motion path
+    kRoomStatSvgVersion_40018 = 4000018, // shaders
+    kRoomStatSvgVersion_40020 = 4000020, // expanded and bit more consistent anim params serialization
+    kRoomStatSvgVersion_40024 = 4000024, // sync with kRoomStatSvgVersion_36214
+    kRoomStatSvgVersion_40026 = 4000026, // sync with kRoomStatSvgVersion_36304
+    kRoomStatSvgVersion_40028 = 4000028, // sync with kRoomStatSvgVersion_36310
+    kRoomStatSvgVersion_40029 = 4000029, // objects rotation pivot
+    kRoomStatSvgVersion_40033 = 4000033, // sync with kRoomStatSvgVersion_36314
+    kRoomStatSvgVersion_Current = kRoomStatSvgVersion_40033
 };
 
 struct HotspotState
@@ -77,14 +83,14 @@ class RoomStatus
 {
 public:
     // TODO: hide these fields under get/set methods
-    int   beenhere = 0;
+    int beenhere = 0;
     uint32_t numobj = 0;
     std::vector<RoomObject> obj;
     uint32_t tsdatasize = 0;
     std::vector<uint8_t> tsdata;
 
     HotspotState hotspot[MAX_ROOM_HOTSPOTS];
-    char  region_enabled[MAX_ROOM_REGIONS];
+    char region_enabled[MAX_ROOM_REGIONS];
     short walkbehind_base[MAX_WALK_BEHINDS];
     float face_dir_ratio = 0.f;
     WalkareaState walkareas[MAX_WALK_AREAS];
@@ -105,8 +111,8 @@ public:
     RoomStatus();
     ~RoomStatus();
 
-    int  GetBgShaderID() const { return _bgShaderID; }
-    int  GetBgShaderHandle() const { return _bgShaderHandle; }
+    int GetBgShaderID() const { return _bgShaderID; }
+    int GetBgShaderHandle() const { return _bgShaderHandle; }
     void SetBgShader(int shader_id, int shader_handle);
 
     void ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion cmp_ver);
@@ -122,7 +128,7 @@ private:
 };
 
 // Retrieves a given room's runtime state. *Allocates* one if it does not exist
-RoomStatus* GetRoomState(int room);
+RoomStatus *GetRoomState(int room);
 // Retrieves a existing room's runtime state; returns null if one was not allocated
 RoomStatus *GetRoomStateIfExists(int room);
 // Checks whether the room state exists.

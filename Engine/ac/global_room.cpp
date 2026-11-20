@@ -33,18 +33,17 @@ using namespace Common;
 
 extern GameSetupStruct game;
 extern RoomStatus *croom;
-extern CharacterInfo*playerchar;
+extern CharacterInfo *playerchar;
 extern int displayed_room;
 extern bool in_enters_screen;
 extern int in_leaves_screen;
 extern bool new_room_placeonwalkable;
 extern RoomStruct thisroom;
 
-void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
-    if ((red < 0) || (green < 0) || (blue < 0) ||
-        (red > 255) || (green > 255) || (blue > 255) ||
-        (opacity < 0) || (opacity > 100) ||
-        (luminance < 0) || (luminance > 100))
+void SetAmbientTint(int red, int green, int blue, int opacity, int luminance)
+{
+    if ((red < 0) || (green < 0) || (blue < 0) || (red > 255) || (green > 255) || (blue > 255) || (opacity < 0) ||
+        (opacity > 100) || (luminance < 0) || (luminance > 100))
         quit("!SetTint: invalid parameter. R,G,B must be 0-255, opacity & luminance 0-100");
 
     debug_script_log("Set ambient tint RGB(%d,%d,%d) %d%%", red, green, blue, opacity);
@@ -66,11 +65,13 @@ void SetAmbientLightLevel(int light_level)
     play.rtint_light = light_level;
 }
 
-void NewRoom(int nrnum) {
+void NewRoom(int nrnum)
+{
     if (nrnum < 0)
         quitprintf("!NewRoom: room change requested to invalid room number %d.", nrnum);
 
-    if (displayed_room < 0) {
+    if (displayed_room < 0)
+    {
         // called from game_start; change the room where the game will start
         playerchar->room = nrnum;
         return;
@@ -85,31 +86,37 @@ void NewRoom(int nrnum) {
     if (handle_state_change_in_dialog_request("NewRoom", DIALOG_NEWROOM + nrnum))
         return; // handled
 
-    if (in_leaves_screen >= 0) {
+    if (in_leaves_screen >= 0)
+    {
         // NewRoom called from the Player Leaves Screen event -- just
         // change which room it will go to
         in_leaves_screen = nrnum;
     }
-    else if (in_enters_screen) {
+    else if (in_enters_screen)
+    {
         setevent(AGSEvent_NewRoom(nrnum));
         return;
     }
-    else if (!is_inside_script()) {
-        new_room(nrnum,playerchar);
+    else if (!is_inside_script())
+    {
+        new_room(nrnum, playerchar);
         return;
     }
-    else if (is_inside_script()) {
+    else if (is_inside_script())
+    {
         get_executingscript()->QueueAction(PostScriptAction(ePSANewRoom, nrnum, "NewRoom"));
         // we might be within a MoveCharacterBlocking -- the room
         // change should abort it
-        if (is_char_walking_ndirect(playerchar)) {
+        if (is_char_walking_ndirect(playerchar))
+        {
             // stop the character, but doesn't fix the character to a walkable area
             Character_StopMovingEx(playerchar, false);
         }
     }
 }
 
-void ResetRoom(int nrnum) {
+void ResetRoom(int nrnum)
+{
     if (nrnum == displayed_room)
         quitprintf("!ResetRoom: cannot reset current room  %d", nrnum);
     if ((nrnum < 0) || (nrnum >= MAX_ROOMS))
@@ -120,34 +127,40 @@ void ResetRoom(int nrnum) {
     debug_script_log("Room %d reset to original state", nrnum);
 }
 
-int HasPlayerBeenInRoom(int roomnum) {
+int HasPlayerBeenInRoom(int roomnum)
+{
     if ((roomnum < 0) || (roomnum >= MAX_ROOMS))
         return 0;
     RoomStatus *roomstat = GetRoomStateIfExists(roomnum);
     return (roomstat != nullptr) && (roomstat->beenhere != 0);
 }
 
-void CallRoomScript (int value) {
+void CallRoomScript(int value)
+{
     can_run_delayed_command();
 
     if (!is_inside_script())
         quit("!CallRoomScript: not inside a script???");
 
     play.roomscript_finished = 0;
-    RuntimeScriptValue params[]{ value , RuntimeScriptValue() };
+    RuntimeScriptValue params[]{value, RuntimeScriptValue()};
     RunScriptFunctionAuto(kScTypeRoom, "on_call", 1, params);
     play.roomscript_finished = 1;
 }
 
-void SetBackgroundFrame(int frnum) {
+void SetBackgroundFrame(int frnum)
+{
     if ((frnum < -1) || (frnum != -1 && (size_t)frnum >= thisroom.BgFrameCount))
     {
-        debug_script_error("SetBackgrondFrame: invalid background number specified: %d, valid range in this room is 0..%u", frnum, thisroom.BgFrameCount - 1);
+        debug_script_error(
+            "SetBackgrondFrame: invalid background number specified: %d, valid range in this room is 0..%u", frnum,
+            thisroom.BgFrameCount - 1);
         return;
     }
 
-    if (frnum<0) {
-        play.bg_frame_locked=0;
+    if (frnum < 0)
+    {
+        play.bg_frame_locked = 0;
         return;
     }
 
@@ -160,9 +173,10 @@ void SetBackgroundFrame(int frnum) {
     }
 
     play.bg_frame = frnum;
-    on_background_frame_change ();
+    on_background_frame_change();
 }
 
-int GetBackgroundFrame() {
+int GetBackgroundFrame()
+{
     return play.bg_frame;
 }

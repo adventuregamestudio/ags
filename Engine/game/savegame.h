@@ -24,7 +24,11 @@
 namespace AGS
 {
 
-namespace Common { class Bitmap; class Stream; }
+namespace Common
+{
+class Bitmap;
+class Stream;
+} // namespace Common
 
 namespace Engine
 {
@@ -48,22 +52,22 @@ typedef std::shared_ptr<Stream> PStream;
 enum SavegameVersion
 {
     kSvgVersion_Undefined = 0,
-    kSvgVersion_321       = 8, // DEPRECATED
-    kSvgVersion_Components= 9,
+    kSvgVersion_321 = 8, // DEPRECATED
+    kSvgVersion_Components = 9,
     kSvgVersion_ComponentsEx = 10,
     kSvgVersion_350_final = 11,
-    kSvgVersion_350_final2= 12,
-    kSvgVersion_351       = 13,
-    kSvgVersion_360_beta  = 3060023,
+    kSvgVersion_350_final2 = 12,
+    kSvgVersion_351 = 13,
+    kSvgVersion_360_beta = 3060023,
     kSvgVersion_360_final = 3060041,
-    kSvgVersion_361       = 3060115,
-    kSvgVersion_361_p8    = 3060130,
-    kSvgVersion_362       = 3060200,
-    kSvgVersion_363       = 3060300,
-    kSvgVersion_399       = 3999999,
-    kSvgVersion_400       = 4000000,
-    kSvgVersion_400_18    = 4000018, // sync with kSvgVersion_363 (added compression)
-    kSvgVersion_Current   = kSvgVersion_400_18,
+    kSvgVersion_361 = 3060115,
+    kSvgVersion_361_p8 = 3060130,
+    kSvgVersion_362 = 3060200,
+    kSvgVersion_363 = 3060300,
+    kSvgVersion_399 = 3999999,
+    kSvgVersion_400 = 4000000,
+    kSvgVersion_400_18 = 4000018, // sync with kSvgVersion_363 (added compression)
+    kSvgVersion_Current = kSvgVersion_400_18,
     kSvgVersion_LowestSupported = kSvgVersion_Components // change if support dropped
 };
 
@@ -113,11 +117,11 @@ enum SaveFileFormatFlags
 struct SavegameFileFormat
 {
     uint32_t FileFormatSize = 0u;
-    uint32_t Flags = 0u; // reserved
+    uint32_t Flags = 0u;            // reserved
     uint32_t FileFormatOffset = 0u; // offset of the file format in header
-    uint32_t EnvInfoOffset = 0u; // offset of the enviroment info block
-    uint32_t UserDescOffset = 0u; // offset of the user description block
-    uint32_t GameDataOffset = 0u; // offset of the game state data in file
+    uint32_t EnvInfoOffset = 0u;    // offset of the enviroment info block
+    uint32_t UserDescOffset = 0u;   // offset of the user description block
+    uint32_t GameDataOffset = 0u;   // offset of the game state data in file
 };
 
 // SavegameSource defines a successfully opened savegame stream
@@ -127,13 +131,13 @@ struct SavegameSource
     static const String Signature;
 
     // Name of the savefile
-    String              Filename;
+    String Filename;
     // Savegame format version
-    SavegameVersion     Version;
+    SavegameVersion Version;
     // A pointer to the opened stream
     std::unique_ptr<Stream> InputStream;
 
-    SavegameFileFormat  Format;
+    SavegameFileFormat Format;
 
     SavegameSource();
 };
@@ -142,12 +146,12 @@ struct SavegameSource
 // these may be used as flags to define valid fields
 enum SavegameDescElem
 {
-    kSvgDesc_None       = 0,
-    kSvgDesc_EnvInfo    = 0x0001,
-    kSvgDesc_UserText   = 0x0002,
-    kSvgDesc_UserImage  = 0x0004,
+    kSvgDesc_None = 0,
+    kSvgDesc_EnvInfo = 0x0001,
+    kSvgDesc_UserText = 0x0002,
+    kSvgDesc_UserImage = 0x0004,
     kSvgDesc_FileFormat = 0x0008,
-    kSvgDesc_All        = 0xFFFF
+    kSvgDesc_All = 0xFFFF
 };
 
 // SavegameDescription describes savegame with information about the enviroment
@@ -155,31 +159,31 @@ enum SavegameDescElem
 struct SavegameDescription
 {
     // Savegame's slot number
-    int                 Slot = -1;
+    int Slot = -1;
     // Name of the engine that saved the game
-    String              EngineName;
+    String EngineName;
     // Version of the engine that saved the game
-    Version             EngineVersion;
+    Version EngineVersion;
     // Guid of the game which made this save
-    String              GameGuid;
+    String GameGuid;
     // Legacy uniqueid of the game, for use in older games with no GUID
-    int                 LegacyID = 0;
+    int LegacyID = 0;
     // Title of the game which made this save
-    String              GameTitle;
+    String GameTitle;
     // Name of the main data file used; this is needed to properly
     // load saves made by "minigames"
-    String              MainDataFilename;
+    String MainDataFilename;
     // Game's main data version; should be checked early to know
     // if the save was made for the supported game format
-    GameDataVersion     MainDataVersion = kGameVersion_Undefined;
+    GameDataVersion MainDataVersion = kGameVersion_Undefined;
     // Native color depth of the game; this is required to
     // properly restore dynamic graphics from the save
-    int                 ColorDepth = 0;
+    int ColorDepth = 0;
 
     // Save file format
-    SavegameFileFormat  Format;
+    SavegameFileFormat Format;
 
-    String              UserText;
+    String UserText;
     std::unique_ptr<Bitmap> UserImage;
 
     SavegameDescription() = default;
@@ -203,57 +207,52 @@ struct SavegameDescription
 // See kSaveCmp_ScriptIgnoreMask.
 enum SaveCmpSelection
 {
-    kSaveCmp_None           = 0,
-    kSaveCmp_GameState      = 0x00000001,
-    kSaveCmp_Audio          = 0x00000002,
-    kSaveCmp_Characters     = 0x00000004,
-    kSaveCmp_Dialogs        = 0x00000008,
-    kSaveCmp_GUI            = 0x00000010,
-    kSaveCmp_InvItems       = 0x00000020,
-    kSaveCmp_Cursors        = 0x00000040,
-    kSaveCmp_Views          = 0x00000080,
+    kSaveCmp_None = 0,
+    kSaveCmp_GameState = 0x00000001,
+    kSaveCmp_Audio = 0x00000002,
+    kSaveCmp_Characters = 0x00000004,
+    kSaveCmp_Dialogs = 0x00000008,
+    kSaveCmp_GUI = 0x00000010,
+    kSaveCmp_InvItems = 0x00000020,
+    kSaveCmp_Cursors = 0x00000040,
+    kSaveCmp_Views = 0x00000080,
     kSaveCmp_DynamicSprites = 0x00000100,
     // [WARNING] not reliable to disable, requires a way to clean owned images
-    kSaveCmp_Overlays       = 0x00000200,
+    kSaveCmp_Overlays = 0x00000200,
     // [WARNING] not reliable to disable, requires a way to clean managed objs and their resources (at the very least)
-    kSaveCmp_Scripts        = 0x00000400,
+    kSaveCmp_Scripts = 0x00000400,
     // [WARNING] not reliable to disable, requires a way to clean managed objs and their resources (from room scripts)
-    kSaveCmp_Rooms          = 0x00000800,
+    kSaveCmp_Rooms = 0x00000800,
     // [WARNING] not reliable to disable, requires a way to clean managed objs and their resources (from this room script)
-    kSaveCmp_ThisRoom       = 0x00001000,
-    kSaveCmp_Plugins        = 0x00002000,
+    kSaveCmp_ThisRoom = 0x00001000,
+    kSaveCmp_Plugins = 0x00002000,
     // Special component flags, setup strictly by the engine
-    kSaveCmp_ObjectSprites  = 0x80000000,
-    kSaveCmp_All            = 0xFFFFFFFF,
+    kSaveCmp_ObjectSprites = 0x80000000,
+    kSaveCmp_All = 0xFFFFFFFF,
 
     // Components, allowed to be ignored by script's request
-    kSaveCmp_ScriptIgnoreMask =
-          kSaveCmp_Audio
-        | kSaveCmp_Dialogs
-        | kSaveCmp_GUI
-        | kSaveCmp_Cursors
-        | kSaveCmp_Views
-        | kSaveCmp_DynamicSprites
-        | kSaveCmp_Plugins
+    kSaveCmp_ScriptIgnoreMask = kSaveCmp_Audio | kSaveCmp_Dialogs | kSaveCmp_GUI | kSaveCmp_Cursors | kSaveCmp_Views |
+                                kSaveCmp_DynamicSprites | kSaveCmp_Plugins
 };
 
 struct RestoreGameStateOptions
 {
     //SavegameVersion SaveVersion = kSvgVersion_Undefined;
     SaveCmpSelection SelectedComponents = kSaveCmp_All;
-    bool            IsGameClear = false;
+    bool IsGameClear = false;
 
     RestoreGameStateOptions() = default;
     RestoreGameStateOptions(/*SavegameVersion svg_ver,*/ SaveCmpSelection select_cmp, bool game_clear)
         : /*SaveVersion(svg_ver),*/ SelectedComponents(select_cmp), IsGameClear(game_clear)
-    {}
+    {
+    }
 };
 
 // SaveRestoreFeedback - provide an optional instruction to the engine
 // after trying to restore a save.
 struct SaveRestoreFeedback
 {
-    bool             RetryWithClearGame = false;
+    bool RetryWithClearGame = false;
     SaveCmpSelection RetryWithoutComponents = kSaveCmp_None;
 };
 
@@ -261,34 +260,36 @@ struct SaveRestoreFeedback
 // Tests if this savegame file exists
 // NOTE: this function is a pure formality now, made in case we'll have something
 // like a virtual save files at some point (so you can't use File::IsFile).
-bool           DoesSavegameExist(const String &filename);
+bool DoesSavegameExist(const String &filename);
 // Opens savegame for reading; optionally reads description, if any is provided
-HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
-                            SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
+HSaveError OpenSavegame(const String &filename, SavegameSource &src, SavegameDescription &desc,
+                        SavegameDescElem elems = kSvgDesc_All);
 // Opens savegame and reads the savegame description
-HSaveError     OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
+HSaveError OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 // Reads the game data from the save stream and reinitializes game state;
 // fills in SaveRestoreFeedback struct.
-HSaveError     RestoreGameState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
-                                const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback);
+HSaveError RestoreGameState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
+                            const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback);
 // Prescans the game data from the save stream without affecting current runtime data
-HSaveError     PrescanSaveState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
-                                const RestoreGameStateOptions &options);
+HSaveError PrescanSaveState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
+                            const RestoreGameStateOptions &options);
 // Opens savegame for writing and puts in savegame description
 std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image,
-                                SavegameFileFormat &file_format);
+                                      SavegameFileFormat &file_format);
 // Prepares game for saving state and writes game data into the save stream
-void           SaveGameState(Stream *out, SaveCmpSelection select_cmp);
+void SaveGameState(Stream *out, SaveCmpSelection select_cmp);
 
 // Reads savegame's description out of the given file
-HSaveError     ReadSaveDescription(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
+HSaveError ReadSaveDescription(const String &filename, SavegameDescription &desc,
+                               SavegameDescElem elems = kSvgDesc_All);
 // Reads the game data from the given file and reinitializes game state;
 // fills in SaveRestoreFeedback struct.
-HSaveError     RestoreSavegame(const String &filename, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback);
+HSaveError RestoreSavegame(const String &filename, const RestoreGameStateOptions &options,
+                           SaveRestoreFeedback &feedback);
 
 // Write a save file, using user description, and optionally restricting game data to selected components
-HSaveError     SaveGame(const String &filename, const String &user_text, const Bitmap *user_image,
-                        SaveCmpSelection select_cmp, bool compress_data = false);
+HSaveError SaveGame(const String &filename, const String &user_text, const Bitmap *user_image,
+                    SaveCmpSelection select_cmp, bool compress_data = false);
 
 } // namespace Engine
 } // namespace AGS

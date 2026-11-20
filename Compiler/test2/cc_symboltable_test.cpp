@@ -59,18 +59,12 @@ TEST_F(SymbolTable, GetVartypeName)
     AGS::Vartype const foo_vartype = symt.Add("foo");
     symt.MakeEntryVartype(foo_vartype);
     symt[foo_vartype].VartypeD->Type = AGS::VTT::kAtomic;
-    EXPECT_STREQ(
-        "foo[]",
-        symt.GetName(symt.VartypeWithDynarray(foo_vartype)).c_str());
+    EXPECT_STREQ("foo[]", symt.GetName(symt.VartypeWithDynarray(foo_vartype)).c_str());
 
-    EXPECT_STREQ(
-        "foo *",
-        symt.GetName(symt.VartypeWithDynpointer(foo_vartype)).c_str());
+    EXPECT_STREQ("foo *", symt.GetName(symt.VartypeWithDynpointer(foo_vartype)).c_str());
 
-    std::vector<size_t> const dims = { 3, 5, 7 };
-    EXPECT_STREQ(
-        "foo[3, 5, 7]",
-        symt.GetName(symt.VartypeWithArray(dims, foo_vartype)).c_str());
+    std::vector<size_t> const dims = {3, 5, 7};
+    EXPECT_STREQ("foo[3, 5, 7]", symt.GetName(symt.VartypeWithArray(dims, foo_vartype)).c_str());
 }
 
 TEST_F(SymbolTable, VartypeWithWithout)
@@ -157,13 +151,13 @@ TEST_F(SymbolTable, IsInBounds)
 
 TEST_F(SymbolTable, CanBePartOfAnExpression)
 {
-    EXPECT_FALSE(symt.CanBePartOfAnExpression(AGS::kKW_Float));     // typical vartype
-    EXPECT_FALSE(symt.CanBePartOfAnExpression(AGS::kKW_Return));    // typical keyword
-    EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_And));        // typical bool operator
-    EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_Divide));     // typical binary operator
-    EXPECT_FALSE(symt.CanBePartOfAnExpression(AGS::kKW_CloseBrace));        // delimiter 
-    EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_OpenBracket));       // delimiter 
-    EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_OpenParenthesis));    // delimiter
+    EXPECT_FALSE(symt.CanBePartOfAnExpression(AGS::kKW_Float));          // typical vartype
+    EXPECT_FALSE(symt.CanBePartOfAnExpression(AGS::kKW_Return));         // typical keyword
+    EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_And));             // typical bool operator
+    EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_Divide));          // typical binary operator
+    EXPECT_FALSE(symt.CanBePartOfAnExpression(AGS::kKW_CloseBrace));     // delimiter
+    EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_OpenBracket));     // delimiter
+    EXPECT_TRUE(symt.CanBePartOfAnExpression(AGS::kKW_OpenParenthesis)); // delimiter
 
     // Literal
     AGS::Symbol const lit_sym = symt.Add("4711");
@@ -208,7 +202,9 @@ TEST_F(SymbolTable, ArrayClassic)
     AGS::Symbol const array_sym = symt.Add("HArry");
     symt.MakeEntryVartype(array_sym);
     symt[array_sym].VartypeD->BaseVartype = AGS::kKW_Int;
-    symt[array_sym].VartypeD->Dims = { 2, };
+    symt[array_sym].VartypeD->Dims = {
+        2,
+    };
     symt[array_sym].VartypeD->Type = AGS::VTT::kArray;
 
     EXPECT_TRUE(symt.IsArrayVartype(array_sym));
@@ -216,7 +212,12 @@ TEST_F(SymbolTable, ArrayClassic)
     EXPECT_FALSE(symt.IsDynarrayVartype(array_sym));
     EXPECT_EQ(2, symt.ArrayElementsCount(array_sym));
 
-    symt[array_sym].VartypeD->Dims = { 2, 3, 5, 7, };
+    symt[array_sym].VartypeD->Dims = {
+        2,
+        3,
+        5,
+        7,
+    };
     EXPECT_EQ(2 * 3 * 5 * 7, symt.ArrayElementsCount(array_sym));
 }
 
@@ -240,7 +241,10 @@ TEST_F(SymbolTable, IsAnyIntegerVartype)
 
 TEST_F(SymbolTable, ArrayWithoutFirstDim)
 {
-    std::vector<size_t> const dims = { 3, 5, };
+    std::vector<size_t> const dims = {
+        3,
+        5,
+    };
     AGS::Vartype vartype35 = symt.VartypeWithArray(dims, AGS::kKW_Short);
     EXPECT_STREQ("short[3, 5]", symt.GetName(vartype35).c_str());
     AGS::Vartype vartype5 = symt.ArrayVartypeWithoutFirstDim(vartype35);

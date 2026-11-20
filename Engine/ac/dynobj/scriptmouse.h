@@ -27,7 +27,7 @@ public:
     int y;
 
     int32_t ReadInt32(const void *address, intptr_t offset) override;
-    void    WriteInt32(void *address, intptr_t offset, int32_t val) override;
+    void WriteInt32(void *address, intptr_t offset, int32_t val) override;
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTMOUSE_H

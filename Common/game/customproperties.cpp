@@ -63,8 +63,7 @@ void WriteSchema(const PropertySchema &schema, Stream *out)
 {
     out->WriteInt32(kPropertyVersion_Current);
     out->WriteInt32(static_cast<uint32_t>(schema.size()));
-    for (PropertySchema::const_iterator it = schema.begin();
-         it != schema.end(); ++it)
+    for (PropertySchema::const_iterator it = schema.begin(); it != schema.end(); ++it)
     {
         const PropertyDesc &prop = it->second;
         StrUtil::WriteString(prop.Name, out);
@@ -88,7 +87,7 @@ PropertyError ReadValues(StringIMap &map, Stream *in)
         return kPropertyErr_UnsupportedFormat;
     for (int i = 0; i < count; ++i)
     {
-        String name  = StrUtil::ReadString(in);
+        String name = StrUtil::ReadString(in);
         map[name] = StrUtil::ReadString(in);
     }
     return kPropertyErr_NoError;
@@ -118,8 +117,7 @@ void WriteValues(const StringIMap &map, Stream *out)
 {
     out->WriteInt32(kPropertyVersion_Current);
     out->WriteInt32(static_cast<uint32_t>(map.size()));
-    for (StringIMap::const_iterator it = map.begin();
-         it != map.end(); ++it)
+    for (StringIMap::const_iterator it = map.begin(); it != map.end(); ++it)
     {
         StrUtil::WriteString(it->first, out);
         StrUtil::WriteString(it->second, out);

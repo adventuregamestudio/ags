@@ -16,23 +16,23 @@
 
 #include "speech.h"
 
-void    SetSpeechVolume(int newvol);
-int     IsSpeechVoxAvailable();
-int     IsMusicVoxAvailable ();
+void SetSpeechVolume(int newvol);
+int IsSpeechVoxAvailable();
+int IsMusicVoxAvailable();
 
 struct CharacterInfo;
 struct ScriptAudioChannel;
 
 //=============================================================================
 // Play voice-over for the active blocking speech and initialize relevant data
-bool    play_voice_speech(int charid, int sndid);
+bool play_voice_speech(int charid, int sndid);
 // Play voice-over clip in non-blocking manner
-bool    play_voice_nonblocking(int charid, int sndid, bool as_speech);
+bool play_voice_nonblocking(int charid, int sndid, bool as_speech);
 // Play voice-over clip in non-blocking manner, as a given audio type, optionally selecting an explicit channel
 const ScriptAudioChannel *play_voice_clip_as_type(int charid, int sndid, int type, int chan, int priority, int repeat);
 // Stop voice-over for the active speech and reset relevant data
-void    stop_voice_speech();
+void stop_voice_speech();
 // Stop non-blocking voice-over and revert audio volumes if necessary
-void    stop_voice_nonblocking();
+void stop_voice_nonblocking();
 
 #endif // __AGS_EE_AC__GLOBALAUDIO_H

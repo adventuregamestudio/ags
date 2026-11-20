@@ -39,18 +39,27 @@ extern SystemConfig gl_SysConfig;
 int sdl_mod_to_ags_mod(const Uint16 mod)
 {
     int ags_mod = 0;
-    if (mod & KMOD_LSHIFT) ags_mod |= eAGSModLShift;
-    if (mod & KMOD_RSHIFT) ags_mod |= eAGSModRShift;
-    if (mod & KMOD_LCTRL)  ags_mod |= eAGSModLCtrl;
-    if (mod & KMOD_RCTRL)  ags_mod |= eAGSModRCtrl;
-    if (mod & KMOD_LALT)   ags_mod |= eAGSModLAlt;
-    if (mod & KMOD_RALT)   ags_mod |= eAGSModRAlt;
-    if (mod & KMOD_NUM)    ags_mod |= eAGSModNum;
-    if (mod & KMOD_CAPS)   ags_mod |= eAGSModCaps;
+    if (mod & KMOD_LSHIFT)
+        ags_mod |= eAGSModLShift;
+    if (mod & KMOD_RSHIFT)
+        ags_mod |= eAGSModRShift;
+    if (mod & KMOD_LCTRL)
+        ags_mod |= eAGSModLCtrl;
+    if (mod & KMOD_RCTRL)
+        ags_mod |= eAGSModRCtrl;
+    if (mod & KMOD_LALT)
+        ags_mod |= eAGSModLAlt;
+    if (mod & KMOD_RALT)
+        ags_mod |= eAGSModRAlt;
+    if (mod & KMOD_NUM)
+        ags_mod |= eAGSModNum;
+    if (mod & KMOD_CAPS)
+        ags_mod |= eAGSModCaps;
     return ags_mod;
 }
 
-static eAGSKeyCode sdl_key_to_ags_key(const SDL_Keycode sym, const SDL_Scancode scancode, const Uint16 mod, bool combo_keys)
+static eAGSKeyCode sdl_key_to_ags_key(const SDL_Keycode sym, const SDL_Scancode scancode, const Uint16 mod,
+                                      bool combo_keys)
 {
     // NOTE: keycodes such as SDLK_EXCLAIM ('!') may be misleading, as they are NOT
     // received when user presses for example Shift + 1 on regular keyboard, but only on
@@ -60,9 +69,9 @@ static eAGSKeyCode sdl_key_to_ags_key(const SDL_Keycode sym, const SDL_Scancode 
     if (combo_keys && (sym >= SDLK_a && sym <= SDLK_z))
     {
         if ((mod & KMOD_CTRL) != 0) // align letters to code 1
-            return static_cast<eAGSKeyCode>( 0 + (sym - SDLK_a) + 1 );
+            return static_cast<eAGSKeyCode>(0 + (sym - SDLK_a) + 1);
         else if ((mod & KMOD_ALT) != 0) // align letters to code 301
-            return static_cast<eAGSKeyCode>( AGS_EXT_KEY_SHIFT + (sym - SDLK_a) + 1 );
+            return static_cast<eAGSKeyCode>(AGS_EXT_KEY_SHIFT + (sym - SDLK_a) + 1);
     }
 
     // Handle common key range
@@ -76,16 +85,18 @@ static eAGSKeyCode sdl_key_to_ags_key(const SDL_Keycode sym, const SDL_Scancode 
     {
         switch (sym)
         {
-        case SDLK_KP_1: case SDLK_KP_2: case SDLK_KP_3: case SDLK_KP_4:
-        case SDLK_KP_5: case SDLK_KP_6: case SDLK_KP_7: case SDLK_KP_8:
-        case SDLK_KP_9:
-            return static_cast<eAGSKeyCode>(sym - SDLK_KP_1 + SDLK_1);
-        case SDLK_KP_0:
-            return eAGSKeyCode0;
-        case SDLK_KP_PERIOD:
-            return eAGSKeyCodePeriod;
-        default:
-            return eAGSKeyCodeNone;
+        case SDLK_KP_1:
+        case SDLK_KP_2:
+        case SDLK_KP_3:
+        case SDLK_KP_4:
+        case SDLK_KP_5:
+        case SDLK_KP_6:
+        case SDLK_KP_7:
+        case SDLK_KP_8:
+        case SDLK_KP_9: return static_cast<eAGSKeyCode>(sym - SDLK_KP_1 + SDLK_1);
+        case SDLK_KP_0: return eAGSKeyCode0;
+        case SDLK_KP_PERIOD: return eAGSKeyCodePeriod;
+        default: return eAGSKeyCodeNone;
         }
     }
 
@@ -167,7 +178,7 @@ static eAGSKeyCode sdl_key_to_ags_key(const SDL_Keysym &key, bool combo_keys)
 // Converts ags key to SDL key scans (up to 3 values, because this is not a 1:1 match);
 // NOTE: will ignore Ctrl+ or Alt+ script keys.
 // TODO: double check and ammend later if anything is missing
-bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
+bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode (&scan)[3])
 {
     scan[0] = SDL_SCANCODE_UNKNOWN;
     scan[1] = SDL_SCANCODE_UNKNOWN;
@@ -214,9 +225,19 @@ bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
     switch (key)
     {
     // Various service keys
-    case eAGSKeyCodeBackspace: scan[0] = SDL_SCANCODE_BACKSPACE; scan[1] = SDL_SCANCODE_KP_BACKSPACE; return true;
-    case eAGSKeyCodeTab: scan[0] = SDL_SCANCODE_TAB; scan[1] = SDL_SCANCODE_KP_TAB; return true;
-    case eAGSKeyCodeReturn: scan[0] = SDL_SCANCODE_RETURN; scan[1] = SDL_SCANCODE_RETURN2; scan[2] = SDL_SCANCODE_KP_ENTER; return true;
+    case eAGSKeyCodeBackspace:
+        scan[0] = SDL_SCANCODE_BACKSPACE;
+        scan[1] = SDL_SCANCODE_KP_BACKSPACE;
+        return true;
+    case eAGSKeyCodeTab:
+        scan[0] = SDL_SCANCODE_TAB;
+        scan[1] = SDL_SCANCODE_KP_TAB;
+        return true;
+    case eAGSKeyCodeReturn:
+        scan[0] = SDL_SCANCODE_RETURN;
+        scan[1] = SDL_SCANCODE_RETURN2;
+        scan[2] = SDL_SCANCODE_KP_ENTER;
+        return true;
     case eAGSKeyCodeEscape: scan[0] = SDL_SCANCODE_ESCAPE; return true;
 
     // Functional keys
@@ -234,17 +255,47 @@ bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
     case eAGSKeyCodeF12: scan[0] = SDL_SCANCODE_F12; return true;
 
     // Keys that may be found on both main keyboard and NumPad
-    case eAGSKeyCodeHome: scan[0] = SDL_SCANCODE_KP_7; scan[1] = SDL_SCANCODE_HOME; return true;
-    case eAGSKeyCodeUpArrow: scan[0] = SDL_SCANCODE_KP_8; scan[1] = SDL_SCANCODE_UP; return true;
-    case eAGSKeyCodePageUp: scan[0] = SDL_SCANCODE_KP_9; scan[1] = SDL_SCANCODE_PAGEUP; return true;
-    case eAGSKeyCodeLeftArrow: scan[0] = SDL_SCANCODE_KP_4; scan[1] = SDL_SCANCODE_LEFT; return true;
+    case eAGSKeyCodeHome:
+        scan[0] = SDL_SCANCODE_KP_7;
+        scan[1] = SDL_SCANCODE_HOME;
+        return true;
+    case eAGSKeyCodeUpArrow:
+        scan[0] = SDL_SCANCODE_KP_8;
+        scan[1] = SDL_SCANCODE_UP;
+        return true;
+    case eAGSKeyCodePageUp:
+        scan[0] = SDL_SCANCODE_KP_9;
+        scan[1] = SDL_SCANCODE_PAGEUP;
+        return true;
+    case eAGSKeyCodeLeftArrow:
+        scan[0] = SDL_SCANCODE_KP_4;
+        scan[1] = SDL_SCANCODE_LEFT;
+        return true;
     case eAGSKeyCodeNumPad5: scan[0] = SDL_SCANCODE_KP_5; return true;
-    case eAGSKeyCodeRightArrow: scan[0] = SDL_SCANCODE_KP_6; scan[1] = SDL_SCANCODE_RIGHT; return true;
-    case eAGSKeyCodeEnd: scan[0] = SDL_SCANCODE_KP_1; scan[1] = SDL_SCANCODE_END; return true;
-    case eAGSKeyCodeDownArrow: scan[0] = SDL_SCANCODE_KP_2; scan[1] = SDL_SCANCODE_DOWN; return true;
-    case eAGSKeyCodePageDown: scan[0] = SDL_SCANCODE_KP_3; scan[1] = SDL_SCANCODE_PAGEDOWN; return true;
-    case eAGSKeyCodeInsert: scan[0] = SDL_SCANCODE_KP_0; scan[1] = SDL_SCANCODE_INSERT; return true;
-    case eAGSKeyCodeDelete: scan[0] = SDL_SCANCODE_KP_PERIOD; scan[1] = SDL_SCANCODE_DELETE; return true;
+    case eAGSKeyCodeRightArrow:
+        scan[0] = SDL_SCANCODE_KP_6;
+        scan[1] = SDL_SCANCODE_RIGHT;
+        return true;
+    case eAGSKeyCodeEnd:
+        scan[0] = SDL_SCANCODE_KP_1;
+        scan[1] = SDL_SCANCODE_END;
+        return true;
+    case eAGSKeyCodeDownArrow:
+        scan[0] = SDL_SCANCODE_KP_2;
+        scan[1] = SDL_SCANCODE_DOWN;
+        return true;
+    case eAGSKeyCodePageDown:
+        scan[0] = SDL_SCANCODE_KP_3;
+        scan[1] = SDL_SCANCODE_PAGEDOWN;
+        return true;
+    case eAGSKeyCodeInsert:
+        scan[0] = SDL_SCANCODE_KP_0;
+        scan[1] = SDL_SCANCODE_INSERT;
+        return true;
+    case eAGSKeyCodeDelete:
+        scan[0] = SDL_SCANCODE_KP_PERIOD;
+        scan[1] = SDL_SCANCODE_DELETE;
+        return true;
 
     // Modifier keys
     case eAGSKeyCodeLShift: scan[0] = SDL_SCANCODE_LSHIFT; return true;
@@ -261,14 +312,22 @@ bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3])
 int ags_mod_to_sdl_mod(eAGSKeyMod mod)
 {
     int sdl_mod = 0;
-    if (mod & eAGSModLShift) sdl_mod |= KMOD_LSHIFT;
-    if (mod & eAGSModRShift) sdl_mod |= KMOD_RSHIFT;
-    if (mod & eAGSModLCtrl)  sdl_mod |= KMOD_LCTRL;
-    if (mod & eAGSModRCtrl)  sdl_mod |= KMOD_RCTRL;
-    if (mod & eAGSModLAlt)   sdl_mod |= KMOD_LALT;
-    if (mod & eAGSModRAlt)   sdl_mod |= KMOD_RALT;
-    if (mod & eAGSModNum)    sdl_mod |= KMOD_NUM;
-    if (mod & eAGSModCaps)   sdl_mod |= KMOD_CAPS;
+    if (mod & eAGSModLShift)
+        sdl_mod |= KMOD_LSHIFT;
+    if (mod & eAGSModRShift)
+        sdl_mod |= KMOD_RSHIFT;
+    if (mod & eAGSModLCtrl)
+        sdl_mod |= KMOD_LCTRL;
+    if (mod & eAGSModRCtrl)
+        sdl_mod |= KMOD_RCTRL;
+    if (mod & eAGSModLAlt)
+        sdl_mod |= KMOD_LALT;
+    if (mod & eAGSModRAlt)
+        sdl_mod |= KMOD_RALT;
+    if (mod & eAGSModNum)
+        sdl_mod |= KMOD_NUM;
+    if (mod & eAGSModCaps)
+        sdl_mod |= KMOD_CAPS;
     return sdl_mod;
 }
 
@@ -287,8 +346,7 @@ KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event)
         ki.Key = sdl_key_to_ags_key(event.key.keysym, false);
         ki.CompatKey = sdl_key_to_ags_key(event.key.keysym, true);
         return ki;
-    default:
-        return ki;
+    default: return ki;
     }
 }
 
@@ -302,7 +360,7 @@ KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event)
 static std::deque<SDL_Event> g_inputEvtQueue;
 
 std::vector<SDL_Keysym> sys_keysdown;
-int sys_modkeys = 0; // saved accumulated key mods
+int sys_modkeys = 0;            // saved accumulated key mods
 bool sys_modkeys_fired = false; // saved mod key combination already fired
 
 bool ags_hasinputevent_ready(InputType &type)
@@ -321,20 +379,15 @@ InputType ags_inputevent_ready()
     {
     case SDL_KEYDOWN:
     case SDL_KEYUP:
-    case SDL_TEXTINPUT:
-        return kInputKeyboard;
+    case SDL_TEXTINPUT: return kInputKeyboard;
     case SDL_MOUSEBUTTONDOWN:
-    case SDL_MOUSEBUTTONUP:
-        return kInputMouse;
+    case SDL_MOUSEBUTTONUP: return kInputMouse;
     case SDL_JOYBUTTONDOWN:
-    case SDL_CONTROLLERBUTTONDOWN:
-        return kInputGamepad;
+    case SDL_CONTROLLERBUTTONDOWN: return kInputGamepad;
     case AGS_SDL_EVT_TOUCHDOWN:
     case AGS_SDL_EVT_TOUCHUP:
-    case AGS_SDL_EVT_TOUCHMOTION:
-        return kInputTouch;
-    default:
-        return kInputNone;
+    case AGS_SDL_EVT_TOUCHMOTION: return kInputTouch;
+    default: return kInputNone;
     }
 }
 
@@ -355,11 +408,8 @@ void ags_dispose_userevent(const SDL_Event &evt)
     {
     case AGS_SDL_EVT_TOUCHDOWN:
     case AGS_SDL_EVT_TOUCHUP:
-    case AGS_SDL_EVT_TOUCHMOTION:
-        delete static_cast<AGS_TouchPointerEventData*>(evt.user.data1);
-        break;
-    default:
-        break;
+    case AGS_SDL_EVT_TOUCHMOTION: delete static_cast<AGS_TouchPointerEventData *>(evt.user.data1); break;
+    default: break;
     }
 }
 
@@ -450,9 +500,9 @@ static void on_sdl_key_up(const SDL_Event &event)
     g_inputEvtQueue.push_back(event);
     if (event.key.repeat == 0)
     {
-        sys_keysdown.erase(
-            std::remove_if(sys_keysdown.begin(), sys_keysdown.end(), [&event](const SDL_Keysym &key){ return key.sym == event.key.keysym.sym; }),
-            sys_keysdown.end());
+        sys_keysdown.erase(std::remove_if(sys_keysdown.begin(), sys_keysdown.end(),
+                                          [&event](const SDL_Keysym &key) { return key.sym == event.key.keysym.sym; }),
+                           sys_keysdown.end());
     }
 }
 
@@ -470,11 +520,11 @@ static void on_sdl_textinput(const SDL_Event &event)
 // TODO: check later, if this may be useful in other places (then move to header)
 enum eAGSMouseButtonMask
 {
-    MouseBitLeft     = 0x01,
-    MouseBitRight    = 0x02,
-    MouseBitMiddle   = 0x04,
-    MouseBitX1       = 0x08,
-    MouseBitX2       = 0x10
+    MouseBitLeft = 0x01,
+    MouseBitRight = 0x02,
+    MouseBitMiddle = 0x04,
+    MouseBitX1 = 0x08,
+    MouseBitX2 = 0x10
 };
 
 eAGSMouseButton sdl_mbut_to_ags_but(int sdl_mbut)
@@ -513,8 +563,7 @@ static int ags_button_to_sdl(eAGSMouseButton but)
 }
 
 // Convert mouse button id to flags
-const int MouseButton2Bits[kNumMouseButtons] =
-    { 0, MouseBitLeft, MouseBitRight, MouseBitMiddle };
+const int MouseButton2Bits[kNumMouseButtons] = {0, MouseBitLeft, MouseBitRight, MouseBitMiddle};
 
 
 // Latest mouse button state
@@ -638,9 +687,9 @@ int ags_check_mouse_wheel()
 
     int result = 0;
     if (sys_mouse_z > mouse_z_was)
-        result = 1;   // eMouseWheelNorth
+        result = 1; // eMouseWheelNorth
     else
-        result = -1;  // eMouseWheelSouth
+        result = -1; // eMouseWheelSouth
     mouse_z_was = sys_mouse_z;
     return result;
 }
@@ -664,10 +713,7 @@ public:
     static const int MAX_FINGERS = 10;
     static const int NO_INDEX = -1;
 
-    Fingers()
-    {
-        std::fill(_fingers.begin(), _fingers.end(), NO_INDEX_REF);
-    }
+    Fingers() { std::fill(_fingers.begin(), _fingers.end(), NO_INDEX_REF); }
 
     // store fingerId, return given finger index
     int push(SDL_FingerID fingerId)
@@ -766,8 +812,7 @@ struct Touch2Mouse
 } static t2m;
 
 
-void ags_touch_set_mouse_emulation(TouchMouseEmulation mode,
-    bool relative, float speed)
+void ags_touch_set_mouse_emulation(TouchMouseEmulation mode, bool relative, float speed)
 {
     t2m.mode = mode;
     t2m.is_relative = relative;
@@ -789,10 +834,10 @@ static int tfinger_to_mouse_but(int finger_index)
 static void detect_double_tap(const SDL_TouchFingerEvent &event, bool down)
 {
     auto tap_ts = Clock::now();
-    if ((touch.last_tap_finger == event.fingerId) &&
-        (tap_ts < (touch.last_tap_ts + touch.quick_tap_delay)))
+    if ((touch.last_tap_finger == event.fingerId) && (tap_ts < (touch.last_tap_ts + touch.quick_tap_delay)))
     {
-        if (down) touch.tap_count++;
+        if (down)
+            touch.tap_count++;
     }
     else
     {
@@ -811,7 +856,7 @@ static int calc_relative_delta(float value, float scale, float &accum)
         accum = 0.f; // reset accumulated delta if direction has changed
     accum += value * scale;
     value = std::truncf(accum); // get nearest full integer value
-    accum -= value; // subtract used part from accumulation
+    accum -= value;             // subtract used part from accumulation
     return value;
 }
 
@@ -875,9 +920,8 @@ static Point sdl_touch_to_window_pos(float x, float y)
     // CHECKME: can't we use SDL window size here, or anything similar?
     const Size d_sz = gl_SysConfig.DisplayMode;
     const Point pos_real = Point::Clamp(
-        Point(static_cast<int>(std::roundf(x * d_sz.Width)),
-              static_cast<int>(std::roundf(y * d_sz.Height))),
-        Point(), Point(d_sz.Width - 1, d_sz.Height - 1));
+        Point(static_cast<int>(std::roundf(x * d_sz.Width)), static_cast<int>(std::roundf(y * d_sz.Height))), Point(),
+        Point(d_sz.Width - 1, d_sz.Height - 1));
     return pos_real;
 }
 
@@ -892,9 +936,8 @@ static SDL_Event create_ags_touch_event(const SDL_TouchFingerEvent &tfinger)
     }
     uevt.user.timestamp = tfinger.timestamp;
     uevt.user.windowID = tfinger.windowID;
-    uevt.user.data1 = new AGS_TouchPointerEventData(
-        touch.fingers.get_index(tfinger.fingerId),
-        sdl_touch_to_window_pos(tfinger.x, tfinger.y));
+    uevt.user.data1 = new AGS_TouchPointerEventData(touch.fingers.get_index(tfinger.fingerId),
+                                                    sdl_touch_to_window_pos(tfinger.x, tfinger.y));
     return uevt;
 }
 
@@ -922,8 +965,7 @@ static void on_sdl_touch_down(const SDL_Event &event)
         {
             set_t2m_pos(tfinger.x, tfinger.y, 0.f, 0.f);
             t2m.start_pos = t2m.pos;
-            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, SDL_TOUCH_MOUSEID, mouse_but,
-                t2m.emul_pos.X, t2m.emul_pos.Y);
+            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, SDL_TOUCH_MOUSEID, mouse_but, t2m.emul_pos.X, t2m.emul_pos.Y);
         }
         break;
     }
@@ -934,12 +976,14 @@ static void on_sdl_touch_down(const SDL_Event &event)
         if ((mouse_but == SDL_BUTTON_LEFT) && (touch.tap_count == 2))
         {
             t2m.drag_down = SDL_BUTTON_LEFT;
-            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, SDL_TOUCH_MOUSEID, t2m.drag_down, t2m.emul_pos.X, t2m.emul_pos.Y);
+            send_mouse_button_event(SDL_MOUSEBUTTONDOWN, SDL_TOUCH_MOUSEID, t2m.drag_down, t2m.emul_pos.X,
+                                    t2m.emul_pos.Y);
         }
         // If another finger was down, then unpress the drag
         else if (t2m.drag_down > 0)
         {
-            send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, t2m.drag_down, t2m.emul_pos.X, t2m.emul_pos.Y);
+            send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, t2m.drag_down, t2m.emul_pos.X,
+                                    t2m.emul_pos.Y);
             t2m.drag_down = 0;
         }
 
@@ -1001,21 +1045,23 @@ static void on_sdl_touch_up(const SDL_Event &event)
         int mouse_but = tfinger_to_mouse_but(finger_index);
         // If there's a force button set, then click only if the current button matches it;
         // otherwise use whatever was released
-        if ((mouse_but > 0) &&
-            ((t2m.force_button == 0) || (mouse_but == t2m.force_button)))
+        if ((mouse_but > 0) && ((t2m.force_button == 0) || (mouse_but == t2m.force_button)))
         {
             // If was dragging, then only release
             if (t2m.drag_down)
             {
-                send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, t2m.drag_down, t2m.emul_pos.X, t2m.emul_pos.Y);
+                send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, t2m.drag_down, t2m.emul_pos.X,
+                                        t2m.emul_pos.Y);
                 t2m.drag_down = 0;
             }
             // Else, if was not dragging around, then perform a "click"
             // (send both mouse button down and up)
             else if (!t2m.is_dragging)
             {
-                send_mouse_button_event(SDL_MOUSEBUTTONDOWN, SDL_TOUCH_MOUSEID, mouse_but, t2m.emul_pos.X, t2m.emul_pos.Y);
-                send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, mouse_but, t2m.emul_pos.X, t2m.emul_pos.Y);
+                send_mouse_button_event(SDL_MOUSEBUTTONDOWN, SDL_TOUCH_MOUSEID, mouse_but, t2m.emul_pos.X,
+                                        t2m.emul_pos.Y);
+                send_mouse_button_event(SDL_MOUSEBUTTONUP, SDL_TOUCH_MOUSEID, mouse_but, t2m.emul_pos.X,
+                                        t2m.emul_pos.Y);
             }
         }
         // If all fingers are up, reset the locked mouse motion and forced button
@@ -1056,7 +1102,8 @@ static void on_sdl_touch_motion(const SDL_Event &event)
         {
             // Absolute positioning
             set_t2m_pos(tfinger.x, tfinger.y, tfinger.dx, tfinger.dy);
-            send_mouse_motion_event(SDL_TOUCH_MOUSEID, t2m.emul_pos.X, t2m.emul_pos.Y, t2m.emul_delta.X, t2m.emul_delta.Y);
+            send_mouse_motion_event(SDL_TOUCH_MOUSEID, t2m.emul_pos.X, t2m.emul_pos.Y, t2m.emul_delta.X,
+                                    t2m.emul_delta.Y);
             // Test the absolute value of the touch drag so far
             t2m.drag_dist_accum += std::sqrt((tfinger.dx * tfinger.dx) + (tfinger.dy * tfinger.dy));
             if (t2m.drag_dist_accum > t2m.drag_trigger_dist)
@@ -1068,7 +1115,6 @@ static void on_sdl_touch_motion(const SDL_Event &event)
     default: break; // do nothing
     }
 }
-
 
 
 void ags_clear_input_state()
@@ -1126,17 +1172,14 @@ static void on_sdl_gamepad_button(const SDL_Event &event)
     g_inputEvtQueue.push_back(event);
 }
 
-static void on_sdl_gamepad_device(const SDL_ControllerDeviceEvent &event)
-{
-
-}
+static void on_sdl_gamepad_device(const SDL_ControllerDeviceEvent &event) {}
 
 // ----------------------------------------------------------------------------
 // EVENTS
 // ----------------------------------------------------------------------------
-static void(*_on_quit_callback)(void) = nullptr;
-static void(*_on_switchin_callback)(void) = nullptr;
-static void(*_on_switchout_callback)(void) = nullptr;
+static void (*_on_quit_callback)(void) = nullptr;
+static void (*_on_switchin_callback)(void) = nullptr;
+static void (*_on_switchout_callback)(void) = nullptr;
 
 int sys_evt_filter(void *userdata, SDL_Event *event)
 {
@@ -1148,20 +1191,17 @@ int sys_evt_filter(void *userdata, SDL_Event *event)
         switch (event->type)
         {
         case SDL_MOUSEBUTTONDOWN:
-        case SDL_MOUSEBUTTONUP:
-            return event->button.which == SDL_TOUCH_MOUSEID ? 1 : 0;
-        case SDL_MOUSEMOTION:
-            return event->motion.which == SDL_TOUCH_MOUSEID ? 1 : 0;
-        case SDL_MOUSEWHEEL:
-            return event->wheel.which == SDL_TOUCH_MOUSEID ? 1 : 0;
-        default:
-            return 1;
+        case SDL_MOUSEBUTTONUP: return event->button.which == SDL_TOUCH_MOUSEID ? 1 : 0;
+        case SDL_MOUSEMOTION: return event->motion.which == SDL_TOUCH_MOUSEID ? 1 : 0;
+        case SDL_MOUSEWHEEL: return event->wheel.which == SDL_TOUCH_MOUSEID ? 1 : 0;
+        default: return 1;
         }
     }
     return 1;
 }
 
-void sys_evt_on_config_set() {
+void sys_evt_on_config_set()
+{
     if (!gl_SysConfig.MouseEnabled)
     {
         SDL_SetEventFilter(sys_evt_filter, &gl_SysConfig);
@@ -1172,26 +1212,32 @@ void sys_evt_on_config_set() {
     }
 }
 
-void sys_evt_register_ags_events() {
+void sys_evt_register_ags_events()
+{
     const Uint32 first_user_event = SDL_RegisterEvents(AGS_SDL_EVT_END - AGS_SDL_EVT_BEGIN);
     assert(first_user_event == AGS_SDL_EVT_BEGIN);
 }
 
-void sys_evt_set_quit_callback(void(*proc)(void)) {
+void sys_evt_set_quit_callback(void (*proc)(void))
+{
     _on_quit_callback = proc;
 }
 
-void sys_evt_set_focus_callbacks(void(*switch_in)(void), void(*switch_out)(void)) {
+void sys_evt_set_focus_callbacks(void (*switch_in)(void), void (*switch_out)(void))
+{
     _on_switchin_callback = switch_in;
     _on_switchout_callback = switch_out;
 }
 
-void sys_evt_process_one(const SDL_Event &event) {
-    switch (event.type) {
+void sys_evt_process_one(const SDL_Event &event)
+{
+    switch (event.type)
+    {
     // GENERAL
     case SDL_QUIT:
         Debug::Printf("SDL event: quit");
-        if (_on_quit_callback) {
+        if (_on_quit_callback)
+        {
             _on_quit_callback();
         }
         break;
@@ -1201,19 +1247,19 @@ void sys_evt_process_one(const SDL_Event &event) {
         {
         case SDL_WINDOWEVENT_FOCUS_GAINED:
             Debug::Printf("Window event: focus gained");
-            if (_on_switchin_callback) {
+            if (_on_switchin_callback)
+            {
                 _on_switchin_callback();
             }
             break;
         case SDL_WINDOWEVENT_FOCUS_LOST:
             Debug::Printf("Window event: focus lost");
-            if (_on_switchout_callback) {
+            if (_on_switchout_callback)
+            {
                 _on_switchout_callback();
             }
             break;
-        case SDL_WINDOWEVENT_CLOSE:
-            Debug::Printf("Window event: close");
-            break;
+        case SDL_WINDOWEVENT_CLOSE: Debug::Printf("Window event: close"); break;
         case SDL_WINDOWEVENT_SIZE_CHANGED:
             Debug::Printf("Window event: size changed (%d, %d)", event.window.data1, event.window.data2);
             engine_on_window_changed(Size(event.window.data1, event.window.data2));
@@ -1221,65 +1267,40 @@ void sys_evt_process_one(const SDL_Event &event) {
         }
         break;
     // KEY INPUT
-    case SDL_KEYDOWN:
-        on_sdl_key_down(event);
-        break;
-    case SDL_KEYUP:
-        on_sdl_key_up(event);
-        break;
-    case SDL_TEXTINPUT:
-        on_sdl_textinput(event);
-        break;
+    case SDL_KEYDOWN: on_sdl_key_down(event); break;
+    case SDL_KEYUP: on_sdl_key_up(event); break;
+    case SDL_TEXTINPUT: on_sdl_textinput(event); break;
     // MOUSE INPUT
-    case SDL_MOUSEMOTION:
-        on_sdl_mouse_motion(event.motion);
-        break;
-    case SDL_MOUSEBUTTONDOWN:
-        on_sdl_mouse_down(event);
-        break;
-    case SDL_MOUSEBUTTONUP:
-        on_sdl_mouse_up(event);
-        break;
-    case SDL_MOUSEWHEEL:
-        on_sdl_mouse_wheel(event.wheel);
-        break;
+    case SDL_MOUSEMOTION: on_sdl_mouse_motion(event.motion); break;
+    case SDL_MOUSEBUTTONDOWN: on_sdl_mouse_down(event); break;
+    case SDL_MOUSEBUTTONUP: on_sdl_mouse_up(event); break;
+    case SDL_MOUSEWHEEL: on_sdl_mouse_wheel(event.wheel); break;
     // TOUCH INPUT
-    case SDL_FINGERDOWN:
-        on_sdl_touch_down(event);
-        break;
-    case SDL_FINGERUP:
-        on_sdl_touch_up(event);
-        break;
-    case SDL_FINGERMOTION:
-        on_sdl_touch_motion(event);
-        break;
+    case SDL_FINGERDOWN: on_sdl_touch_down(event); break;
+    case SDL_FINGERUP: on_sdl_touch_up(event); break;
+    case SDL_FINGERMOTION: on_sdl_touch_motion(event); break;
     // JOYSTICK INPUT
-    case SDL_JOYBUTTONDOWN:
-        on_sdl_joystick_button(event);
-        break;
+    case SDL_JOYBUTTONDOWN: on_sdl_joystick_button(event); break;
     case SDL_JOYDEVICEADDED:
-    case SDL_JOYDEVICEREMOVED:
-        on_sdl_joystick_device(event.jdevice);
-        break;
-    case SDL_CONTROLLERBUTTONDOWN:
-        on_sdl_gamepad_button(event);
-        break;
+    case SDL_JOYDEVICEREMOVED: on_sdl_joystick_device(event.jdevice); break;
+    case SDL_CONTROLLERBUTTONDOWN: on_sdl_gamepad_button(event); break;
     case SDL_CONTROLLERDEVICEADDED:
-    case SDL_CONTROLLERDEVICEREMOVED:
-        on_sdl_gamepad_device(event.cdevice);
-        break;
+    case SDL_CONTROLLERDEVICEREMOVED: on_sdl_gamepad_device(event.cdevice); break;
     default: break;
     }
 }
 
-void sys_evt_process_pending(void) {
+void sys_evt_process_pending(void)
+{
     SDL_Event event;
-    while (SDL_PollEvent(&event)) {
+    while (SDL_PollEvent(&event))
+    {
         sys_evt_process_one(event);
     }
 }
 
-void sys_flush_events(void) {
+void sys_flush_events(void)
+{
     SDL_PumpEvents();
     SDL_FlushEvent(SDL_WINDOWEVENT);
     SDL_FlushEvents(SDL_KEYDOWN, SDL_TEXTINPUT);

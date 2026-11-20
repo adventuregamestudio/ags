@@ -14,8 +14,8 @@
 #ifndef __AC_GUIDEFINES_H
 #define __AC_GUIDEFINES_H
 
-#define GUIMAGIC          0xcafebeef
-#define TEXTWINDOW_PADDING_DEFAULT  3
+#define GUIMAGIC                   0xcafebeef
+#define TEXTWINDOW_PADDING_DEFAULT 3
 
 // TODO: find out more about gui version history
 //=============================================================================
@@ -57,14 +57,14 @@
 
 enum GuiVersion
 {
-    kGuiVersion_Undefined   = 0,
-    kGuiVersion_350         = 119,
-    kGuiVersion_363_04      = 3060304,
-    kGuiVersion_363_08      = 3060308,
-    kGuiVersion_40026       = 4000026,
-    kGuiVersion_40027       = 4000027,
+    kGuiVersion_Undefined = 0,
+    kGuiVersion_350 = 119,
+    kGuiVersion_363_04 = 3060304,
+    kGuiVersion_363_08 = 3060308,
+    kGuiVersion_40026 = 4000026,
+    kGuiVersion_40027 = 4000027,
     kGuiVersion_LowSupported = kGuiVersion_350,
-    kGuiVersion_Current     = kGuiVersion_40027,
+    kGuiVersion_Current = kGuiVersion_40027,
 };
 
 namespace AGS
@@ -75,91 +75,90 @@ namespace Common
 // GUIMain's style and behavior flags
 enum GUIMainFlags
 {
-    kGUIMain_Clickable  = 0x0001,
+    kGUIMain_Clickable = 0x0001,
     kGUIMain_TextWindow = 0x0002,
-    kGUIMain_Visible    = 0x0004,
-    kGUIMain_Concealed  = 0x0008,
+    kGUIMain_Visible = 0x0004,
+    kGUIMain_Concealed = 0x0008,
 
     // NOTE: currently default state is Visible to keep this backwards compatible;
     // check later if this is still a wanted behavior
-    kGUIMain_DefFlags   = kGUIMain_Clickable | kGUIMain_Visible
+    kGUIMain_DefFlags = kGUIMain_Clickable | kGUIMain_Visible
 };
 
 // GUIMain's style of getting displayed on screen
 enum GUIPopupStyle
 {
     // Normal GUI
-    kGUIPopupNormal           = 0,
+    kGUIPopupNormal = 0,
     // Shown when the mouse cursor moves to the top of the screen
-    kGUIPopupMouseY           = 1,
+    kGUIPopupMouseY = 1,
     // Same as Normal, but pauses the game when shown
-    kGUIPopupModal            = 2,
+    kGUIPopupModal = 2,
     // Same as Normal, but is not removed when interface is off
-    kGUIPopupNoAutoRemove     = 3
+    kGUIPopupNoAutoRemove = 3
 };
 
 // TextWindow Border IDs
 enum GUITextWindowBorder
 {
-    kTW_TopLeft     = 0,
-    kTW_BottomLeft  = 1,
-    kTW_TopRight    = 2,
+    kTW_TopLeft = 0,
+    kTW_BottomLeft = 1,
+    kTW_TopRight = 2,
     kTW_BottomRight = 3,
-    kTW_Left        = 4,
-    kTW_Right       = 5,
-    kTW_Top         = 6,
-    kTW_Bottom      = 7
+    kTW_Left = 4,
+    kTW_Right = 5,
+    kTW_Top = 6,
+    kTW_Bottom = 7
 };
 
 // The type of GUIControl
 enum GUIControlType
 {
     kGUIControlUndefined = -1,
-    kGUIButton      = 1,
-    kGUILabel       = 2,
-    kGUIInvWindow   = 3,
-    kGUISlider      = 4,
-    kGUITextBox     = 5,
-    kGUIListBox     = 6,
+    kGUIButton = 1,
+    kGUILabel = 2,
+    kGUIInvWindow = 3,
+    kGUISlider = 4,
+    kGUITextBox = 5,
+    kGUIListBox = 6,
     kGUIControlTypeNum
 };
 
 // GUIControl general style and behavior flags
 enum GUIControlFlags
 {
-    kGUICtrl_Default    = 0x0001, // only button (not used in practice)
-    kGUICtrl_Cancel     = 0x0002, // unused
-    kGUICtrl_Enabled    = 0x0004,
-    kGUICtrl_TabStop    = 0x0008, // unused
-    kGUICtrl_Visible    = 0x0010,
-    kGUICtrl_Clip       = 0x0020, // only button
-    kGUICtrl_Clickable  = 0x0040,
+    kGUICtrl_Default = 0x0001, // only button (not used in practice)
+    kGUICtrl_Cancel = 0x0002,  // unused
+    kGUICtrl_Enabled = 0x0004,
+    kGUICtrl_TabStop = 0x0008, // unused
+    kGUICtrl_Visible = 0x0010,
+    kGUICtrl_Clip = 0x0020, // only button
+    kGUICtrl_Clickable = 0x0040,
     kGUICtrl_Translated = 0x0080, // 3.3.0.1132
-    kGUICtrl_WrapText   = 0x0100, // 3.6.2
+    kGUICtrl_WrapText = 0x0100,   // 3.6.2
     kGUICtrl_ShowBorder = 0x0200, // 3.6.3
-    kGUICtrl_SolidBack  = 0x0400, // 3.6.3
-    kGUICtrl_Deleted    = 0x8000, // unused (probably remains from the old editor?)
+    kGUICtrl_SolidBack = 0x0400,  // 3.6.3
+    kGUICtrl_Deleted = 0x8000,    // unused (probably remains from the old editor?)
 
-    kGUICtrl_DefFlags   = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable |
-                          kGUICtrl_Translated,
+    kGUICtrl_DefFlags = kGUICtrl_Enabled | kGUICtrl_Visible | kGUICtrl_Clickable | kGUICtrl_Translated,
 };
 
 enum GUIButtonFlags
 {
     // Button colors (text, border, background) change depending on its state
-    kButton_DynamicColors   = 0x01,
+    kButton_DynamicColors = 0x01,
     // Flat (don't use shadow color)
-    kButton_FlatStyle       = 0x02
+    kButton_FlatStyle = 0x02
 };
 
 // Label macro flags, define which macros are present in the Label's Text
 enum GUILabelMacro
 {
-    kLabelMacro_None        = 0,
-    kLabelMacro_Gamename    = 0x01,
+    kLabelMacro_None = 0,
+    kLabelMacro_Gamename = 0x01,
     kLabelMacro_Overhotspot = 0x02,
 
-    kLabelMacro_All         = 0xFFFF
+    kLabelMacro_All = 0xFFFF
 };
 
 // GUIListBox style and behavior flags
@@ -167,9 +166,9 @@ enum GUIListBoxFlags
 {
     kListBox_ShowBorder = 0x01, // [DEPRECATED], use kGUICtrl_ShowBorder instead
     kListBox_ShowArrows = 0x02,
-    kListBox_SvgIndex   = 0x04,
+    kListBox_SvgIndex = 0x04,
 
-    kListBox_DefFlags   = kListBox_ShowBorder | kListBox_ShowArrows
+    kListBox_DefFlags = kListBox_ShowBorder | kListBox_ShowArrows
 };
 
 // GUITextBox style and behavior flags
@@ -177,43 +176,43 @@ enum GUITextBoxFlags
 {
     kTextBox_ShowBorder = 0x0001, // [DEPRECATED], use kGUICtrl_ShowBorder instead
 
-    kTextBox_DefFlags   = kTextBox_ShowBorder
+    kTextBox_DefFlags = kTextBox_ShowBorder
 };
 
 // GUI runtime save format
 // TODO: move to the engine code
 enum GuiSvgVersion
 {
-    kGuiSvgVersion_Initial  = 0,
+    kGuiSvgVersion_Initial = 0,
     kGuiSvgVersion_350,
     kGuiSvgVersion_36020,
     kGuiSvgVersion_36023,
     kGuiSvgVersion_36025,
-    kGuiSvgVersion_36200    = 3060200, // re-added control refs
-    kGuiSvgVersion_36202    = 3060202,
-    kGuiSvgVersion_36304    = 3060304, // extended control frame properties
-    kGuiSvgVersion_36308    = 3060308, // +text outline color
-    kGuiSvgVersion_400      = 4000000,
-    kGuiSvgVersion_40008    = 4000008, // custom properties
-    kGuiSvgVersion_40009    = 4000009, // 32-bit color properties
-    kGuiSvgVersion_40010    = 4000010, // compat with kGuiSvgVersion_36200-36202
-    kGuiSvgVersion_40014    = 4000014, // proper ARGB color properties
-    kGuiSvgVersion_40016    = 4000016, // extended graphic properties for controls
-    kGuiSvgVersion_40018    = 4000018, // shaders
-    kGuiSvgVersion_40020    = 4000020, // expanded and bit more consistent anim params serialization
-    kGuiSvgVersion_40026    = 4000026, // sync with kGuiSvgVersion_36304
-    kGuiSvgVersion_40027    = 4000027, // sync with kGuiSvgVersion_36308
-    kGuiSvgVersion_Current  = kGuiSvgVersion_40027
+    kGuiSvgVersion_36200 = 3060200, // re-added control refs
+    kGuiSvgVersion_36202 = 3060202,
+    kGuiSvgVersion_36304 = 3060304, // extended control frame properties
+    kGuiSvgVersion_36308 = 3060308, // +text outline color
+    kGuiSvgVersion_400 = 4000000,
+    kGuiSvgVersion_40008 = 4000008, // custom properties
+    kGuiSvgVersion_40009 = 4000009, // 32-bit color properties
+    kGuiSvgVersion_40010 = 4000010, // compat with kGuiSvgVersion_36200-36202
+    kGuiSvgVersion_40014 = 4000014, // proper ARGB color properties
+    kGuiSvgVersion_40016 = 4000016, // extended graphic properties for controls
+    kGuiSvgVersion_40018 = 4000018, // shaders
+    kGuiSvgVersion_40020 = 4000020, // expanded and bit more consistent anim params serialization
+    kGuiSvgVersion_40026 = 4000026, // sync with kGuiSvgVersion_36304
+    kGuiSvgVersion_40027 = 4000027, // sync with kGuiSvgVersion_36308
+    kGuiSvgVersion_Current = kGuiSvgVersion_40027
 };
 
 // Style of GUI drawing in disabled state
 enum GuiDisableStyle
 {
     kGuiDis_Undefined = -1, // this is for marking not-disabled state
-    kGuiDis_Greyout   = 0, // paint "gisabled" effect over controls
-    kGuiDis_Blackout  = 1, // invisible controls (but guis are shown)
-    kGuiDis_Unchanged = 2, // no change, display normally
-    kGuiDis_Off       = 3  // fully invisible guis
+    kGuiDis_Greyout = 0,    // paint "gisabled" effect over controls
+    kGuiDis_Blackout = 1,   // invisible controls (but guis are shown)
+    kGuiDis_Unchanged = 2,  // no change, display normally
+    kGuiDis_Off = 3         // fully invisible guis
 };
 
 } // namespace Common

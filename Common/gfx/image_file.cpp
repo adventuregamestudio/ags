@@ -26,7 +26,7 @@ namespace ImageFile
 {
 
 // A image format read and write function pointer prototypes
-typedef PixelBuffer (*LoadImageFmt)(Stream *in, PixelFormat* src_fmt, RGB *pal);
+typedef PixelBuffer (*LoadImageFmt)(Stream *in, PixelFormat *src_fmt, RGB *pal);
 // FIXME: skip_alpha parameter is added as a hotfix, to be able to reduce
 // image file size when writing 32-bit sprites without alpha. Normally this
 // should be replaced with a "destination pixel format" parameter.
@@ -40,20 +40,18 @@ static struct ImageExtToFmt
     SaveImageFmt SaveFmt = nullptr;
 
     ImageExtToFmt(const char *ext, LoadImageFmt load_fmt, SaveImageFmt save_fmt)
-        : Ext(ext), LoadFmt(load_fmt), SaveFmt(save_fmt) {}
-} FormatProcs[] {
-        { "bmp", LoadBMP, SaveBMP },
-        { "pcx", LoadPCX, SavePCX },
-        { "png", LoadPNG, SavePNG },
-        { nullptr, nullptr, nullptr }
-    };
+        : Ext(ext), LoadFmt(load_fmt), SaveFmt(save_fmt)
+    {
+    }
+} FormatProcs[]{
+    {"bmp", LoadBMP, SaveBMP}, {"pcx", LoadPCX, SavePCX}, {"png", LoadPNG, SavePNG}, {nullptr, nullptr, nullptr}};
 
 std::vector<String> GetSupportedImageExts()
 {
-    return std::vector<String>{ "bmp", "pcx", "png" };
+    return std::vector<String>{"bmp", "pcx", "png"};
 }
 
-PixelBuffer LoadImage(Stream *in, const String &ext, PixelFormat* src_fmt, RGB *pal)
+PixelBuffer LoadImage(Stream *in, const String &ext, PixelFormat *src_fmt, RGB *pal)
 {
     PALETTE tmppal;
     if (!pal) // palette is required by the format load functions

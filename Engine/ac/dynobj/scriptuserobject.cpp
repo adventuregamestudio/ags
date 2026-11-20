@@ -36,7 +36,7 @@ const char *ScriptUserObject::GetType()
 {
     uint8_t *new_data = new uint8_t[size + MemHeaderSz];
     memset(new_data, 0, size + MemHeaderSz);
-    Header &hdr = reinterpret_cast<Header&>(*new_data);
+    Header &hdr = reinterpret_cast<Header &>(*new_data);
     hdr.TypeId = type_id;
     hdr.Size = size;
     void *obj_ptr = &new_data[MemHeaderSz];
@@ -58,7 +58,7 @@ int ScriptUserObject::Dispose(void *address, bool force)
         TraverseRefs(address, [](int handle) { pool.SubRefNoCheck(handle); });
     }
 
-    delete[] (static_cast<uint8_t*>(address) - MemHeaderSz);
+    delete[] (static_cast<uint8_t *>(address) - MemHeaderSz);
     return 1;
 }
 
@@ -72,14 +72,14 @@ void ScriptUserObject::Serialize(const void *address, AGS::Common::Stream *out)
 {
     const Header &hdr = GetHeader(address);
     out->WriteInt32(FileHeaderSz); // header size, reserve for the future
-    out->WriteInt32(hdr.TypeId); // type id
+    out->WriteInt32(hdr.TypeId);   // type id
     out->Write(address, hdr.Size); // main data
 }
 
 void ScriptUserObject::Unserialize(int index, Stream *in, size_t data_sz)
 {
     uint8_t *new_data = new uint8_t[(data_sz - FileHeaderSz) + MemHeaderSz];
-    Header &hdr = reinterpret_cast<Header&>(*new_data);
+    Header &hdr = reinterpret_cast<Header &>(*new_data);
     // TODO: should we support older save versions here?
     // might have to use class name (GetType) to distinguish save formats in UnSerializer
     size_t hdr_sz = static_cast<uint32_t>(in->ReadInt32());
@@ -89,8 +89,7 @@ void ScriptUserObject::Unserialize(int index, Stream *in, size_t data_sz)
     ccRegisterUnserializedObject(index, &new_data[MemHeaderSz], this);
 }
 
-void ScriptUserObject::RemapTypeids(void *address,
-    const std::unordered_map<uint32_t, uint32_t> &typeid_map)
+void ScriptUserObject::RemapTypeids(void *address, const std::unordered_map<uint32_t, uint32_t> &typeid_map)
 {
     Header &hdr = GetHeaderW(address);
     const auto it = typeid_map.find(hdr.TypeId);
@@ -112,7 +111,7 @@ void ScriptUserObject::TraverseRefs(void *address, PfnTraverseRefOp traverse_op)
     const auto fref = helper->GetManagedOffsetsForType(hdr.TypeId);
     for (auto it = fref.first; it < fref.second; ++it)
     {
-        traverse_op(*(int32_t*)(static_cast<uint8_t*>(address) + *it));
+        traverse_op(*(int32_t *)(static_cast<uint8_t *>(address) + *it));
     }
 }
 
@@ -122,7 +121,7 @@ ScriptUserObject globalDynamicStruct;
 // Allocates managed struct containing two ints: X and Y
 ScriptUserObject *ScriptStructHelpers::CreatePoint(int x, int y)
 {
-    return static_cast<ScriptUserObject*>(CreatePointRef(x, y).Obj());
+    return static_cast<ScriptUserObject *>(CreatePointRef(x, y).Obj());
 }
 
 DynObjectRef ScriptStructHelpers::CreatePointRef(int x, int y)
@@ -136,14 +135,13 @@ DynObjectRef ScriptStructHelpers::CreatePointRef(int x, int y)
 
 Point ScriptStructHelpers::ResolvePoint(void *managed_point)
 {
-    auto *obj = reinterpret_cast<ScriptUserObject*>(managed_point);
-    return Point(obj->ReadInt32(managed_point, 0), 
-                 obj->ReadInt32(managed_point, sizeof(int32_t)));
+    auto *obj = reinterpret_cast<ScriptUserObject *>(managed_point);
+    return Point(obj->ReadInt32(managed_point, 0), obj->ReadInt32(managed_point, sizeof(int32_t)));
 }
 
 bool ScriptStructHelpers::ResolveArrayOfPoints(const void *arrobj, std::vector<Point> &points)
 {
-    std::vector<void*> mpoints{};
+    std::vector<void *> mpoints{};
     if (!DynamicArrayHelpers::ResolvePointerArray(arrobj, mpoints) || mpoints.empty())
         return false; // failed to resolve or null-size array (?)
     for (const auto &mpt : mpoints)

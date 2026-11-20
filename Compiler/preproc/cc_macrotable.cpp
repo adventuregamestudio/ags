@@ -30,7 +30,7 @@ bool MacroTable::contains(const String &name) const
 
 String MacroTable::get_macro(const String &name)
 {
-    if(_macro_table.count(name))
+    if (_macro_table.count(name))
     {
         return _macro_table[name];
     }
@@ -41,7 +41,7 @@ void MacroTable::add(const String &macroname, const String &value)
 {
     if (this->contains(macroname))
     {
-        cc_error("macro '%s' already defined",macroname.GetCStr());
+        cc_error("macro '%s' already defined", macroname.GetCStr());
         return;
     }
 

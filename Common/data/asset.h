@@ -30,20 +30,20 @@ namespace Common
 struct AssetInfo
 {
     // A pair of filename and libuid is assumed to be unique in game scope
-    String      FileName;   // filename associated with asset
-    int32_t     LibUid = 0; // index of library partition (separate file)
-    soff_t      Offset = 0; // asset's position in library file (in bytes)
-    soff_t      Size = 0;   // asset's size (in bytes)
+    String FileName;    // filename associated with asset
+    int32_t LibUid = 0; // index of library partition (separate file)
+    soff_t Offset = 0;  // asset's position in library file (in bytes)
+    soff_t Size = 0;    // asset's size (in bytes)
 };
 
 // Information on multifile asset library
 struct AssetLibInfo
 {
-    String BasePath;                   // full path to the base filename
-    String BaseDir;                    // library's directory
-    String BaseFileName;               // library's base (head) filename
-    soff_t BaseFileOffset = 0;         // library's base's file offset
-    std::vector<String> LibFileNames;  // filename for each library part
+    String BasePath;                  // full path to the base filename
+    String BaseDir;                   // library's directory
+    String BaseFileName;              // library's base (head) filename
+    soff_t BaseFileOffset = 0;        // library's base's file offset
+    std::vector<String> LibFileNames; // filename for each library part
 
     // Library contents
     std::vector<AssetInfo> AssetInfos; // information on contained assets

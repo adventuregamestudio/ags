@@ -36,11 +36,11 @@ public:
     virtual ~GUITextBasedControl() = default;
 
     // Properties
-    int  GetFont() const { return _font; }
+    int GetFont() const { return _font; }
     void SetFont(int font);
-    int  GetTextColor() const { return _textColor; }
+    int GetTextColor() const { return _textColor; }
     void SetTextColor(int color);
-    int  GetTextOutlineColor() const { return _textColor; }
+    int GetTextOutlineColor() const { return _textColor; }
     void SetTextOutlineColor(int color);
     FrameAlignment GetTextAlignment() const { return _textAlignment; }
     void SetTextAlignment(FrameAlignment align);
@@ -52,7 +52,7 @@ protected:
     // Reports that the text font has changed
     virtual void OnTextFontChanged() { /* do nothing */ };
 
-    int     _font = 0;
+    int _font = 0;
     color_t _textColor = 0;
     color_t _textOutlineColor = 0;
     FrameAlignment _textAlignment = kAlignTopLeft;
@@ -77,7 +77,7 @@ protected:
     virtual void OnTextChanged() { /* do nothing */ };
 
     // Text property set by user
-    String  _text;
+    String _text;
 };
 
 } // namespace Common

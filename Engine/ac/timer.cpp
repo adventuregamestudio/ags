@@ -29,22 +29,24 @@ using namespace AGS::Engine;
 extern volatile bool game_update_suspend;
 extern volatile bool want_exit, abort_engine;
 
-namespace {
+namespace
+{
 
 const auto MAXIMUM_FALL_BEHIND = 3; // number of full frames
 
-auto tick_duration = std::chrono::microseconds(1000000LL/40);
+auto tick_duration = std::chrono::microseconds(1000000LL / 40);
 auto framerate = 0;
 auto framerate_maxed = false;
 
 auto last_tick_time = Clock::now();
 auto next_frame_timestamp = Clock::now();
 
-}
+} // namespace
 
 std::chrono::microseconds GetFrameDuration()
 {
-    if (framerate_maxed) {
+    if (framerate_maxed)
+    {
         return std::chrono::microseconds(0);
     }
     return tick_duration;
@@ -56,7 +58,7 @@ int setTimerFps(int new_fps, bool max_fps_mode)
     if (new_fps <= 0)
         return framerate;
     int old_fps = framerate;
-    tick_duration = std::chrono::microseconds(1000000LL/new_fps);
+    tick_duration = std::chrono::microseconds(1000000LL / new_fps);
     framerate = new_fps;
     framerate_maxed = max_fps_mode;
     // Update next frame time
@@ -81,12 +83,14 @@ void WaitForNextFrame()
     const auto frameDuration = GetFrameDuration();
 
     // early exit if we're trying to maximise framerate
-    if (frameDuration <= std::chrono::milliseconds::zero()) {
+    if (frameDuration <= std::chrono::milliseconds::zero())
+    {
         last_tick_time = next_frame_timestamp;
         next_frame_timestamp = now;
 
         // suspend while the game is being switched out
-        while (game_update_suspend && (!want_exit) && (!abort_engine)) {
+        while (game_update_suspend && (!want_exit) && (!abort_engine))
+        {
             sys_evt_process_pending();
             platform->YieldCPU();
         }
@@ -94,12 +98,14 @@ void WaitForNextFrame()
     }
 
     // jump ahead if we're lagging
-    if (next_frame_timestamp < (now - MAXIMUM_FALL_BEHIND*frameDuration)) {
+    if (next_frame_timestamp < (now - MAXIMUM_FALL_BEHIND * frameDuration))
+    {
         next_frame_timestamp = now;
     }
 
     auto frame_time_remaining = next_frame_timestamp - now;
-    if (frame_time_remaining > std::chrono::milliseconds::zero()) {
+    if (frame_time_remaining > std::chrono::milliseconds::zero())
+    {
 #if AGS_PLATFORM_OS_EMSCRIPTEN
         // pass the time as negative in Emscripten Platform Driver
         platform->Delay(-ToMilliseconds(frame_time_remaining));
@@ -112,7 +118,8 @@ void WaitForNextFrame()
     next_frame_timestamp += frameDuration;
 
     // suspend while the game is being switched out
-    while (game_update_suspend && (!want_exit) && (!abort_engine)) {
+    while (game_update_suspend && (!want_exit) && (!abort_engine))
+    {
         sys_evt_process_pending();
         platform->YieldCPU();
     }

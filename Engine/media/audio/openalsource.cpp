@@ -35,16 +35,12 @@ static ALenum OpenAlFormatFromSDLFormat(const Sound_AudioInfo &input, Sound_Audi
     {
     /* 8-bit integer samples */
     case AUDIO_U8:
-    case AUDIO_S8:
-        conv.format = AUDIO_U8;
-        return conv.channels == 1 ? AL_FORMAT_MONO8 : AL_FORMAT_STEREO8;
+    case AUDIO_S8: conv.format = AUDIO_U8; return conv.channels == 1 ? AL_FORMAT_MONO8 : AL_FORMAT_STEREO8;
     /* 16-bit integer samples */
     case AUDIO_U16LSB:
     case AUDIO_S16LSB:
     case AUDIO_U16MSB:
-    case AUDIO_S16MSB:
-        conv.format = AUDIO_S16SYS;
-        return conv.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+    case AUDIO_S16MSB: conv.format = AUDIO_S16SYS; return conv.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
     /* 32-bit integer and float samples */
     case AUDIO_S32LSB:
     case AUDIO_S32MSB:
@@ -53,14 +49,11 @@ static ALenum OpenAlFormatFromSDLFormat(const Sound_AudioInfo &input, Sound_Audi
         if (alIsExtensionPresent("AL_EXT_float32"))
         {
             conv.format = AUDIO_F32SYS;
-            return conv.channels == 1 ?
-                alGetEnumValue("AL_FORMAT_MONO_FLOAT32") :
-                alGetEnumValue("AL_FORMAT_STEREO_FLOAT32");
+            return conv.channels == 1 ? alGetEnumValue("AL_FORMAT_MONO_FLOAT32")
+                                      : alGetEnumValue("AL_FORMAT_STEREO_FLOAT32");
         }
         /* fall-through */
-    default:
-        conv.format = AUDIO_S16SYS;
-        return conv.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+    default: conv.format = AUDIO_S16SYS; return conv.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
     }
 }
 
@@ -100,13 +93,14 @@ OpenAlSource::OpenAlSource(SDL_AudioFormat format, int channels, int freq)
     _inputFmt.format = format;
     _inputFmt.channels = static_cast<Uint8>(channels);
     _inputFmt.rate = freq;
-    _alFormat = OpenAlFormatFromSDLFormat(_inputFmt, _recvFmt);;
+    _alFormat = OpenAlFormatFromSDLFormat(_inputFmt, _recvFmt);
+    ;
     alGenSources(1, &_source);
     dump_al_errors();
     _resampler.Setup(_inputFmt, _recvFmt);
 }
 
-OpenAlSource::OpenAlSource(OpenAlSource&& src)
+OpenAlSource::OpenAlSource(OpenAlSource &&src)
 {
     _inputFmt = src._inputFmt;
     _recvFmt = src._recvFmt;
@@ -156,9 +150,15 @@ size_t OpenAlSource::PutData(const SoundBufferPtr &data)
 {
     Unqueue();
     // If queue is full, bail out
-    if (_queued >= MaxQueue) { return 0u; }
+    if (_queued >= MaxQueue)
+    {
+        return 0u;
+    }
     // Input buffer is empty?
-    if (!data.Data() || (data.Size() == 0)) { return 0u; }
+    if (!data.Data() || (data.Size() == 0))
+    {
+        return 0u;
+    }
     // Check for free buffers, generate more if necessary
     if (g_oalint.freeBuffers.empty())
     {
@@ -175,7 +175,7 @@ size_t OpenAlSource::PutData(const SoundBufferPtr &data)
     SoundBufferPtr input_buf = data;
     // use provided timestamp, or calc our own
     const float use_ts = data.Timestamp() >= 0.f ? data.Timestamp() : _predictTs;
-    const float dur_ms = 
+    const float dur_ms =
         SoundHelper::MillisecondsFromBytes(data.Size(), _inputFmt.format, _inputFmt.channels, _inputFmt.rate);
     if (_resampler.HasConversion())
     {
@@ -205,7 +205,10 @@ void OpenAlSource::Unqueue()
         ALint processed = -1;
         alGetSourcei(_source, AL_BUFFERS_PROCESSED, &processed);
         dump_al_errors();
-        if (processed <= 0) { break; }
+        if (processed <= 0)
+        {
+            break;
+        }
 
         ALuint buf_id;
         alSourceUnqueueBuffers(_source, 1, &buf_id);
@@ -224,12 +227,21 @@ ALuint OpenAlSource::Poll()
     Unqueue();
 
     // Update play state
-    if (_playState == PlayStateError) { return 0u; }
-    if (_playState != PlayStatePlaying) { return _queued; }
-    
+    if (_playState == PlayStateError)
+    {
+        return 0u;
+    }
+    if (_playState != PlayStatePlaying)
+    {
+        return _queued;
+    }
+
     // If Al source is not playing for any reason, try to start it up,
     // but only if some data is queued
-    if (_queued == 0) { return 0; }
+    if (_queued == 0)
+    {
+        return 0;
+    }
     ALint state = AL_INITIAL;
     alGetSourcei(_source, AL_SOURCE_STATE, &state);
     dump_al_errors();
@@ -258,8 +270,7 @@ void OpenAlSource::Play()
             dump_al_errors();
         }
         break;
-    default:
-        break;
+    default: break;
     }
 }
 
@@ -267,9 +278,7 @@ void OpenAlSource::Stop()
 {
     switch (_playState)
     {
-    case PlayStateInitial:
-        _playState = PlayStateStopped;
-        break;
+    case PlayStateInitial: _playState = PlayStateStopped; break;
     case PlayStatePlaying:
     case PlayStatePaused:
         alSourceStop(_source);
@@ -278,8 +287,7 @@ void OpenAlSource::Stop()
         _playState = PlayStateStopped;
         _predictTs = 0.f;
         break;
-    default:
-        break;
+    default: break;
     }
 }
 
@@ -287,16 +295,13 @@ void OpenAlSource::Pause()
 {
     switch (_playState)
     {
-    case PlayStateInitial:
-        _playState = PlayStatePaused;
-        break;
+    case PlayStateInitial: _playState = PlayStatePaused; break;
     case PlayStatePlaying:
         _playState = PlayStatePaused;
         alSourcePause(_source);
         dump_al_errors();
         break;
-    default:
-        break;
+    default: break;
     }
 }
 
@@ -312,14 +317,16 @@ void OpenAlSource::SetPlaybackPosMs(float pos_ms)
 
 void OpenAlSource::SetPanning(float panning)
 {
-    if (panning != 0.0f) {
+    if (panning != 0.0f)
+    {
         // https://github.com/kcat/openal-soft/issues/194
         alSourcei(_source, AL_SOURCE_RELATIVE, AL_TRUE);
         dump_al_errors();
-        alSource3f(_source, AL_POSITION, panning, 0.0f, -sqrtf(1.0f - panning*panning));
+        alSource3f(_source, AL_POSITION, panning, 0.0f, -sqrtf(1.0f - panning * panning));
         dump_al_errors();
     }
-    else {
+    else
+    {
         alSourcei(_source, AL_SOURCE_RELATIVE, AL_FALSE);
         dump_al_errors();
         alSource3f(_source, AL_POSITION, 0.0f, 0.0f, 0.0f);
@@ -333,8 +340,8 @@ void OpenAlSource::SetSpeed(float speed)
 
     // Configure resample
     int new_freq = static_cast<int>(_recvFmt.rate / _speed);
-    if (!_resampler.Setup(_inputFmt.format, _inputFmt.channels, _inputFmt.rate,
-        _recvFmt.format, _recvFmt.channels, new_freq))
+    if (!_resampler.Setup(_inputFmt.format, _inputFmt.channels, _inputFmt.rate, _recvFmt.format, _recvFmt.channels,
+                          new_freq))
     { // error, reset
         _speed = 1.0;
     }

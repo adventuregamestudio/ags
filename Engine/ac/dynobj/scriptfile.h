@@ -31,7 +31,7 @@ using namespace AGS; // FIXME later
 struct sc_File final : CCBasicObject
 {
 public:
-    int32_t             handle;
+    int32_t handle;
 
     static const Common::FileOpenMode fopenModes[];
     static const Common::StreamMode fworkModes[];

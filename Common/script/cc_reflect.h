@@ -60,7 +60,10 @@
 namespace AGS
 {
 
-namespace Common { class Stream; }
+namespace Common
+{
+class Stream;
+}
 
 class RTTIBuilder;
 class RTTISerializer;
@@ -83,35 +86,36 @@ class RTTI
     friend RTTIBuilder;
     friend RTTISerializer;
     friend JointRTTI;
+
 public:
     enum LocationFlags
     {
         // We use "generated" flag to mark locs that are created at runtime
         // and are intended to be replaced by "true" locs with the same id
-        kLoc_Generated    = 0x80000000
+        kLoc_Generated = 0x80000000
     };
 
     enum TypeFlags
     {
-        kType_Struct      = 0x0001,
-        kType_Managed     = 0x0002,
+        kType_Struct = 0x0001,
+        kType_Managed = 0x0002,
         // Array of T, is a derived type (the base type should be referenced
         // using respective Type's field), used to represent e.g. elements
         // of another array (in case of a jagged array, for instance).
         // If combined with Managed flag this means - dynamic array.
-        kType_Array       = 0x0004,
+        kType_Array = 0x0004,
         // We use "generated" flag to mark types that are created at runtime
         // and are intended to be replaced by "true" types with the same id
-        kType_Generated   = 0x80000000
+        kType_Generated = 0x80000000
     };
 
     enum FieldFlags
     {
         kField_ManagedPtr = 0x0001,
-        kField_Array      = 0x0002,
+        kField_Array = 0x0002,
         // We use "generated" flag to mark fields that are created at runtime
         // and are intended to be replaced by "true" fields later
-        kField_Generated  = 0x80000000
+        kField_Generated = 0x80000000
     };
 
     // An "undefined type" id value
@@ -125,13 +129,18 @@ public:
     // (type, function, variable) may be defined.
     struct Location
     {
-        friend RTTI; friend RTTIBuilder; friend RTTISerializer; friend JointRTTI;
+        friend RTTI;
+        friend RTTIBuilder;
+        friend RTTISerializer;
+        friend JointRTTI;
         const static size_t FileSize = 3 * sizeof(uint32_t);
+
     public:
-        uint32_t id = 0u; // location's id
+        uint32_t id = 0u;    // location's id
         uint32_t flags = 0u; // location flags
         // Quick-access links
         const char *name = nullptr;
+
     private:
         // Internal references
         uint32_t name_stri = 0u; // location's name (string table offset)
@@ -140,16 +149,20 @@ public:
     // Type's info
     struct Type
     {
-        friend RTTI; friend RTTIBuilder; friend RTTISerializer; friend JointRTTI;
+        friend RTTI;
+        friend RTTIBuilder;
+        friend RTTISerializer;
+        friend JointRTTI;
         const static size_t FileSize = 10 * sizeof(uint32_t);
+
     public:
-        uint32_t this_id = 0u; // this type's id (local to current RTTI struct)
-        uint32_t loc_id = 0u; // type location's id (script or header)
+        uint32_t this_id = 0u;   // this type's id (local to current RTTI struct)
+        uint32_t loc_id = 0u;    // type location's id (script or header)
         uint32_t parent_id = 0u; // parent type's id
-        uint32_t base_id = 0u; // base type's id (for derived types, such as dynarrays)
-        uint32_t flags = 0u; // type flags
-        uint32_t size = 0u; // type size in bytes
-        uint32_t dim_num = 0u; // number of array dimensions (reserved field atm)
+        uint32_t base_id = 0u;   // base type's id (for derived types, such as dynarrays)
+        uint32_t flags = 0u;     // type flags
+        uint32_t size = 0u;      // type size in bytes
+        uint32_t dim_num = 0u;   // number of array dimensions (reserved field atm)
         uint32_t field_num = 0u; // number of fields, if any
         // Quick-access links
         // Type's name; along with location's name will create a
@@ -160,21 +173,26 @@ public:
         const Type *parent = nullptr;
         const Type *base = nullptr;
         const Field *first_field = nullptr;
+
     private:
         // Internal references
-        uint32_t name_stri = 0u; // type's name (string table offset)
+        uint32_t name_stri = 0u;   // type's name (string table offset)
         uint32_t field_index = 0u; // first field index in the fields table
     };
 
     // Type's field info
     struct Field
     {
-        friend RTTI; friend RTTIBuilder; friend RTTISerializer; friend JointRTTI;
+        friend RTTI;
+        friend RTTIBuilder;
+        friend RTTISerializer;
+        friend JointRTTI;
         const static size_t FileSize = 5 * sizeof(uint32_t);
+
     public:
-        uint32_t offset = 0u; // relative offset of this field, in bytes
-        uint32_t f_typeid = 0u; // field's type id
-        uint32_t flags = 0u; // field flags
+        uint32_t offset = 0u;    // relative offset of this field, in bytes
+        uint32_t f_typeid = 0u;  // field's type id
+        uint32_t flags = 0u;     // field flags
         uint32_t num_elems = 0u; // number of elements (for array)
         // Quick-access links
         const char *name = nullptr;
@@ -182,6 +200,7 @@ public:
         const Type *owner = nullptr;
         const Field *prev_field = nullptr;
         const Field *next_field = nullptr;
+
     private:
         // Internal references
         uint32_t name_stri = 0u; // field's name (string table offset)
@@ -195,8 +214,8 @@ public:
     RTTI(const RTTI &rtti);
     RTTI(RTTI &&rtti) = default;
 
-    RTTI &operator = (const RTTI &rtti);
-    RTTI &operator = (RTTI &&rtti) = default;
+    RTTI &operator=(const RTTI &rtti);
+    RTTI &operator=(RTTI &&rtti) = default;
 
     bool IsEmpty() const { return _types.empty(); }
     // Returns list of locations.
@@ -231,8 +250,8 @@ public:
     enum FormatVersion
     {
         kFmtver_Initial = 0,
-        kFmtver_400_22  = 4000022,
-        kFmtver_Latest  = kFmtver_400_22
+        kFmtver_400_22 = 4000022,
+        kFmtver_Latest = kFmtver_400_22
     };
 
     // Reads the RTTI collection from the stream
@@ -251,11 +270,11 @@ public:
     // Adds a location entry
     void AddLocation(const std::string &name, uint32_t loc_id, uint32_t flags);
     // Adds a type entry
-    void AddType(const std::string &name, uint32_t type_id, uint32_t loc_id,
-        uint32_t base_id, uint32_t parent_id, uint32_t flags, uint32_t size, uint32_t dim_num);
+    void AddType(const std::string &name, uint32_t type_id, uint32_t loc_id, uint32_t base_id, uint32_t parent_id,
+                 uint32_t flags, uint32_t size, uint32_t dim_num);
     // Adds a type's field entry
-    void AddField(uint32_t owner_id, const std::string &name, uint32_t offset,
-        uint32_t f_typeid, uint32_t flags, uint32_t num_elems);
+    void AddField(uint32_t owner_id, const std::string &name, uint32_t offset, uint32_t f_typeid, uint32_t flags,
+                  uint32_t num_elems);
     // Finalizes the RTTI, generates remaining data based on collected one
     RTTI Finalize();
 
@@ -264,8 +283,8 @@ private:
     RTTI _rtti;
     // Helper fields
     std::multimap<uint32_t, RTTI::Field> _fieldIdx; // type id to fields list
-    std::map<std::string, uint32_t> _strtable; // string to offset
-    uint32_t _strpackedLen = 0u; // packed string table size
+    std::map<std::string, uint32_t> _strtable;      // string to offset
+    uint32_t _strpackedLen = 0u;                    // packed string table size
 };
 
 // A class which supports merging RTTI collections together.
@@ -276,10 +295,10 @@ private:
 class JointRTTI : private RTTI
 {
     using String = AGS::Common::String;
+
 public:
     const RTTI &AsConstRTTI() const { return *this; }
-    const std::unordered_map<String, uint32_t> &GetTypeLookup() const
-        { return _rttiLookup; }
+    const std::unordered_map<String, uint32_t> &GetTypeLookup() const { return _rttiLookup; }
 
     using RTTI::IsEmpty;
     using RTTI::GetLocations;
@@ -288,9 +307,8 @@ public:
     // Merges one rtti into another; skips type duplicates using fully qualified names.
     // Writes location and type local-to-global maps, which may be used by the
     // external user to match local script's type with a global one.
-    void Join(const RTTI &rtti,
-        std::unordered_map<uint32_t, uint32_t> &loc_l2g,
-        std::unordered_map<uint32_t, uint32_t> &type_l2g);
+    void Join(const RTTI &rtti, std::unordered_map<uint32_t, uint32_t> &loc_l2g,
+              std::unordered_map<uint32_t, uint32_t> &type_l2g);
 
     // Adds a lookup alias for the given typename.
     // This typename will match any first found type of the same name,
@@ -305,10 +323,9 @@ private:
     std::unordered_map<String, uint32_t> _rttiLookup;
 
     uint32_t JoinLocation(const Location &loc, uint32_t uid, const char *name,
-        std::unordered_map<uint32_t, uint32_t> &loc_l2g);
-    uint32_t JoinType(const Type &type, uint32_t uid, const char *name,
-        const std::vector<Field> &src_fields, const std::vector<char> &src_strings,
-        std::unordered_map<uint32_t, uint32_t> &type_l2g);
+                          std::unordered_map<uint32_t, uint32_t> &loc_l2g);
+    uint32_t JoinType(const Type &type, uint32_t uid, const char *name, const std::vector<Field> &src_fields,
+                      const std::vector<char> &src_strings, std::unordered_map<uint32_t, uint32_t> &type_l2g);
 };
 
 
@@ -332,22 +349,24 @@ class ScriptTOCSerializer;
 // to a certain extent (types and location ids won't be resolved).
 class ScriptTOC
 {
-    friend ScriptTOCBuilder; friend ScriptTOCSerializer;
+    friend ScriptTOCBuilder;
+    friend ScriptTOCSerializer;
+
 public:
     enum VariableFlags
     {
         // Variable is imported from elsewhere (only global variable);
         // location id tells location of import declaration (not variable),
         // offset value is unknown until runtime and must be ignored
-        kVariable_Import     = 0x0001,
+        kVariable_Import = 0x0001,
         // Local variable, allocated on stack;
         // scope has meaning only for local variables;
         // variable's offset is saved as a positive number,
         // where first non-parameter variable is at 0
-        kVariable_Local      = 0x0002,
+        kVariable_Local = 0x0002,
         // Is a function's parameter, allocated on stack;
         // variable's offset is saved as a negative number
-        kVariable_Parameter  = 0x0004
+        kVariable_Parameter = 0x0004
     };
 
     enum FunctionFlags
@@ -355,9 +374,9 @@ public:
         // Function is imported from elsewhere;
         // location id tells location of import declaration (not function),
         // scope is unknown until runtime and must be ignored
-        kFunction_Import    = 0x0001,
+        kFunction_Import = 0x0001,
         // A variadic function; its param_num tells number of fixed params
-        kFunction_Variadic  = 0x0002
+        kFunction_Variadic = 0x0002
     };
 
     struct Function;
@@ -378,19 +397,22 @@ public:
     // of execution. (Scope is ignored for global variables.)
     struct Variable
     {
-        friend ScriptTOC; friend ScriptTOCBuilder; friend ScriptTOCSerializer;
+        friend ScriptTOC;
+        friend ScriptTOCBuilder;
+        friend ScriptTOCSerializer;
         const static size_t FileSize = 9 * sizeof(uint32_t);
+
     public:
-        int32_t  offset = 0;  // offset of this variable, in bytes;
+        int32_t offset = 0; // offset of this variable, in bytes;
             // this is either global or function data offset;
             // function parameters have negative offset values
-        uint32_t loc_id = 0u; // variable's location's id (where defined)
+        uint32_t loc_id = 0u;      // variable's location's id (where defined)
         uint32_t scope_begin = 0u; // lifetime scope start (in bytecode pos)
-        uint32_t scope_end = 0u; // lifetime scope end (in bytecode pos)
-        uint32_t v_flags = 0u; // variable's flags
-        uint32_t f_typeid = 0u; // field's type id
-        uint32_t f_flags = 0u; // field flags
-        uint32_t num_elems = 0u; // number of elements (for array)
+        uint32_t scope_end = 0u;   // lifetime scope end (in bytecode pos)
+        uint32_t v_flags = 0u;     // variable's flags
+        uint32_t f_typeid = 0u;    // field's type id
+        uint32_t f_flags = 0u;     // field flags
+        uint32_t num_elems = 0u;   // number of elements (for array)
         // Quick-access links
         const char *name = nullptr;
         const RTTI::Location *location = nullptr;
@@ -399,6 +421,7 @@ public:
         const Function *function = nullptr; // for local vars
         const Variable *prev_local = nullptr;
         const Variable *next_local = nullptr;
+
     private:
         // Internal references
         uint32_t name_stri = 0u; // variable's name (string table offset)
@@ -415,18 +438,21 @@ public:
     // purposes.
     struct Function
     {
-        friend ScriptTOC; friend ScriptTOCBuilder; friend ScriptTOCSerializer;
+        friend ScriptTOC;
+        friend ScriptTOCBuilder;
+        friend ScriptTOCSerializer;
         const static size_t FileSize = 13 * sizeof(uint32_t);
+
     public:
-        uint32_t loc_id = 0u; // variable's location's id (where defined)
-        uint32_t scope_begin = 0u; // execution scope start (in bytecode pos)
-        uint32_t scope_end = 0u; // execution scope end (in bytecode pos)
-        uint32_t f_typeid = 0u; // function's type id (type of prototype, reserved)
-        uint32_t flags = 0u; // function's flags
-        uint32_t rv_typeid = 0u; // return value's type id
-        uint32_t rv_flags = 0u; // return value's field flags
-        uint32_t rv_num_elems = 0u; // return value number of elements (reserved)
-        uint32_t param_num = 0u; // number of params, if any
+        uint32_t loc_id = 0u;         // variable's location's id (where defined)
+        uint32_t scope_begin = 0u;    // execution scope start (in bytecode pos)
+        uint32_t scope_end = 0u;      // execution scope end (in bytecode pos)
+        uint32_t f_typeid = 0u;       // function's type id (type of prototype, reserved)
+        uint32_t flags = 0u;          // function's flags
+        uint32_t rv_typeid = 0u;      // return value's type id
+        uint32_t rv_flags = 0u;       // return value's field flags
+        uint32_t rv_num_elems = 0u;   // return value number of elements (reserved)
+        uint32_t param_num = 0u;      // number of params, if any
         uint32_t local_data_num = 0u; // number of related entries in the local vars table
         // Quick-access links
         const char *name = nullptr;
@@ -436,10 +462,11 @@ public:
         const Variable *local_data = nullptr;
 
         inline uint32_t GetLocalDataIndex() const { return local_data_index; }
+
     private:
         // Internal references
-        uint32_t name_stri = 0u; // variable's name (string table offset)
-        uint32_t param_index = 0u; // first param index in the params table
+        uint32_t name_stri = 0u;        // variable's name (string table offset)
+        uint32_t param_index = 0u;      // first param index in the params table
         uint32_t local_data_index = 0u; // first index in the local variables table
     };
 
@@ -448,12 +475,15 @@ public:
     // are "quick-access links". Refactor this, pick out base struct, etc...
     struct FunctionParam
     {
-        friend ScriptTOC; friend ScriptTOCBuilder; friend ScriptTOCSerializer;
+        friend ScriptTOC;
+        friend ScriptTOCBuilder;
+        friend ScriptTOCSerializer;
         const static size_t FileSize = 5 * sizeof(uint32_t);
+
     public:
-        uint32_t offset = 0u; // relative offset of this field, in bytes
-        uint32_t f_typeid = 0u; // field's type id
-        uint32_t flags = 0u; // field flags
+        uint32_t offset = 0u;    // relative offset of this field, in bytes
+        uint32_t f_typeid = 0u;  // field's type id
+        uint32_t flags = 0u;     // field flags
         uint32_t num_elems = 0u; // number of elements (for array)
         // Quick-access links
         const char *name = nullptr;
@@ -461,6 +491,7 @@ public:
         const Function *owner = nullptr;
         const FunctionParam *prev_field = nullptr;
         const FunctionParam *next_field = nullptr;
+
     private:
         // Internal references
         uint32_t name_stri = 0u; // field's name (string table offset)
@@ -474,8 +505,8 @@ public:
     ScriptTOC(const ScriptTOC &toc);
     ScriptTOC(ScriptTOC &&toc) = default;
 
-    ScriptTOC &operator = (const ScriptTOC &toc);
-    ScriptTOC &operator = (ScriptTOC &&toc) = default;
+    ScriptTOC &operator=(const ScriptTOC &toc);
+    ScriptTOC &operator=(ScriptTOC &&toc) = default;
 
     bool IsEmpty() const { return _glVariables.empty() && _functions.empty(); }
     // Returns list of global variables
@@ -495,15 +526,19 @@ public:
     // Predicate used to sort scoped variables by scope and offset
     struct ScopedVariableLess
     {
-        bool operator() (const ScriptTOC::Variable &first, const ScriptTOC::Variable &second) const
-        { return (first.scope_begin < second.scope_begin) ||
-                 (first.scope_begin == second.scope_begin) && (first.offset < second.offset); }
+        bool operator()(const ScriptTOC::Variable &first, const ScriptTOC::Variable &second) const
+        {
+            return (first.scope_begin < second.scope_begin) ||
+                   (first.scope_begin == second.scope_begin) && (first.offset < second.offset);
+        }
     };
     // Predicate used to find whether a scoped variable lies inside particular parent scope
     struct ScopedVariableLessScope
     {
-        bool operator() (const ScriptTOC::Variable &first, const ScriptTOC::Variable &second) const
-        { return (first.scope_begin < second.scope_begin) && (first.scope_end <= second.scope_begin); }
+        bool operator()(const ScriptTOC::Variable &first, const ScriptTOC::Variable &second) const
+        {
+            return (first.scope_begin < second.scope_begin) && (first.scope_end <= second.scope_begin);
+        }
     };
 
 private:
@@ -543,20 +578,17 @@ class ScriptTOCBuilder
 public:
     ScriptTOCBuilder() = default;
     // Add a global variable entry
-    void AddGlobalVar(const std::string &name, uint32_t loc_id,
-        uint32_t offset, uint32_t v_flags, uint32_t f_type_id, uint32_t f_flags,
-        uint32_t num_elems);
+    void AddGlobalVar(const std::string &name, uint32_t loc_id, uint32_t offset, uint32_t v_flags, uint32_t f_type_id,
+                      uint32_t f_flags, uint32_t num_elems);
     // Adds a function entry; returns assigned function's index
-    uint32_t AddFunction(const std::string &name, uint32_t loc_id,
-        uint32_t scope_begin, uint32_t scope_end, uint32_t flags,
-        uint32_t rv_typeid, uint32_t rv_flags);
+    uint32_t AddFunction(const std::string &name, uint32_t loc_id, uint32_t scope_begin, uint32_t scope_end,
+                         uint32_t flags, uint32_t rv_typeid, uint32_t rv_flags);
     // Add a function's parameter
-    void AddFunctionParam(uint32_t func_id, const std::string &name, uint32_t offset,
-        uint32_t f_typeid, uint32_t flags);
+    void AddFunctionParam(uint32_t func_id, const std::string &name, uint32_t offset, uint32_t f_typeid,
+                          uint32_t flags);
     // Add a local variable entry, defined by lifetime scope (inside a function)
-    void AddLocalVar(const std::string &name, uint32_t loc_id,
-        uint32_t offset, uint32_t scope_begin, uint32_t scope_end, uint32_t v_flags,
-        uint32_t f_type_id, uint32_t f_flags, uint32_t num_elems);
+    void AddLocalVar(const std::string &name, uint32_t loc_id, uint32_t offset, uint32_t scope_begin,
+                     uint32_t scope_end, uint32_t v_flags, uint32_t f_type_id, uint32_t f_flags, uint32_t num_elems);
     // Finalizes the ScriptTOC, generates remaining data based on collected one;
     // optionally lets link to RTTI types and locations
     ScriptTOC Finalize(const RTTI *rtti);
@@ -566,8 +598,8 @@ private:
     ScriptTOC _toc;
     // Helper fields
     std::multimap<uint32_t, ScriptTOC::FunctionParam> _paramIdx; // function id to param list
-    std::map<std::string, uint32_t> _strtable; // string to offset
-    uint32_t _strpackedLen = 0u; // packed string table size
+    std::map<std::string, uint32_t> _strtable;                   // string to offset
+    uint32_t _strpackedLen = 0u;                                 // packed string table size
 };
 
 

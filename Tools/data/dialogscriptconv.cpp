@@ -51,11 +51,10 @@ String DialogScriptConverter::Convert()
     _lineNumber = 0;
 
     // TODO: TextStreamReader now deletes stream in dtor, which is a design mistake
-    auto mems = AsStream<MemoryStream>((uint8_t*)_dlgScript.GetCStr(), _dlgScript.GetLength());
+    auto mems = AsStream<MemoryStream>((uint8_t *)_dlgScript.GetCStr(), _dlgScript.GetLength());
     TextStreamReader sr(std::move(mems));
 
-    String ags_script =
-        String::FromFormat("function _run_dialog%d(int entryPoint) { \n", _dialog.ID);
+    String ags_script = String::FromFormat("function _run_dialog%d(int entryPoint) { \n", _dialog.ID);
 
     // every line, the last one too, as C# StringReader.ReadLine() gives them
     while (!sr.EOS())
@@ -89,8 +88,7 @@ void DialogScriptConverter::CompileWarning(const String &msg)
 
 bool DialogScriptConverter::IsRealScriptLine(const String &line)
 {
-    return ((line.GetAt(0) == ' ') || (line.GetAt(0) == '\t')) &&
-        !line.IsNullOrSpace();
+    return ((line.GetAt(0) == ' ') || (line.GetAt(0) == '\t')) && !line.IsNullOrSpace();
 }
 
 String DialogScriptConverter::ConvertLine(const String &line)
@@ -99,7 +97,8 @@ String DialogScriptConverter::ConvertLine(const String &line)
     {
         if (!_currentlyInsideCodeArea)
         {
-            CompileError("Script commands can only be used in the area between a @ entry point and the closing return/stop statement");
+            CompileError(
+                "Script commands can only be used in the area between a @ entry point and the closing return/stop statement");
             return "";
         }
         return ConvertRealScript(line);
@@ -114,18 +113,14 @@ String DialogScriptConverter::ConvertLine(const String &line)
 String DialogScriptConverter::ConvertRealScript(const String &src_line)
 {
     String line = src_line;
-    
-    for (size_t at = line.FindString("this", 0); at != -1;
-        at = line.FindString("this", at + 1))
+
+    for (size_t at = line.FindString("this", 0); at != -1; at = line.FindString("this", at + 1))
     {
-        if (std::isalnum(line[at - 1]) ||
-            (line[at - 1] == '_'))
+        if (std::isalnum(line[at - 1]) || (line[at - 1] == '_'))
         {
             continue;
         }
-        if ((at < line.GetLength() - 4) &&
-            ((std::isalnum(line[at + 4]) ||
-            (line[at + 4] == '_'))))
+        if ((at < line.GetLength() - 4) && ((std::isalnum(line[at + 4]) || (line[at + 4] == '_'))))
         {
             continue;
         }
@@ -166,8 +161,8 @@ String DialogScriptConverter::ConvertDialogScript(const String &src_line)
     }
     else if (!_currentlyInsideCodeArea)
     {
-        CompileWarning(
-            String::FromFormat("The command '%s' will be ignored since the script for this option has already finished", line.GetCStr()));
+        CompileWarning(String::FromFormat(
+            "The command '%s' will be ignored since the script for this option has already finished", line.GetCStr()));
         return "";
     }
     else if (line.FindChar(':') != -1)
@@ -217,8 +212,9 @@ String DialogScriptConverter::ConvertDialogScript(const String &src_line)
         }
         else
         {
-            CompileError(
-                String::FromFormat("Unknown command: %s. The command may require parameters which you have not supplied.", line.GetCStr()));
+            CompileError(String::FromFormat(
+                "Unknown command: %s. The command may require parameters which you have not supplied.",
+                line.GetCStr()));
         }
         return script_line;
     }
@@ -234,7 +230,7 @@ String DialogScriptConverter::ProcessCmdGotoDialog(const String &line)
         CompileError("goto-dialog must supply new dialog name");
         return "";
     }
-    
+
     String dialog_name = mr[1].str().c_str();
     int dialogid;
     if (StrUtil::StringToInt(dialog_name, dialogid, 0) == StrUtil::kNoError)
@@ -299,7 +295,8 @@ String DialogScriptConverter::MakeCharacterSpeech(const String &name, const Stri
         const auto *character = FindCharacterByScriptName(name);
         if (!character)
             return "";
-        return String::FromFormat("%s.%s(%s);", character->ScriptName.GetCStr(), _sayFnName.GetCStr(), say_text.GetCStr());
+        return String::FromFormat("%s.%s(%s);", character->ScriptName.GetCStr(), _sayFnName.GetCStr(),
+                                  say_text.GetCStr());
     }
 }
 
@@ -315,7 +312,7 @@ String DialogScriptConverter::ProcessCharacterSpeech(const String &line)
     if (say_text.IsEmpty())
         say_text = "...";
     else
-        ;// say_text.Replace("\"", "\\\""); // TODO: Replace strings
+        ; // say_text.Replace("\"", "\\\""); // TODO: Replace strings
     say_text = String::FromFormat("\"%s\"", say_text.GetCStr());
     return MakeCharacterSpeech(char_name, say_text);
 }

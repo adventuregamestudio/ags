@@ -14,7 +14,8 @@
 #include "gfx/blender.h"
 #include <allegro.h>
 
-extern "C" {
+extern "C"
+{
     // Fallback routine for when we don't have anything better to do.
     uint32_t _blender_black(uint32_t x, uint32_t y, uint32_t n);
 }
@@ -32,7 +33,8 @@ uint32_t _myblender_color32_light(uint32_t x, uint32_t y, uint32_t n)
 
     // adjust luminance
     yv -= (1.0 - ((float)n / 250.0));
-    if (yv < 0.0) yv = 0.0;
+    if (yv < 0.0)
+        yv = 0.0;
 
     hsv_to_rgb(xh, xs, yv, &r, &g, &b);
 
@@ -91,25 +93,25 @@ FORCEINLINE uint32_t argb2argb_blend_core(uint32_t src_col, uint32_t dst_col, ui
         dst_alpha++;
 
     // dst_g now contains the green hue from destination color
-    dst_g   = (dst_col & 0x00FF00) * dst_alpha / 256;
+    dst_g = (dst_col & 0x00FF00) * dst_alpha / 256;
     // dst_col now contains the red & blue hues from destination color
     dst_col = (dst_col & 0xFF00FF) * dst_alpha / 256;
 
     // res_g now contains the green hue of the pre-final color
-    dst_g   = (((src_col & 0x00FF00) - (dst_g   & 0x00FF00)) * src_alpha / 256 + dst_g)   & 0x00FF00;
+    dst_g = (((src_col & 0x00FF00) - (dst_g & 0x00FF00)) * src_alpha / 256 + dst_g) & 0x00FF00;
     // res_rb now contains the red & blue hues of the pre-final color
     dst_col = (((src_col & 0xFF00FF) - (dst_col & 0xFF00FF)) * src_alpha / 256 + dst_col) & 0xFF00FF;
 
     // dst_alpha now contains the final alpha
     // we assume that final alpha will never be zero
-    dst_alpha  = 256 - (256 - src_alpha) * (256 - dst_alpha) / 256;
+    dst_alpha = 256 - (256 - src_alpha) * (256 - dst_alpha) / 256;
     // src_alpha is now the final alpha factor made for being multiplied by,
     // instead of divided by: this makes it possible to use it in faster
     // calculation below
-    src_alpha  = /* 256 * 256 == */ 0x10000 / dst_alpha;
+    src_alpha = /* 256 * 256 == */ 0x10000 / dst_alpha;
 
     // setting up final color hues
-    dst_g   = (dst_g   * src_alpha / 256) & 0x00FF00;
+    dst_g = (dst_g * src_alpha / 256) & 0x00FF00;
     dst_col = (dst_col * src_alpha / 256) & 0xFF00FF;
     return dst_col | dst_g | (--dst_alpha << 24);
 }
@@ -138,24 +140,24 @@ uint32_t _rgb2argb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alph
 
 uint32_t _argb2rgb_blender(uint32_t src_col, uint32_t dst_col, uint32_t src_alpha)
 {
-   uint32_t res, g;
+    uint32_t res, g;
 
-   if (src_alpha > 0)
+    if (src_alpha > 0)
         src_alpha = geta32(src_col) * ((src_alpha & 0xFF) + 1) / 256;
     else
         src_alpha = geta32(src_col);
-   if (src_alpha)
-      src_alpha++;
+    if (src_alpha)
+        src_alpha++;
 
-   res = ((src_col & 0xFF00FF) - (dst_col & 0xFF00FF)) * src_alpha / 256 + dst_col;
-   dst_col &= 0xFF00;
-   src_col &= 0xFF00;
-   g = (src_col - dst_col) * src_alpha / 256 + dst_col;
+    res = ((src_col & 0xFF00FF) - (dst_col & 0xFF00FF)) * src_alpha / 256 + dst_col;
+    dst_col &= 0xFF00;
+    src_col &= 0xFF00;
+    g = (src_col - dst_col) * src_alpha / 256 + dst_col;
 
-   res &= 0xFF00FF;
-   g &= 0xFF00;
+    res &= 0xFF00FF;
+    g &= 0xFF00;
 
-   return res | g;
+    return res | g;
 }
 
 void set_argb2argb_blender(int alpha)
@@ -176,9 +178,8 @@ void set_opaque_alpha_blender()
 
 void set_argb2any_blender()
 {
-    set_blender_mode_ex(_blender_black, _blender_black, _blender_black, _argb2argb_blender,
-        nullptr, nullptr, nullptr,
-        0, 0, 0, 0xff);
+    set_blender_mode_ex(_blender_black, _blender_black, _blender_black, _argb2argb_blender, nullptr, nullptr, nullptr,
+                        0, 0, 0, 0xff);
 }
 
 // Copy blender: copy src, ignore dest
@@ -205,13 +206,13 @@ uint32_t blender_src_copyalpha(uint32_t x, uint32_t y, uint32_t /*n*/)
 
 #include <allegro/internal/aintern.h>
 
-#define BLEND(bpp, r, g, b)   _blender_trans##bpp(makecol##bpp(r, g, b), y, n)
+#define BLEND(bpp, r, g, b) _blender_trans##bpp(makecol##bpp(r, g, b), y, n)
 // some formulas from AGSBlend
-#define _BLENDOP_BURN(B,L) ((B + L < 255) ? 0:(B + L - 255)) // note: burn was called subtract
-#define _BLENDOP_LIGHTEN(B,L) ((L > B) ? L:B)
-#define _BLENDOP_DARKEN(B,L) ((L > B) ? B:L)
-#define _BLENDOP_EXCLUSION(B,L) (B + L - 2 * B * L / 255)
-#define _BLENDOP_SUBTRACT(B,L) (L - B < 0) ? 0:(L - B)
+#define _BLENDOP_BURN(B, L)      ((B + L < 255) ? 0 : (B + L - 255)) // note: burn was called subtract
+#define _BLENDOP_LIGHTEN(B, L)   ((L > B) ? L : B)
+#define _BLENDOP_DARKEN(B, L)    ((L > B) ? B : L)
+#define _BLENDOP_EXCLUSION(B, L) (B + L - 2 * B * L / 255)
+#define _BLENDOP_SUBTRACT(B, L)  (L - B < 0) ? 0 : (L - B)
 
 uint32_t _blender_mask_alpha32(uint32_t blender_result, uint32_t x, uint32_t y, uint32_t n)
 {
@@ -229,10 +230,10 @@ uint32_t _blender_mask_alpha32(uint32_t blender_result, uint32_t x, uint32_t y, 
 // alegro's dodge blend was wrong, mine is not perfect either
 uint32_t _my_blender_dodge24(uint32_t x, uint32_t y, uint32_t n)
 {
-    const uint32_t h = (getr24(y)*n) / (256 - getr24(x));
-    const uint32_t j = (getg24(y)*n) / (256 - getg24(x));
-    const uint32_t k = (getb24(y)*n) / (256 - getb24(x));
-    return BLEND(24, h>255 ? 255 : h, j>255 ? 255 : j, k>255 ? 255 : k);
+    const uint32_t h = (getr24(y) * n) / (256 - getr24(x));
+    const uint32_t j = (getg24(y) * n) / (256 - getg24(x));
+    const uint32_t k = (getb24(y) * n) / (256 - getb24(x));
+    return BLEND(24, h > 255 ? 255 : h, j > 255 ? 255 : j, k > 255 ? 255 : k);
 }
 uint32_t _my_blender_burn24(uint32_t x, uint32_t y, uint32_t n)
 {
@@ -317,21 +318,20 @@ namespace Common
 
 // Array of blender descriptions
 // NOTE: set NULL function pointer to fallback to common image blitting
-static const PfnBlenderCb BlendModeSets[kNumBlendModes] =
-{
-    _argb2argb_blender,             // kBlend_Alpha
-    _blender_masked_add32,          // kBlend_Add
-    _blender_masked_darken32,       // kBlend_Darken
-    _blender_masked_lighten32,      // kBlend_Lighten
-    _blender_masked_multiply32,     // kBlend_Multiply
-    _blender_masked_screen32,       // kBlend_Screen
-    _blender_masked_burn32,         // kBlend_Burn
-    _blender_masked_subtract32,     // kBlend_Subtract
-    _blender_masked_exclusion32,    // kBlend_Exclusion
-    _blender_masked_dodge32,        // kBlend_Dodge
-    blender_src_copy,               // kBlend_Copy
-    blender_src_copyrgb,            // kBlend_CopyRGB
-    blender_src_copyalpha,          // kBlend_CopyAlpha
+static const PfnBlenderCb BlendModeSets[kNumBlendModes] = {
+    _argb2argb_blender,          // kBlend_Alpha
+    _blender_masked_add32,       // kBlend_Add
+    _blender_masked_darken32,    // kBlend_Darken
+    _blender_masked_lighten32,   // kBlend_Lighten
+    _blender_masked_multiply32,  // kBlend_Multiply
+    _blender_masked_screen32,    // kBlend_Screen
+    _blender_masked_burn32,      // kBlend_Burn
+    _blender_masked_subtract32,  // kBlend_Subtract
+    _blender_masked_exclusion32, // kBlend_Exclusion
+    _blender_masked_dodge32,     // kBlend_Dodge
+    blender_src_copy,            // kBlend_Copy
+    blender_src_copyrgb,         // kBlend_CopyRGB
+    blender_src_copyalpha,       // kBlend_CopyAlpha
 };
 
 bool SetBlender(BlendMode blend_mode, int alpha)

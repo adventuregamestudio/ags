@@ -47,23 +47,23 @@ public:
 
     // Shutdown graphics factory and deallocate any resources it owns;
     // graphics factory will be unusable after calling this function.
-    virtual void                 Shutdown() = 0;
+    virtual void Shutdown() = 0;
     // Get graphics driver associated with this factory; creates one if
     // it does not exist.
-    virtual IGraphicsDriver *    GetDriver() = 0;
+    virtual IGraphicsDriver *GetDriver() = 0;
     // Destroy graphics driver associated with this factory; does nothing
-    // if one was not created yet, 
-    virtual void                 DestroyDriver() = 0;
+    // if one was not created yet,
+    virtual void DestroyDriver() = 0;
 
     // Get number of supported filters
-    virtual size_t               GetFilterCount() const = 0;
+    virtual size_t GetFilterCount() const = 0;
     // Get filter description
     virtual const GfxFilterInfo *GetFilterInfo(size_t index) const = 0;
     // Get ID of the default filter
-    virtual String               GetDefaultFilterID() const = 0;
+    virtual String GetDefaultFilterID() const = 0;
 
     // Assign specified filter to graphics driver
-    virtual PGfxFilter           SetFilter(const String &id, String &filter_error) = 0;
+    virtual PGfxFilter SetFilter(const String &id, String &filter_error) = 0;
 };
 
 // Query the available graphics factory names

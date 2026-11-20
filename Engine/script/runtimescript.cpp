@@ -23,85 +23,84 @@ namespace Engine
 
 using namespace AGS::Common;
 
-const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
-{
-    ScriptCommandInfo( 0                    , "NULL"              , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_ADD             , "addi"              , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_SUB             , "subi"              , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_REGTOREG        , "mov"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_WRITELIT        , "memwritelit"       , 2, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_RET             , "ret"               , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_LITTOREG        , "movl"              , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMREAD         , "memread4"          , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMWRITE        , "memwrite4"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MULREG          , "mul"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_DIVREG          , "div"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_ADDREG          , "add"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_SUBREG          , "sub"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_BITAND          , "and"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_BITOR           , "or"                , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_ISEQUAL         , "cmpeq"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_NOTEQUAL        , "cmpne"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_GREATER         , "gt"                , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_LESSTHAN        , "lt"                , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_GTE             , "gte"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_LTE             , "lte"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_AND             , "land"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_OR              , "lor"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_CALL            , "call"              , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMREADB        , "memread1"          , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMREADW        , "memread2"          , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMWRITEB       , "memwrite1"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMWRITEW       , "memwrite2"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_JZ              , "jzi"               , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_PUSHREG         , "push"              , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_POPREG          , "pop"               , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_JMP             , "jmpi"              , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_MUL             , "muli"              , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_CALLEXT         , "farcall"           , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_PUSHREAL        , "farpush"           , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_SUBREALSTACK    , "farsubsp"          , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_LINENUM         , "sourceline"        , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_CALLAS          , "callscr"           , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_THISBASE        , "thisaddr"          , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_NUMFUNCARGS     , "setfuncargs"       , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_MODREG          , "mod"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_XORREG          , "xor"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_NOTREG          , "not"               , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_SHIFTLEFT       , "shl"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_SHIFTRIGHT      , "shr"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_CALLOBJ         , "callobj"           , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_CHECKBOUNDS     , "checkbounds"       , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMWRITEPTR     , "memwrite.ptr"      , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMREADPTR      , "memread.ptr"       , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMZEROPTR      , "memwrite.ptr.0"    , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMINITPTR      , "meminit.ptr"       , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_LOADSPOFFS      , "load.sp.offs"      , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_CHECKNULL       , "checknull.ptr"     , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_FADD            , "faddi"             , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_FSUB            , "fsubi"             , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_FMULREG         , "fmul"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FDIVREG         , "fdiv"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FADDREG         , "fadd"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FSUBREG         , "fsub"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FGREATER        , "fgt"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FLESSTHAN       , "flt"               , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FGTE            , "fgte"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_FLTE            , "flte"              , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_ZEROMEMORY      , "zeromem"           , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_CREATESTRING    , "newstring"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_STRINGSEQUAL    , "streq"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_STRINGSNOTEQ    , "strne"             , 2, kScOpTwoArgsAreReg ),
-    ScriptCommandInfo( SCMD_CHECKNULLREG    , "checknull"         , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_LOOPCHECKOFF    , "loopcheckoff"      , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_MEMZEROPTRND    , "memwrite.ptr.0.nd" , 0, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_JNZ             , "jnzi"              , 1, kScOpNoArgIsReg ),
-    ScriptCommandInfo( SCMD_DYNAMICBOUNDS   , "dynamicbounds"     , 1, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_NEWARRAY        , "newarray"          , 3, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_NEWUSEROBJECT   , "newuserobject"     , 2, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_NEWUSEROBJECT2  , "newuserobject2"    , 3, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_NEWARRAY2       , "newarray2"         , 3, kScOpOneArgIsReg ),
-    ScriptCommandInfo( SCMD_DYNAMICCAST     , "dynamiccast"       , 1, kScOpNoArgIsReg),
+const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] = {
+    ScriptCommandInfo(0, "NULL", 0, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_ADD, "addi", 2, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_SUB, "subi", 2, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_REGTOREG, "mov", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_WRITELIT, "memwritelit", 2, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_RET, "ret", 0, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_LITTOREG, "movl", 2, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_MEMREAD, "memread4", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_MEMWRITE, "memwrite4", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_MULREG, "mul", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_DIVREG, "div", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_ADDREG, "add", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_SUBREG, "sub", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_BITAND, "and", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_BITOR, "or", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_ISEQUAL, "cmpeq", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_NOTEQUAL, "cmpne", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_GREATER, "gt", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_LESSTHAN, "lt", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_GTE, "gte", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_LTE, "lte", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_AND, "land", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_OR, "lor", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_CALL, "call", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_MEMREADB, "memread1", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_MEMREADW, "memread2", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_MEMWRITEB, "memwrite1", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_MEMWRITEW, "memwrite2", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_JZ, "jzi", 1, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_PUSHREG, "push", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_POPREG, "pop", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_JMP, "jmpi", 1, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_MUL, "muli", 2, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_CALLEXT, "farcall", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_PUSHREAL, "farpush", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_SUBREALSTACK, "farsubsp", 1, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_LINENUM, "sourceline", 1, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_CALLAS, "callscr", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_THISBASE, "thisaddr", 1, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_NUMFUNCARGS, "setfuncargs", 1, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_MODREG, "mod", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_XORREG, "xor", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_NOTREG, "not", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_SHIFTLEFT, "shl", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_SHIFTRIGHT, "shr", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_CALLOBJ, "callobj", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_CHECKBOUNDS, "checkbounds", 2, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_MEMWRITEPTR, "memwrite.ptr", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_MEMREADPTR, "memread.ptr", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_MEMZEROPTR, "memwrite.ptr.0", 0, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_MEMINITPTR, "meminit.ptr", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_LOADSPOFFS, "load.sp.offs", 1, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_CHECKNULL, "checknull.ptr", 0, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_FADD, "faddi", 2, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_FSUB, "fsubi", 2, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_FMULREG, "fmul", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_FDIVREG, "fdiv", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_FADDREG, "fadd", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_FSUBREG, "fsub", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_FGREATER, "fgt", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_FLESSTHAN, "flt", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_FGTE, "fgte", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_FLTE, "flte", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_ZEROMEMORY, "zeromem", 1, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_CREATESTRING, "newstring", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_STRINGSEQUAL, "streq", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_STRINGSNOTEQ, "strne", 2, kScOpTwoArgsAreReg),
+    ScriptCommandInfo(SCMD_CHECKNULLREG, "checknull", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_LOOPCHECKOFF, "loopcheckoff", 0, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_MEMZEROPTRND, "memwrite.ptr.0.nd", 0, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_JNZ, "jnzi", 1, kScOpNoArgIsReg),
+    ScriptCommandInfo(SCMD_DYNAMICBOUNDS, "dynamicbounds", 1, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_NEWARRAY, "newarray", 3, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_NEWUSEROBJECT, "newuserobject", 2, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_NEWUSEROBJECT2, "newuserobject2", 3, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_NEWARRAY2, "newarray2", 3, kScOpOneArgIsReg),
+    ScriptCommandInfo(SCMD_DYNAMICCAST, "dynamiccast", 1, kScOpNoArgIsReg),
 };
 
 // FIXME: move to some "script helpers" module
@@ -114,8 +113,10 @@ static int DetermineScriptLine(const std::vector<intptr_t> &code, const int32_t 
     for (uint32_t pc = 0; (pc <= static_cast<uint32_t>(at_pc)) && (pc < code.size()); ++pc)
     {
         const int op = code[pc] & INSTANCE_ID_REMOVEMASK;
-        if (op < 0 || op >= CC_NUM_SCCMDS) return -1;
-        if (pc + sccmd_info[op].ArgCount >= code.size()) return -1;
+        if (op < 0 || op >= CC_NUM_SCCMDS)
+            return -1;
+        if (pc + sccmd_info[op].ArgCount >= code.size())
+            return -1;
         if (op == SCMD_LINENUM)
             line = code[pc + 1];
         pc += sccmd_info[op].ArgCount;
@@ -123,7 +124,8 @@ static int DetermineScriptLine(const std::vector<intptr_t> &code, const int32_t 
     return line;
 }
 
-static void cc_error_fixups(const RuntimeScript *scri, const int32_t pc, AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(3);
+static void cc_error_fixups(const RuntimeScript *scri, const int32_t pc, AGS_FORMAT_STRING_ARG const char *fmt, ...)
+    AGS_FORMAT_STRING(3);
 static void cc_error_fixups(const RuntimeScript *scri, const int32_t pc, AGS_FORMAT_STRING_ARG const char *fmt, ...)
 {
     va_list ap;
@@ -143,7 +145,7 @@ static void cc_error_fixups(const RuntimeScript *scri, const int32_t pc, AGS_FOR
 
 
 const String RuntimeScript::_noname = "";
-RuntimeScript *RuntimeScript::_linkedScripts[RuntimeScript::MaxLinkedScripts] = { nullptr };
+RuntimeScript *RuntimeScript::_linkedScripts[RuntimeScript::MaxLinkedScripts] = {nullptr};
 
 std::unique_ptr<JointRTTI> RuntimeScript::_jointRtti;
 std::unique_ptr<RTTIHelper> RuntimeScript::_rttiHelper;
@@ -192,9 +194,8 @@ std::unique_ptr<RTTIHelper> RuntimeScript::_rttiHelper;
     return _linkedScripts[linkid];
 }
 
-/* static */ void RuntimeScript::JoinRTTI(const RTTI &rtti,
-    std::unordered_map<uint32_t, uint32_t> &loc_l2g,
-    std::unordered_map<uint32_t, uint32_t> &type_l2g)
+/* static */ void RuntimeScript::JoinRTTI(const RTTI &rtti, std::unordered_map<uint32_t, uint32_t> &loc_l2g,
+                                          std::unordered_map<uint32_t, uint32_t> &type_l2g)
 {
     _jointRtti->Join(rtti, loc_l2g, type_l2g);
     // TODO: optimize by updating only newly joint types
@@ -329,8 +330,7 @@ bool RuntimeScript::CreateImpl(const ccScript *script)
         const auto &glvars = _toc->GetGlobalVariables();
         for (size_t i = 0; i < glvars.size(); ++i)
         {
-            _globalVarLookup.insert(
-                std::make_pair(String(glvars[i].name), static_cast<uint32_t>(i)));
+            _globalVarLookup.insert(std::make_pair(String(glvars[i].name), static_cast<uint32_t>(i)));
         }
     }
 
@@ -387,7 +387,8 @@ bool RuntimeScript::ResolveImports(const SystemImports &simp)
         resolved_imports[import_idx] = simp.GetIndexOfAny(_imports[import_idx]);
         if (resolved_imports[import_idx] == UINT32_MAX)
         {
-            Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", _imports[import_idx].GetCStr(), GetScriptName().GetCStr());
+            Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", _imports[import_idx].GetCStr(),
+                          GetScriptName().GetCStr());
             errors++;
             last_err_idx = import_idx;
         }
@@ -395,10 +396,8 @@ bool RuntimeScript::ResolveImports(const SystemImports &simp)
 
     if (errors > 0)
     {
-        cc_error("in %s: %zu unresolved imports (last: %s)",
-            GetScriptName().GetCStr(),
-            errors,
-            _imports[last_err_idx].GetCStr());
+        cc_error("in %s: %zu unresolved imports (last: %s)", GetScriptName().GetCStr(), errors,
+                 _imports[last_err_idx].GetCStr());
         return false;
     }
 
@@ -452,11 +451,11 @@ bool RuntimeScript::CreateGlobalVars()
             glvar.RValue.SetData(globaldata + glvar.ScAddress, 0);
             break;
         case FIXUP_DATADATA:
-            {
+        {
             // DATADATA fixup takes relative address of global data element from fixups array;
             // this is the address of element, which stores address of actual data
             glvar.ScAddress = _fixups[i];
-            const int32_t data_addr = BBOp::Int32FromLE(*(int32_t*)&globaldata[glvar.ScAddress]);
+            const int32_t data_addr = BBOp::Int32FromLE(*(int32_t *)&globaldata[glvar.ScAddress]);
             if (glvar.ScAddress - data_addr != 200 /* size of old AGS string */)
             {
                 // CHECKME: probably replace with mere warning in the log?
@@ -465,8 +464,8 @@ bool RuntimeScript::CreateGlobalVars()
             }
             // TODO: register this explicitly as a string instead (can do this later)
             glvar.RValue.SetScriptObject(globaldata + data_addr, &GlobalStaticManager);
-            }
-            break;
+        }
+        break;
         default:
             // other fixups are of no use here
             continue;
@@ -506,7 +505,8 @@ bool RuntimeScript::AddGlobalVar(const ScriptVariable &glvar)
     if (glvar.ScAddress < 0 || glvar.ScAddress >= globaldatasize)
     {
         /* return false; */
-        Debug::Printf(kDbgMsg_Warn, "WARNING: global variable refers to data beyond allocated buffer (%d, %d)", glvar.ScAddress, globaldatasize);
+        Debug::Printf(kDbgMsg_Warn, "WARNING: global variable refers to data beyond allocated buffer (%d, %d)",
+                      glvar.ScAddress, globaldatasize);
     }
     _globalvars.insert(std::make_pair(glvar.ScAddress, glvar));
     return true;
@@ -521,7 +521,8 @@ ScriptVariable *RuntimeScript::FindGlobalVar(const int32_t var_addr)
         /*
         return nullptr;
         */
-        Debug::Printf(kDbgMsg_Warn, "WARNING: looking up for global variable beyond allocated buffer (%d, %d)", var_addr, globaldatasize);
+        Debug::Printf(kDbgMsg_Warn, "WARNING: looking up for global variable beyond allocated buffer (%d, %d)",
+                      var_addr, globaldatasize);
     }
     const auto it = _globalvars.find(var_addr);
     return it != _globalvars.end() ? &it->second : nullptr;
@@ -539,34 +540,35 @@ bool RuntimeScript::CreateRuntimeCodeFixups()
         const int32_t fixup = _fixups[i];
         if (fixup < 0 || static_cast<size_t>(fixup) >= _code.size())
         {
-            cc_error_fixups(this, INT32_MAX, "bad fixup at %zu (fixup type %d, bytecode pos %d, bytecode range is 0..%d)",
-                i, _fixupTypes[i], fixup, static_cast<int32_t>(_code.size()));
+            cc_error_fixups(this, INT32_MAX,
+                            "bad fixup at %zu (fixup type %d, bytecode pos %d, bytecode range is 0..%d)", i,
+                            _fixupTypes[i], fixup, static_cast<int32_t>(_code.size()));
             return false;
         }
 
         const int32_t fixup_value = static_cast<int32_t>(_code[fixup]);
         const uint8_t fixup_type = _fixupTypes[i];
-        _fixupValues[i] = fixup_value; // save original code value for this fixup
+        _fixupValues[i] = fixup_value;   // save original code value for this fixup
         _codeFixups[fixup] = fixup_type; // save fixup type for the code cell
 
         switch (fixup_type)
         {
         case FIXUP_GLOBALDATA:
+        {
+            ScriptVariable *gl_var = FindGlobalVar(fixup_value);
+            if (!gl_var)
             {
-                ScriptVariable *gl_var = FindGlobalVar(fixup_value);
-                if (!gl_var)
-                {
-                    cc_error_fixups(this, fixup, "cannot resolve global variable (bytecode pos %d, key %d)", fixup, fixup_value);
-                    return false;
-                }
-                _code[fixup] = (intptr_t)gl_var;
+                cc_error_fixups(this, fixup, "cannot resolve global variable (bytecode pos %d, key %d)", fixup,
+                                fixup_value);
+                return false;
             }
-            break;
+            _code[fixup] = (intptr_t)gl_var;
+        }
+        break;
         case FIXUP_FUNCTION:
         case FIXUP_STRING:
         case FIXUP_STACK:
-        case FIXUP_IMPORT:
-            break; // do nothing yet
+        case FIXUP_IMPORT: break; // do nothing yet
         default:
             cc_error_fixups(this, INT32_MAX, "unknown fixup type: %d (fixup num %zu)", fixup_type, i);
             return false;

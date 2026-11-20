@@ -22,7 +22,13 @@
 #include <vector>
 #include "util/string.h"
 
-namespace AGS { namespace Common { class Bitmap; } }
+namespace AGS
+{
+namespace Common
+{
+class Bitmap;
+}
+} // namespace AGS
 
 // Functions for handling hard-coded GUIs
 // Prepares GUI bitmaps which will be passed to the renderer's draw chain
@@ -33,13 +39,13 @@ void clear_gui_screen();
 // Draws virtual screen contents on the GUI bitmaps and assignes them to
 // the renderer's draw chain
 void refresh_gui_screen();
-int  loadgamedialog(int min_slot, int max_slot);
-int  savegamedialog(int min_slot, int max_slot);
+int loadgamedialog(int min_slot, int max_slot);
+int savegamedialog(int min_slot, int max_slot);
 AGS::Common::String enterstringwindow(const char *prompttext);
-int  enternumberwindow(const char *prompttext);
-int  roomSelectorWindow(int currentRoom, const std::map<int, AGS::Common::String> &roomNames);
-int  myscimessagebox(const char *lpprompt, char *btn1, char *btn2);
-int  quitdialog();
+int enternumberwindow(const char *prompttext);
+int roomSelectorWindow(int currentRoom, const std::map<int, AGS::Common::String> &roomNames);
+int myscimessagebox(const char *lpprompt, char *btn1, char *btn2);
+int quitdialog();
 
 // last string value in gui dialog.
 char *get_gui_dialog_buffer();

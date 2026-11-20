@@ -15,55 +15,64 @@
 #include "util/geometry.h"
 
 
-namespace AGS { namespace Common { class Bitmap; } }
+namespace AGS
+{
+namespace Common
+{
+class Bitmap;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 namespace Mouse
 {
-    // Tells the number of supported mouse buttons
-    int  GetButtonCount();
+// Tells the number of supported mouse buttons
+int GetButtonCount();
 
-    // Get if mouse is locked to the game window
-    bool IsLockedToWindow();
-    // Try locking mouse to the game window
-    bool TryLockToWindow();
-    // Unlock mouse from the game window
-    void UnlockFromWindow();
+// Get if mouse is locked to the game window
+bool IsLockedToWindow();
+// Try locking mouse to the game window
+bool TryLockToWindow();
+// Unlock mouse from the game window
+void UnlockFromWindow();
 
-    // Enable or disable mouse movement control
-    void SetMovementControl(bool on);
-    // Tell if the mouse movement control is enabled
-    bool IsControlEnabled();
-    // Set the touch2mouse emulation mode and absolute/relative motion mode
-    void SetTouch2MouseMode(TouchMouseEmulation mode, bool relative, float speed);
-    // Set the mouse2touch emulation mode
-    void SetMouse2Touch(bool enable);
-    // Set base speed factor, which would serve as a mouse speed unit
-    void SetSpeedUnit(float f);
-    // Get base speed factor
-    float GetSpeedUnit();
-    // Set speed factors
-    void SetSpeed(float speed);
-    // Get speed factor
-    float GetSpeed();
+// Enable or disable mouse movement control
+void SetMovementControl(bool on);
+// Tell if the mouse movement control is enabled
+bool IsControlEnabled();
+// Set the touch2mouse emulation mode and absolute/relative motion mode
+void SetTouch2MouseMode(TouchMouseEmulation mode, bool relative, float speed);
+// Set the mouse2touch emulation mode
+void SetMouse2Touch(bool enable);
+// Set base speed factor, which would serve as a mouse speed unit
+void SetSpeedUnit(float f);
+// Get base speed factor
+float GetSpeedUnit();
+// Set speed factors
+void SetSpeed(float speed);
+// Get speed factor
+float GetSpeed();
 
-    // Updates limits of the area inside which the standard OS cursor is not shown;
-    // uses game's main viewport (in native coordinates) to calculate real area on screen
-    void UpdateGraphicArea();
-    // Limits the area where the game cursor can move on virtual screen;
-    // parameter must be in native game coordinates
-    void SetMoveLimit(const Rect &r);
+// Updates limits of the area inside which the standard OS cursor is not shown;
+// uses game's main viewport (in native coordinates) to calculate real area on screen
+void UpdateGraphicArea();
+// Limits the area where the game cursor can move on virtual screen;
+// parameter must be in native game coordinates
+void SetMoveLimit(const Rect &r);
 
-    // Translates system mouse position to a position inside a game viewport,
-    // note that this can clamp to game cursor bounds.
-    Point SysToGamePos(int sys_mx, int sys_my);
-    inline Point SysToGamePos(const Point &sys_pt) { return SysToGamePos(sys_pt.X, sys_pt.Y); }
-
-    // Polls the cursor position, updates mousex, mousey
-    void Poll();
-    // Set actual OS cursor position on screen; in native game coordinates
-    void SetPosition(const Point &p);
+// Translates system mouse position to a position inside a game viewport,
+// note that this can clamp to game cursor bounds.
+Point SysToGamePos(int sys_mx, int sys_my);
+inline Point SysToGamePos(const Point &sys_pt)
+{
+    return SysToGamePos(sys_pt.X, sys_pt.Y);
 }
+
+// Polls the cursor position, updates mousex, mousey
+void Poll();
+// Set actual OS cursor position on screen; in native game coordinates
+void SetPosition(const Point &p);
+} // namespace Mouse
 
 
 extern int mousex, mousey;

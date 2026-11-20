@@ -34,11 +34,8 @@ extern GameSetupStruct game;
 
 bool ScriptDrawingSurface::IsValid() const
 {
-    return (roomBackgroundNumber >= 0) ||
-        (roomMaskType > kRoomAreaNone) ||
-        (dynamicSpriteNumber >= 0) ||
-        (dynamicSurfaceNumber >= 0) ||
-        (linkedBitmapOnly != nullptr);
+    return (roomBackgroundNumber >= 0) || (roomMaskType > kRoomAreaNone) || (dynamicSpriteNumber >= 0) ||
+           (dynamicSurfaceNumber >= 0) || (linkedBitmapOnly != nullptr);
 }
 
 Bitmap *ScriptDrawingSurface::GetBitmapSurface()
@@ -81,8 +78,8 @@ Bitmap *ScriptDrawingSurface::StartDrawingWithBrush()
     Bitmap *ds = GetBitmapSurface();
     if (ds)
     {
-        _alphaBlending = (ds->GetColorDepth() == 32) && (_currentBlendMode != kBlend_Copy)
-            && ((geta32(_currentColor) != 0xFF) || (_currentBlendMode != kBlend_Normal));
+        _alphaBlending = (ds->GetColorDepth() == 32) && (_currentBlendMode != kBlend_Copy) &&
+                         ((geta32(_currentColor) != 0xFF) || (_currentBlendMode != kBlend_Normal));
         if (_alphaBlending)
         {
             drawing_mode(DRAW_MODE_TRANS, nullptr, 0, 0);
@@ -101,24 +98,25 @@ void ScriptDrawingSurface::FinishedDrawingWithBrush()
     modified = true;
 }
 
-int ScriptDrawingSurface::Dispose(void* /*address*/, bool /*force*/) {
-
+int ScriptDrawingSurface::Dispose(void * /*address*/, bool /*force*/)
+{
     // dispose the drawing surface
     DrawingSurface_Release(this);
     delete this;
     return 1;
 }
 
-const char *ScriptDrawingSurface::GetType() {
+const char *ScriptDrawingSurface::GetType()
+{
     return "DrawingSurface";
 }
 
-size_t ScriptDrawingSurface::CalcSerializeSize(const void* /*address*/)
+size_t ScriptDrawingSurface::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t) * 9;
 }
 
-void ScriptDrawingSurface::Serialize(const void* /*address*/, Stream *out)
+void ScriptDrawingSurface::Serialize(const void * /*address*/, Stream *out)
 {
     // pack mask type in the last byte of a negative integer
     // note: (-1) is reserved for "unused", for backward compatibility
@@ -133,7 +131,7 @@ void ScriptDrawingSurface::Serialize(const void* /*address*/, Stream *out)
     // NOTE: could turn any of the boolean fields below into a bit flag set
     out->WriteInt32(0); // unused, was highResCoordinates
     out->WriteInt32(modified ? 1 : 0);
-    out->WriteInt32(0); // unused, was hasAlphaChannel
+    out->WriteInt32(0);                          // unused, was hasAlphaChannel
     out->WriteInt32(isLinkedBitmapOnly ? 1 : 0); // NOTE: could turn this into bit flag set
     // version data sz: 36
     out->WriteInt32(_currentBlendMode);
@@ -188,7 +186,7 @@ void ScriptDrawingSurface::Invalidate()
     _currentBlendMode = kBlend_Normal;
 }
 
-ScriptDrawingSurface::ScriptDrawingSurface() 
+ScriptDrawingSurface::ScriptDrawingSurface()
 {
     Invalidate();
 }

@@ -36,9 +36,9 @@ void CharacterInfo::set_item_quantity(int item_id, int quant)
 }
 
 /* static */ ScriptEventSchema CharacterInfo::_eventSchema = {{
-        { "OnAnyClick", kCharacterEvent_AnyClick },
-        { "OnFrameEvent", kCharacterEvent_OnFrameEvent },
-    }};
+    {"OnAnyClick", kCharacterEvent_AnyClick},
+    {"OnFrameEvent", kCharacterEvent_OnFrameEvent},
+}};
 
 void CharacterInfo::RemapOldInteractions()
 {
@@ -47,12 +47,12 @@ void CharacterInfo::RemapOldInteractions()
     // this is just for safety, it's supposed to be that large
     old_interactions.resize(NUM_STANDARD_VERBS);
     new_interactions.resize(NUM_STANDARD_VERBS);
-    new_interactions[STD_MODE_WALK]    = {};
-    new_interactions[STD_MODE_LOOK]    = old_interactions[0];
-    new_interactions[STD_MODE_HAND]    = old_interactions[1];
-    new_interactions[STD_MODE_TALK]    = old_interactions[2];
-    new_interactions[STD_MODE_USE]     = old_interactions[3];
-    new_interactions[STD_MODE_PICKUP]  = old_interactions[5];
+    new_interactions[STD_MODE_WALK] = {};
+    new_interactions[STD_MODE_LOOK] = old_interactions[0];
+    new_interactions[STD_MODE_HAND] = old_interactions[1];
+    new_interactions[STD_MODE_TALK] = old_interactions[2];
+    new_interactions[STD_MODE_USE] = old_interactions[3];
+    new_interactions[STD_MODE_PICKUP] = old_interactions[5];
     new_interactions[STD_MODE_CUSTOM1] = old_interactions[6];
     new_interactions[STD_MODE_CUSTOM2] = old_interactions[7];
 
@@ -126,7 +126,7 @@ void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver)
     // Only treat "on" as a visible flag, otherwise it breaks game logic
     // when reading older games (i.e. to make character visible you must turn
     // both enabled and visible properties).
-    flags |= (CHF_VISIBLE) * on;
+    flags |= (CHF_VISIBLE)*on;
     in->ReadInt8(); // alignment padding to int32
 }
 
@@ -270,11 +270,10 @@ void CharacterInfo::ReadFromSavegame(Stream *in, LegacyFields &old_fields, Chara
     {
         uint8_t on = in->ReadInt8(); // old enabled + visible flag
         // Only treat "on" as visible and make characters from old saves all enabled
-        flags |= CHF_ENABLED | (CHF_VISIBLE) * on;
+        flags |= CHF_ENABLED | (CHF_VISIBLE)*on;
     }
 
-    if ((save_ver >= kCharSvgVersion_36304) && (save_ver < kCharSvgVersion_400) ||
-        (save_ver >= kCharSvgVersion_400_26))
+    if ((save_ver >= kCharSvgVersion_36304) && (save_ver < kCharSvgVersion_400) || (save_ver >= kCharSvgVersion_400_26))
     {
         blocking_x = in->ReadInt16();
         blocking_y = in->ReadInt16();
@@ -349,7 +348,7 @@ void CharacterInfo::WriteToSavegame(Stream *out) const
     out->WriteInt16(0); // acty__
 
     StrUtil::WriteString(name, out); // kCharSvgVersion_36115
-    out->WriteInt8(0); // [OBSOLETE], old enabled + visible flag
+    out->WriteInt8(0);               // [OBSOLETE], old enabled + visible flag
     // kCharSvgVersion_36304
     out->WriteInt16(blocking_x);
     out->WriteInt16(blocking_y);

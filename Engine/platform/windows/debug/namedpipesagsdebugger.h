@@ -25,14 +25,14 @@ private:
     const char *_instanceToken;
 
     void SendAcknowledgement();
-public:
 
+public:
     NamedPipesAGSDebugger(const char *instanceToken);
     bool Initialize() override;
     void Shutdown() override;
     bool SendMessageToEditor(const char *message) override;
     bool IsMessageAvailable() override;
-    char* GetNextMessage() override;
+    char *GetNextMessage() override;
 };
 
 #endif // __AC_NAMEDPIPESAGSDEBUGGER_H

@@ -17,7 +17,8 @@
 
 using namespace AGS::Common;
 
-TEST(GUI, LabelMacros) {
+TEST(GUI, LabelMacros)
+{
     GUI::DataVersion = kGameVersion_Current;
     GUI::GameGuiVersion = kGuiVersion_Current;
     GUI::Context.GameTitle = "My Game";
@@ -36,27 +37,38 @@ TEST(GUI, LabelMacros) {
         // Random no-macro string
         {"abcdefghijk", "abcdefghijk", kLabelMacro_None},
         // Simple macro strings
-        {"@gamename@", "My Game", kLabelMacro_Gamename}, {"@GAMENAME@", "My Game", kLabelMacro_Gamename},
-        {"@overhotspot@", "Location Name", kLabelMacro_Overhotspot}, {"@OVERHOTSPOT@", "Location Name", kLabelMacro_Overhotspot},
+        {"@gamename@", "My Game", kLabelMacro_Gamename},
+        {"@GAMENAME@", "My Game", kLabelMacro_Gamename},
+        {"@overhotspot@", "Location Name", kLabelMacro_Overhotspot},
+        {"@OVERHOTSPOT@", "Location Name", kLabelMacro_Overhotspot},
         // Combination of macros
         {"@gamename@;@overhotspot@", "My Game;Location Name", kLabelMacro_Gamename | kLabelMacro_Overhotspot},
         // Literal macro-symbols
-        {"@", "@", kLabelMacro_None}, {"@@", "@@", kLabelMacro_None}, {"a@@@@b", "a@@@@b", kLabelMacro_None},
+        {"@", "@", kLabelMacro_None},
+        {"@@", "@@", kLabelMacro_None},
+        {"a@@@@b", "a@@@@b", kLabelMacro_None},
         // Macros surrounded by literal macro-symbols
-        {"@@gamename@", "@My Game", kLabelMacro_Gamename}, {"@@@overhotspot@@", "@@Location Name@", kLabelMacro_Overhotspot},
+        {"@@gamename@", "@My Game", kLabelMacro_Gamename},
+        {"@@@overhotspot@@", "@@Location Name@", kLabelMacro_Overhotspot},
         // Macros surrounded by other text
         {"before@gamename@after", "beforeMy Gameafter", kLabelMacro_Gamename},
-        {"before@overhotspot@mid@gamename@after", "beforeLocation NamemidMy Gameafter", kLabelMacro_Gamename | kLabelMacro_Overhotspot},
+        {"before@overhotspot@mid@gamename@after", "beforeLocation NamemidMy Gameafter",
+         kLabelMacro_Gamename | kLabelMacro_Overhotspot},
         // Not a macro
         {"@abc@", "@abc@", kLabelMacro_None},
         // Misspelled macro
-        {"@gamenam@", "@gamenam@", kLabelMacro_None}, {"@gamename1@", "@gamename1@", kLabelMacro_None},
+        {"@gamenam@", "@gamenam@", kLabelMacro_None},
+        {"@gamename1@", "@gamename1@", kLabelMacro_None},
         // Malformed macro
-        {"@gamename", "@gamename", kLabelMacro_None}, {"gamename@", "gamename@", kLabelMacro_None},
+        {"@gamename", "@gamename", kLabelMacro_None},
+        {"gamename@", "gamename@", kLabelMacro_None},
         // Macros surrounded by non-macros
         {"@before@gamename@after@", "@beforeMy Gameafter@", kLabelMacro_Gamename},
-        {"@before@overhotspot@mid@gamename@after@", "@beforeLocation NamemidMy Gameafter@", kLabelMacro_Gamename | kLabelMacro_Overhotspot},
-        {"@before@@gamename@@after@", "@before@My Game@after@", kLabelMacro_Gamename}, {"@before@@overhotspot@@mid@@gamename@@after@", "@before@Location Name@mid@My Game@after@", kLabelMacro_Gamename | kLabelMacro_Overhotspot},
+        {"@before@overhotspot@mid@gamename@after@", "@beforeLocation NamemidMy Gameafter@",
+         kLabelMacro_Gamename | kLabelMacro_Overhotspot},
+        {"@before@@gamename@@after@", "@before@My Game@after@", kLabelMacro_Gamename},
+        {"@before@@overhotspot@@mid@@gamename@@after@", "@before@Location Name@mid@My Game@after@",
+         kLabelMacro_Gamename | kLabelMacro_Overhotspot},
     }};
 
     for (const auto &test : findmacrotest)

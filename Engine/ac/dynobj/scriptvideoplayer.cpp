@@ -23,7 +23,7 @@ const char *ScriptVideoPlayer::GetType()
     return "VideoPlayer";
 }
 
-int ScriptVideoPlayer::Dispose(void* /*address*/, bool /*force*/)
+int ScriptVideoPlayer::Dispose(void * /*address*/, bool /*force*/)
 {
     if (_id >= 0)
     {
@@ -34,12 +34,12 @@ int ScriptVideoPlayer::Dispose(void* /*address*/, bool /*force*/)
     return 1;
 }
 
-size_t ScriptVideoPlayer::CalcSerializeSize(const void* /*address*/)
+size_t ScriptVideoPlayer::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void ScriptVideoPlayer::Serialize(const void* /*address*/, Stream *out)
+void ScriptVideoPlayer::Serialize(const void * /*address*/, Stream *out)
 {
     out->WriteInt32(_id);
 }

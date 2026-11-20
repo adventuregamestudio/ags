@@ -17,7 +17,7 @@
 // but minimal so it doesn't pull all allegro's inline functions
 // the idea here is to do minimal inline when building without optimizations (e.g. Debug)
 
-#define AL_INLINE(type, name, args, code)    type name args code
+#define AL_INLINE(type, name, args, code) type name args code
 
 #include "allegro/color.h"
 
@@ -25,9 +25,9 @@
 // we don't use set_color at all in spritepak which is the reason we are writing this.
 // we fix the linker error with symbol not found for _set_color in libtools by having a dummy implementation
 
-void set_color(const int idx, AL_CONST RGB * p)
+void set_color(const int idx, AL_CONST RGB *p)
 {
     // this should neve be called
-    (void) idx;
-    (void) p;
+    (void)idx;
+    (void)p;
 }

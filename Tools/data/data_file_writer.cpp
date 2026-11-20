@@ -80,10 +80,7 @@ static std::vector<const DataUtil::ViewData *> GetViewsByID(const DataUtil::Game
     return views;
 }
 
-CompiledData::CompiledData(const DataUtil::GameData &game)
-    : ViewsByID(GetViewsByID(game))
-{
-}
+CompiledData::CompiledData(const DataUtil::GameData &game) : ViewsByID(GetViewsByID(game)) {}
 
 
 bool ParseResolution(const String &text, int &width, int &height)
@@ -111,8 +108,7 @@ bool ParseResolution(const String &text, int &width, int &height)
 
 // Read by Properties::ReadSchema() in Common/game/customproperties.cpp,
 // called from GameSetupStruct::read_customprops().
-void WritePropertySchemaBlock(Stream *out,
-    const std::vector<DataUtil::CustomPropertySchemaItem> &schema)
+void WritePropertySchemaBlock(Stream *out, const std::vector<DataUtil::CustomPropertySchemaItem> &schema)
 {
     out->WriteInt32(AGS::Common::kPropertyVersion_Current);
     out->WriteInt32(static_cast<int32_t>(schema.size()));
@@ -130,22 +126,26 @@ void WritePropertySchemaBlock(Stream *out,
 void WriteFontInfo(Stream *out, const DataUtil::FontData &font)
 {
     int flags = 0;
-    if (font.PointSize == 0) flags |= FFLG_SIZEMULTIPLIER;
-    if (font.HeightDefinedBy == DataUtil::kFontHeight_NominalHeight) flags |= FFLG_LOGICALNOMINALHEIGHT;
-    if (font.HeightDefinedBy == DataUtil::kFontHeight_CustomValue) flags |= FFLG_LOGICALCUSTOMHEIGHT;
-    if (font.MetricsFixup == DataUtil::kFontMetrics_SetAscenderToHeight) flags |= FFLG_ASCENDERFIXUP;
+    if (font.PointSize == 0)
+        flags |= FFLG_SIZEMULTIPLIER;
+    if (font.HeightDefinedBy == DataUtil::kFontHeight_NominalHeight)
+        flags |= FFLG_LOGICALNOMINALHEIGHT;
+    if (font.HeightDefinedBy == DataUtil::kFontHeight_CustomValue)
+        flags |= FFLG_LOGICALCUSTOMHEIGHT;
+    if (font.MetricsFixup == DataUtil::kFontMetrics_SetAscenderToHeight)
+        flags |= FFLG_ASCENDERFIXUP;
     out->WriteInt32(flags);
     out->WriteInt32(font.PointSize == 0 ? font.SizeMultiplier : font.PointSize * font.SizeMultiplier);
-    out->WriteInt32(font.OutlineStyle == DataUtil::kFontOutline_Automatic ? FONT_OUTLINE_AUTO :
-        font.OutlineStyle == DataUtil::kFontOutline_UseOutlineFont ? font.OutlineFont : FONT_OUTLINE_NONE);
+    out->WriteInt32(font.OutlineStyle == DataUtil::kFontOutline_Automatic        ? FONT_OUTLINE_AUTO
+                    : font.OutlineStyle == DataUtil::kFontOutline_UseOutlineFont ? font.OutlineFont
+                                                                                 : FONT_OUTLINE_NONE);
     out->WriteInt32(font.VerticalOffset);
     out->WriteInt32(font.LineSpacing);
 }
 
 // Read by Properties::ReadValues() in Common/game/customproperties.cpp,
 // called from GameSetupStruct::read_customprops().
-void WritePropertyValues(Stream *out,
-    const std::vector<DataUtil::CustomPropertyValue> &properties)
+void WritePropertyValues(Stream *out, const std::vector<DataUtil::CustomPropertyValue> &properties)
 {
     out->WriteInt32(AGS::Common::kPropertyVersion_Current);
     out->WriteInt32(static_cast<int32_t>(properties.size()));
@@ -166,7 +166,8 @@ void WriteEmptyInteractionEvents(Stream *out)
 int GetAudioID(const DataUtil::GameData &game, int fixed_index)
 {
     for (const auto &clip : game.AudioClips)
-        if (clip.Index == fixed_index) return clip.ID;
+        if (clip.Index == fixed_index)
+            return clip.ID;
     return -1;
 }
 
@@ -185,7 +186,7 @@ void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::View
             out->WriteInt16(static_cast<int16_t>(frame.XOffset));
             out->WriteInt16(static_cast<int16_t>(frame.YOffset));
             out->WriteInt16(static_cast<int16_t>(frame.Delay));
-            out->WriteInt16(0);          // struct alignment padding
+            out->WriteInt16(0); // struct alignment padding
             out->WriteInt32(GfxDef::GetFlagsFromFlip(frame.Flip));
             out->WriteInt32(GetAudioID(game, frame.Sound));
             out->WriteInt32(0);
@@ -196,8 +197,7 @@ void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::View
 
 // Read by CharacterInfo::ReadFromFile() in Common/ac/characterinfo.cpp,
 // through GameSetupStruct::ReadCharacters().
-void WriteCharacter(Stream *out, const DataUtil::GameData &game,
-    const DataUtil::CharacterData &ref, int index)
+void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil::CharacterData &ref, int index)
 {
     CharacterInfo chinfo;
 
@@ -226,19 +226,30 @@ void WriteCharacter(Stream *out, const DataUtil::GameData &game,
         chinfo.flags |= CHF_ENABLED;
     if (ref.Visible)
         chinfo.flags |= CHF_VISIBLE;
-    if (ref.AdjustSpeedWithScaling) chinfo.flags |= CHF_SCALEMOVESPEED;
-    if (ref.AdjustVolumeWithScaling) chinfo.flags |= CHF_SCALEVOLUME;
-    if (!ref.Clickable) chinfo.flags |= CHF_NOINTERACT;
-    if (!ref.DiagonalLoops) chinfo.flags |= CHF_NODIAGONAL;
-    if (ref.MovementLinkedToAnimation) chinfo.flags |= CHF_ANTIGLIDE;
-    if (!ref.Solid) chinfo.flags |= CHF_NOBLOCKING;
-    if (!ref.TurnBeforeWalking) chinfo.flags |= CHF_NOTURNWHENWALK;
-    if (ref.TurnWhenFacing) chinfo.flags |= CHF_TURNWHENFACE;
-    if (!ref.UseRoomAreaLighting) chinfo.flags |= CHF_NOLIGHTING;
-    if (!ref.UseRoomAreaScaling) chinfo.flags |= CHF_MANUALSCALING;
+    if (ref.AdjustSpeedWithScaling)
+        chinfo.flags |= CHF_SCALEMOVESPEED;
+    if (ref.AdjustVolumeWithScaling)
+        chinfo.flags |= CHF_SCALEVOLUME;
+    if (!ref.Clickable)
+        chinfo.flags |= CHF_NOINTERACT;
+    if (!ref.DiagonalLoops)
+        chinfo.flags |= CHF_NODIAGONAL;
+    if (ref.MovementLinkedToAnimation)
+        chinfo.flags |= CHF_ANTIGLIDE;
+    if (!ref.Solid)
+        chinfo.flags |= CHF_NOBLOCKING;
+    if (!ref.TurnBeforeWalking)
+        chinfo.flags |= CHF_NOTURNWHENWALK;
+    if (ref.TurnWhenFacing)
+        chinfo.flags |= CHF_TURNWHENFACE;
+    if (!ref.UseRoomAreaLighting)
+        chinfo.flags |= CHF_NOLIGHTING;
+    if (!ref.UseRoomAreaScaling)
+        chinfo.flags |= CHF_MANUALSCALING;
     if ((ref.ID >= 0 ? ref.ID : index) == game.PlayerCharacter)
         for (const auto &item : game.Inventory)
-            if (item.PlayerStartsWith && item.ID >= 0) chinfo.invq[item.ID] = 1;
+            if (item.PlayerStartsWith && item.ID >= 0)
+                chinfo.invq[item.ID] = 1;
     chinfo.blocking_x = ref.BlockingX;
     chinfo.blocking_y = ref.BlockingY;
 
@@ -273,9 +284,12 @@ void WriteCursor(Stream *out, const DataUtil::CursorData &ref)
     cur.hoty = static_cast<short>(ref.HotspotY);
     cur.view = static_cast<short>(ref.Animate && ref.View > 0 ? ref.View - 1 : -1);
     cur.flags = 0;
-    if (ref.Animate && ref.AnimateOnlyOnHotspots) cur.flags |= MCF_HOTSPOT;
-    if (ref.Animate && ref.AnimateOnlyWhenMoving) cur.flags |= MCF_ANIMMOVE;
-    if (ref.StandardMode) cur.flags |= MCF_STANDARD;
+    if (ref.Animate && ref.AnimateOnlyOnHotspots)
+        cur.flags |= MCF_HOTSPOT;
+    if (ref.Animate && ref.AnimateOnlyWhenMoving)
+        cur.flags |= MCF_ANIMMOVE;
+    if (ref.StandardMode)
+        cur.flags |= MCF_STANDARD;
     if (ref.CreateEvent)
         cur.flags |= MCF_EVENT;
     cur.WriteToFile(out);
@@ -300,8 +314,7 @@ int GetGuiPopupStyle(DataUtil::GUIPopupStyle style)
 // Keep this until Common is refactored to include a data-only GUI writer.
 // Read by GUIMain::ReadFromFile() in Common/gui/guimain.cpp, called from
 // GUI::ReadGUI().
-void WriteGui(Stream *out, const DataUtil::GUIData &ref,
-    const std::vector<uint32_t> &control_refs)
+void WriteGui(Stream *out, const DataUtil::GUIData &ref, const std::vector<uint32_t> &control_refs)
 {
     const String &name = ref.ScriptName.IsEmpty() ? ref.TypeName : ref.ScriptName;
     StrUtil::WriteString(name, out);
@@ -317,8 +330,10 @@ void WriteGui(Stream *out, const DataUtil::GUIData &ref,
     out->WriteInt32(ref.BackgroundImage);
     out->WriteInt32(ref.IsTextWindow ? ref.TextColor : ref.BorderColor);
     int flags = ref.IsTextWindow ? kGUIMain_TextWindow : kGUIMain_DefFlags;
-    if (!ref.IsTextWindow && !ref.Clickable) flags &= ~kGUIMain_Clickable;
-    if (!ref.IsTextWindow && !ref.Visible) flags &= ~kGUIMain_Visible;
+    if (!ref.IsTextWindow && !ref.Clickable)
+        flags &= ~kGUIMain_Clickable;
+    if (!ref.IsTextWindow && !ref.Visible)
+        flags &= ~kGUIMain_Visible;
     out->WriteInt32(flags);
     out->WriteInt32(ref.IsTextWindow ? 0 : GfxDef::Trans100ToLegacyTrans255(ref.Transparency));
     out->WriteInt32(ref.IsTextWindow ? -1 : ref.ZOrder);
@@ -331,12 +346,18 @@ void WriteGui(Stream *out, const DataUtil::GUIData &ref,
 int GetGuiControlFlags(const DataUtil::GUIControlData &control)
 {
     int flags = 0;
-    if (control.Clickable) flags |= kGUICtrl_Clickable;
-    if (control.Enabled) flags |= kGUICtrl_Enabled;
-    if (control.Visible) flags |= kGUICtrl_Visible;
-    if (control.Translated) flags |= kGUICtrl_Translated;
-    if (control.ShowBorder) flags |= kGUICtrl_ShowBorder;
-    if (control.SolidBackground) flags |= kGUICtrl_SolidBack;
+    if (control.Clickable)
+        flags |= kGUICtrl_Clickable;
+    if (control.Enabled)
+        flags |= kGUICtrl_Enabled;
+    if (control.Visible)
+        flags |= kGUICtrl_Visible;
+    if (control.Translated)
+        flags |= kGUICtrl_Translated;
+    if (control.ShowBorder)
+        flags |= kGUICtrl_ShowBorder;
+    if (control.SolidBackground)
+        flags |= kGUICtrl_SolidBack;
     return flags;
 }
 
@@ -366,8 +387,7 @@ int GetButtonClickAction(const String &action)
 // Read by GUIButton::ReadFromFile() in Common/gui/guibutton.cpp.
 void WriteGuiButton(Stream *out, const DataUtil::GUIButtonData &button)
 {
-    const int flags = (button.ClipImage ? kGUICtrl_Clip : 0) |
-        (button.WrapText ? kGUICtrl_WrapText : 0);
+    const int flags = (button.ClipImage ? kGUICtrl_Clip : 0) | (button.WrapText ? kGUICtrl_WrapText : 0);
     WriteGuiControl(out, button, flags);
     out->WriteInt32(button.Image);
     out->WriteInt32(button.MouseoverImage);
@@ -432,8 +452,10 @@ void WriteGuiListBox(Stream *out, const DataUtil::GUIListBoxData &list_box)
     out->WriteInt32(list_box.TextColor);
     out->WriteInt32(list_box.SelectedTextColor);
     int flags = 0;
-    if (list_box.ShowBorder) flags |= kListBox_ShowBorder;
-    if (list_box.ShowScrollArrows) flags |= kListBox_ShowArrows;
+    if (list_box.ShowBorder)
+        flags |= kListBox_ShowBorder;
+    if (list_box.ShowScrollArrows)
+        flags |= kListBox_ShowArrows;
     out->WriteInt32(flags);
     out->WriteInt32(list_box.TextAlignment);
     out->WriteInt32(list_box.SelectedBackgroundColor);
@@ -534,8 +556,8 @@ std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
     options[OPT_HANDLEINVCLICKS] = game.Settings.HandleInvClicksInScript ? 1 : 0;
     options[OPT_FIXEDINVCURSOR] = game.Settings.InventoryCursors ? 0 : 1;
     options[OPT_GLOBALTALKANIMSPD] = game.Settings.UseGlobalSpeechAnimationDelay
-        ? game.Settings.GlobalSpeechAnimationDelay
-        : (-game.Settings.GlobalSpeechAnimationDelay - 1);
+                                         ? game.Settings.GlobalSpeechAnimationDelay
+                                         : (-game.Settings.GlobalSpeechAnimationDelay - 1);
     options[OPT_PIXPERFECT] = game.Settings.PixelPerfect ? 1 : 0;
     options[OPT_RUNGAMEDLGOPTS] = game.Settings.RunGameLoopsWhileDialogOptionsDisplayed ? 1 : 0;
     options[OPT_SAVESCREENSHOT] = game.Settings.SaveScreenshots ? 1 : 0;
@@ -564,7 +586,7 @@ std::vector<int32_t> BuildGameOptions(const DataUtil::GameData &game)
 // Read by GameSetupStructBase::ReadFromFile() in
 // Common/ac/gamesetupstructbase.cpp, at the start of ReadGameData().
 void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData &data, Stream *out,
-    soff_t &ext_offset_pos)
+                              soff_t &ext_offset_pos)
 {
     String game_name = TextProperty(game.Settings.GameName);
     if (game_name.IsEmpty())
@@ -579,11 +601,13 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData
 
     for (int i = 0; i < 256; ++i)
         out->WriteByte(i < static_cast<int>(game.Palette.size()) &&
-            game.Palette[i].ColourType == DataUtil::kPaletteColourType_Background ? 2 : 0);
+                               game.Palette[i].ColourType == DataUtil::kPaletteColourType_Background
+                           ? 2
+                           : 0);
     for (int i = 0; i < 256; ++i)
     {
-        const DataUtil::PaletteEntryData entry = i < static_cast<int>(game.Palette.size()) ?
-            game.Palette[i] : DataUtil::PaletteEntryData{};
+        const DataUtil::PaletteEntryData entry =
+            i < static_cast<int>(game.Palette.size()) ? game.Palette[i] : DataUtil::PaletteEntryData{};
         // full 8-bit components, as the editor writes them
         out->WriteByte(entry.Red);
         out->WriteByte(entry.Green);
@@ -607,14 +631,14 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData
     out->WriteInt16(0);                                   // alignment padding
     out->WriteInt32(0); // was game.Dialogs.Count, write 0 for old format entries, we use "v363_dialogsnew" extension
     out->WriteInt32(0); // numdlgmessage, deprecated
-    out->WriteInt32(num_fonts); // Fonts.Count
+    out->WriteInt32(num_fonts);                                      // Fonts.Count
     out->WriteInt32(static_cast<int32_t>(game.Settings.ColorDepth)); // color_depth in bytes per pixel
-    out->WriteInt32(0); // target_win
+    out->WriteInt32(0);                                              // target_win
     out->WriteInt32(game.Settings.DialogOptionsBullet);
     out->WriteInt16(0); // [DEPRECATED] inventory hotspot dot color, now an int32 further on
     out->WriteInt16(0); // [DEPRECATED] inventory hotspot crosshair color, now an int32 further on
     out->WriteInt32(game.Settings.UniqueID);
-    out->WriteInt32(num_gui); // GUIs.Count
+    out->WriteInt32(num_gui);     // GUIs.Count
     out->WriteInt32(num_cursors); // Cursors.Count
 
     // IGNORE LETTERBOX RESOLUTION
@@ -635,8 +659,9 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData
     }
 
     out->WriteInt32(game.LipSyncDefaultFrame);
-    out->WriteInt32(game.Settings.InventoryHotspotMarkerStyle == DataUtil::kInventoryHotspot_Sprite ?
-        game.Settings.InventoryHotspotMarkerSprite : 0);
+    out->WriteInt32(game.Settings.InventoryHotspotMarkerStyle == DataUtil::kInventoryHotspot_Sprite
+                        ? game.Settings.InventoryHotspotMarkerSprite
+                        : 0);
     out->WriteInt32(game.Settings.InventoryHotspotMarkerStyle != DataUtil::kInventoryHotspot_None
                         ? game.Settings.InventoryHotspotMarkerDotColor
                         : 0);
@@ -650,10 +675,10 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData
 
     // skip NUM_LEGACY_GLOBALMES int32s since kGameVersion_400_33
 
-    out->WriteInt32(1);                         // dict != null
-    out->WriteInt32(0);                         // globalscript != null
-    out->WriteInt32(0);                         // chars != null
-    out->WriteInt32(0);                         // compiled scripts are loaded from separate files since 3.6.1
+    out->WriteInt32(1); // dict != null
+    out->WriteInt32(0); // globalscript != null
+    out->WriteInt32(0); // chars != null
+    out->WriteInt32(0); // compiled scripts are loaded from separate files since 3.6.1
 }
 
 // Read by GameSetupStruct::read_savegame_info() in
@@ -684,7 +709,8 @@ void WriteSpriteFlags(const DataUtil::GameData &game, Stream *out)
     std::vector<uint8_t> flags(topmost + 1, 0);
     for (const auto &sprite : game.Sprites)
     {
-        if (sprite.Slot < 0 || sprite.Slot > topmost) continue;
+        if (sprite.Slot < 0 || sprite.Slot > topmost)
+            continue;
         if (sprite.ImportColorDepth != 0)
             flags[sprite.Slot] |= SPF_KEEPDEPTH;
     }
@@ -739,7 +765,8 @@ void WriteTextParserDictionary(const DataUtil::GameData &game, Stream *out)
                 parsed.WordGroup = item.WordGroup;
                 words.push_back(parsed);
             }
-            if (comma < 0) break;
+            if (comma < 0)
+                break;
             remaining = remaining.Mid(comma + 1);
         }
     }
@@ -776,7 +803,8 @@ void WriteCharactersBlock(const DataUtil::GameData &game, Stream *out)
 void WriteLipSyncBlock(const DataUtil::GameData &game, Stream *out)
 {
     for (int i = 0; i < MAXLIPSYNCFRAMES; ++i)
-        StrUtil::WriteFixedString(i < static_cast<int>(game.LipSyncFrames.size()) ? game.LipSyncFrames[i] : String(), 50, out);
+        StrUtil::WriteFixedString(i < static_cast<int>(game.LipSyncFrames.size()) ? game.LipSyncFrames[i] : String(),
+                                  50, out);
 }
 
 // Read by GameSetupStruct::read_messages() in Common/ac/gamesetupstruct.cpp.
@@ -882,7 +910,8 @@ void WritePluginsBlock(const DataUtil::GameData &game, Stream *out)
     {
         StrUtil::WriteCStr(plugin.Name, out);
         out->WriteInt32(static_cast<int32_t>(plugin.Data.size()));
-        if (!plugin.Data.empty()) out->Write(plugin.Data.data(), plugin.Data.size());
+        if (!plugin.Data.empty())
+            out->Write(plugin.Data.data(), plugin.Data.size());
     }
 }
 
@@ -940,8 +969,7 @@ void WriteRoomNamesBlock(const DataUtil::GameData &game, Stream *out)
 
 // Read by InteractionEvents::CreateFromStream_v362() in
 // Common/game/interactions.cpp, called by ReadInteractionScriptModules().
-void WriteInteractionEvents(Stream *out, const String &module,
-    const std::vector<String> &events)
+void WriteInteractionEvents(Stream *out, const String &module, const std::vector<String> &events)
 {
     out->WriteInt32(kEventsTable_v362);
     StrUtil::WriteString(module, out);
@@ -1076,13 +1104,15 @@ void WriteExt363GameInfo(Stream *out, const DataUtil::GameData &game)
     text_lang.Replace('-', '_');
     // The human-readable texts are unescaped as the other text properties are: the Editor keeps
     // them escaped too (a line break typed in the description is stored as "\n")
-    const std::pair<const char*, String> info[] = {
-        {"title", TextProperty(game.Settings.GameName)}, {"description", TextProperty(game.Settings.Description)},
-        {"dev_error_text", TextProperty(game.Settings.DeveloperErrorText)},
-        {"dev_name", TextProperty(game.Settings.DeveloperName)}, {"dev_url", game.Settings.DeveloperURL},
-        {"genre", TextProperty(game.Settings.Genre)}, {"release_date", release_date},
-        {"version", game.Settings.Version}, {"text_lang", text_lang}
-    };
+    const std::pair<const char *, String> info[] = {{"title", TextProperty(game.Settings.GameName)},
+                                                    {"description", TextProperty(game.Settings.Description)},
+                                                    {"dev_error_text", TextProperty(game.Settings.DeveloperErrorText)},
+                                                    {"dev_name", TextProperty(game.Settings.DeveloperName)},
+                                                    {"dev_url", game.Settings.DeveloperURL},
+                                                    {"genre", TextProperty(game.Settings.Genre)},
+                                                    {"release_date", release_date},
+                                                    {"version", game.Settings.Version},
+                                                    {"text_lang", text_lang}};
     out->WriteInt32(static_cast<int32_t>(std::size(info)));
     for (const auto &item : info)
     {
@@ -1091,12 +1121,14 @@ void WriteExt363GameInfo(Stream *out, const DataUtil::GameData &game)
     }
 }
 
-template <typename T> std::vector<std::shared_ptr<T>> CollectGuiControls(const DataUtil::GameData &game)
+template<typename T>
+std::vector<std::shared_ptr<T>> CollectGuiControls(const DataUtil::GameData &game)
 {
     std::vector<std::shared_ptr<T>> result;
     for (const auto &gui : game.GUI)
         for (const auto &control : gui.Controls)
-            if (auto typed = std::dynamic_pointer_cast<T>(control)) result.push_back(typed);
+            if (auto typed = std::dynamic_pointer_cast<T>(control))
+                result.push_back(typed);
     return result;
 }
 
@@ -1111,8 +1143,9 @@ void WriteExt363GuiControls(Stream *out, const DataUtil::GameData &game)
     {
         WriteGuiControlLooks363(out, *button);
         const bool dynamic = button->ColorStyle == DataUtil::kButtonColor_Dynamic ||
-            button->ColorStyle == DataUtil::kButtonColor_DynamicFlat;
-        out->WriteInt32((dynamic ? AGS::Common::kButton_DynamicColors : 0) |
+                             button->ColorStyle == DataUtil::kButtonColor_DynamicFlat;
+        out->WriteInt32(
+            (dynamic ? AGS::Common::kButton_DynamicColors : 0) |
             (button->ColorStyle == DataUtil::kButtonColor_DynamicFlat ? AGS::Common::kButton_FlatStyle : 0));
         out->WriteInt32(button->BorderShadeColor);
         out->WriteInt32(button->MouseOverBackgroundColor);
@@ -1147,7 +1180,7 @@ void WriteExt363GuiControls(Stream *out, const DataUtil::GameData &game)
         out->WriteInt32(0);
         out->WriteInt32(0);
         out->WriteInt32(0);
-        out->WriteInt32(0); 
+        out->WriteInt32(0);
     }
     const auto sliders = CollectGuiControls<DataUtil::GUISliderData>(game);
     out->WriteInt32(static_cast<int32_t>(sliders.size()));
@@ -1188,8 +1221,7 @@ void WriteExt363GuiControls(Stream *out, const DataUtil::GameData &game)
 
 // Read as one extension record by DataExtReader::Read() in
 // Common/data/data_ext.cpp; GameDataExtReader::ReadBlock() reads its payload.
-void WriteExtension(Stream *out, const char *id, const DataUtil::GameData &game,
-    ExtensionWriter writer)
+void WriteExtension(Stream *out, const char *id, const DataUtil::GameData &game, ExtensionWriter writer)
 {
     out->WriteInt8(0);
     StrUtil::WriteFixedString(id, 16, out);
@@ -1223,8 +1255,10 @@ void WriteExt363Dialogs(Stream *out, const DataUtil::GameData &game)
             // unescaped, as the Editor does for the option names of the old dialogs block
             StrUtil::WriteString(TextProperty(option.Text), out);
             int flags = 0;
-            if (!option.Say) flags |= DFLG_NOREPEAT;
-            if (option.Show) flags |= DFLG_ON;
+            if (!option.Say)
+                flags |= DFLG_NOREPEAT;
+            if (option.Show)
+                flags |= DFLG_ON;
             out->WriteInt32(flags);
             // reserved
             out->WriteInt32(0);
@@ -1244,7 +1278,7 @@ static void WriteReservedColorAndTransformOptions(Stream *out)
     out->WriteByteCount(0, 11 * sizeof(int32_t));
 }
 
-template <typename T>
+template<typename T>
 static void WriteControlProperties(Stream *out, const std::vector<std::shared_ptr<T>> &controls)
 {
     out->WriteInt32(static_cast<int32_t>(controls.size()));
@@ -1252,7 +1286,7 @@ static void WriteControlProperties(Stream *out, const std::vector<std::shared_pt
         WritePropertyValues(out, control->Properties);
 }
 
-template <typename T>
+template<typename T>
 static void WriteControlGraphics(Stream *out, const std::vector<std::shared_ptr<T>> &controls)
 {
     out->WriteInt32(static_cast<int32_t>(controls.size()));
@@ -1361,7 +1395,7 @@ static void WriteEventsTables(Stream *out, const std::vector<const char *> &even
     }
 }
 
-template <typename T, typename GetHandlers>
+template<typename T, typename GetHandlers>
 static void WriteEventsTables(Stream *out, const std::vector<const char *> &events, const std::vector<T> &objects,
                               GetHandlers get_handlers)
 {
@@ -1482,8 +1516,7 @@ void WriteExt400CharacterInventory(Stream *out, const DataUtil::GameData &game)
 // Read by DataExtReader::Read() through GameDataExtReader in
 // Common/game/main_game_file.cpp. The patched offset is read earlier by
 // GameSetupStructBase::ReadFromFile().
-void WriteExtensions(Stream *out, const DataUtil::GameData &game, const CompiledData &data,
-    soff_t ext_offset_pos)
+void WriteExtensions(Stream *out, const DataUtil::GameData &game, const CompiledData &data, soff_t ext_offset_pos)
 {
     const soff_t ext_offset = out->GetPosition();
     out->Seek(ext_offset_pos, kSeekBegin);
@@ -1503,7 +1536,7 @@ void WriteExtensions(Stream *out, const DataUtil::GameData &game, const Compiled
     WriteExtension(out, "v400_guictrlgfx", game, WriteExt400GuiControlGraphics);
     WriteExtension(out, "v400_eventtables", game, WriteExt400EventTables);
     WriteExtension(out, "v400_viewevents", game,
-        [&data](Stream *ext_out, const DataUtil::GameData &) { WriteExt400ViewFrameEvents(ext_out, data); });
+                   [&data](Stream *ext_out, const DataUtil::GameData &) { WriteExt400ViewFrameEvents(ext_out, data); });
     WriteExtension(out, "v400_charopts2", game, WriteExt400CharacterOptions2);
     WriteExtension(out, "v400_charinv", game, WriteExt400CharacterInventory);
     out->WriteInt8(static_cast<uint8_t>(0xff));

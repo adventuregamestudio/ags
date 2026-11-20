@@ -25,9 +25,7 @@ namespace AGS
 namespace Engine
 {
 
-GraphicsDriverBase::GraphicsDriverBase()
-    : _spriteEvtCallback(nullptr)
-    , _initGfxCallback(nullptr)
+GraphicsDriverBase::GraphicsDriverBase() : _spriteEvtCallback(nullptr), _initGfxCallback(nullptr)
 {
     _actSpriteBatch = UINT32_MAX;
     _rendSpriteBatch = UINT32_MAX;
@@ -94,26 +92,27 @@ void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTran
     BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, Size(), kFlip_None, nullptr, filter_flags));
 }
 
-void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref, uint32_t filter_flags)
+void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref,
+                                          uint32_t filter_flags)
 {
-    BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, size_ref, kFlip_None, nullptr, filter_flags));
+    BeginSpriteBatch(
+        SpriteBatchDesc(_actSpriteBatch, viewport, transform, size_ref, kFlip_None, nullptr, filter_flags));
 }
 
-void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
-    GraphicFlip flip, PBitmap surface, uint32_t filter_flags)
+void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, GraphicFlip flip,
+                                          PBitmap surface, uint32_t filter_flags)
 {
     BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, Size(), flip, surface, filter_flags));
 }
 
 void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref,
-    GraphicFlip flip, PBitmap surface, uint32_t filter_flags)
+                                          GraphicFlip flip, PBitmap surface, uint32_t filter_flags)
 {
     BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, size_ref, flip, surface, filter_flags));
 }
 
-void GraphicsDriverBase::BeginSpriteBatch(IDriverDependantBitmap *render_target,
-    const Rect &viewport, const SpriteTransform &transform,
-    GraphicFlip flip, uint32_t filter_flags)
+void GraphicsDriverBase::BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport,
+                                          const SpriteTransform &transform, GraphicFlip flip, uint32_t filter_flags)
 {
     BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, render_target, viewport, transform, flip, filter_flags));
 }
@@ -143,13 +142,9 @@ void GraphicsDriverBase::ClearDrawLists()
     _spriteBatchRange.clear();
 }
 
-void GraphicsDriverBase::OnInit()
-{
-}
+void GraphicsDriverBase::OnInit() {}
 
-void GraphicsDriverBase::OnUnInit()
-{
-}
+void GraphicsDriverBase::OnUnInit() {}
 
 void GraphicsDriverBase::OnModeSet(const DisplayMode &mode)
 {
@@ -193,9 +188,7 @@ void GraphicsDriverBase::OnSetFilter()
 }
 
 
-VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver()
-    : _stageScreenDirty(false)
-    , _fxIndex(0)
+VideoMemoryGraphicsDriver::VideoMemoryGraphicsDriver() : _stageScreenDirty(false), _fxIndex(0)
 {
     // Only to have something meaningful as default
     _vmem_a_shift_32 = 24;
@@ -214,7 +207,7 @@ Bitmap *VideoMemoryGraphicsDriver::GetMemoryBackBuffer()
     return nullptr;
 }
 
-void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap* /*backBuffer*/)
+void VideoMemoryGraphicsDriver::SetMemoryBackBuffer(Bitmap * /*backBuffer*/)
 { // do nothing, video-memory drivers don't use main back buffer, only stage bitmaps they pass to plugins
 }
 
@@ -292,8 +285,7 @@ Bitmap *VideoMemoryGraphicsDriver::GetStageScreenRaw(size_t index)
     return scr.Raw.get();
 }
 
-IDriverDependantBitmap *VideoMemoryGraphicsDriver::UpdateStageScreenDDB(size_t index,
-    int &x, int &y)
+IDriverDependantBitmap *VideoMemoryGraphicsDriver::UpdateStageScreenDDB(size_t index, int &x, int &y)
 {
     assert((index < _stageScreens.size()) && _stageScreens[index].DDB);
     if ((_stageScreens.size() <= index) || !_stageScreens[index].Raw || !_stageScreens[index].DDB)
@@ -317,8 +309,7 @@ void VideoMemoryGraphicsDriver::DestroyAllStageScreens()
     _stageScreens.clear();
 }
 
-IDriverDependantBitmap *VideoMemoryGraphicsDriver::DoSpriteEvtCallback(int evt, intptr_t data,
-    int &x, int &y)
+IDriverDependantBitmap *VideoMemoryGraphicsDriver::DoSpriteEvtCallback(int evt, intptr_t data, int &x, int &y)
 {
     if (!_spriteEvtCallback)
         throw Ali3DException("Unhandled attempt to draw null sprite");
@@ -337,7 +328,8 @@ IDriverDependantBitmap *VideoMemoryGraphicsDriver::DoSpriteEvtCallback(int evt, 
 
 IDriverDependantBitmap *VideoMemoryGraphicsDriver::MakeFx(int r, int g, int b)
 {
-    if (_fxIndex == _fxPool.size()) _fxPool.push_back(ScreenFx());
+    if (_fxIndex == _fxPool.size())
+        _fxPool.push_back(ScreenFx());
     ScreenFx &fx = _fxPool[_fxIndex];
     if (fx.DDB == nullptr)
     {
@@ -373,34 +365,102 @@ void VideoMemoryGraphicsDriver::DestroyFxPool()
 }
 
 
-template <typename T> T algetr(const T);
-template <typename T> T algetg(const T);
-template <typename T> T algetb(const T);
-template <typename T> T algeta(const T);
+template<typename T>
+T algetr(const T);
+template<typename T>
+T algetg(const T);
+template<typename T>
+T algetb(const T);
+template<typename T>
+T algeta(const T);
 
-template <> uint8_t algetr(const uint8_t c) { return getr8(c); }
-template <> uint8_t algetg(const uint8_t c) { return getg8(c); }
-template <> uint8_t algetb(const uint8_t c) { return getb8(c); }
-template <> uint8_t algeta(const uint8_t c) { return 0xFF; }
+template<>
+uint8_t algetr(const uint8_t c)
+{
+    return getr8(c);
+}
+template<>
+uint8_t algetg(const uint8_t c)
+{
+    return getg8(c);
+}
+template<>
+uint8_t algetb(const uint8_t c)
+{
+    return getb8(c);
+}
+template<>
+uint8_t algeta(const uint8_t c)
+{
+    return 0xFF;
+}
 
-template <> uint16_t algetr(const uint16_t c) { return getr16(c); }
-template <> uint16_t algetg(const uint16_t c) { return getg16(c); }
-template <> uint16_t algetb(const uint16_t c) { return getb16(c); }
-template <> uint16_t algeta(const uint16_t c) { return 0xFF; }
+template<>
+uint16_t algetr(const uint16_t c)
+{
+    return getr16(c);
+}
+template<>
+uint16_t algetg(const uint16_t c)
+{
+    return getg16(c);
+}
+template<>
+uint16_t algetb(const uint16_t c)
+{
+    return getb16(c);
+}
+template<>
+uint16_t algeta(const uint16_t c)
+{
+    return 0xFF;
+}
 
-template <> uint32_t algetr(const uint32_t c) { return getr32(c); }
-template <> uint32_t algetg(const uint32_t c) { return getg32(c); }
-template <> uint32_t algetb(const uint32_t c) { return getb32(c); }
-template <> uint32_t algeta(const uint32_t c) { return geta32(c); }
+template<>
+uint32_t algetr(const uint32_t c)
+{
+    return getr32(c);
+}
+template<>
+uint32_t algetg(const uint32_t c)
+{
+    return getg32(c);
+}
+template<>
+uint32_t algetb(const uint32_t c)
+{
+    return getb32(c);
+}
+template<>
+uint32_t algeta(const uint32_t c)
+{
+    return geta32(c);
+}
 
-template <typename T> bool is_color_mask(const T);
-template <> bool is_color_mask(const uint8_t c) { return c == MASK_COLOR_8;}
-template <> bool is_color_mask(const uint16_t c) { return c == MASK_COLOR_16;}
-template <> bool is_color_mask(const uint32_t c) { return c == MASK_COLOR_32;}
+template<typename T>
+bool is_color_mask(const T);
+template<>
+bool is_color_mask(const uint8_t c)
+{
+    return c == MASK_COLOR_8;
+}
+template<>
+bool is_color_mask(const uint16_t c)
+{
+    return c == MASK_COLOR_16;
+}
+template<>
+bool is_color_mask(const uint32_t c)
+{
+    return c == MASK_COLOR_32;
+}
 
-template <typename T> void get_pixel_if_not_transparent(const T *pixel, T *red, T *green, T *blue, T *divisor) {
+template<typename T>
+void get_pixel_if_not_transparent(const T *pixel, T *red, T *green, T *blue, T *divisor)
+{
     const T px_color = pixel[0];
-    if (!is_color_mask<T>(px_color)) {
+    if (!is_color_mask<T>(px_color))
+    {
         *red += algetr<T>(px_color);
         *green += algetg<T>(px_color);
         *blue += algetb<T>(px_color);
@@ -409,16 +469,16 @@ template <typename T> void get_pixel_if_not_transparent(const T *pixel, T *red, 
 }
 
 
-#define VMEMCOLOR_RGBA(r,g,b,a) \
-    ( (((a) & 0xFF) << _vmem_a_shift_32) | (((r) & 0xFF) << _vmem_r_shift_32) | (((g) & 0xFF) << _vmem_g_shift_32) | (((b) & 0xFF) << _vmem_b_shift_32) )
+#define VMEMCOLOR_RGBA(r, g, b, a)                                                                                  \
+    ((((a) & 0xFF) << _vmem_a_shift_32) | (((r) & 0xFF) << _vmem_r_shift_32) | (((g) & 0xFF) << _vmem_g_shift_32) | \
+     (((b) & 0xFF) << _vmem_b_shift_32))
 
 
 // Template helper function which converts bitmap to a video memory buffer,
 // applies transparency and optionally copyies the source alpha channel (if available).
-template <typename T, bool HasAlpha> void
-VideoMemoryGraphicsDriver::BitmapToVideoMemImpl(
-        const Bitmap *bitmap, const TextureTile *tile,
-        uint8_t *dst_ptr, const int dst_pitch)
+template<typename T, bool HasAlpha>
+void VideoMemoryGraphicsDriver::BitmapToVideoMemImpl(const Bitmap *bitmap, const TextureTile *tile, uint8_t *dst_ptr,
+                                                     const int dst_pitch)
 {
     // tell the compiler these won't change mid loop execution
     const int t_width = tile->width;
@@ -427,19 +487,19 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemImpl(
     const int t_y = tile->y;
 
     const int idst_pitch = dst_pitch * sizeof(uint8_t) / sizeof(uint32_t); // destination is always 32-bit
-    auto idst = reinterpret_cast<uint32_t*>(dst_ptr);
+    auto idst = reinterpret_cast<uint32_t *>(dst_ptr);
 
     for (int y = 0; y < t_height; y++)
     {
         const uint8_t *scanline_at = bitmap->GetScanLine(y + t_y);
         for (int x = 0; x < t_width; x++)
         {
-            auto srcData = (const T *) &scanline_at[(x + t_x) * sizeof(T)];
+            auto srcData = (const T *)&scanline_at[(x + t_x) * sizeof(T)];
             const T src_color = srcData[0];
             if (HasAlpha)
             {
                 idst[x] = VMEMCOLOR_RGBA(algetr<T>(src_color), algetg<T>(src_color), algetb<T>(src_color),
-                    algeta<T>(src_color));
+                                         algeta<T>(src_color));
             }
             else if (is_color_mask<T>(src_color))
             {
@@ -447,8 +507,7 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemImpl(
             }
             else
             {
-                idst[x] = VMEMCOLOR_RGBA(algetr<T>(src_color), algetg<T>(src_color), algetb<T>(src_color),
-                    0xFF);
+                idst[x] = VMEMCOLOR_RGBA(algetr<T>(src_color), algetg<T>(src_color), algetb<T>(src_color), 0xFF);
             }
         }
         idst += idst_pitch;
@@ -457,10 +516,9 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemImpl(
 
 // Template helper function which converts bitmap to a video memory buffer,
 // assuming that the destination is always opaque (alpha channel is filled with 0xFF)
-template <typename T> void
-VideoMemoryGraphicsDriver::BitmapToVideoMemOpaqueImpl(
-        const Bitmap *bitmap, const TextureTile *tile,
-        uint8_t *dst_ptr, const int dst_pitch)
+template<typename T>
+void VideoMemoryGraphicsDriver::BitmapToVideoMemOpaqueImpl(const Bitmap *bitmap, const TextureTile *tile,
+                                                           uint8_t *dst_ptr, const int dst_pitch)
 {
     // tell the compiler these won't change mid loop execution
     const int t_width = tile->width;
@@ -469,11 +527,11 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemOpaqueImpl(
     const int t_y = tile->y;
 
     const int idst_pitch = dst_pitch * sizeof(uint8_t) / sizeof(uint32_t); // destination is always 32-bit
-    auto idst = reinterpret_cast<uint32_t*>(dst_ptr);
+    auto idst = reinterpret_cast<uint32_t *>(dst_ptr);
 
     for (int y = 0; y < t_height; y++)
     {
-        const uint8_t* scanline_at = bitmap->GetScanLine(y + t_y);
+        const uint8_t *scanline_at = bitmap->GetScanLine(y + t_y);
         for (int x = 0; x < t_width; x++)
         {
             auto srcData = (const T *)&scanline_at[(x + t_x) * sizeof(T)];
@@ -487,10 +545,9 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemOpaqueImpl(
 // Template helper function which converts bitmap to a video memory buffer
 // with a semi-transparent pixels fix for "Linear" graphics filter which prevents
 // colored outline (usually either of black or "magic pink" color).
-template <typename T, bool HasAlpha> void
-VideoMemoryGraphicsDriver::BitmapToVideoMemLinearImpl(
-    const Bitmap *bitmap, const TextureTile *tile,
-    uint8_t *dst_ptr, const int dst_pitch)
+template<typename T, bool HasAlpha>
+void VideoMemoryGraphicsDriver::BitmapToVideoMemLinearImpl(const Bitmap *bitmap, const TextureTile *tile,
+                                                           uint8_t *dst_ptr, const int dst_pitch)
 {
     // tell the compiler these won't change mid loop execution
     const int t_width = tile->width;
@@ -500,10 +557,11 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemLinearImpl(
 
     const int src_bpp = sizeof(T);
     const int idst_pitch = dst_pitch * sizeof(uint8_t) / sizeof(uint32_t); // destination is always 32-bit
-    auto idst = reinterpret_cast<uint32_t*>(dst_ptr);
+    auto idst = reinterpret_cast<uint32_t *>(dst_ptr);
     bool lastPixelWasTransparent = false;
 
-    for (int y = 0; y < t_height; y++) {
+    for (int y = 0; y < t_height; y++)
+    {
         lastPixelWasTransparent = false;
         const uint8_t *scanline_before = (y > 0) ? bitmap->GetScanLine(y + t_y - 1) : nullptr;
         const uint8_t *scanline_at = bitmap->GetScanLine(y + t_y);
@@ -511,7 +569,7 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemLinearImpl(
 
         for (int x = 0; x < t_width; x++)
         {
-            auto srcData = (const T *) &scanline_at[(x + t_x) * src_bpp];
+            auto srcData = (const T *)&scanline_at[(x + t_x) * src_bpp];
             const T src_color = srcData[0];
 
             if (is_color_mask<T>(src_color))
@@ -524,13 +582,11 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemLinearImpl(
                 if (x < t_width - 1)
                     get_pixel_if_not_transparent<T>(&srcData[1], &red, &green, &blue, &divisor);
                 if (y > 0)
-                    get_pixel_if_not_transparent<T>(
-                            (const T *) &scanline_before[(x + t_x) * src_bpp], &red, &green,
-                            &blue, &divisor);
+                    get_pixel_if_not_transparent<T>((const T *)&scanline_before[(x + t_x) * src_bpp], &red, &green,
+                                                    &blue, &divisor);
                 if (y < t_height - 1)
-                    get_pixel_if_not_transparent<T>(
-                            (const T *) &scanline_after[(x + t_x) * src_bpp], &red, &green,
-                            &blue, &divisor);
+                    get_pixel_if_not_transparent<T>((const T *)&scanline_after[(x + t_x) * src_bpp], &red, &green,
+                                                    &blue, &divisor);
                 if (divisor > 0)
                     idst[x] = VMEMCOLOR_RGBA(red / divisor, green / divisor, blue / divisor, 0);
                 else
@@ -545,7 +601,8 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemLinearImpl(
             else
             {
                 idst[x] = VMEMCOLOR_RGBA(algetr<T>(src_color), algetg<T>(src_color), algetb<T>(src_color), 0xFF);
-                if (lastPixelWasTransparent) {
+                if (lastPixelWasTransparent)
+                {
                     // update the colour of the previous transparent pixel, to
                     // stop colored outlines when linear filtering
                     idst[x - 1] = idst[x] & 0x00FFFFFF;
@@ -557,53 +614,54 @@ VideoMemoryGraphicsDriver::BitmapToVideoMemLinearImpl(
     }
 }
 
-void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const TextureTile *tile,
-    uint8_t *dst_ptr, const int dst_pitch, const bool usingLinearFiltering)
+void VideoMemoryGraphicsDriver::BitmapToVideoMem(const Bitmap *bitmap, const TextureTile *tile, uint8_t *dst_ptr,
+                                                 const int dst_pitch, const bool usingLinearFiltering)
 {
     switch (bitmap->GetColorDepth())
     {
-        case 8:
-            if (usingLinearFiltering) {
-                BitmapToVideoMemLinearImpl<uint8_t, false>(bitmap, tile, dst_ptr, dst_pitch);
-            } else {
-                BitmapToVideoMemImpl<uint8_t, false>(bitmap, tile, dst_ptr, dst_pitch);
-            }
-            break;
-        case 16:
-            if (usingLinearFiltering) {
-                BitmapToVideoMemLinearImpl<uint16_t, false>(bitmap, tile, dst_ptr, dst_pitch);
-            } else {
-                BitmapToVideoMemImpl<uint16_t, false>(bitmap, tile, dst_ptr, dst_pitch);
-            }
-            break;
-        case 32:
-            if (usingLinearFiltering) {
-                BitmapToVideoMemLinearImpl<uint32_t, true>(bitmap, tile, dst_ptr, dst_pitch);
-            } else {
-                BitmapToVideoMemImpl<uint32_t, true>(bitmap, tile, dst_ptr, dst_pitch);
-            }
-            break;
-        default:
-            break;
+    case 8:
+        if (usingLinearFiltering)
+        {
+            BitmapToVideoMemLinearImpl<uint8_t, false>(bitmap, tile, dst_ptr, dst_pitch);
+        }
+        else
+        {
+            BitmapToVideoMemImpl<uint8_t, false>(bitmap, tile, dst_ptr, dst_pitch);
+        }
+        break;
+    case 16:
+        if (usingLinearFiltering)
+        {
+            BitmapToVideoMemLinearImpl<uint16_t, false>(bitmap, tile, dst_ptr, dst_pitch);
+        }
+        else
+        {
+            BitmapToVideoMemImpl<uint16_t, false>(bitmap, tile, dst_ptr, dst_pitch);
+        }
+        break;
+    case 32:
+        if (usingLinearFiltering)
+        {
+            BitmapToVideoMemLinearImpl<uint32_t, true>(bitmap, tile, dst_ptr, dst_pitch);
+        }
+        else
+        {
+            BitmapToVideoMemImpl<uint32_t, true>(bitmap, tile, dst_ptr, dst_pitch);
+        }
+        break;
+    default: break;
     }
 }
 
-void VideoMemoryGraphicsDriver::BitmapToVideoMemOpaque(const Bitmap *bitmap, const TextureTile *tile,
-    uint8_t *dst_ptr, const int dst_pitch)
+void VideoMemoryGraphicsDriver::BitmapToVideoMemOpaque(const Bitmap *bitmap, const TextureTile *tile, uint8_t *dst_ptr,
+                                                       const int dst_pitch)
 {
     switch (bitmap->GetColorDepth())
     {
-        case 8:
-            BitmapToVideoMemOpaqueImpl<uint8_t>(bitmap, tile, dst_ptr, dst_pitch);
-            break;
-        case 16:
-            BitmapToVideoMemOpaqueImpl<uint16_t>(bitmap, tile, dst_ptr, dst_pitch);
-            break;
-        case 32:
-            BitmapToVideoMemOpaqueImpl<uint32_t>(bitmap, tile, dst_ptr, dst_pitch);
-            break;
-        default:
-            break;
+    case 8: BitmapToVideoMemOpaqueImpl<uint8_t>(bitmap, tile, dst_ptr, dst_pitch); break;
+    case 16: BitmapToVideoMemOpaqueImpl<uint16_t>(bitmap, tile, dst_ptr, dst_pitch); break;
+    case 32: BitmapToVideoMemOpaqueImpl<uint32_t>(bitmap, tile, dst_ptr, dst_pitch); break;
+    default: break;
     }
 }
 

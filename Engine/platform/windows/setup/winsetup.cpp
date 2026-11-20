@@ -49,11 +49,12 @@ namespace Engine
 class WinSetupDialog : public WinDialog
 {
 public:
-    WinSetupDialog(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out, const String &data_dir, const String &version_str);
+    WinSetupDialog(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out, const String &data_dir,
+                   const String &version_str);
     ~WinSetupDialog() override;
 
-    static SetupReturnValue ShowModal(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in,
-        ConfigTree &cfg_out, const String &data_dir, const String &version_str);
+    static SetupReturnValue ShowModal(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out,
+                                      const String &data_dir, const String &version_str);
 
 protected:
     UINT GetTemplateID() const override { return IDD_SETUP; }
@@ -82,19 +83,15 @@ private:
     std::vector<std::shared_ptr<WinSetupPageDialog>> _pages;
 };
 
-WinSetupDialog::WinSetupDialog(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in,
-        ConfigTree &cfg_out, const String &data_dir, const String &version_str)
-    : _cfgIn(cfg_in)
-    , _defCfgIn(def_cfg_in)
-    , _cfgOut(cfg_out)
+WinSetupDialog::WinSetupDialog(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out,
+                               const String &data_dir, const String &version_str)
+    : _cfgIn(cfg_in), _defCfgIn(def_cfg_in), _cfgOut(cfg_out)
 {
     _winCfg.DataDirectory = data_dir;
     _winCfg.VersionString = version_str;
 }
 
-WinSetupDialog::~WinSetupDialog()
-{
-}
+WinSetupDialog::~WinSetupDialog() {}
 
 SetupReturnValue WinSetupDialog::ShowModal(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out,
                                            const String &data_dir, const String &version_str)
@@ -114,14 +111,17 @@ SetupReturnValue WinSetupDialog::ShowModal(const ConfigTree &cfg_in, const Confi
 INT_PTR WinSetupDialog::OnInitDialog()
 {
     _hVersionText = GetDlgItem(_hwnd, IDC_VERSION);
-    _hTabber      = GetDlgItem(_hwnd, IDC_TABPANEL);
+    _hTabber = GetDlgItem(_hwnd, IDC_TABPANEL);
 
     _winCfg.LoadMeta(_defCfgIn);
     _winCfg.LoadCommon(_cfgIn);
 
     // Native resolution test
     if (_winCfg.GameResolution.IsNull() || _winCfg.GameColourDepth == 0)
-        MessageBox(_hwnd, "Essential information about the game is missing in the configuration file. Setup program may be unable to deduce graphic modes properly.", "Initialization error", MB_OK | MB_ICONWARNING);
+        MessageBox(
+            _hwnd,
+            "Essential information about the game is missing in the configuration file. Setup program may be unable to deduce graphic modes properly.",
+            "Initialization error", MB_OK | MB_ICONWARNING);
 
     SetText(_hwnd, STR(_winCfg.Title));
     SetText((HWND)sys_win_get_window(), STR(_winCfg.Title));
@@ -158,11 +158,9 @@ INT_PTR WinSetupDialog::OnDialogEvent(UINT uMsg, WPARAM wParam, LPARAM lParam)
             // Select another page on the tab control
             _pager->SelectPage(GetSelectedTab(_hTabber));
             return TRUE;
-        default:
-            return FALSE;
+        default: return FALSE;
         }
-    default:
-        return FALSE;
+    default: return FALSE;
     }
 }
 
@@ -174,22 +172,17 @@ INT_PTR WinSetupDialog::OnCommand(WORD id)
     case IDOKRUN:
         SaveSetup();
         // fall-through intended
-    case IDCANCEL:
-        EndDialog(_hwnd, id);
-        return TRUE;
-    case IDRESETTODEFAULTS:
-        OnResetToDefaults();
-        return TRUE;
-    default:
-        return FALSE;
+    case IDCANCEL: EndDialog(_hwnd, id); return TRUE;
+    case IDRESETTODEFAULTS: OnResetToDefaults(); return TRUE;
+    default: return FALSE;
     }
     return TRUE;
 }
 
 void WinSetupDialog::OnResetToDefaults()
 {
-    if (MessageBox(_hwnd, "This will reset ALL the game configuration to defaults.\nWould you like to continue?", "Confirmation", MB_OKCANCEL | MB_ICONWARNING)
-            == IDCANCEL)
+    if (MessageBox(_hwnd, "This will reset ALL the game configuration to defaults.\nWould you like to continue?",
+                   "Confirmation", MB_OKCANCEL | MB_ICONWARNING) == IDCANCEL)
         return;
 
     _winCfg.SetDefaults();
@@ -212,8 +205,8 @@ void WinSetupDialog::SaveSetup()
 // Windows setup entry point.
 //
 //=============================================================================
-SetupReturnValue WinSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in,
-    ConfigTree &cfg_out, const String &game_data_dir, const String &version_str)
+SetupReturnValue WinSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out,
+                          const String &game_data_dir, const String &version_str)
 {
     return WinSetupDialog::ShowModal(cfg_in, def_cfg_in, cfg_out, game_data_dir, version_str);
 }

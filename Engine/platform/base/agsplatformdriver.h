@@ -32,9 +32,15 @@ struct SDL_Surface;
 
 namespace AGS
 {
-    namespace Common { class Stream; }
-    namespace Engine { struct DisplayMode; }
+namespace Common
+{
+class Stream;
 }
+namespace Engine
+{
+struct DisplayMode;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 enum SetupReturnValue
@@ -51,24 +57,24 @@ public:
     virtual ~AGSPlatformDriver() = default;
 
     // Called at the creation of the platform driver
-    virtual void MainInit() { };
+    virtual void MainInit() {};
     // Called right before the formal backend init
-    virtual void PreBackendInit() { };
+    virtual void PreBackendInit() {};
     // Called right after the formal backend init
-    virtual void PostBackendInit() { };
+    virtual void PostBackendInit() {};
     // Called right before the backend is deinitialized
-    virtual void PreBackendExit() { };
+    virtual void PreBackendExit() {};
     // Called right after the backend is deinitialized
-    virtual void PostBackendExit() { };
+    virtual void PostBackendExit() {};
 
     virtual void Delay(int millis);
     virtual void DisplayAlert(AGS_FORMAT_STRING_ARG const char *text, ...) AGS_FORMAT_STRING_OBJECT(1);
     virtual void AttachToParentConsole();
-    virtual int  GetLastSystemError() { return errno; }
+    virtual int GetLastSystemError() { return errno; }
     // platform specific data file
-    virtual const char * GetGameDataFile() {return nullptr; }
+    virtual const char *GetGameDataFile() { return nullptr; }
     // Optionally fill in config tree from the platform-specific config source
-    virtual void ReadConfiguration(Common::ConfigTree & /*cfg*/) { };
+    virtual void ReadConfiguration(Common::ConfigTree & /*cfg*/) {};
     // Get root directory for storing per-game shared data
     virtual FSLocation GetAllUsersDataDirectory() { return FSLocation("."); }
     // Get root directory for storing per-game saved games
@@ -76,7 +82,7 @@ public:
     // Get root directory for storing per-game user configuration files
     virtual FSLocation GetUserConfigDirectory() { return FSLocation("."); }
     // Get directory for storing all-games user configuration files
-    virtual FSLocation GetUserGlobalConfigDirectory()  { return FSLocation("."); }
+    virtual FSLocation GetUserGlobalConfigDirectory() { return FSLocation("."); }
     // Get default directory for program output (logs)
     virtual FSLocation GetAppOutputDirectory() { return FSLocation("."); }
     // Tells whether it's not permitted to write to the local directory (cwd, or game dir),
@@ -88,10 +94,10 @@ public:
     virtual const char *GetDiskWriteAccessTroubleshootingText();
     virtual const char *GetGraphicsTroubleshootingText() { return ""; }
     virtual uint64_t GetDiskFreeSpaceMB(const Common::String &path) = 0;
-    virtual const char* GetBackendFailUserHint();
+    virtual const char *GetBackendFailUserHint();
     virtual eScriptSystemOSID GetSystemOSID() = 0;
-    virtual SetupReturnValue RunSetup(const Common::ConfigTree &cfg_in,
-        const Common::ConfigTree &def_cfg_in, Common::ConfigTree &cfg_out);
+    virtual SetupReturnValue RunSetup(const Common::ConfigTree &cfg_in, const Common::ConfigTree &def_cfg_in,
+                                      Common::ConfigTree &cfg_out);
     // Formats message and writes to standard platform's output;
     // Always adds trailing '\n' after formatted string
     virtual void WriteStdOut(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING_OBJECT(1);
@@ -149,7 +155,7 @@ protected:
     // and errors by showing a message box kind of GUI.
     bool _guiMode = false;
 
-    const char * const *_cmdArgs = nullptr;
+    const char *const *_cmdArgs = nullptr;
     size_t _cmdArgCount = 0u;
 
 private:

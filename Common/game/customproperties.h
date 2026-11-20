@@ -60,10 +60,10 @@ enum PropertyError
 //
 struct PropertyDesc
 {
-    String       Name;
+    String Name;
     PropertyType Type;
-    String       Description;
-    String       DefaultValue;
+    String Description;
+    String DefaultValue;
 
     PropertyDesc();
     PropertyDesc(const String &name, PropertyType type, const String &desc, const String &def_value);
@@ -78,16 +78,16 @@ typedef std::unordered_map<String, PropertyDesc, HashStrNoCase, StrEqNoCase> Pro
 
 namespace Properties
 {
-    PropertyError ReadSchema(PropertySchema &schema, Stream *in);
-    void          WriteSchema(const PropertySchema &schema, Stream *out);
+PropertyError ReadSchema(PropertySchema &schema, Stream *in);
+void WriteSchema(const PropertySchema &schema, Stream *out);
 
-    // Reads property values from the stream and assign them to map.
-    // The non-matching existing map items, if any, are NOT erased.
-    PropertyError ReadValues(StringIMap &map, Stream *in);
-    // Skip serialized properties
-    PropertyError SkipValues(Stream *in);
-    // Writes property values chunk to the stream
-    void          WriteValues(const StringIMap &map, Stream *out);
+// Reads property values from the stream and assign them to map.
+// The non-matching existing map items, if any, are NOT erased.
+PropertyError ReadValues(StringIMap &map, Stream *in);
+// Skip serialized properties
+PropertyError SkipValues(Stream *in);
+// Writes property values chunk to the stream
+void WriteValues(const StringIMap &map, Stream *out);
 
 } // namespace Properties
 

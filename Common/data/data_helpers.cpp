@@ -62,8 +62,7 @@ String PreprocessLineForOldStyleLinebreaks(const String &line)
     return String(out.data(), out.size());
 }
 
-void ScanMacroTokens(const String &text, std::function<bool(const String &macro)> &fn_parse,
-    bool allow_unclosed_macros)
+void ScanMacroTokens(const String &text, std::function<bool(const String &macro)> &fn_parse, bool allow_unclosed_macros)
 {
     for (size_t scan_at = text.FindChar('@'); scan_at != String::NoIndex;)
     {
@@ -95,7 +94,7 @@ void ScanMacroTokens(const String &text, std::function<bool(const String &macro)
 }
 
 String ResolveMacroTokens(const String &text, std::function<bool(const String &macro, String &result)> &fn_parse,
-    bool allow_unclosed_macros)
+                          bool allow_unclosed_macros)
 {
     String resolved_text;
     size_t text_at = 0u;
@@ -141,10 +140,9 @@ String ResolveMacroTokens(const String &text, std::function<bool(const String &m
 
 const char *EncryptPassword = "Avis Durgan";
 // The inversed password used to emulate a opposite math operation ('+' vs '-') when en/de-crypting
-const char  EncryptPasswordInversed[12] =
-    { (char)(-'A'), (char)(-'v'), (char)(-'i'), (char)(-'s'), (char)(-' '),
-      (char)(-'D'), (char)(-'u'), (char)(-'r'), (char)(-'g'), (char)(-'a'),
-      (char)(-'n'), 0 };
+const char EncryptPasswordInversed[12] = {(char)(-'A'), (char)(-'v'), (char)(-'i'), (char)(-'s'),
+                                          (char)(-' '), (char)(-'D'), (char)(-'u'), (char)(-'r'),
+                                          (char)(-'g'), (char)(-'a'), (char)(-'n'), 0};
 
 void DecryptText(char *buf, size_t buf_sz, bool inverse)
 {

@@ -43,12 +43,12 @@ enum TraFileErrorType
 
 enum TraFileBlock
 {
-    kTraFblk_None       = 0,
-    kTraFblk_Dict       = 1,
-    kTraFblk_GameID     = 2,
-    kTraFblk_TextOpts   = 3,
+    kTraFblk_None = 0,
+    kTraFblk_Dict = 1,
+    kTraFblk_GameID = 2,
+    kTraFblk_TextOpts = 3,
     // End of data tag
-    kTraFile_EOF        = -1
+    kTraFile_EOF = -1
 };
 
 String GetTraFileErrorText(TraFileErrorType err);
@@ -73,26 +73,25 @@ enum TraOptionFlags
 // Flag-set specifies which of the font info's fields are valid
 enum FontFieldFlags
 {
-    kFontField_None                     = 0,
+    kFontField_None = 0,
     // Either Size or SizeMultiplier
-    kFontField_Size                     = 0x0001,
+    kFontField_Size = 0x0001,
     // Also assumes OutlineFont field
-    kFontField_OutlineStyle             = 0x0002,
-    kFontField_AutoOutlineStyle         = 0x0004,
-    kFontField_AutoOutlineThickness     = 0x0008,
-    kFontField_VerticalOffset           = 0x0010,
-    kFontField_LineSpacing              = 0x0020,
-    kFontField_CharacterSpacing         = 0x0040,
-    kFontField_TTFMetricsFixup          = 0x0080,
+    kFontField_OutlineStyle = 0x0002,
+    kFontField_AutoOutlineStyle = 0x0004,
+    kFontField_AutoOutlineThickness = 0x0008,
+    kFontField_VerticalOffset = 0x0010,
+    kFontField_LineSpacing = 0x0020,
+    kFontField_CharacterSpacing = 0x0040,
+    kFontField_TTFMetricsFixup = 0x0080,
     // Also assumes CustomHeight field
-    kFontField_HeightDefinition         = 0x0100,
+    kFontField_HeightDefinition = 0x0100,
 };
 
 struct FontOverride
 {
     FontOverride() = default;
-    FontOverride(const FontInfo &finfo, FontFieldFlags fields)
-        : Finfo(finfo), Fields(fields) {}
+    FontOverride(const FontInfo &finfo, FontFieldFlags fields) : Finfo(finfo), Fields(fields) {}
 
     FontInfo Finfo;
     FontFieldFlags Fields = kFontField_None;
@@ -111,11 +110,11 @@ struct Translation
     String EncodingHint;
     String GameEncodingHint;
     String LanguageHint;
-    int NormalFont = -1; // replacement for normal font, or -1 for default
-    int SpeechFont = -1; // replacement for speech font, or -1 for default
+    int NormalFont = -1;                                    // replacement for normal font, or -1 for default
+    int SpeechFont = -1;                                    // replacement for speech font, or -1 for default
     TextDirectionMode RightToLeft = kTextDirection_Default; // r2l text mode
-    int OptFlags = 0; // misc translation options
-    StringMap StrOptions; // to store extended options with string values
+    int OptFlags = 0;                                       // misc translation options
+    StringMap StrOptions;                                   // to store extended options with string values
     std::unordered_map<int, FontOverride> FontOverrides;
 };
 

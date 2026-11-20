@@ -24,30 +24,30 @@
 #if __cplusplus < 201402L && !((defined(_MSC_VER) && _MSC_VER >= 1900))
 namespace std
 {
-    template<typename T, typename... Args>
-    std::unique_ptr<T> make_unique(Args&&... args)
-    {
-        return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-    }
-} // std
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args &&...args)
+{
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+} // namespace std
 #endif
 
 // C++17 features
 #if __cplusplus < 201703L && !((defined(_MSC_VER) && _MSC_VER >= 1900))
 namespace std
 {
-    template <class C> 
-    constexpr auto size(const C& c) -> decltype(c.size())
-    {
-        return c.size();
-    }
-
-    template <class T, std::size_t N>
-    constexpr std::size_t size(const T (&array)[N]) noexcept
-    {
-        return N;
-    }
+template<class C>
+constexpr auto size(const C &c) -> decltype(c.size())
+{
+    return c.size();
 }
+
+template<class T, std::size_t N>
+constexpr std::size_t size(const T (&array)[N]) noexcept
+{
+    return N;
+}
+} // namespace std
 #endif
 
 #endif // __AGS_CN_UTIL__MEMORY_COMPAT_H

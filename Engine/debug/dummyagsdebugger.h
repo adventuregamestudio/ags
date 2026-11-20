@@ -19,12 +19,11 @@
 struct DummyAGSDebugger : IAGSEditorDebugger
 {
 public:
-
     bool Initialize() override { return false; }
-    void Shutdown() override { }
+    void Shutdown() override {}
     bool SendMessageToEditor(const char *message) override { return false; }
     bool IsMessageAvailable() override { return false; }
-    char* GetNextMessage() override { return NULL; }
+    char *GetNextMessage() override { return NULL; }
 };
 
 #endif // __AC_DUMMYAGSDEBUGGER_H

@@ -16,7 +16,8 @@
 
 using namespace AGS::Common;
 
-TEST(Version, Format) {
+TEST(Version, Format)
+{
     // Old version format
     Version test_ver1 = Version("2.06.101");
     Version test_ver2 = Version("2.56.654");

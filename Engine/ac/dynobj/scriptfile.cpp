@@ -15,40 +15,47 @@
 #include "ac/file.h"
 
 // CHECKME: actually NULLs here will be equal to kFile_Open & kStream_Read
-const Common::FileOpenMode sc_File::fopenModes[] = 
-    {Common::kFile_Open/*CHECKME, was undefined*/, Common::kFile_Open, Common::kFile_CreateAlways, Common::kFile_Create};
-const Common::StreamMode sc_File::fworkModes[] = 
-    {Common::kStream_Read/*CHECKME, was undefined*/, Common::kStream_Read, Common::kStream_Write, Common::kStream_Write};
+const Common::FileOpenMode sc_File::fopenModes[] = {Common::kFile_Open /*CHECKME, was undefined*/, Common::kFile_Open,
+                                                    Common::kFile_CreateAlways, Common::kFile_Create};
+const Common::StreamMode sc_File::fworkModes[] = {Common::kStream_Read /*CHECKME, was undefined*/, Common::kStream_Read,
+                                                  Common::kStream_Write, Common::kStream_Write};
 
-int sc_File::Dispose(void* /*address*/, bool /*force*/) {
+int sc_File::Dispose(void * /*address*/, bool /*force*/)
+{
     Close();
     delete this;
     return 1;
 }
 
-const char *sc_File::GetType() {
+const char *sc_File::GetType()
+{
     return "File";
 }
 
-int sc_File::Serialize(void* /*address*/, uint8_t* /*buffer*/, int /*bufsize*/) {
+int sc_File::Serialize(void * /*address*/, uint8_t * /*buffer*/, int /*bufsize*/)
+{
     // we cannot serialize an open file, so it will get closed
     return 0;
 }
 
-int sc_File::OpenFile(const char *filename, int mode) {
-  handle = FileOpen(filename, fopenModes[mode], fworkModes[mode]);
-  if (handle <= 0)
-      return 0;
-  return 1;
+int sc_File::OpenFile(const char *filename, int mode)
+{
+    handle = FileOpen(filename, fopenModes[mode], fworkModes[mode]);
+    if (handle <= 0)
+        return 0;
+    return 1;
 }
 
-void sc_File::Close() {
-  if (handle > 0) {
-    FileClose(handle);
-    handle = 0;
-  }
+void sc_File::Close()
+{
+    if (handle > 0)
+    {
+        FileClose(handle);
+        handle = 0;
+    }
 }
 
-sc_File::sc_File() {
+sc_File::sc_File()
+{
     handle = 0;
 }

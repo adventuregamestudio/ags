@@ -18,7 +18,7 @@
 // and not Common library. The only reason it's in Common atm is because
 // its used in GUI classes. But they in turn should be separated into
 // "data" structs and runtime classes.
-// 
+//
 //=============================================================================
 #ifndef __AGS_CN_GFX__GRAPHICSPACE_H
 #define __AGS_CN_GFX__GRAPHICSPACE_H
@@ -59,9 +59,9 @@ public:
     // rot      - rotation, clockwise, in degrees
     // pivot    - pivot of rotation, in *relative* position (center is default)
     // pivot_off - extra pivot offset, in local coordinates (zero is default)
-    GraphicSpace(const int ox, const int oy, const Pointf &origin, const Size &src_size,
-        const Size &dst_size, const Rect &g_aabb, const float rot,
-        const Pointf pivot = Pointf(.5f, .5f), const Point pivot_off = Point())
+    GraphicSpace(const int ox, const int oy, const Pointf &origin, const Size &src_size, const Size &dst_size,
+                 const Rect &g_aabb, const float rot, const Pointf pivot = Pointf(.5f, .5f),
+                 const Point pivot_off = Point())
     {
         const int src_w = src_size.Width;
         const int src_h = src_size.Height;
@@ -80,13 +80,13 @@ public:
     // rot      - rotation, clockwise, in degrees
     // pivot    - pivot of rotation, in *relative* position (center is default)
     // pivot_off - extra pivot offset, in local coordinates (zero is default)
-    GraphicSpace(const int ox, const int oy, const Pointf &origin, const Size &src_size,
-        const Rect &g_aabb, const float sx, const float sy, const float rot,
-        const Pointf pivot = Pointf(.5f, .5f), const Point pivot_off = Point())
+    GraphicSpace(const int ox, const int oy, const Pointf &origin, const Size &src_size, const Rect &g_aabb,
+                 const float sx, const float sy, const float rot, const Pointf pivot = Pointf(.5f, .5f),
+                 const Point pivot_off = Point())
     {
         Init(ox, oy, origin, src_size,
-            Size(static_cast<int>(src_size.Width * sx), static_cast<int>(src_size.Height * sy)),
-            g_aabb, sx, sy, rot, pivot, pivot_off);
+             Size(static_cast<int>(src_size.Width * sx), static_cast<int>(src_size.Height * sy)), g_aabb, sx, sy, rot,
+             pivot, pivot_off);
     }
 
     // Get position of the top-left corner of this object in the world coordinates;
@@ -132,30 +132,26 @@ public:
     }
 
 private:
-    void Init(const int ox, const int oy, const Pointf &origin, const Size &src_size,
-        const Size &dst_size, const Rect &g_aabb, const float sx, const float sy,
-        const float rot, const Pointf pivot, const Point pivot_off)
+    void Init(const int ox, const int oy, const Pointf &origin, const Size &src_size, const Size &dst_size,
+              const Rect &g_aabb, const float sx, const float sy, const float rot, const Pointf pivot,
+              const Point pivot_off)
     {
         const int local_srcx = -static_cast<int>((src_size.Width - 1) * origin.X);
         const int local_srcy = -static_cast<int>((src_size.Height - 1) * origin.Y);
         const float world_x = static_cast<float>(ox) - (std::abs(dst_size.Width) - 1) * origin.X;
         const float world_y = static_cast<float>(oy) - (std::abs(dst_size.Height) - 1) * origin.Y;
-        const float sx_inv = std::fabs(sx) < std::numeric_limits<float>::epsilon()
-            ? 0.f : 1.f / sx;
-        const float sy_inv = std::fabs(sy) < std::numeric_limits<float>::epsilon()
-            ? 0.f : 1.f / sy;
+        const float sx_inv = std::fabs(sx) < std::numeric_limits<float>::epsilon() ? 0.f : 1.f / sx;
+        const float sy_inv = std::fabs(sy) < std::numeric_limits<float>::epsilon() ? 0.f : 1.f / sy;
         // Pivot is relative to the local coordinate center;
         // here is calculated in coordinates of the *destination* rectangle (post-scaling)
         const float pivotx = (dst_size.Width) * pivot.X + pivot_off.X * sx;
         const float pivoty = (dst_size.Height) * pivot.Y + pivot_off.Y * sy;
         // World->local transform
-        W2LTransform = glmex::make_inv_transform2d(
-            -world_x, -world_y, sx_inv, sy_inv,
-            static_cast<float>(-Math::DegreesToRadians(rot)), pivotx, pivoty);
+        W2LTransform = glmex::make_inv_transform2d(-world_x, -world_y, sx_inv, sy_inv,
+                                                   static_cast<float>(-Math::DegreesToRadians(rot)), pivotx, pivoty);
         // Local->world transform + AABB
-        L2WTransform = glmex::make_transform2d(
-            world_x, world_y, sx, sy,
-            static_cast<float>(Math::DegreesToRadians(rot)), -pivotx, -pivoty);
+        L2WTransform = glmex::make_transform2d(world_x, world_y, sx, sy,
+                                               static_cast<float>(Math::DegreesToRadians(rot)), -pivotx, -pivoty);
         // Make the graphical AABB (note: have to translate to the local coord center first)
         //const Rect local_g_aabb = Rect::MoveBy(g_aabb, -local_srcx, -local_srcy);
         _AABB = glmex::full_transform(g_aabb, L2WTransform);
@@ -163,7 +159,7 @@ private:
 
     glm::mat4 W2LTransform = glm::mat4(1.0); // transform from world to local space
     glm::mat4 L2WTransform = glm::mat4(1.0); // transform from local to world space
-    Rect _AABB; // axis-aligned bounding box
+    Rect _AABB;                              // axis-aligned bounding box
 };
 
 } // namespace Common

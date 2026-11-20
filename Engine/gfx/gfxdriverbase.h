@@ -39,29 +39,28 @@ using Common::PlaneScaling;
 // Sprite batch, defines viewport and an optional model transformation for the list of sprites
 struct SpriteBatchDesc
 {
-    uint32_t                 Parent = UINT32_MAX;
+    uint32_t Parent = UINT32_MAX;
     // View rectangle for positioning and clipping, in resolution coordinates
     // (this may be screen or game frame resolution, depending on circumstances)
-    Rect                     Viewport;
+    Rect Viewport;
     // Optional model transformation, to be applied to each sprite
-    SpriteTransform          Transform;
+    SpriteTransform Transform;
     // Optional flip, applied to the whole batch as the last transform
-    Common::GraphicFlip      Flip = Common::kFlip_None;
+    Common::GraphicFlip Flip = Common::kFlip_None;
     // Reference size, used mainly for deducing absolute rotation pivot
-    Size                     SizeRef;
+    Size SizeRef;
     // Optional bitmap to draw sprites upon. Used exclusively by the software rendering mode.
     // TODO: merge with the RenderTexture?
-    PBitmap                  Surface;
+    PBitmap Surface;
     // Optional texture to render sprites to. Used by hardware-accelerated renderers.
-    IDriverDependantBitmap*  RenderTarget = nullptr;
+    IDriverDependantBitmap *RenderTarget = nullptr;
     // Optional filter flags; this lets to filter certain batches out during some operations,
     // such as fading effects or making screenshots.
-    uint32_t                 FilterFlags = 0u;
+    uint32_t FilterFlags = 0u;
 
     SpriteBatchDesc() = default;
-    SpriteBatchDesc(uint32_t parent, const Rect viewport, const SpriteTransform &transform,
-        Size size_ref = Size(), Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr,
-        uint32_t filter_flags = 0)
+    SpriteBatchDesc(uint32_t parent, const Rect viewport, const SpriteTransform &transform, Size size_ref = Size(),
+                    Common::GraphicFlip flip = Common::kFlip_None, PBitmap surface = nullptr, uint32_t filter_flags = 0)
         : Parent(parent)
         , Viewport(viewport)
         , Transform(transform)
@@ -72,9 +71,9 @@ struct SpriteBatchDesc
     {
     }
     // TODO: this does not need a parent?
-    SpriteBatchDesc(uint32_t parent, IDriverDependantBitmap *render_target,
-        const Rect viewport, const SpriteTransform &transform,
-        Common::GraphicFlip flip = Common::kFlip_None, uint32_t filter_flags = 0)
+    SpriteBatchDesc(uint32_t parent, IDriverDependantBitmap *render_target, const Rect viewport,
+                    const SpriteTransform &transform, Common::GraphicFlip flip = Common::kFlip_None,
+                    uint32_t filter_flags = 0)
         : Parent(parent)
         , Viewport(viewport)
         , Transform(transform)
@@ -93,17 +92,12 @@ template<class T_DDB>
 struct SpriteDrawListEntry
 {
     T_DDB *ddb = nullptr; // TODO: use shared pointer?
-    uint32_t node = 0; // sprite batch / scene node index
-    int x = 0, y = 0; // sprite position, in local batch / node coordinates
+    uint32_t node = 0;    // sprite batch / scene node index
+    int x = 0, y = 0;     // sprite position, in local batch / node coordinates
     bool skip = false;
 
     SpriteDrawListEntry() = default;
-    SpriteDrawListEntry(T_DDB *ddb_, uint32_t node_, int x_, int y_)
-        : ddb(ddb_)
-        , node(node_)
-        , x(x_)
-        , y(y_)
-        , skip(false)
+    SpriteDrawListEntry(T_DDB *ddb_, uint32_t node_, int x_, int y_) : ddb(ddb_), node(node_), x(x_), y(y_), skip(false)
     {
     }
 };
@@ -120,51 +114,52 @@ public:
     // Mode initialization
     //
     // Gets if a graphics mode was initialized
-    bool        IsModeSet() const override;
+    bool IsModeSet() const override;
     // Gets the currently set display mode
     DisplayMode GetDisplayMode() const override;
     // Tells if a native image size is properly set
-    bool        IsNativeSizeValid() const override;
+    bool IsNativeSizeValid() const override;
     // Gets currently set native image size
-    Size        GetNativeSize() const override;
+    Size GetNativeSize() const override;
     // Tells if render frame is properly set
-    bool        IsRenderFrameValid() const override;
+    bool IsRenderFrameValid() const override;
     // Gets currently set render frame
-    Rect        GetRenderDestination() const override;
+    Rect GetRenderDestination() const override;
 
     ///////////////////////////////////////////////////////
     // Miscelaneous setup
     //
     // Set the display mode initialization callback.
-    void        SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) override { _initGfxCallback = callback; }
+    void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) override { _initGfxCallback = callback; }
     // Set the sprite event callback.
-    void        SetCallbackOnSpriteEvt(GFXDRV_CLIENTCALLBACKEVT callback) override { _spriteEvtCallback = callback; }
+    void SetCallbackOnSpriteEvt(GFXDRV_CLIENTCALLBACKEVT callback) override { _spriteEvtCallback = callback; }
     // Toggles vertical sync mode, if renderer supports one; returns the *new state*.
-    bool        SetVsync(bool enabled) override;
+    bool SetVsync(bool enabled) override;
     // Tells if the renderer currently has vsync enabled.
-    bool        GetVsync() const override;
+    bool GetVsync() const override;
 
     ///////////////////////////////////////////////////////
     // Preparing a scene
     //
     // Prepares next sprite batch, a list of sprites with defined viewport and optional
     // global model transformation.
-    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, uint32_t filter_flags) override;
-    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref, uint32_t filter_flags) override;
+    void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, uint32_t filter_flags) override;
+    void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref,
+                          uint32_t filter_flags) override;
     // Begins a sprite batch with defined viewport and a global model transformation
     // and a global flip setting. Optionally provides a surface which should be rendered
     // underneath the rest of the sprites.
-    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
-                    Common::GraphicFlip flip, PBitmap surface, uint32_t filter_flags) override;
-    void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref,
-                    Common::GraphicFlip flip, PBitmap surface, uint32_t filter_flags) override;
+    void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, Common::GraphicFlip flip,
+                          PBitmap surface, uint32_t filter_flags) override;
+    void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref,
+                          Common::GraphicFlip flip, PBitmap surface, uint32_t filter_flags) override;
     // Begins a sprite batch which will be rendered on a target texture.
-    void        BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport, const SpriteTransform &transform,
-                    Common::GraphicFlip flip, uint32_t filter_flags) override;
+    void BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport, const SpriteTransform &transform,
+                          Common::GraphicFlip flip, uint32_t filter_flags) override;
     // Ends current sprite batch
-    void        EndSpriteBatch() override;
+    void EndSpriteBatch() override;
     // Clears all sprite batches, resets batch counter
-    void        ClearDrawLists() override;
+    void ClearDrawLists() override;
 
 protected:
     // Special internal values, applied to DrawListEntry
@@ -203,15 +198,15 @@ protected:
 
     void BeginSpriteBatch(const SpriteBatchDesc &desc);
 
-    DisplayMode         _mode;          // display mode settings
-    Rect                _srcRect;       // rendering source rect
-    int                 _srcColorDepth; // rendering source color depth (in bits per pixel)
-    Rect                _dstRect;       // rendering destination rect
-    Rect                _filterRect;    // filter scaling destination rect (before final scaling)
-    PlaneScaling        _scaling;       // native -> render dest coordinate transformation
+    DisplayMode _mode;     // display mode settings
+    Rect _srcRect;         // rendering source rect
+    int _srcColorDepth;    // rendering source color depth (in bits per pixel)
+    Rect _dstRect;         // rendering destination rect
+    Rect _filterRect;      // filter scaling destination rect (before final scaling)
+    PlaneScaling _scaling; // native -> render dest coordinate transformation
 
     // Capability flags
-    bool                _capsVsync = false; // is vsync available
+    bool _capsVsync = false; // is vsync available
 
     // Callbacks
     GFXDRV_CLIENTCALLBACKEVT _spriteEvtCallback;
@@ -230,7 +225,6 @@ protected:
 };
 
 
-
 // Parent class for the common DDB implementation
 class BaseDDB : public IDriverDependantBitmap
 {
@@ -240,9 +234,9 @@ public:
     const Common::String &GetTag() const { return _tag; }
 #endif
 
-    int  GetWidth() const override { return _size.Width; }
-    int  GetHeight() const override { return _size.Height; }
-    int  GetColorDepth() const override { return _colDepth; }
+    int GetWidth() const override { return _size.Width; }
+    int GetHeight() const override { return _size.Height; }
+    int GetColorDepth() const override { return _colDepth; }
     bool IsOpaque() const override { return (_txFlags & kTxFlags_Opaque) != 0; }
     bool MatchesFormat(AGS::Common::Bitmap *other) const
     {
@@ -250,29 +244,20 @@ public:
     }
 
     Pointf GetOrigin() const override { return _origin; }
-    void SetOrigin(float originx, float originy) override
-    {
-        _origin = Pointf(originx, originy);
-    }
+    void SetOrigin(float originx, float originy) override { _origin = Pointf(originx, originy); }
     Size GetStretch() const override { return _scaledSize; }
     bool GetUseResampler() const override { return false; }
-    void SetStretch(int width, int height, bool /*useResampler*/) override
-    {
-        _scaledSize = Size(width, height);
-    }
+    void SetStretch(int width, int height, bool /*useResampler*/) override { _scaledSize = Size(width, height); }
     Common::GraphicFlip GetFlip() const override { return _flip; }
     void SetFlip(Common::GraphicFlip flip) override { _flip = flip; }
     // Rotation input is in degrees clockwise, but the implementation may store it in radians internally
     float GetRotation() const override { return _rotation; }
     void SetRotation(float rotation) override { _rotation = rotation; }
     virtual Pointf GetPivot() const { return _pivot; }
-    virtual void SetPivot(float pivotx, float pivoty)
-    {
-        _pivot = Pointf(pivotx, pivoty);
-    }
-    int  GetAlpha() const override { return _alpha; }
+    virtual void SetPivot(float pivotx, float pivoty) { _pivot = Pointf(pivotx, pivoty); }
+    int GetAlpha() const override { return _alpha; }
     void SetAlpha(int alpha) override { _alpha = alpha; }
-    int  GetLightLevel() const override { return _lightLevel; }
+    int GetLightLevel() const override { return _lightLevel; }
     void SetLightLevel(int light_level) override { _lightLevel = light_level; }
     void GetTint(int &red, int &green, int &blue, int &tintSaturation) const override
     {
@@ -293,16 +278,16 @@ public:
     IShaderInstance *GetShader() const override { return _shader; }
     void SetShader(IShaderInstance *shader_inst) override { _shader = shader_inst; }
 
-    int  GetTextureFlags() const { return _txFlags; }
+    int GetTextureFlags() const { return _txFlags; }
     const Size &GetSize() const { return _size; }
-    int  GetWidthToRender() const { return _scaledSize.Width; }
-    int  GetHeightToRender() const { return _scaledSize.Height; }
+    int GetWidthToRender() const { return _scaledSize.Width; }
+    int GetHeightToRender() const { return _scaledSize.Height; }
     const Size &GetSizeToRender() const { return _scaledSize; }
 
 protected:
     BaseDDB() = default;
     virtual ~BaseDDB() = default;
-    
+
 #if (AGS_PLATFORM_DEBUG)
     Common::String _tag;
 #endif
@@ -369,7 +354,7 @@ struct TextureTile
 enum TextureRenderHint
 {
     kTxHint_Normal,
-    kTxHint_PremulAlpha  // texture pixels contain premultiplied alpha
+    kTxHint_PremulAlpha // texture pixels contain premultiplied alpha
 };
 
 // Sprite batch's internal parameters for the hardware-accelerated renderer
@@ -392,15 +377,16 @@ struct VMSpriteBatch
     bool Skip = false;
 
     VMSpriteBatch() = default;
-    VMSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
+    VMSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix, const glm::mat4 &vp_matrix,
+                  const SpriteColorTransform &color)
+        : ID(id), Viewport(view), Matrix(matrix), ViewportMat(vp_matrix), Color(color)
+    {
+    }
+    VMSpriteBatch(uint32_t id, IDriverDependantBitmap *render_target, const Rect view, const glm::mat4 &matrix,
                   const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
-        : ID(id), Viewport(view), Matrix(matrix), ViewportMat(vp_matrix), Color(color) {}
-    VMSpriteBatch(uint32_t id, IDriverDependantBitmap *render_target,
-                  const Rect view, const glm::mat4 &matrix,
-        const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
-        : ID(id), RenderTarget(render_target),
-          Viewport(view), Matrix(matrix),
-          ViewportMat(vp_matrix), Color(color) {}
+        : ID(id), RenderTarget(render_target), Viewport(view), Matrix(matrix), ViewportMat(vp_matrix), Color(color)
+    {
+    }
 };
 
 
@@ -436,7 +422,7 @@ public:
 
     ///////////////////////////////////////////////////////
     // Texture management
-    // 
+    //
     // Creates new DDB and copy bitmap contents over
     IDriverDependantBitmap *CreateDDBFromBitmap(const Bitmap *bitmap, int txflags = kTxFlags_None) override;
 
@@ -447,7 +433,7 @@ public:
 
     ///////////////////////////////////////////////////////
     // Preparing a scene
-    // 
+    //
     // Sets stage screen parameters for the current batch.
     void SetStageScreen(const Size &sz, int x = 0, int y = 0) override;
 
@@ -455,18 +441,17 @@ public:
     // Additional operations
     //
     Bitmap *GetMemoryBackBuffer() override;
-    void    SetMemoryBackBuffer(Bitmap *backBuffer) override;
+    void SetMemoryBackBuffer(Bitmap *backBuffer) override;
     Bitmap *GetStageBackBuffer(bool mark_dirty) override;
-    void    SetStageBackBuffer(Bitmap *backBuffer) override;
-    bool    GetStageMatrixes(RenderMatrixes &rm) override;
+    void SetStageBackBuffer(Bitmap *backBuffer) override;
+    bool GetStageMatrixes(RenderMatrixes &rm) override;
 
 protected:
     // Prepares bitmap to be applied to the texture, copies pixels to the provided buffer
-    void BitmapToVideoMem(const Bitmap *bitmap, const TextureTile *tile,
-                          uint8_t *dst_ptr, const int dst_pitch, const bool usingLinearFiltering);
+    void BitmapToVideoMem(const Bitmap *bitmap, const TextureTile *tile, uint8_t *dst_ptr, const int dst_pitch,
+                          const bool usingLinearFiltering);
     // Same but optimized for opaque source bitmaps which ignore transparent "mask color"
-    void BitmapToVideoMemOpaque(const Bitmap *bitmap, const TextureTile *tile,
-                                uint8_t *dst_ptr, const int dst_pitch);
+    void BitmapToVideoMemOpaque(const Bitmap *bitmap, const TextureTile *tile, uint8_t *dst_ptr, const int dst_pitch);
 
     // Stage screens are raw bitmap buffers meant to be sent to plugins on demand
     // at certain drawing stages. If used at least once these buffers are then
@@ -535,23 +520,16 @@ private:
     size_t _fxIndex; // next free pool item
 
     // specialized method to convert bitmap to video memory depending on bit depth
-    template <typename T, bool HasAlpha> void
-    BitmapToVideoMemImpl(
-            const Bitmap *bitmap, const TextureTile *tile,
-            uint8_t *dst_ptr, const int dst_pitch
-    );
+    template<typename T, bool HasAlpha>
+    void BitmapToVideoMemImpl(const Bitmap *bitmap, const TextureTile *tile, uint8_t *dst_ptr, const int dst_pitch);
 
-    template <typename T> void
-    BitmapToVideoMemOpaqueImpl(
-            const Bitmap *bitmap, const TextureTile *tile,
-            uint8_t *dst_ptr, const int dst_pitch
-    );
+    template<typename T>
+    void BitmapToVideoMemOpaqueImpl(const Bitmap *bitmap, const TextureTile *tile, uint8_t *dst_ptr,
+                                    const int dst_pitch);
 
-    template <typename T, bool HasAlpha> void
-    BitmapToVideoMemLinearImpl(
-            const Bitmap *bitmap, const TextureTile *tile,
-            uint8_t *dst_ptr, const int dst_pitch
-    );
+    template<typename T, bool HasAlpha>
+    void BitmapToVideoMemLinearImpl(const Bitmap *bitmap, const TextureTile *tile, uint8_t *dst_ptr,
+                                    const int dst_pitch);
 };
 
 } // namespace Engine

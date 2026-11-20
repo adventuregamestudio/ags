@@ -20,11 +20,11 @@
 
 #include "platform/platform.h"
 
-#if ! AGS_PLATFORM_OS_WINDOWS
+#if !AGS_PLATFORM_OS_WINDOWS
 #error This file should only be included on the Windows build
 #endif
 
-#if defined (WIN_XP_COMPAT)
+#if defined(WIN_XP_COMPAT)
 #define DIRECT3D_USE_D3DCOMPILER (0)
 #else
 #define DIRECT3D_USE_D3DCOMPILER (1)
@@ -80,10 +80,8 @@ struct D3DTexture : Texture
     D3DVertexBufferPtr _vertex;
     std::vector<D3DTextureTile> _tiles;
 
-    D3DTexture(const GraphicResolution &res, bool rt)
-        : Texture(res, rt) {}
-    D3DTexture(uint32_t id, const GraphicResolution &res, bool rt)
-        : Texture(id, res, rt) {}
+    D3DTexture(const GraphicResolution &res, bool rt) : Texture(res, rt) {}
+    D3DTexture(uint32_t id, const GraphicResolution &res, bool rt) : Texture(id, res, rt) {}
     ~D3DTexture() = default;
     size_t GetMemSize() const override;
 };
@@ -104,10 +102,7 @@ public:
         _txFlags = txflags;
     }
     // Detach any internal texture data from this DDB, make this an empty object
-    void DetachData() override
-    {
-        _data = nullptr;
-    }
+    void DetachData() override { _data = nullptr; }
     // Releases internal texture data only, keeping the base struct
     void ReleaseTextureData();
 
@@ -137,7 +132,8 @@ public:
     const D3DSurfacePtr &GetRenderSurface() const { return _renderSurface; }
     TextureRenderHint GetRenderHint() const { return _renderHint; }
 
-    void SetTexture(std::shared_ptr<D3DTexture> data, const D3DSurfacePtr &d3d_surface = {}, TextureRenderHint hint = kTxHint_Normal)
+    void SetTexture(std::shared_ptr<D3DTexture> data, const D3DSurfacePtr &d3d_surface = {},
+                    TextureRenderHint hint = kTxHint_Normal)
     {
         _data = data;
         _renderSurface = d3d_surface;
@@ -195,8 +191,8 @@ public:
 
         struct Register
         {
-            uint32_t Index = 0u;  // register index
-            uint32_t Off = 0u; // actual memory offset
+            uint32_t Index = 0u; // register index
+            uint32_t Off = 0u;   // actual memory offset
 
             Register() = default;
             Register(uint32_t reg_index) { *this = reg_index; }
@@ -210,14 +206,14 @@ public:
         //---------------------------------------
         // Fragment shader:
         // Standard constants register number
-        Register Time;         // real time
-        Register GameFrame;    // game frame
+        Register Time;                    // real time
+        Register GameFrame;               // game frame
         Register TextureDim[SamplersCap]; // texture (0..3) dimensions
-        Register Alpha;        // requested global alpha
-        Register OutputDim;    // output dimensions
+        Register Alpha;                   // requested global alpha
+        Register OutputDim;               // output dimensions
 
         // Specialized constants for built-in shaders
-        Register TintHSV;      // float4
+        Register TintHSV;        // float4
         Register TintAlphaLight; // float4
 
         // Constants table: maps constant name to the index/register
@@ -290,26 +286,23 @@ public:
     D3DGfxModeList(const D3DPtr &direct3d, int display_index, D3DFORMAT d3dformat);
     ~D3DGfxModeList() = default;
 
-    int GetModeCount() const override
-    {
-        return _modeCount;
-    }
+    int GetModeCount() const override { return _modeCount; }
 
     bool GetMode(int index, DisplayMode &mode) const override;
 
 private:
-    D3DPtr      _direct3d;
-    int         _displayIndex = 0;
-    UINT        _adapterIndex = 0u;
-    D3DFORMAT   _pixelFormat;
-    int         _modeCount = 0;
+    D3DPtr _direct3d;
+    int _displayIndex = 0;
+    UINT _adapterIndex = 0u;
+    D3DFORMAT _pixelFormat;
+    int _modeCount = 0;
 };
 
 struct CUSTOMVERTEX
 {
-    D3DVECTOR   position; // The position.
-    D3DVECTOR   normal;
-    FLOAT       tu, tv;   // The texture coordinates.
+    D3DVECTOR position; // The position.
+    D3DVECTOR normal;
+    FLOAT tu, tv; // The texture coordinates.
 };
 
 // D3D renderer's sprite batch
@@ -320,12 +313,13 @@ struct D3DSpriteBatch : VMSpriteBatch
     D3DSurfacePtr RenderSurface;
 
     D3DSpriteBatch() = default;
-    D3DSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
-        const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
-        : VMSpriteBatch(id, view, matrix, vp_matrix, color) {}
-    D3DSpriteBatch(uint32_t id, D3DBitmap *render_target, const Rect &view,
-        const glm::mat4 &matrix, const glm::mat4 &vp_matrix,
-        const SpriteColorTransform &color)
+    D3DSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix, const glm::mat4 &vp_matrix,
+                   const SpriteColorTransform &color)
+        : VMSpriteBatch(id, view, matrix, vp_matrix, color)
+    {
+    }
+    D3DSpriteBatch(uint32_t id, D3DBitmap *render_target, const Rect &view, const glm::mat4 &matrix,
+                   const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
         : VMSpriteBatch(id, render_target, view, matrix, vp_matrix, color)
     {
         if (render_target)
@@ -334,7 +328,7 @@ struct D3DSpriteBatch : VMSpriteBatch
 };
 
 typedef SpriteDrawListEntry<D3DBitmap> D3DDrawListEntry;
-typedef std::vector<D3DSpriteBatch>    D3DSpriteBatches;
+typedef std::vector<D3DSpriteBatch> D3DSpriteBatches;
 
 
 class D3DGraphicsDriver : public VideoMemoryGraphicsDriver
@@ -370,7 +364,7 @@ public:
     // Set game render frame and translation
     bool SetRenderFrame(const Rect &dst_rect) override;
     // Report which display's color depth option is best suited for the given native color depth
-    int  GetDisplayDepthForNativeDepth(int native_color_depth) const override;
+    int GetDisplayDepthForNativeDepth(int native_color_depth) const override;
     // Gets a list of supported fullscreen display modes
     IGfxModeList *GetSupportedModeList(int display_index, int color_depth) override;
     // Tells if the given display mode supported
@@ -393,21 +387,21 @@ public:
 
     ///////////////////////////////////////////////////////
     // Texture management
-    // 
+    //
     // Gets closest recommended bitmap format (currently - only color depth) for the given original format.
-    int  GetCompatibleBitmapFormat(int color_depth) override;
+    int GetCompatibleBitmapFormat(int color_depth) override;
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override;
     // Creates a "raw" DDB, without pixel initialization.
     IDriverDependantBitmap *CreateDDB() override;
     // Creates a "raw" DDB, without pixel initialization.
-    IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, int txflags) override;
+    IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, int txflags) override;
     // Creates DDB intended to be used as a render target (allow render other DDBs on it).
-    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
+    IDriverDependantBitmap *CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
     // Updates DBB using the given bitmap.
-    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, const Bitmap *bitmap) override;
     // Destroy the DDB; note that this does not dispose the texture unless there's no more refs to it
-    void DestroyDDB(IDriverDependantBitmap* ddb) override;
+    void DestroyDDB(IDriverDependantBitmap *ddb) override;
 
     // Create texture data with the given parameters
     Texture *CreateTexture(int width, int height, int color_depth, int txflags) override;
@@ -427,10 +421,12 @@ public:
     const char *GetShaderDefinitionExtension() override { return "d3ddef"; }
     // Creates shader program from the source code, registers it under given name,
     // returns IGraphicShader, or null on failure.
-    IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def) override;
+    IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src,
+                                        const ShaderDefinition *def) override;
     // Creates shader program from the compiled data, registers it under given name,
     // returns IGraphicShader, or null on failure.
-    IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override;
+    IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data,
+                                        const ShaderDefinition *def) override;
     // Deletes particular shader program.
     void DeleteShaderProgram(IGraphicShader *shader) override;
     // Creates shader instance for the given shader.
@@ -440,13 +436,12 @@ public:
 
     ///////////////////////////////////////////////////////
     // Preparing a scene
-    // 
+    //
     // Adds sprite to the active batch, providing it's origin position
-    void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override
-         { DrawSprite(x, y, x, y, ddb); }
+    void DrawSprite(int x, int y, IDriverDependantBitmap *ddb) override { DrawSprite(x, y, x, y, ddb); }
     // Adds sprite to the active batch, providing it's origin position and auxiliary
     // position of the left-top image corner in the same coordinate space
-    void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* bitmap) override;
+    void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap *bitmap) override;
     // Adds a render event, which runs a callback with the given parameters, to the active batch
     void AddRenderEvent(int evt, int param) override;
     // Adds fade overlay fx to the active batch
@@ -461,7 +456,7 @@ public:
 
     ///////////////////////////////////////////////////////
     // Rendering and presenting
-    // 
+    //
     // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     // Renders draw lists and presents to screen.
@@ -483,7 +478,7 @@ public:
     void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter = 0u) override;
     // Copies contents of the last rendered game frame into bitmap using simple blit or pixel copy.
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
-        GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
+                                   GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
 
 protected:
     bool SetVsyncImpl(bool vsync, bool &vsync_res) override;
@@ -535,8 +530,8 @@ private:
     // TODO: should we let configure syntax level and optimization level, entrypoint name?
     // TODO: move to the most modern compile target supported by Direct3D? ("ps_4_0_level_9_3")
     const char *DefaultShaderCompileTarget = "ps_2_b"; // same as "ps_2_0", but higher capabilities
-    const UINT  DefaultShaderCompileFlags  = D3DCOMPILE_OPTIMIZATION_LEVEL3;
-    const char *DefaultShaderEntryPoint    = "main";
+    const UINT DefaultShaderCompileFlags = D3DCOMPILE_OPTIMIZATION_LEVEL3;
+    const char *DefaultShaderEntryPoint = "main";
 #endif
 
     // Creates shader program using provided compiled data
@@ -584,18 +579,16 @@ private:
         int Filter = 0;
 
         BackbufferState() = default;
-        BackbufferState(const D3DSurfacePtr &surface, const Size &surf_size, const Size &rend_size,
-                        const Rect &view, const glm::mat4 &proj,
-                        const PlaneScaling &scale, int filter);
-        BackbufferState(D3DSurfacePtr &&surface, const Size &surf_size, const Size &rend_size,
-                        const Rect &view, const glm::mat4 &proj,
-                        const PlaneScaling &scale, int filter);
+        BackbufferState(const D3DSurfacePtr &surface, const Size &surf_size, const Size &rend_size, const Rect &view,
+                        const glm::mat4 &proj, const PlaneScaling &scale, int filter);
+        BackbufferState(D3DSurfacePtr &&surface, const Size &surf_size, const Size &rend_size, const Rect &view,
+                        const glm::mat4 &proj, const PlaneScaling &scale, int filter);
         BackbufferState(const BackbufferState &state) = default;
         BackbufferState(BackbufferState &&state) = default;
         ~BackbufferState() = default;
 
-        BackbufferState &operator = (const BackbufferState &state) = default;
-        BackbufferState &operator = (BackbufferState &&state) = default;
+        BackbufferState &operator=(const BackbufferState &state) = default;
+        BackbufferState &operator=(BackbufferState &&state) = default;
     };
 
     void RenderAndPresent(bool clearDrawListAfterwards);
@@ -617,8 +610,8 @@ private:
     void SetupPostFx(D3DBitmap *surface, const BackbufferState &bufferstate);
     void RenderSpriteBatches();
     size_t RenderSpriteBatch(const D3DSpriteBatch &batch, size_t from, const Size &rend_sz);
-    void RenderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal,
-                      const SpriteColorTransform &color, const Size &rend_sz);
+    void RenderSprite(const D3DDrawListEntry *entry, const glm::mat4 &matGlobal, const SpriteColorTransform &color,
+                      const Size &rend_sz);
     // Renders given texture onto the current render target
     void RenderTexture(D3DBitmap *bitmap, int draw_x, int draw_y, const glm::mat4 &matGlobal,
                        const SpriteColorTransform &color, const Size &rend_sz);
@@ -647,7 +640,7 @@ private:
     // Texture for rendering in native resolution
     D3DBitmap *_nativeSurface = nullptr;
     CUSTOMVERTEX defaultVertices[4];
-    String previousError; // FIXME: find out why is this necessary, rewrite?
+    String previousError;        // FIXME: find out why is this necessary, rewrite?
     int _fullscreenDisplay = -1; // a display where exclusive fullscreen was created
     bool _smoothScaling = false;
     float _pixelRenderXOffset = 0.f;
@@ -667,7 +660,7 @@ private:
 
     // Render target DDB references, for keeping track of them,
     // and resetting during device reset.
-    std::vector<D3DBitmap*> _renderTargets;
+    std::vector<D3DBitmap *> _renderTargets;
     // Sprite batches (parent scene nodes)
     D3DSpriteBatches _spriteBatches;
     // List of sprites to render
@@ -684,10 +677,9 @@ private:
     struct BlendOpState
     {
         D3DBLENDOP Op{};
-        D3DBLEND   Src{}, Dst{};
+        D3DBLEND Src{}, Dst{};
         BlendOpState() = default;
-        BlendOpState(D3DBLENDOP op, D3DBLEND src, D3DBLEND dst)
-            : Op(op), Src(src), Dst(dst) {}
+        BlendOpState(D3DBLENDOP op, D3DBLEND src, D3DBLEND dst) : Op(op), Src(src), Dst(dst) {}
     };
 
     // Saved alpha channel blend settings for the current render target
@@ -700,18 +692,18 @@ class D3DGraphicsFactory : public GfxDriverFactoryBase<D3DGraphicsDriver, D3DGfx
 public:
     ~D3DGraphicsFactory() override;
 
-    size_t               GetFilterCount() const override;
+    size_t GetFilterCount() const override;
     const GfxFilterInfo *GetFilterInfo(size_t index) const override;
-    String               GetDefaultFilterID() const override;
+    String GetDefaultFilterID() const override;
 
-    static D3DGraphicsFactory   *GetFactory();
-    static D3DGraphicsDriver    *GetD3DDriver();
+    static D3DGraphicsFactory *GetFactory();
+    static D3DGraphicsDriver *GetD3DDriver();
 
 private:
     D3DGraphicsFactory() = default;
 
-    D3DGraphicsDriver   *EnsureDriverCreated() override;
-    D3DGfxFilter        *CreateFilter(const String &id) override;
+    D3DGraphicsDriver *EnsureDriverCreated() override;
+    D3DGfxFilter *CreateFilter(const String &id) override;
 
     bool Init();
 
@@ -732,9 +724,9 @@ private:
     // creation failure).
     //
     // TODO: find out if there is better solution.
-    // 
+    //
     static Library _library;
-    D3DPtr         _direct3d;
+    D3DPtr _direct3d;
 };
 
 } // namespace D3D

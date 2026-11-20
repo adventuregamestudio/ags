@@ -42,7 +42,9 @@ void SetTimer(int tnum, int timeout)
     }
     else
     {
-        debug_script_warn("SetTimer: invalid timeout %d for timer id %d, timeout must be a positive number to start the timer, or 0 to stop the timer", timeout, tnum);
+        debug_script_warn(
+            "SetTimer: invalid timeout %d for timer id %d, timeout must be a positive number to start the timer, or 0 to stop the timer",
+            timeout, tnum);
     }
 }
 

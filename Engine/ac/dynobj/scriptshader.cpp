@@ -36,8 +36,7 @@ std::unordered_set<String> ScriptShaderProgram::_registeredNames;
 uint32_t ScriptShaderProgram::_nextInstanceIndex = ScriptShaderInstance::NullInstanceID + 1u;
 std::queue<uint32_t> ScriptShaderProgram::_freeInstanceIndexes;
 
-ScriptShaderProgram::ScriptShaderProgram(const String &filename)
-    : _filename(filename)
+ScriptShaderProgram::ScriptShaderProgram(const String &filename) : _filename(filename)
 {
     _name = MakeName(filename);
     _id = GetFreeIndex();
@@ -88,7 +87,7 @@ ScriptShaderProgram::ScriptShaderProgram(const String &filename)
 ScriptShaderInstance *ScriptShaderProgram::GetDefaultInstance() const
 {
     if (!_defaultInstance)
-        _defaultInstance = static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(_defaultInstanceHandle));
+        _defaultInstance = static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(_defaultInstanceHandle));
     return _defaultInstance;
 }
 
@@ -190,27 +189,22 @@ void ScriptShaderProgram::Unserialize(int index, Stream *in, size_t data_sz)
 
 size_t ScriptShaderProgram::CalcSerializeSize(const void *address)
 {
-    const uint32_t header_sz = _name.GetLength() + _filename.GetLength() + sizeof(uint32_t) * 2
-        + sizeof(uint32_t) * 5;
+    const uint32_t header_sz = _name.GetLength() + _filename.GetLength() + sizeof(uint32_t) * 2 + sizeof(uint32_t) * 5;
     size_t constant_table_sz = sizeof(uint32_t);
     for (const auto &c : _constantTable)
     {
-        constant_table_sz +=
-            c.first.GetLength() + sizeof(uint32_t)
-            + sizeof(uint32_t);
+        constant_table_sz += c.first.GetLength() + sizeof(uint32_t) + sizeof(uint32_t);
     }
-    return header_sz + constant_table_sz
-        + sizeof(uint32_t); // default instance handle
+    return header_sz + constant_table_sz + sizeof(uint32_t); // default instance handle
 }
 
 void ScriptShaderProgram::Serialize(const void *address, Stream *out)
 {
     // Header
-    const uint32_t header_sz = _name.GetLength() + _filename.GetLength() + sizeof(uint32_t) * 2
-        + sizeof(uint32_t) * 5;
+    const uint32_t header_sz = _name.GetLength() + _filename.GetLength() + sizeof(uint32_t) * 2 + sizeof(uint32_t) * 5;
     out->WriteInt32(header_sz); // header size
-    out->WriteInt32(0); // version
-    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);         // version
+    out->WriteInt32(0);         // reserved
     StrUtil::WriteString(_name, out);
     StrUtil::WriteString(_filename, out);
     out->WriteInt32(_id);
@@ -220,12 +214,11 @@ void ScriptShaderProgram::Serialize(const void *address, Stream *out)
     for (const auto &c : _constantTable)
     {
         StrUtil::WriteString(c.first, out); // constant name
-        out->WriteInt32(c.second); // constant location
+        out->WriteInt32(c.second);          // constant location
     }
 }
 
-ScriptShaderInstance::ScriptShaderInstance(ScriptShaderProgram *sc_shader)
-    : _scriptShader(sc_shader)
+ScriptShaderInstance::ScriptShaderInstance(ScriptShaderProgram *sc_shader) : _scriptShader(sc_shader)
 {
     _id = sc_shader->GetFreeInstanceIndex();
     _name = String::FromFormat("%s.%u", sc_shader->GetName().GetCStr(), _id);
@@ -236,7 +229,7 @@ ScriptShaderInstance::ScriptShaderInstance(ScriptShaderProgram *sc_shader)
 ScriptShaderProgram *ScriptShaderInstance::GetScriptShader() const
 {
     if (!_scriptShader)
-        _scriptShader = static_cast<ScriptShaderProgram*>(ccGetObjectAddressFromHandle(_shaderHandle));
+        _scriptShader = static_cast<ScriptShaderProgram *>(ccGetObjectAddressFromHandle(_shaderHandle));
     return _scriptShader;
 }
 
@@ -327,24 +320,19 @@ void ScriptShaderInstance::Unserialize(int index, Stream *in, size_t data_sz)
 
 size_t ScriptShaderInstance::CalcSerializeSize(const void *address)
 {
-    const uint32_t header_sz = _name.GetLength() + sizeof(uint32_t)
-        + sizeof(uint32_t) * 5;
-    const size_t constant_table_sz = sizeof(uint32_t)
-        + _constData.size() * sizeof(uint32_t) + sizeof(float) * 4;
-    const size_t texture_table_sz = sizeof(uint32_t)
-        + _textures.size() * sizeof(uint32_t);
-    return header_sz + constant_table_sz + texture_table_sz
-        + sizeof(uint32_t); // shader handle
+    const uint32_t header_sz = _name.GetLength() + sizeof(uint32_t) + sizeof(uint32_t) * 5;
+    const size_t constant_table_sz = sizeof(uint32_t) + _constData.size() * sizeof(uint32_t) + sizeof(float) * 4;
+    const size_t texture_table_sz = sizeof(uint32_t) + _textures.size() * sizeof(uint32_t);
+    return header_sz + constant_table_sz + texture_table_sz + sizeof(uint32_t); // shader handle
 }
 
 void ScriptShaderInstance::Serialize(const void *address, Stream *out)
 {
     // Header
-    const uint32_t header_sz = _name.GetLength() + sizeof(uint32_t)
-        + sizeof(uint32_t) * 5;
+    const uint32_t header_sz = _name.GetLength() + sizeof(uint32_t) + sizeof(uint32_t) * 5;
     out->WriteInt32(header_sz); // header size
-    out->WriteInt32(0); // version
-    out->WriteInt32(0); // reserved
+    out->WriteInt32(0);         // version
+    out->WriteInt32(0);         // reserved
     StrUtil::WriteString(_name, out);
     out->WriteInt32(_id);
     out->WriteInt32(_shaderHandle);

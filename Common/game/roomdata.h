@@ -15,19 +15,19 @@
 // RoomData, a class describing initial room data.
 //
 // Because of the imperfect implementation there is inconsistency in how
-// this data is interpreted at the runtime. 
+// this data is interpreted at the runtime.
 // Some of that data is never supposed to be changed at runtime. Another
 // may be changed, but these changes are lost as soon as room is unloaded.
 // The changes that must remain in memory are kept as separate classes:
 // see RoomStatus, RoomObject etc.
-// 
+//
 // Partially this is because same class was used for both engine and editor,
 // while runtime code was not available for the editor.
 //
 // This is also the reason why some classes here are named with the "Info"
 // postfix. For example, RoomObjectInfo is the initial object data, and
 // there is also RoomObject runtime-only class for mutable data.
-// 
+//
 // TODO: have a consistent division between design-time struct (loaded from
 // game data), and runtime class. Need to think how we want to deal with
 // the data saved when the room is unloaded. We may keep everything in the
@@ -61,7 +61,7 @@ enum RoomAreaMask
     kNumRoomAreaTypes,
 
     kRoomArea_First = kRoomAreaHotspot,
-    kRoomArea_Last  = kRoomAreaRegion
+    kRoomArea_Last = kRoomAreaRegion
 };
 
 // Extended room boolean options
@@ -71,22 +71,22 @@ enum RoomFlags
 };
 
 // Flag tells that walkable area does not have continious zoom
-#define NOT_VECTOR_SCALED  -10000
+#define NOT_VECTOR_SCALED -10000
 // Flags tells that room is not linked to particular game ID
 #define NO_GAME_ID_IN_ROOM_FILE 16325
 
 // Max number of room background frames
-#define MAX_ROOM_BGFRAMES       256
-#define MAX_ROOM_BGFRAMES_321   5
+#define MAX_ROOM_BGFRAMES     256
+#define MAX_ROOM_BGFRAMES_321 5
 
-#define MAX_ROOM_HOTSPOTS  50  // v2.62: 20 -> 30; v2.8: -> 50
-#define MAX_ROOM_OBJECTS_v300 40 // for some legacy logic support
-#define MAX_ROOM_OBJECTS   256 // v3.6.0: 40 -> 256 (now limited by room format)
-#define MAX_ROOM_REGIONS   16
-#define MAX_WALK_AREAS     16
-#define MAX_WALK_BEHINDS   16
+#define MAX_ROOM_HOTSPOTS     50  // v2.62: 20 -> 30; v2.8: -> 50
+#define MAX_ROOM_OBJECTS_v300 40  // for some legacy logic support
+#define MAX_ROOM_OBJECTS      256 // v3.6.0: 40 -> 256 (now limited by room format)
+#define MAX_ROOM_REGIONS      16
+#define MAX_WALK_AREAS        16
+#define MAX_WALK_BEHINDS      16
 
-#define MAX_MESSAGES       100
+#define MAX_MESSAGES 100
 // Max length of a serialized room message prior to 2.61
 #define MAX_MESSAGE_PRE261_LEN 3000
 
@@ -152,11 +152,11 @@ struct RoomOptions
     // If player character is turned off in the room
     bool PlayerCharOff;
     // Apply player character's normal view when entering this room
-    int  PlayerView;
+    int PlayerView;
     // Optional character facing dir ratio (y / x), 0 = ignore
     float FaceDirectionRatio;
     // A collection of RoomFlags
-    int  Flags;
+    int Flags;
 
     RoomOptions();
 };
@@ -166,16 +166,16 @@ struct RoomBgFrame
 {
     PixelBuffer GraphicBuf;
     // Palette is only valid in 8-bit games
-    RGB         Palette[256];
+    RGB Palette[256];
     // Tells if this frame should keep previous frame palette instead of using its own
-    bool        IsPaletteShared = false;
+    bool IsPaletteShared = false;
 
     RoomBgFrame();
     RoomBgFrame(const RoomBgFrame &src);
     RoomBgFrame(RoomBgFrame &&src) = default;
 
-    RoomBgFrame& operator =(const RoomBgFrame &src);
-    RoomBgFrame& operator =(RoomBgFrame &&src) = default;
+    RoomBgFrame &operator=(const RoomBgFrame &src);
+    RoomBgFrame &operator=(RoomBgFrame &&src) = default;
 };
 
 // Describes room edges (coordinates of four edges)
@@ -196,13 +196,10 @@ struct RoomEdges
 struct RoomObjectBase
 {
 public:
-    RoomObjectBase()
-    {}
-    RoomObjectBase(const ScriptEventSchema *schema)
-        : _events(schema)
-    {}
+    RoomObjectBase() {}
+    RoomObjectBase(const ScriptEventSchema *schema) : _events(schema) {}
 
-    int    ID = -1;
+    int ID = -1;
     String ScriptName;
 
     // Provides a script events table
@@ -220,26 +217,23 @@ protected:
 struct RoomHotspot : public RoomObjectBase
 {
     // Human-readable name (description)
-    String      Name;
+    String Name;
     // Custom properties
-    StringIMap  Properties;
+    StringIMap Properties;
     // Interaction events (cursor-based)
     ScriptEventHandlers Interactions = {};
 
     // Hotspot's walk-to point, may optionally be used to direct character
     // to hotspot's position when interacting with them in script.
-    Point       WalkTo;
+    Point WalkTo;
 
-    RoomHotspot()
-        : RoomObjectBase(&RoomHotspot::_eventSchema)
-    {
-    }
+    RoomHotspot() : RoomObjectBase(&RoomHotspot::_eventSchema) {}
 
     RoomHotspot(const RoomHotspot &src) = default;
     RoomHotspot(RoomHotspot &&src) = default;
 
-    RoomHotspot& operator =(const RoomHotspot &src) = default;
-    RoomHotspot& operator =(RoomHotspot &&src) = default;
+    RoomHotspot &operator=(const RoomHotspot &src) = default;
+    RoomHotspot &operator=(RoomHotspot &&src) = default;
 
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
@@ -253,35 +247,32 @@ private:
 // Room object description
 struct RoomObjectInfo : public RoomObjectBase
 {
-    int32_t         Room = -1;
-    int32_t         X = 0;
-    int32_t         Y = 0;
-    int32_t         Sprite = 0;
+    int32_t Room = -1;
+    int32_t X = 0;
+    int32_t Y = 0;
+    int32_t Sprite = 0;
     Common::BlendMode BlendMode = kBlend_Normal;
     // Object's z-order in the room, or -1 (use Y)
-    int32_t         Baseline = 0;
-    int32_t         Transparency = 0;
-    int32_t         Flags = 0;
+    int32_t Baseline = 0;
+    int32_t Transparency = 0;
+    int32_t Flags = 0;
     // Human-readable name (description)
-    String          Name;
-    Rect            BlockingRect;
-    Pointf          GraphicAnchor = Pointf(0.f, 1.f); // bottom-left
-    Point           GraphicOffset;
+    String Name;
+    Rect BlockingRect;
+    Pointf GraphicAnchor = Pointf(0.f, 1.f); // bottom-left
+    Point GraphicOffset;
     // Custom properties
-    StringIMap      Properties;
+    StringIMap Properties;
     // Interaction events (cursor-based)
     ScriptEventHandlers Interactions = {};
 
-    RoomObjectInfo()
-        : RoomObjectBase(&RoomObjectInfo::_eventSchema)
-    {
-    }
+    RoomObjectInfo() : RoomObjectBase(&RoomObjectInfo::_eventSchema) {}
 
     RoomObjectInfo(const RoomObjectInfo &src) = default;
     RoomObjectInfo(RoomObjectInfo &&src) = default;
 
-    RoomObjectInfo& operator =(const RoomObjectInfo &src) = default;
-    RoomObjectInfo& operator =(RoomObjectInfo &&src) = default;
+    RoomObjectInfo &operator=(const RoomObjectInfo &src) = default;
+    RoomObjectInfo &operator=(RoomObjectInfo &&src) = default;
 
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
@@ -296,24 +287,21 @@ private:
 struct RoomRegion : public RoomObjectBase
 {
     // Light level (-100 -> +100) or Tint luminance (0 - 255)
-    int32_t         Light = 0;
+    int32_t Light = 0;
     // Tint setting (R-B-G-S)
-    int32_t         Tint = 0;
+    int32_t Tint = 0;
     // Custom properties
-    StringIMap      Properties;
+    StringIMap Properties;
     // Interaction events (old-style event storage, kept of loading old data)
     ScriptEventHandlers Interactions = {};
 
-    RoomRegion()
-        : RoomObjectBase(&RoomRegion::_eventSchema)
-    {
-    }
+    RoomRegion() : RoomObjectBase(&RoomRegion::_eventSchema) {}
 
     RoomRegion(const RoomRegion &src) = default;
     RoomRegion(RoomRegion &&src) = default;
 
-    RoomRegion& operator =(const RoomRegion &src) = default;
-    RoomRegion& operator =(RoomRegion &&src) = default;
+    RoomRegion &operator=(const RoomRegion &src) = default;
+    RoomRegion &operator=(RoomRegion &&src) = default;
 
     static ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
@@ -328,21 +316,21 @@ private:
 struct WalkArea : public RoomObjectBase
 {
     // Apply player character's normal view on this area
-    int32_t     CharacterView = 0;
+    int32_t CharacterView = 0;
     // Character's scaling (-100 -> +100 %)
     // General scaling, or scaling at the farthest point
-    int32_t     ScalingFar = 0;
+    int32_t ScalingFar = 0;
     // Scaling at the nearest point, or NOT_VECTOR_SCALED for uniform scaling
-    int32_t     ScalingNear = NOT_VECTOR_SCALED;
+    int32_t ScalingNear = NOT_VECTOR_SCALED;
     // Optional override for player character view
-    int32_t     PlayerView = 0;
+    int32_t PlayerView = 0;
     // Optional character face direction ratio, 0 = ignore
-    float       FaceDirectionRatio = 0.f;
+    float FaceDirectionRatio = 0.f;
     // Top and bottom Y of the area
-    int32_t     Top = -1;
-    int32_t     Bottom = -1;
+    int32_t Top = -1;
+    int32_t Bottom = -1;
     // Custom properties
-    StringIMap  Properties;
+    StringIMap Properties;
 };
 
 // Walk-behind description
@@ -365,8 +353,8 @@ public:
     RoomData(RoomData &&src);
     ~RoomData();
 
-    RoomData &operator =(const RoomData &src);
-    RoomData &operator =(RoomData &&src) = default;
+    RoomData &operator=(const RoomData &src);
+    RoomData &operator=(RoomData &&src) = default;
 
     // Releases room resources
     void Free();
@@ -375,7 +363,7 @@ public:
 
     static const ScriptEventSchema &GetEventSchema() { return _eventSchema; }
     // Remaps old-format interaction list into new event table
-    void    RemapOldInteractions();
+    void RemapOldInteractions();
 
     // Gets this room's human-readable name (description)
     const String &GetName() const { return Name; }
@@ -385,9 +373,9 @@ public:
     // Gets bitmap of particular mask layer
     const BitmapData &GetMask(RoomAreaMask mask) const;
     // Assigns bitmap for the particular mask layer
-    void    SetMask(RoomAreaMask mask, PixelBuffer &&pxbuf);
+    void SetMask(RoomAreaMask mask, PixelBuffer &&pxbuf);
     // Gets mask's scale relative to the room's background size
-    float   GetMaskScale(RoomAreaMask mask) const;
+    float GetMaskScale(RoomAreaMask mask) const;
 
     // TODO: see later whether it may be more convenient to move these to the Region class instead.
     // Gets if the given region has light level set
@@ -395,9 +383,9 @@ public:
     // Gets if the given region has a tint set
     bool HasRegionTint(int id) const;
     // Gets region's light level in -100 to 100 range value; returns 0 (default level) if region's tint is set
-    int  GetRegionLightLevel(int id) const;
+    int GetRegionLightLevel(int id) const;
     // Gets region's tint luminance in 0 to 100 range value; returns 0 if region's light level is set
-    int  GetRegionTintLuminance(int id) const;
+    int GetRegionTintLuminance(int id) const;
 
     // TODO: all members are currently public because they are used everywhere; hide them later
 public:
@@ -405,63 +393,63 @@ public:
     // If this field has a valid value and does not match actual game's id,
     // then engine will refuse to start this room.
     // May be set to NO_GAME_ID_IN_ROOM_FILE to let it run within any game.
-    int32_t                 GameID;
+    int32_t GameID;
     // Loaded room file's data version. This value may be used to know when
     // the room must have behavior specific to certain version of AGS.
-    int32_t                 DataVersion;
+    int32_t DataVersion;
 
     // This room's name (description)
-    String                  Name;
+    String Name;
     // This room's scriptname. This is a reserved field atm.
-    String                  ScriptName;
+    String ScriptName;
     // Room region masks resolution. Defines the relation between room and mask units.
     // Mask point is calculated as roompt / MaskResolution. Must be >= 1.
     // In the old games this value also signals when the room is prepared as a
     // "low-res" or "high-res" room (see RoomResolutionType); if this value does not
     // match the current game's resolution type, then the room backgrounds must be either
     // downscaled or upscaled, depending on their relation.
-    int32_t                 MaskResolution;
+    int32_t MaskResolution;
     // Size of the room, in logical coordinates (= pixels)
-    int32_t                 Width;
-    int32_t                 Height;
+    int32_t Width;
+    int32_t Height;
     // Primary room palette (8-bit games)
-    RGB                     Palette[256];
+    RGB Palette[256];
 
     // Basic room options
-    RoomOptions             Options;
+    RoomOptions Options;
 
     // Background frames
-    int32_t                 BackgroundBPP; // bytes per pixel
-    uint32_t                BgFrameCount;
+    int32_t BackgroundBPP; // bytes per pixel
+    uint32_t BgFrameCount;
     std::vector<RoomBgFrame> BgFrames;
     // Speed at which background frames are changing, 0 - no auto animation
-    int32_t                 BgAnimSpeed;
+    int32_t BgAnimSpeed;
     // Edges
-    RoomEdges               Edges;
+    RoomEdges Edges;
     // Region masks
-    PixelBuffer             HotspotMaskBuf;
-    PixelBuffer             RegionMaskBuf;
-    PixelBuffer             WalkAreaMaskBuf;
-    PixelBuffer             WalkBehindMaskBuf;
+    PixelBuffer HotspotMaskBuf;
+    PixelBuffer RegionMaskBuf;
+    PixelBuffer WalkAreaMaskBuf;
+    PixelBuffer WalkBehindMaskBuf;
     // Room entities
-    uint32_t                HotspotCount;
-    RoomHotspot             Hotspots[MAX_ROOM_HOTSPOTS];
+    uint32_t HotspotCount;
+    RoomHotspot Hotspots[MAX_ROOM_HOTSPOTS];
     std::vector<RoomObjectInfo> Objects;
-    uint32_t                RegionCount;
-    RoomRegion              Regions[MAX_ROOM_REGIONS];
-    uint32_t                WalkAreaCount;
-    WalkArea                WalkAreas[MAX_WALK_AREAS];
-    uint32_t                WalkBehindCount;
-    WalkBehind              WalkBehinds[MAX_WALK_BEHINDS];
+    uint32_t RegionCount;
+    RoomRegion Regions[MAX_ROOM_REGIONS];
+    uint32_t WalkAreaCount;
+    WalkArea WalkAreas[MAX_WALK_AREAS];
+    uint32_t WalkBehindCount;
+    WalkBehind WalkBehinds[MAX_WALK_BEHINDS];
 
     // Custom properties
-    StringIMap              Properties;
+    StringIMap Properties;
     // Interaction events (old-style event storage, kept of loading old data)
-    ScriptEventHandlers     Interactions = {};
+    ScriptEventHandlers Interactions = {};
     // Compiled room script
-    UScript                 CompiledScript;
+    UScript CompiledScript;
     // Various extended options with string values, meta-data etc
-    StringMap               StrOptions;
+    StringMap StrOptions;
 
 private:
     // Script events schema

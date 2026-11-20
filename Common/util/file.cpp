@@ -20,7 +20,7 @@
 #include "util/path.h"
 #include "util/stdio_compat.h"
 #include "util/string_compat.h"
-#if defined (AGS_CASE_SENSITIVE_FILESYSTEM)
+#if defined(AGS_CASE_SENSITIVE_FILESYSTEM)
 #include "util/directory.h"
 #endif
 #if AGS_PLATFORM_OS_ANDROID
@@ -312,7 +312,7 @@ std::unique_ptr<IStreamBase> OpenFileStream(const String &filename, FileOpenMode
             if (fs != nullptr && !fs->IsValid())
                 fs = nullptr;
         }
-        catch(std::runtime_error)
+        catch (std::runtime_error)
         {
             fs = nullptr;
         }
@@ -363,8 +363,8 @@ std::unique_ptr<Stream> File::OpenStderr()
     return AsStream<BufferedStream>(FileStream::WrapHandle(stderr, kStream_Write));
 }
 
-String File::FindFileCI(const String &base_dir, const String &file_name,
-    bool is_dir, String *most_found, String *not_found)
+String File::FindFileCI(const String &base_dir, const String &file_name, bool is_dir, String *most_found,
+                        String *not_found)
 {
     // Case insensitive file find - on case sensitive filesystems
     if (most_found)
@@ -401,11 +401,10 @@ String File::FindFileCI(const String &base_dir, const String &file_name,
         return {}; // fail, cannot be handled
 
     // First try exact match
-    if ((is_dir && File::IsDirectory(test.GetCStr())) ||
-        (!is_dir && File::IsFile(test.GetCStr())))
+    if ((is_dir && File::IsDirectory(test.GetCStr())) || (!is_dir && File::IsFile(test.GetCStr())))
         return test; // success
 
-#if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
+#if !defined(AGS_CASE_SENSITIVE_FILESYSTEM)
     // TODO: most_found & not_found are never used in practice with CI fs;
     // but if becomes necessary, we may reuse most of the CS code below
     // for this case too, and uncommenting the following condition -
@@ -428,11 +427,11 @@ String File::FindFileCI(const String &base_dir, const String &file_name,
             filename = Path::GetFilename(filename);
         }
     }
-    
+
     String path = directory;
     size_t begin = 0u;
     for (size_t end = filename.FindChar('/', 0u); // TODO: string iterators
-        end > begin; begin = end + 1, end = filename.FindChar('/', end + 1))
+         end > begin; begin = end + 1, end = filename.FindChar('/', end + 1))
     {
         end = std::min(end, filename.GetLength()); // FIXME: iterators? string view?
         test.SetString(filename.GetCStr() + begin, end - begin);
@@ -455,13 +454,12 @@ String File::FindFileCI(const String &base_dir, const String &file_name,
             Path::AppendPath(path, di.Current()); // append exact entry's name
             // We succeed when we are at the end of the searched path,
             // and this is a matching file / dir, as requested
-            if (end == filename.GetLength() &&
-                ((is_dir && di.GetEntry().IsDir) || (!is_dir && di.GetEntry().IsFile)))
+            if (end == filename.GetLength() && ((is_dir && di.GetEntry().IsDir) || (!is_dir && di.GetEntry().IsFile)))
             {
-            #if AGS_PLATFORM_DEBUG
-                fprintf(stderr, "FindFileCI: Looked for %s in rough %s, found diamond %s.\n",
-                    test.GetCStr(), directory.GetCStr(), path.GetCStr());
-            #endif // AGS_PLATFORM_DEBUG
+#if AGS_PLATFORM_DEBUG
+                fprintf(stderr, "FindFileCI: Looked for %s in rough %s, found diamond %s.\n", test.GetCStr(),
+                        directory.GetCStr(), path.GetCStr());
+#endif // AGS_PLATFORM_DEBUG
                 return path;
             }
 
@@ -482,9 +480,10 @@ String File::FindFileCI(const String &base_dir, const String &file_name,
 #endif
 }
 
-std::unique_ptr<Stream> File::OpenFileCI(const String &base_dir, const String &file_name, FileOpenMode open_mode, StreamMode work_mode)
+std::unique_ptr<Stream> File::OpenFileCI(const String &base_dir, const String &file_name, FileOpenMode open_mode,
+                                         StreamMode work_mode)
 {
-#if !defined (AGS_CASE_SENSITIVE_FILESYSTEM)
+#if !defined(AGS_CASE_SENSITIVE_FILESYSTEM)
     return File::OpenFile(Path::ConcatPaths(base_dir, file_name), open_mode, work_mode);
 #else
     String fullpath = FindFileCI(base_dir, file_name);

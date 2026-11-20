@@ -21,24 +21,14 @@ namespace Common
 {
 
 MemoryStream::MemoryStream(const uint8_t *cbuf, size_t buf_sz)
-    : StreamBase()
-    , _cbuf(cbuf)
-    , _buf_sz(buf_sz)
-    , _len(buf_sz)
-    , _pos(0)
-    , _buf(nullptr)
+    : StreamBase(), _cbuf(cbuf), _buf_sz(buf_sz), _len(buf_sz), _pos(0), _buf(nullptr)
 {
     if (cbuf)
         _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
 }
 
 MemoryStream::MemoryStream(uint8_t *buf, size_t buf_sz, StreamMode mode)
-    : StreamBase()
-    , _cbuf(nullptr)
-    , _buf_sz(buf_sz)
-    , _len(0)
-    , _pos(0)
-    , _buf(nullptr)
+    : StreamBase(), _cbuf(nullptr), _buf_sz(buf_sz), _len(0), _pos(0), _buf(nullptr)
 {
     if ((mode & kStream_Write) != 0)
     {
@@ -86,7 +76,10 @@ soff_t MemoryStream::GetPosition() const
 
 size_t MemoryStream::Read(void *buffer, size_t size)
 {
-    if (EOS()) { return 0; }
+    if (EOS())
+    {
+        return 0;
+    }
     assert(_len > _pos);
     size_t remain = _len - _pos;
     size_t read_sz = std::min(remain, size);
@@ -97,7 +90,10 @@ size_t MemoryStream::Read(void *buffer, size_t size)
 
 int32_t MemoryStream::ReadByte()
 {
-    if (EOS()) { return -1; }
+    if (EOS())
+    {
+        return -1;
+    }
     return _cbuf[_pos++];
 }
 
@@ -106,9 +102,9 @@ soff_t MemoryStream::Seek(soff_t offset, StreamSeek origin)
     soff_t want_pos = -1;
     switch (origin)
     {
-    case kSeekBegin:    want_pos = 0 + offset; break;
-    case kSeekCurrent:  want_pos = _pos + offset; break;
-    case kSeekEnd:      want_pos = _len + offset; break;
+    case kSeekBegin: want_pos = 0 + offset; break;
+    case kSeekCurrent: want_pos = _pos + offset; break;
+    case kSeekEnd: want_pos = _len + offset; break;
     default: return -1;
     }
     // clamp to a valid range
@@ -119,7 +115,10 @@ soff_t MemoryStream::Seek(soff_t offset, StreamSeek origin)
 
 size_t MemoryStream::Write(const void *buffer, size_t size)
 {
-    if (!_buf || (_pos >= _buf_sz)) { return 0; }
+    if (!_buf || (_pos >= _buf_sz))
+    {
+        return 0;
+    }
     size = std::min(size, _buf_sz - _pos);
     memcpy(_buf + _pos, buffer, size);
     _pos += size;
@@ -130,7 +129,10 @@ size_t MemoryStream::Write(const void *buffer, size_t size)
 
 int32_t MemoryStream::WriteByte(uint8_t val)
 {
-    if (!_buf || (_pos >= _buf_sz)) { return -1; }
+    if (!_buf || (_pos >= _buf_sz))
+    {
+        return -1;
+    }
     *(_buf + _pos) = val;
     _pos++;
     // will increase len if writing after eos, otherwise = overwrite at pos
@@ -139,17 +141,14 @@ int32_t MemoryStream::WriteByte(uint8_t val)
 }
 
 
-VectorStream::VectorStream(const std::vector<uint8_t> &cbuf)
-    : MemoryStream(cbuf.data(), cbuf.size())
-    , _vec(nullptr)
+VectorStream::VectorStream(const std::vector<uint8_t> &cbuf) : MemoryStream(cbuf.data(), cbuf.size()), _vec(nullptr)
 {
     _mode = static_cast<StreamMode>(kStream_Read | kStream_Seek);
 }
 
 VectorStream::VectorStream(std::vector<uint8_t> &buf, StreamMode mode)
-    : MemoryStream((((mode & kStream_ReadWrite) == kStream_Read) && (buf.size() > 0) ?
-            buf.data() : nullptr),
-        buf.size(), mode)
+    : MemoryStream((((mode & kStream_ReadWrite) == kStream_Read) && (buf.size() > 0) ? buf.data() : nullptr),
+                   buf.size(), mode)
     , _vec(&buf)
 {
     _mode = static_cast<StreamMode>(mode | kStream_Seek);

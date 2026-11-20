@@ -35,8 +35,7 @@ private:
     IScriptObject *_pluginMgr = nullptr;
 
 public:
-    CCPluginObject(IScriptObject *plugin_mgr)
-        : _pluginMgr(plugin_mgr) {}
+    CCPluginObject(IScriptObject *plugin_mgr) : _pluginMgr(plugin_mgr) {}
 
     // Dispose the object
     int Dispose(void *address, bool force) override
@@ -50,10 +49,7 @@ public:
         return 0;
     }
     // Return the type name of the object
-    const char *GetType() override
-    {
-        return _pluginMgr->GetType();
-    }
+    const char *GetType() override { return _pluginMgr->GetType(); }
     // Serialize the object into BUFFER (which is BUFSIZE bytes)
     // return number of bytes used
     int Serialize(void *address, uint8_t *buffer, int bufsize) override

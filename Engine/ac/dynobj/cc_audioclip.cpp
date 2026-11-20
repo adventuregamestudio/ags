@@ -21,21 +21,24 @@ using namespace AGS::Common;
 
 extern GameSetupStruct game;
 
-const char *CCAudioClip::GetType() {
+const char *CCAudioClip::GetType()
+{
     return "AudioClip";
 }
 
-size_t CCAudioClip::CalcSerializeSize(const void* /*address*/)
+size_t CCAudioClip::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCAudioClip::Serialize(const void *address, Stream *out) {
-    const ScriptAudioClip *ach = static_cast<const ScriptAudioClip*>(address);
+void CCAudioClip::Serialize(const void *address, Stream *out)
+{
+    const ScriptAudioClip *ach = static_cast<const ScriptAudioClip *>(address);
     out->WriteInt32(ach->id);
 }
 
-void CCAudioClip::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void CCAudioClip::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
     int id = in->ReadInt32();
     ccRegisterUnserializedPersistentObject(index, &game.audioClips[id], this);
 }

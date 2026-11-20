@@ -34,16 +34,13 @@ void CharacterExtras::UpdateGraphicSpace(const CharacterInfo *chin)
     // * AABB should *divide* graphical offset by zoom, which may only work if AABB is made
     // of floats (otherwise value precision will be lost in integer division).
     // * OR we might require ADDITIONAL parameter into GS, which is an offset applied UNSCALED.
-    _gs = GraphicSpace(
-        chin->x, chin->y, eff_anchor, // origin
-        Size(spr_width, spr_height), // source sprite size
-        Size(width, height), // destination size (scaled)
-        // real graphical aabb (maybe with extra offsets)
-        RectWH((eff_offset.X + frame_xoff),
-               (-chin->z + eff_offset.Y + frame_yoff),
-               spr_width, spr_height),
-        rotation, pivot, pivot_offset
-    );
+    _gs =
+        GraphicSpace(chin->x, chin->y, eff_anchor, // origin
+                     Size(spr_width, spr_height),  // source sprite size
+                     Size(width, height),          // destination size (scaled)
+                     // real graphical aabb (maybe with extra offsets)
+                     RectWH((eff_offset.X + frame_xoff), (-chin->z + eff_offset.Y + frame_yoff), spr_width, spr_height),
+                     rotation, pivot, pivot_offset);
 }
 
 void CharacterExtras::SetTurning(bool on, bool ccw, int turn_steps)
@@ -81,12 +78,11 @@ int CharacterExtras::GetEffectiveY(const CharacterInfo *chi) const
 
 int CharacterExtras::GetFrameSoundVolume(const CharacterInfo *chi) const
 {
-    return ::CalcFrameSoundVolume(
-        audio_volume, anim.AudioVolume,
-        (chi->flags & CHF_SCALEVOLUME) ? zoom : 100);
+    return ::CalcFrameSoundVolume(audio_volume, anim.AudioVolume, (chi->flags & CHF_SCALEVOLUME) ? zoom : 100);
 }
 
-void CharacterExtras::SetLockedView(CharacterInfo *chi, int view, int loop, int frame, const Pointf &anchor, const Point &off)
+void CharacterExtras::SetLockedView(CharacterInfo *chi, int view, int loop, int frame, const Pointf &anchor,
+                                    const Point &off)
 {
     chi->view = view;
     chi->loop = loop;
@@ -111,15 +107,14 @@ void CharacterExtras::SetUnlockedView(CharacterInfo *chi)
 void CharacterExtras::CheckViewFrame(CharacterInfo *chi)
 {
     ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(chi, &ccDynamicCharacter));
-    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi), audio_panning, audio_speed,
-        objevt, &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
+    ::CheckViewFrame(chi->view, chi->loop, chi->frame, GetFrameSoundVolume(chi), audio_panning, audio_speed, objevt,
+                     &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
 }
 
 bool CharacterExtras::RunFrameEvent(CharacterInfo *chi, int view, int loop, int frame)
 {
     ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(chi, &ccDynamicCharacter));
-    return ::RunViewFrameEvent(view, loop, frame,
-        objevt, &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
+    return ::RunViewFrameEvent(view, loop, frame, objevt, &chi->GetEvents(), kCharacterEvent_OnFrameEvent);
 }
 
 void CharacterExtras::SetFollowing(CharacterInfo *chi, int follow_who, int distance, int eagerness, bool sort_behind)
@@ -165,7 +160,7 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
         if (inv_count > MAX_CHAR_INVENTORY)
             inventory.resize(MAX_CHAR_INVENTORY);
     }
-    
+
     width = in->ReadInt16();
     height = in->ReadInt16();
     zoom = in->ReadInt16();
@@ -206,7 +201,7 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
         follow_dist = 0;
         follow_eagerness = 0;
     }
-    
+
     if ((save_ver >= kCharSvgVersion_36310) && (save_ver < kCharSvgVersion_400 || save_ver >= kCharSvgVersion_400_28))
     {
         audio_speed = in->ReadInt32();
@@ -221,12 +216,12 @@ void CharacterExtras::ReadFromSavegame(CharacterInfo *chin, Stream *in, Characte
         // Reserved for colour options
         in->ReadInt32(); // colour flags
         // Reserved for transform options
-        in->ReadInt32(); // sprite transform flags1
-        in->ReadInt32(); // sprite transform flags2
-        in->ReadInt32(); // transform scale x
-        in->ReadInt32(); // transform scale y
-        in->ReadInt32(); // transform skew x
-        in->ReadInt32(); // transform skew y
+        in->ReadInt32();              // sprite transform flags1
+        in->ReadInt32();              // sprite transform flags2
+        in->ReadInt32();              // transform scale x
+        in->ReadInt32();              // transform scale y
+        in->ReadInt32();              // transform skew x
+        in->ReadInt32();              // transform skew y
         rotation = in->ReadFloat32(); // transform rotate
         float px = in->ReadFloat32(); // sprite pivot x
         float py = in->ReadFloat32(); // sprite pivot y
@@ -350,15 +345,15 @@ void CharacterExtras::WriteToSavegame(const CharacterInfo *chin, Stream *out) co
     // Reserved for colour options
     out->WriteInt32(0); // colour flags
     // Reserved for transform options
-    out->WriteInt32(0); // sprite transform flags1
-    out->WriteInt32(0); // sprite transform flags2
-    out->WriteInt32(0); // transform scale x
-    out->WriteInt32(0); // transform scale y
-    out->WriteInt32(0); // transform skew x
-    out->WriteInt32(0); // transform skew y
-    out->WriteFloat32(rotation); // transform rotate
-    out->WriteFloat32(pivot.X); // sprite pivot x
-    out->WriteFloat32(pivot.Y); // sprite pivot y
+    out->WriteInt32(0);              // sprite transform flags1
+    out->WriteInt32(0);              // sprite transform flags2
+    out->WriteInt32(0);              // transform scale x
+    out->WriteInt32(0);              // transform scale y
+    out->WriteInt32(0);              // transform skew x
+    out->WriteInt32(0);              // transform skew y
+    out->WriteFloat32(rotation);     // transform rotate
+    out->WriteFloat32(pivot.X);      // sprite pivot x
+    out->WriteFloat32(pivot.Y);      // sprite pivot y
     out->WriteFloat32(spr_anchor.X); // sprite anchor x
     out->WriteFloat32(spr_anchor.Y); // sprite anchor y
     // -- kCharSvgVersion_400_03

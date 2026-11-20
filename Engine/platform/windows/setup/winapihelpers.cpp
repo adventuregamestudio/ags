@@ -42,7 +42,7 @@ String GetText(HWND hwnd)
         SendMessageW(hwnd, WM_GETTEXT, len + 1, (LPARAM)buf);
         String s = Path::WidePathToUTF8(pbuf);
         if (pbuf != buf)
-            delete [] pbuf;
+            delete[] pbuf;
         return s;
     }
     return "";
@@ -246,7 +246,7 @@ void InsertTabButton(HWND hwnd, int index, const String &text)
 
 int GetSelectedTab(HWND hwnd)
 {
-    return SendMessage(hwnd, TCM_GETCURSEL, 0, 0);   
+    return SendMessage(hwnd, TCM_GETCURSEL, 0, 0);
 }
 
 //=============================================================================
@@ -270,12 +270,12 @@ bool BrowseForFolder(String &dir_buf)
     bool res = false;
     CoInitialize(NULL);
 
-    BROWSEINFO bi = { 0 };
+    BROWSEINFO bi = {0};
     bi.lpszTitle = "Select location for game saves and custom data files";
     bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_RETURNFSANCESTORS;
     bi.lpfn = BrowseCallbackProc;
     bi.lParam = (LPARAM)dir_buf.GetCStr();
-    LPITEMIDLIST pidl = SHBrowseForFolder ( &bi );
+    LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
     if (pidl)
     {
         WCHAR path[MAX_PATH_SZ];

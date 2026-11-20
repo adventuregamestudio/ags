@@ -27,7 +27,7 @@ const char *ScriptOverlay::GetType()
     return "Overlay";
 }
 
-int ScriptOverlay::Dispose(void* /*address*/, bool force)
+int ScriptOverlay::Dispose(void * /*address*/, bool force)
 {
     // since the managed object is being deleted, remove the
     // reference so it doesn't try and dispose something else
@@ -53,12 +53,12 @@ int ScriptOverlay::Dispose(void* /*address*/, bool force)
     return 1;
 }
 
-size_t ScriptOverlay::CalcSerializeSize(const void* /*address*/)
+size_t ScriptOverlay::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void ScriptOverlay::Serialize(const void* /*address*/, Stream *out)
+void ScriptOverlay::Serialize(const void * /*address*/, Stream *out)
 {
     out->WriteInt32(_overlayID);
 }

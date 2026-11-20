@@ -26,53 +26,52 @@ namespace AGS
 {
 namespace DataUtil
 {
-    using AGS::Common::AssetInfo;
-    using AGS::Common::AssetLibInfo;
-    using AGS::Common::HError;
-    using AGS::Common::Stream;
-    using AGS::Common::String;
-    using AGS::Common::StringIMap;
+using AGS::Common::AssetInfo;
+using AGS::Common::AssetLibInfo;
+using AGS::Common::HError;
+using AGS::Common::Stream;
+using AGS::Common::String;
+using AGS::Common::StringIMap;
 
-    // Exports assets from the library by reading its parts and writing assets into files.
-    // lib_dir - tells the directory where the library parts are located.
-    // The output files will be written into dst_dir directory.
-    // If the asset name contains directories, they will be created as sub-
-    // directories inside dst_dir.
-    HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir);
-    // Same as above, but allows to pass a functor used to filter assets.
-    HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir,
-        const std::function<bool(const String&)> &asset_filter);
-    // Gather a list of files from a given directory as a vector of relative filepaths
-    HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, bool do_subdirs);
-    // Create a map of asset-name -> file-path pairs from the list of filepaths based in the root directory.
-    // The asset-names will only contain directories if their input files are located in the nested subdirs inside the root dir.
-    void MakeAssetMapFromFileList(StringIMap &asset_map, const std::vector<String> &files, const String &asset_dir);
-    // Generate AssetLibInfo based on a map of assets, optionally limiting each
-    // library partition by part_size bytes.
-    // append_first param tells that the very first lib file is going to be
-    // appended to a existing file (makes a difference if part_size != 0).
-    HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile,
-        const StringIMap &asset_map, soff_t part_size = 0, bool append_first = false);
-    // Writes the library partition into the file lib_filename;
-    // recalculates asset offsets and stores in lib as it goes.
-    HError WriteLibraryFile(AssetLibInfo &lib, const StringIMap &asset_map,
-        const String &lib_filename, Common::MFLUtil::MFLVersion lib_version, int lib_index, bool append, bool verbose);
-    // Writes the potentially multi-file library into the dst_dir directory;
-    // recalculates asset offsets and stores in lib as it goes.
-    HError WriteLibrary(AssetLibInfo &lib, const StringIMap &asset_map,
-                        const String &dst_dir, Common::MFLUtil::MFLVersion lib_version,
-                        bool append_first, bool verbose);
-    // Tests that the given file is recognized as a asset library.
-    // Optionally compares read table of contents with the provided lib info.
-    HError TestLibraryFile(const String &lib_file, const AssetLibInfo *compare_lib);
+// Exports assets from the library by reading its parts and writing assets into files.
+// lib_dir - tells the directory where the library parts are located.
+// The output files will be written into dst_dir directory.
+// If the asset name contains directories, they will be created as sub-
+// directories inside dst_dir.
+HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir);
+// Same as above, but allows to pass a functor used to filter assets.
+HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir,
+                         const std::function<bool(const String &)> &asset_filter);
+// Gather a list of files from a given directory as a vector of relative filepaths
+HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, bool do_subdirs);
+// Create a map of asset-name -> file-path pairs from the list of filepaths based in the root directory.
+// The asset-names will only contain directories if their input files are located in the nested subdirs inside the root dir.
+void MakeAssetMapFromFileList(StringIMap &asset_map, const std::vector<String> &files, const String &asset_dir);
+// Generate AssetLibInfo based on a map of assets, optionally limiting each
+// library partition by part_size bytes.
+// append_first param tells that the very first lib file is going to be
+// appended to a existing file (makes a difference if part_size != 0).
+HError MakeAssetLib(AssetLibInfo &lib, const String &lib_basefile, const StringIMap &asset_map, soff_t part_size = 0,
+                    bool append_first = false);
+// Writes the library partition into the file lib_filename;
+// recalculates asset offsets and stores in lib as it goes.
+HError WriteLibraryFile(AssetLibInfo &lib, const StringIMap &asset_map, const String &lib_filename,
+                        Common::MFLUtil::MFLVersion lib_version, int lib_index, bool append, bool verbose);
+// Writes the potentially multi-file library into the dst_dir directory;
+// recalculates asset offsets and stores in lib as it goes.
+HError WriteLibrary(AssetLibInfo &lib, const StringIMap &asset_map, const String &dst_dir,
+                    Common::MFLUtil::MFLVersion lib_version, bool append_first, bool verbose);
+// Tests that the given file is recognized as a asset library.
+// Optionally compares read table of contents with the provided lib info.
+HError TestLibraryFile(const String &lib_file, const AssetLibInfo *compare_lib);
 
-    // A custom comparator used to search for AssetInfos by a name
-    struct AssetInfoComparator
-    {
-        const String Name;
-        AssetInfoComparator(const String &name) : Name(name) {}
-        bool operator() (const AssetInfo &info) const { return info.FileName.CompareNoCase(Name) == 0; }
-    };
+// A custom comparator used to search for AssetInfos by a name
+struct AssetInfoComparator
+{
+    const String Name;
+    AssetInfoComparator(const String &name) : Name(name) {}
+    bool operator()(const AssetInfo &info) const { return info.FileName.CompareNoCase(Name) == 0; }
+};
 
 } // namespace DataUtil
 } // namespace AGS

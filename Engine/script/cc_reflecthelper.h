@@ -35,7 +35,7 @@ public:
     // Helper struct for referencing a range of type's fields
     struct TypeFieldsRef
     {
-        uint32_t field_num = 0u; // number of fields, if any
+        uint32_t field_num = 0u;   // number of fields, if any
         uint32_t field_index = 0u; // first field index in the fields table
     };
 
@@ -47,7 +47,7 @@ public:
     // Returns a range of managed offsets (as a pair of [begin;end) iterators),
     // containing a list of managed fields offsets for the given type
     std::pair<std::vector<uint32_t>::const_iterator, std::vector<uint32_t>::const_iterator>
-        GetManagedOffsetsForType(uint32_t type_id) const;
+    GetManagedOffsetsForType(uint32_t type_id) const;
 
 private:
     // Quick-reference for the managed pointer fields in types
@@ -55,7 +55,7 @@ private:
     std::vector<uint32_t> _managedOffsets; // includes nested regular structs!
 };
 
-}
-}
+} // namespace Engine
+} // namespace AGS
 
 #endif // __AGS_EE_SCRIPT__REFLECTHELPER_H

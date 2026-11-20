@@ -70,7 +70,7 @@ private:
     int _lineNumber;
 };
 
-} // namespace AGF
+} // namespace DataUtil
 } // namespace AGS
 
 #endif // __AGS_TOOL_DATA__DIALOGSCRIPTCONV_H

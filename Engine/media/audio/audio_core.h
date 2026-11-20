@@ -27,8 +27,7 @@
 
 // AudioPlayerLock wraps a AudioPlayer pointer guarded by a mutex lock.
 // Unlocks the mutex on destruction (e.g. when going out of scope).
-typedef AGS::Engine::LockedObjectPtr<AGS::Engine::AudioPlayer>
-    AudioPlayerLock;
+typedef AGS::Engine::LockedObjectPtr<AGS::Engine::AudioPlayer> AudioPlayerLock;
 
 // Initializes audio core system;
 // starts polling on a background thread.

@@ -179,52 +179,52 @@ sync with 3.6.3.14
 
 enum GameDataVersion
 {
-    kGameVersion_Undefined      = 0,
+    kGameVersion_Undefined = 0,
     //-------------------------------------------------------------------------
     // Since 3.6.0 the format values are synced with engine version
-    kGameVersion_360_21         = 3060021,
-    kGameVersion_361            = 3060100,
-    kGameVersion_361_10         = 3060110,
-    kGameVersion_361_14         = 3060114,
-    kGameVersion_362            = 3060200,
-    kGameVersion_362_03         = 3060203,
-    kGameVersion_362_12         = 3060212,
-    kGameVersion_363            = 3060300,
-    kGameVersion_363_04         = 3060304,
-    kGameVersion_363_06         = 3060306,
-    kGameVersion_363_08         = 3060308,
-    kGameVersion_363_10         = 3060310,
-    kGameVersion_363_14         = 3060314,
-    kGameVersion_363_15         = 3060315,
-    kGameVersion_363_16         = 3060316,
+    kGameVersion_360_21 = 3060021,
+    kGameVersion_361 = 3060100,
+    kGameVersion_361_10 = 3060110,
+    kGameVersion_361_14 = 3060114,
+    kGameVersion_362 = 3060200,
+    kGameVersion_362_03 = 3060203,
+    kGameVersion_362_12 = 3060212,
+    kGameVersion_363 = 3060300,
+    kGameVersion_363_04 = 3060304,
+    kGameVersion_363_06 = 3060306,
+    kGameVersion_363_08 = 3060308,
+    kGameVersion_363_10 = 3060310,
+    kGameVersion_363_14 = 3060314,
+    kGameVersion_363_15 = 3060315,
+    kGameVersion_363_16 = 3060316,
     //-------------------------------------------------------------------------
     // Following 3.x version numbers were not saved in data, but are generated
     // by reading "Compiled With" field from the game file's header.
-    kGameVersion_351            = 3050100,
+    kGameVersion_351 = 3050100,
     //-------------------------------------------------------------------------
     // 4.x version numbers found in the game data
-    kGameVersion_399            = 3999999,
-    kGameVersion_400            = 4000000,
-    kGameVersion_400_08         = 4000008,
-    kGameVersion_400_09         = 4000009,
-    kGameVersion_400_10         = 4000010,
-    kGameVersion_400_11         = 4000011,
-    kGameVersion_400_13         = 4000013,
-    kGameVersion_400_14         = 4000014,
-    kGameVersion_400_16         = 4000016,
-    kGameVersion_400_20         = 4000020,
-    kGameVersion_400_24         = 4000024,
-    kGameVersion_400_26         = 4000026,
-    kGameVersion_400_27         = 4000027,
-    kGameVersion_400_29         = 4000029,
-    kGameVersion_400_33         = 4000033,
-    kGameVersion_LowSupported   = kGameVersion_360_21,
-    kGameVersion_Current        = kGameVersion_400_33,
+    kGameVersion_399 = 3999999,
+    kGameVersion_400 = 4000000,
+    kGameVersion_400_08 = 4000008,
+    kGameVersion_400_09 = 4000009,
+    kGameVersion_400_10 = 4000010,
+    kGameVersion_400_11 = 4000011,
+    kGameVersion_400_13 = 4000013,
+    kGameVersion_400_14 = 4000014,
+    kGameVersion_400_16 = 4000016,
+    kGameVersion_400_20 = 4000020,
+    kGameVersion_400_24 = 4000024,
+    kGameVersion_400_26 = 4000026,
+    kGameVersion_400_27 = 4000027,
+    kGameVersion_400_29 = 4000029,
+    kGameVersion_400_33 = 4000033,
+    kGameVersion_LowSupported = kGameVersion_360_21,
+    kGameVersion_Current = kGameVersion_400_33,
 
     //-------------------------------------------------------------------------
     // Following version numbers were not saved in data, but are generated
     // by reading "Compiled With" field from the game file's header.
-    kGameVersion_362_07         = 3060207
+    kGameVersion_362_07 = 3060207
 };
 
 #endif // __AGS_CN_AC__GAMEVERSION_H

@@ -18,89 +18,89 @@
 
 using namespace AGS::Common;
 
-int CCBasicObject::Dispose(void* /*address*/, bool /*force*/)
+int CCBasicObject::Dispose(void * /*address*/, bool /*force*/)
 {
     return 0; // cannot be removed from memory
 }
 
-int CCBasicObject::Serialize(void* /*address*/, uint8_t* /*buffer*/, int /*bufsize*/)
+int CCBasicObject::Serialize(void * /*address*/, uint8_t * /*buffer*/, int /*bufsize*/)
 {
     return 0; // does not save data
 }
 
-void CCBasicObject::RemapTypeids(void* /*address*/,
-    const std::unordered_map<uint32_t, uint32_t>& /*typeid_map*/)
+void CCBasicObject::RemapTypeids(void * /*address*/, const std::unordered_map<uint32_t, uint32_t> & /*typeid_map*/)
 {
     /* do nothing */
 }
 
-void CCBasicObject::TraverseRefs(void* /*address*/, PfnTraverseRefOp /*traverse_op*/)
+void CCBasicObject::TraverseRefs(void * /*address*/, PfnTraverseRefOp /*traverse_op*/)
 {
     /* do nothing */
 }
 
 void *CCBasicObject::GetFieldPtr(void *address, intptr_t offset)
 {
-    return static_cast<uint8_t*>(address) + offset;
+    return static_cast<uint8_t *>(address) + offset;
 }
 
 const void *CCBasicObject::GetFieldPtr(const void *address, intptr_t offset)
 {
-    return static_cast<const uint8_t*>(address) + offset;
+    return static_cast<const uint8_t *>(address) + offset;
 }
 
 void CCBasicObject::Read(const void *address, intptr_t offset, uint8_t *dest, size_t size)
 {
-    memcpy(dest, static_cast<const uint8_t*>(address) + offset, size);
+    memcpy(dest, static_cast<const uint8_t *>(address) + offset, size);
 }
 
 uint8_t CCBasicObject::ReadInt8(const void *address, intptr_t offset)
 {
-    return *(const uint8_t*)(static_cast<const uint8_t*>(address) + offset);
+    return *(const uint8_t *)(static_cast<const uint8_t *>(address) + offset);
 }
 
 int16_t CCBasicObject::ReadInt16(const void *address, intptr_t offset)
 {
-    return *(const int16_t*)(static_cast<const uint8_t*>(address) + offset);
+    return *(const int16_t *)(static_cast<const uint8_t *>(address) + offset);
 }
 
 int32_t CCBasicObject::ReadInt32(const void *address, intptr_t offset)
 {
-    return *(const int32_t*)(static_cast<const uint8_t*>(address) + offset);
+    return *(const int32_t *)(static_cast<const uint8_t *>(address) + offset);
 }
 
 float CCBasicObject::ReadFloat(const void *address, intptr_t offset)
 {
-    return *(const float*)(static_cast<const uint8_t*>(address) + offset);
+    return *(const float *)(static_cast<const uint8_t *>(address) + offset);
 }
 
 void CCBasicObject::Write(void *address, intptr_t offset, const uint8_t *src, size_t size)
 {
-    memcpy(static_cast<uint8_t*>(address) + offset, src, size);
+    memcpy(static_cast<uint8_t *>(address) + offset, src, size);
 }
 
 void CCBasicObject::WriteInt8(void *address, intptr_t offset, uint8_t val)
 {
-    *(uint8_t*)(static_cast<uint8_t*>(address) + offset) = val;
+    *(uint8_t *)(static_cast<uint8_t *>(address) + offset) = val;
 }
 
 void CCBasicObject::WriteInt16(void *address, intptr_t offset, int16_t val)
 {
-    *(int16_t*)(static_cast<uint8_t*>(address) + offset) = val;
+    *(int16_t *)(static_cast<uint8_t *>(address) + offset) = val;
 }
 
 void CCBasicObject::WriteInt32(void *address, intptr_t offset, int32_t val)
 {
-    *(int32_t*)(static_cast<uint8_t*>(address) + offset) = val;
+    *(int32_t *)(static_cast<uint8_t *>(address) + offset) = val;
 }
 
 void CCBasicObject::WriteFloat(void *address, intptr_t offset, float val)
 {
-    *(float*)(static_cast<uint8_t*>(address) + offset) = val;
+    *(float *)(static_cast<uint8_t *>(address) + offset) = val;
 }
 
 
-int AGSCCDynamicObject::Serialize(void *address, uint8_t *buffer, int bufsize) {
+int AGSCCDynamicObject::Serialize(void *address, uint8_t *buffer, int bufsize)
+{
     // If the required space is larger than the provided buffer,
     // then return negated required space, notifying the caller that a larger buffer is necessary
     size_t req_size = CalcSerializeSize(address);
@@ -108,7 +108,7 @@ int AGSCCDynamicObject::Serialize(void *address, uint8_t *buffer, int bufsize) {
     if (bufsize < 0 || req_size > static_cast<size_t>(bufsize))
         return -(static_cast<int32_t>(req_size));
 
-    Stream mems(std::make_unique<MemoryStream>(reinterpret_cast<uint8_t*>(buffer), bufsize, kStream_Write));
+    Stream mems(std::make_unique<MemoryStream>(reinterpret_cast<uint8_t *>(buffer), bufsize, kStream_Write));
     Serialize(address, &mems);
     return static_cast<int32_t>(mems.GetPosition());
 }

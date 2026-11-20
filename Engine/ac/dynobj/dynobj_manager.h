@@ -25,31 +25,41 @@
 #include "util/string.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // register a memory handle for the object and allow script pointers to point to it
 int32_t ccRegisterManagedObject(void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
 // register a new object and add a reference count
-int32_t ccRegisterManagedObjectAndRef(void *object, IScriptObject *callback, ScriptValueType obj_type = kScValScriptObject);
+int32_t ccRegisterManagedObjectAndRef(void *object, IScriptObject *callback,
+                                      ScriptValueType obj_type = kScValScriptObject);
 // register a new object and mark it persistent (always referenced by the engine)
-int32_t ccRegisterPersistentObject(void *object, IScriptObject *callback, ScriptValueType obj_type = kScValScriptObject);
+int32_t ccRegisterPersistentObject(void *object, IScriptObject *callback,
+                                   ScriptValueType obj_type = kScValScriptObject);
 // register a de-serialized object
-int32_t ccRegisterUnserializedObject(int handle, void *object, IScriptObject *, ScriptValueType obj_type = kScValScriptObject);
+int32_t ccRegisterUnserializedObject(int handle, void *object, IScriptObject *,
+                                     ScriptValueType obj_type = kScValScriptObject);
 // register a de-serialized object and mark it persistent (always referenced by the engine)
-int32_t ccRegisterUnserializedPersistentObject(int handle, void *object, IScriptObject *callback, ScriptValueType obj_type = kScValScriptObject);
+int32_t ccRegisterUnserializedPersistentObject(int handle, void *object, IScriptObject *callback,
+                                               ScriptValueType obj_type = kScValScriptObject);
 // register the object, unless it's already registered; returns its handle
 int32_t ccRegisterPersistentObjectIfMissing(void *object, IScriptObject *);
 // unregister a particular object
-int   ccUnRegisterManagedObject(void *object);
+int ccUnRegisterManagedObject(void *object);
 // remove all registered objects
-void  ccUnregisterAllObjects();
+void ccUnregisterAllObjects();
 // serialize all objects to disk
-void  ccSerializeAllObjects(Common::Stream *out);
+void ccSerializeAllObjects(Common::Stream *out);
 // un-serialise all objects (will remove all currently registered ones)
-int   ccUnserializeAllObjects(Common::Stream *in, ICCObjectCollectionReader *callback);
+int ccUnserializeAllObjects(Common::Stream *in, ICCObjectCollectionReader *callback);
 // dispose the object if RefCount==0
-void  ccAttemptDisposeObject(int32_t handle);
+void ccAttemptDisposeObject(int32_t handle);
 // translate between object handles and memory addresses
 int32_t ccGetObjectHandleFromAddress(void *address);
 void *ccGetObjectAddressFromHandle(int32_t handle);

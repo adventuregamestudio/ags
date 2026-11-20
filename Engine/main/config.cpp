@@ -71,8 +71,7 @@ WindowSetup parse_window_mode(const String &option, bool as_windowed, const Wind
     }
     else if (at != String::NoIndex)
     { // else try parse as a "width x height"
-        Size sz = Size(StrUtil::StringToInt(option.Mid(0, at)),
-            StrUtil::StringToInt(option.Mid(at + 1)));
+        Size sz = Size(StrUtil::StringToInt(option.Mid(0, at)), StrUtil::StringToInt(option.Mid(at + 1)));
         if (!sz.IsNull())
             return WindowSetup(sz, exp_wmode);
     }
@@ -83,22 +82,27 @@ WindowSetup parse_window_mode(const String &option, bool as_windowed, const Wind
 FrameScaleDef parse_scaling_option(const String &option, FrameScaleDef def_value)
 {
     // Backward compatible option name from the previous versions
-    if (option.CompareNoCase("max_round") == 0) return kFrame_Round;
-    return StrUtil::ParseEnum<FrameScaleDef>(option,
-        CstrArr<kNumFrameScaleDef>{"round", "stretch", "proportional"}, def_value);
+    if (option.CompareNoCase("max_round") == 0)
+        return kFrame_Round;
+    return StrUtil::ParseEnum<FrameScaleDef>(option, CstrArr<kNumFrameScaleDef>{"round", "stretch", "proportional"},
+                                             def_value);
 }
 
 SkipSpeechStyle parse_speechskip_style(const String &option, SkipSpeechStyle def_value)
 {
-    const std::array<std::pair<const char*, SkipSpeechStyle>, 4> skip_speech_arr {
-        { { "default", kSkipSpeechNone }, { "input", kSkipSpeech_AnyInput }, { "any", kSkipSpeech_AnyInputOrTime }, { "time", kSkipSpeechTime } } };
+    const std::array<std::pair<const char *, SkipSpeechStyle>, 4> skip_speech_arr{{{"default", kSkipSpeechNone},
+                                                                                   {"input", kSkipSpeech_AnyInput},
+                                                                                   {"any", kSkipSpeech_AnyInputOrTime},
+                                                                                   {"time", kSkipSpeechTime}}};
     return StrUtil::ParseEnumOptions<SkipSpeechStyle>(option, skip_speech_arr, def_value);
 }
 
 SpeechMode parse_speechmode(const String &option, SpeechMode def_value)
 {
-    const std::array<std::pair<const char*, SpeechMode>, 4> speechmode_arr{
-        { { "default", kSpeech_None }, { "text", kSpeech_TextOnly }, { "voice", kSpeech_VoiceOnly }, { "textvoice", kSpeech_VoiceText } } };
+    const std::array<std::pair<const char *, SpeechMode>, 4> speechmode_arr{{{"default", kSpeech_None},
+                                                                             {"text", kSpeech_TextOnly},
+                                                                             {"voice", kSpeech_VoiceOnly},
+                                                                             {"textvoice", kSpeech_VoiceText}}};
     return StrUtil::ParseEnumOptions<SpeechMode>(option, speechmode_arr, def_value);
 }
 
@@ -138,12 +142,9 @@ String make_scaling_option(FrameScaleDef scale_def)
 {
     switch (scale_def)
     {
-    case kFrame_Stretch:
-        return "stretch";
-    case kFrame_Proportional:
-        return "proportional";
-    default:
-        return "round";
+    case kFrame_Stretch: return "stretch";
+    case kFrame_Proportional: return "proportional";
+    default: return "round";
     }
 }
 
@@ -233,7 +234,6 @@ void override_config_ext(ConfigTree &cfg)
 
 void load_common_config(const ConfigTree &cfg, GameConfig &setup)
 {
-
     // Graphics mode and options
     setup.Display.DriverID = CfgReadString(cfg, "graphics", "driver", setup.Display.DriverID);
     const int user_display_index = CfgReadInt(cfg, "graphics", "display", 0);
@@ -241,15 +241,13 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup)
     setup.Display.DisplayIndex = user_display_index <= 0 ? 0 : user_display_index - 1;
     setup.Display.Windowed = CfgReadBoolInt(cfg, "graphics", "windowed", setup.Display.Windowed);
     setup.Display.FsSetup =
-        parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false,
-            setup.Display.FsSetup);
+        parse_window_mode(CfgReadString(cfg, "graphics", "fullscreen", "default"), false, setup.Display.FsSetup);
     setup.Display.WinSetup =
-        parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true,
-            setup.Display.WinSetup);
+        parse_window_mode(CfgReadString(cfg, "graphics", "window", "default"), true, setup.Display.WinSetup);
 
     setup.Display.Filter.ID = CfgReadString(cfg, "graphics", "filter", "StdScale");
-    setup.Display.FsGameFrame =
-        parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs", "proportional"), setup.Display.FsGameFrame);
+    setup.Display.FsGameFrame = parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_fs", "proportional"),
+                                                     setup.Display.FsGameFrame);
     setup.Display.WinGameFrame =
         parse_scaling_option(CfgReadString(cfg, "graphics", "game_scale_win", "round"), setup.Display.WinGameFrame);
 
@@ -261,8 +259,7 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup)
 
     String rotation_str = CfgReadString(cfg, "graphics", "rotation", "unlocked");
     setup.Rotation = StrUtil::ParseEnum<ScreenRotation>(
-            rotation_str, CstrArr<kNumScreenRotationOptions>{ "unlocked", "portrait", "landscape" },
-            setup.Rotation);
+        rotation_str, CstrArr<kNumScreenRotationOptions>{"unlocked", "portrait", "landscape"}, setup.Rotation);
 
     // Audio options
     setup.AudioEnabled = CfgReadBoolInt(cfg, "sound", "enabled", setup.AudioEnabled);
@@ -279,7 +276,7 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup)
     // Touch options
     setup.TouchEmulateMouse = StrUtil::ParseEnum<TouchMouseEmulation>(
         CfgReadString(cfg, "touch", "emul_mouse_mode", "one_finger"),
-        CstrArr<kNumTouchMouseModes>{ "off", "one_finger", "two_fingers" }, setup.TouchEmulateMouse);
+        CstrArr<kNumTouchMouseModes>{"off", "one_finger", "two_fingers"}, setup.TouchEmulateMouse);
     setup.TouchMotionRelative = CfgReadBoolInt(cfg, "touch", "emul_mouse_relative");
     setup.MouseEmulateTouch = CfgReadBoolInt(cfg, "touch", "mouse_as_touch", setup.MouseEmulateTouch);
 
@@ -292,25 +289,22 @@ void load_common_config(const ConfigTree &cfg, GameConfig &setup)
 
     // Resource caches and options
     // Clamp the values to the max supported for this platform
-    setup.SpriteCacheSize = std::min<uint64_t>(
-        CfgReadUInt64(cfg, "graphics", "sprite_cache_size", setup.SpriteCacheSize),
-        SIZE_MAX / 1024);
+    setup.SpriteCacheSize =
+        std::min<uint64_t>(CfgReadUInt64(cfg, "graphics", "sprite_cache_size", setup.SpriteCacheSize), SIZE_MAX / 1024);
     setup.TextureCacheSize = std::min<uint64_t>(
-        CfgReadUInt64(cfg, "graphics", "texture_cache_size", setup.TextureCacheSize),
-        SIZE_MAX / 1024);
-    setup.SoundCacheSize = std::min<uint64_t>(
-        CfgReadUInt64(cfg, "sound", "cache_size", setup.SoundCacheSize),
-        SIZE_MAX / 1024);
-    setup.SoundLoadAtOnceSize = std::min<uint64_t>(
-        CfgReadUInt64(cfg, "sound", "stream_threshold", setup.SoundLoadAtOnceSize),
-        SIZE_MAX / 1024);
+        CfgReadUInt64(cfg, "graphics", "texture_cache_size", setup.TextureCacheSize), SIZE_MAX / 1024);
+    setup.SoundCacheSize =
+        std::min<uint64_t>(CfgReadUInt64(cfg, "sound", "cache_size", setup.SoundCacheSize), SIZE_MAX / 1024);
+    setup.SoundLoadAtOnceSize =
+        std::min<uint64_t>(CfgReadUInt64(cfg, "sound", "stream_threshold", setup.SoundLoadAtOnceSize), SIZE_MAX / 1024);
 
     // Various system options
     setup.LoadLatestSave = CfgReadBoolInt(cfg, "misc", "load_latest_save", setup.LoadLatestSave);
     setup.CompressSaves = CfgReadBoolInt(cfg, "misc", "compress_saves", setup.CompressSaves);
     setup.RunInBackground = CfgReadInt(cfg, "misc", "background", 0) != 0;
     setup.ShowFps = CfgReadBoolInt(cfg, "misc", "show_fps");
-    setup.ClearCacheOnRoomChange = CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", setup.ClearCacheOnRoomChange);
+    setup.ClearCacheOnRoomChange =
+        CfgReadBoolInt(cfg, "misc", "clear_cache_on_room_change", setup.ClearCacheOnRoomChange);
 
     // Accessibility settings
     setup.Access.SpeechSkipStyle = parse_speechskip_style(CfgReadString(cfg, "access", "speechskip"));
@@ -331,19 +325,19 @@ void apply_config(const ConfigTree &cfg, GameSetup &setup)
     // Mouse control options
     String mouse_str = CfgReadString(cfg, "mouse", "control_when", "fullscreen");
     setup.MouseCtrlWhen = StrUtil::ParseEnum<MouseControlWhen>(
-        mouse_str, CstrArr<kNumMouseCtrlOptions>{ "never", "fullscreen", "always" },
-            setup.MouseCtrlWhen);
+        mouse_str, CstrArr<kNumMouseCtrlOptions>{"never", "fullscreen", "always"}, setup.MouseCtrlWhen);
     setup.MouseCtrlEnabled = CfgReadBoolInt(cfg, "mouse", "control_enabled", setup.MouseCtrlEnabled);
     mouse_str = CfgReadString(cfg, "mouse", "speed_def", "current_display");
     setup.MouseSpeedDef = StrUtil::ParseEnum<MouseSpeedDefinition>(
-        mouse_str, CstrArr<kNumMouseSpeedDefs>{ "absolute", "current_display" }, setup.MouseSpeedDef);
+        mouse_str, CstrArr<kNumMouseSpeedDefs>{"absolute", "current_display"}, setup.MouseSpeedDef);
 
     // User's overrides and hacks
     setup.Override.Multitasking = CfgReadInt(cfg, "override", "multitasking", -1);
     setup.Override.NoPlugins = CfgReadBoolInt(cfg, "override", "noplugins", false);
     String override_os = CfgReadString(cfg, "override", "os");
-    setup.Override.ScriptOS = StrUtil::ParseEnum<eScriptSystemOSID>(override_os,
-        CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"}, eOS_Unknown);
+    setup.Override.ScriptOS = StrUtil::ParseEnum<eScriptSystemOSID>(
+        override_os, CstrArr<eNumOS>{"", "dos", "win", "linux", "mac", "android", "ios", "psp", "web", "freebsd"},
+        eOS_Unknown);
     setup.Override.KeySaveGame = CfgReadInt(cfg, "override", "save_game_key", 0);
     setup.Override.KeyRestoreGame = CfgReadInt(cfg, "override", "restore_game_key", 0);
     setup.Override.MaxSaveSlot = CfgReadInt(cfg, "override", "max_save", 0);
@@ -358,7 +352,8 @@ void apply_config(const ConfigTree &cfg, GameSetup &setup)
         const auto &rbo_opts = cfg.at("override_behavior");
         for (const auto &opt : rbo_opts)
         {
-            setup.BehaviorOverrides[StrUtil::ParseEnum(opt.first, names, kRBS_Dummy)] = StrUtil::StringToInt(opt.second, 0);
+            setup.BehaviorOverrides[StrUtil::ParseEnum(opt.first, names, kRBS_Dummy)] =
+                StrUtil::StringToInt(opt.second, 0);
         }
     }
 
@@ -386,8 +381,7 @@ void save_common_config(const GameConfig &setup, ConfigTree &cfg)
     CfgWriteBoolInt(cfg, "misc", "compress_saves", setup.CompressSaves);
 
     CfgWriteString(cfg, "graphics", "driver", setup.Display.DriverID);
-    CfgWriteInt(cfg, "graphics", "display", (setup.Display.UseDefaultDisplay) ?
-        0 : setup.Display.DisplayIndex + 1);
+    CfgWriteInt(cfg, "graphics", "display", (setup.Display.UseDefaultDisplay) ? 0 : setup.Display.DisplayIndex + 1);
     CfgWriteString(cfg, "graphics", "filter", setup.Display.Filter.ID);
     CfgWriteString(cfg, "graphics", "fullscreen", make_window_mode_option(setup.Display.FsSetup));
     CfgWriteString(cfg, "graphics", "window", make_window_mode_option(setup.Display.WinSetup));

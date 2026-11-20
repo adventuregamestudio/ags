@@ -47,13 +47,13 @@ ScriptDictBase *Dict_CreateImpl(ScriptSortStyle sort_style, ScriptStringComparis
     if (sorted)
     {
         if (case_sensitive)
-            dic = locale_aware ?
-            (ScriptDictBase*)new ScriptDictLocaleAware(LexographicalStrLess(play.GetTextLocaleName().GetCStr()))
-            : new ScriptDict();
+            dic = locale_aware ? (ScriptDictBase *)new ScriptDictLocaleAware(
+                                     LexographicalStrLess(play.GetTextLocaleName().GetCStr()))
+                               : new ScriptDict();
         else
-            dic = locale_aware ?
-            (ScriptDictBase*)new ScriptDictLocaleAwareCI(LexographicalStrLessNoCase(play.GetTextLocaleName().GetCStr()))
-            : new ScriptDictUtf8CI();
+            dic = locale_aware ? (ScriptDictBase *)new ScriptDictLocaleAwareCI(
+                                     LexographicalStrLessNoCase(play.GetTextLocaleName().GetCStr()))
+                               : new ScriptDictUtf8CI();
     }
     else
     {
@@ -67,7 +67,8 @@ ScriptDictBase *Dict_CreateImpl(ScriptSortStyle sort_style, ScriptStringComparis
 
 ScriptDictBase *Dict_Create(int sort_style, int compare_style)
 {
-    ScriptDictBase *dic = Dict_CreateImpl(ValidateSortStyle("Dictionary.Create", sort_style), ValidateStringComparison("Dictionary.Create", compare_style));
+    ScriptDictBase *dic = Dict_CreateImpl(ValidateSortStyle("Dictionary.Create", sort_style),
+                                          ValidateStringComparison("Dictionary.Create", compare_style));
     ccRegisterManagedObject(dic, dic);
     return dic;
 }
@@ -79,7 +80,8 @@ ScriptDictBase *Dict_Unserialize(int index, AGS::Common::Stream *in, size_t data
         quit("Dict_Unserialize: not enough data."); // TODO: don't quit, return error
     const int sort_style = in->ReadInt32();
     const int compare_style = in->ReadInt32();
-    ScriptDictBase *dic = Dict_CreateImpl(static_cast<ScriptSortStyle>(sort_style), static_cast<ScriptStringComparison>(compare_style));
+    ScriptDictBase *dic =
+        Dict_CreateImpl(static_cast<ScriptSortStyle>(sort_style), static_cast<ScriptStringComparison>(compare_style));
     dic->Unserialize(index, in, data_sz - sizeof(int32_t) * 2);
     return dic;
 }
@@ -127,7 +129,7 @@ int Dict_GetItemCount(ScriptDictBase *dic)
 
 void *Dict_GetKeysAsArray(ScriptDictBase *dic)
 {
-    std::vector<const char*> items;
+    std::vector<const char *> items;
     dic->GetKeys(items);
     if (items.size() == 0)
         return nullptr;
@@ -137,7 +139,7 @@ void *Dict_GetKeysAsArray(ScriptDictBase *dic)
 
 void *Dict_GetValuesAsArray(ScriptDictBase *dic)
 {
-    std::vector<const char*> items;
+    std::vector<const char *> items;
     dic->GetValues(items);
     if (items.size() == 0)
         return nullptr;
@@ -219,13 +221,13 @@ ScriptSetBase *Set_CreateImpl(ScriptSortStyle sort_style, ScriptStringComparison
     if (sorted)
     {
         if (case_sensitive)
-            set = locale_aware ?
-            (ScriptSetBase*)new ScriptSetLocaleAware(LexographicalStrLess(play.GetTextLocaleName().GetCStr()))
-            : new ScriptSet();
+            set = locale_aware ? (ScriptSetBase *)new ScriptSetLocaleAware(
+                                     LexographicalStrLess(play.GetTextLocaleName().GetCStr()))
+                               : new ScriptSet();
         else
-            set = locale_aware ?
-            (ScriptSetBase*)new ScriptSetLocaleAwareCI(LexographicalStrLessNoCase(play.GetTextLocaleName().GetCStr()))
-            : new ScriptSetUtf8CI();
+            set = locale_aware ? (ScriptSetBase *)new ScriptSetLocaleAwareCI(
+                                     LexographicalStrLessNoCase(play.GetTextLocaleName().GetCStr()))
+                               : new ScriptSetUtf8CI();
     }
     else
     {
@@ -239,7 +241,8 @@ ScriptSetBase *Set_CreateImpl(ScriptSortStyle sort_style, ScriptStringComparison
 
 ScriptSetBase *Set_Create(int sort_style, int compare_style)
 {
-    ScriptSetBase *set = Set_CreateImpl(ValidateSortStyle("Set.Create", sort_style), ValidateStringComparison("Set.Create", compare_style));
+    ScriptSetBase *set = Set_CreateImpl(ValidateSortStyle("Set.Create", sort_style),
+                                        ValidateStringComparison("Set.Create", compare_style));
     ccRegisterManagedObject(set, set);
     return set;
 }
@@ -251,7 +254,8 @@ ScriptSetBase *Set_Unserialize(int index, AGS::Common::Stream *in, size_t data_s
         quit("Set_Unserialize: not enough data."); // TODO: don't quit, return error
     const int sort_style = in->ReadInt32();
     const int compare_style = in->ReadInt32();
-    ScriptSetBase *set = Set_CreateImpl(static_cast<ScriptSortStyle>(sort_style), static_cast<ScriptStringComparison>(compare_style));
+    ScriptSetBase *set =
+        Set_CreateImpl(static_cast<ScriptSortStyle>(sort_style), static_cast<ScriptStringComparison>(compare_style));
     set->Unserialize(index, in, data_sz - sizeof(int32_t) * 2);
     return set;
 }
@@ -293,7 +297,7 @@ int Set_GetItemCount(ScriptSetBase *set)
 
 void *Set_GetItemsAsArray(ScriptSetBase *set)
 {
-    std::vector<const char*> items;
+    std::vector<const char *> items;
     set->GetItems(items);
     if (items.size() == 0)
         return nullptr;
@@ -347,32 +351,31 @@ RuntimeScriptValue Sc_Set_GetItemsAsArray(void *self, const RuntimeScriptValue *
 }
 
 
-
 void RegisterContainerAPI()
 {
     ScFnRegister container_api[] = {
         // Dictionary
-        { "Dictionary::Create",         API_FN_PAIR(Dict_Create) },
-        { "Dictionary::Clear",          API_FN_PAIR(Dict_Clear) },
-        { "Dictionary::Contains",       API_FN_PAIR(Dict_Contains) },
-        { "Dictionary::Get",            API_FN_PAIR(Dict_Get) },
-        { "Dictionary::Remove",         API_FN_PAIR(Dict_Remove) },
-        { "Dictionary::Set",            API_FN_PAIR(Dict_Set) },
-        { "Dictionary::get_CompareStyle", API_FN_PAIR(Dict_GetCompareStyle) },
-        { "Dictionary::get_SortStyle",  API_FN_PAIR(Dict_GetSortStyle) },
-        { "Dictionary::get_ItemCount",  API_FN_PAIR(Dict_GetItemCount) },
-        { "Dictionary::GetKeysAsArray", API_FN_PAIR(Dict_GetKeysAsArray) },
-        { "Dictionary::GetValuesAsArray", API_FN_PAIR(Dict_GetValuesAsArray) },
+        {"Dictionary::Create", API_FN_PAIR(Dict_Create)},
+        {"Dictionary::Clear", API_FN_PAIR(Dict_Clear)},
+        {"Dictionary::Contains", API_FN_PAIR(Dict_Contains)},
+        {"Dictionary::Get", API_FN_PAIR(Dict_Get)},
+        {"Dictionary::Remove", API_FN_PAIR(Dict_Remove)},
+        {"Dictionary::Set", API_FN_PAIR(Dict_Set)},
+        {"Dictionary::get_CompareStyle", API_FN_PAIR(Dict_GetCompareStyle)},
+        {"Dictionary::get_SortStyle", API_FN_PAIR(Dict_GetSortStyle)},
+        {"Dictionary::get_ItemCount", API_FN_PAIR(Dict_GetItemCount)},
+        {"Dictionary::GetKeysAsArray", API_FN_PAIR(Dict_GetKeysAsArray)},
+        {"Dictionary::GetValuesAsArray", API_FN_PAIR(Dict_GetValuesAsArray)},
         // Set
-        { "Set::Create",                API_FN_PAIR(Set_Create) },
-        { "Set::Add",                   API_FN_PAIR(Set_Add) },
-        { "Set::Clear",                 API_FN_PAIR(Set_Clear) },
-        { "Set::Contains",              API_FN_PAIR(Set_Contains) },
-        { "Set::Remove",                API_FN_PAIR(Set_Remove) },
-        { "Set::get_CompareStyle",      API_FN_PAIR(Set_GetCompareStyle) },
-        { "Set::get_SortStyle",         API_FN_PAIR(Set_GetSortStyle) },
-        { "Set::get_ItemCount",         API_FN_PAIR(Set_GetItemCount) },
-        { "Set::GetItemsAsArray",       API_FN_PAIR(Set_GetItemsAsArray) },
+        {"Set::Create", API_FN_PAIR(Set_Create)},
+        {"Set::Add", API_FN_PAIR(Set_Add)},
+        {"Set::Clear", API_FN_PAIR(Set_Clear)},
+        {"Set::Contains", API_FN_PAIR(Set_Contains)},
+        {"Set::Remove", API_FN_PAIR(Set_Remove)},
+        {"Set::get_CompareStyle", API_FN_PAIR(Set_GetCompareStyle)},
+        {"Set::get_SortStyle", API_FN_PAIR(Set_GetSortStyle)},
+        {"Set::get_ItemCount", API_FN_PAIR(Set_GetItemCount)},
+        {"Set::GetItemsAsArray", API_FN_PAIR(Set_GetItemsAsArray)},
     };
 
     ccAddExternalFunctions(container_api);

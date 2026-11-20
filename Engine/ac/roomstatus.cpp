@@ -72,9 +72,7 @@ RoomStatus::RoomStatus()
     memset(&walkbehind_base, 0, sizeof(walkbehind_base));
 }
 
-RoomStatus::~RoomStatus()
-{
-}
+RoomStatus::~RoomStatus() {}
 
 void RoomStatus::FreeScriptData()
 {
@@ -265,7 +263,7 @@ void RoomStatus::WriteToSavegame(Stream *out) const
 
 std::unique_ptr<RoomStatus> room_statuses[MAX_ROOMS];
 
-RoomStatus* GetRoomState(int room)
+RoomStatus *GetRoomState(int room)
 {
     if (room < 0 || room >= MAX_ROOMS)
         return nullptr;

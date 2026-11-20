@@ -98,14 +98,11 @@ namespace AGS
 namespace Engine
 {
 
-const String SavegameSource::Signature       = "Adventure Game Studio saved game v2";
+const String SavegameSource::Signature = "Adventure Game Studio saved game v2";
 // Size of the "windows vista rich game media header" feature, in bytes
 const size_t LegacyRichHeaderSize = (6 * sizeof(int32_t)) + 16 + (1024 * sizeof(int16_t) * 4);
 
-SavegameSource::SavegameSource()
-    : Version(kSvgVersion_Undefined)
-{
-}
+SavegameSource::SavegameSource() : Version(kSvgVersion_Undefined) {}
 
 SavegameDescription::SavegameDescription(const SavegameDescription &desc)
 {
@@ -123,10 +120,7 @@ SavegameDescription::SavegameDescription(const SavegameDescription &desc)
         UserImage.reset(BitmapHelper::CreateBitmapCopy(desc.UserImage.get()));
 }
 
-RestoredData::RestoredData()
-    : FPS(0)
-    , CursorID(0)
-    , CursorMode(0)
+RestoredData::RestoredData() : FPS(0), CursorID(0), CursorMode(0)
 {
     memset(RoomLightLevels, 0, sizeof(RoomLightLevels));
     memset(RoomTintLevels, 0, sizeof(RoomTintLevels));
@@ -138,54 +132,30 @@ String GetSavegameErrorText(SavegameErrorType err)
 {
     switch (err)
     {
-    case kSvgErr_NoError:
-        return "No error.";
-    case kSvgErr_FileOpenFailed:
-        return "File not found or could not be opened.";
-    case kSvgErr_SignatureFailed:
-        return "Not an AGS saved game or unsupported format.";
-    case kSvgErr_FormatVersionNotSupported:
-        return "Save format version not supported.";
-    case kSvgErr_IncompatibleEngine:
-        return "Save was written by incompatible engine, or file is corrupted.";
-    case kSvgErr_GameGuidMismatch:
-        return "Game GUID does not match, saved by a different game.";
-    case kSvgErr_ComponentListOpeningTagFormat:
-        return "Failed to parse opening tag of the components list.";
-    case kSvgErr_ComponentListClosingTagMissing:
-        return "Closing tag of the components list was not met.";
-    case kSvgErr_ComponentOpeningTagFormat:
-        return "Failed to parse opening component tag.";
-    case kSvgErr_ComponentClosingTagFormat:
-        return "Failed to parse closing component tag.";
-    case kSvgErr_ComponentSizeMismatch:
-        return "Component data size mismatch.";
-    case kSvgErr_UnsupportedComponent:
-        return "Unknown and/or unsupported component.";
-    case kSvgErr_ComponentSerialization:
-        return "Failed to write the savegame component.";
-    case kSvgErr_ComponentUnserialization:
-        return "Failed to restore the savegame component.";
-    case kSvgErr_InconsistentFormat:
-        return "Inconsistent format, or file is corrupted.";
-    case kSvgErr_UnsupportedComponentVersion:
-        return "Component data version not supported.";
-    case kSvgErr_GameContentAssertion:
-        return "Saved content does not match current game.";
-    case kSvgErr_InconsistentData:
-        return "Inconsistent save data, or file is corrupted.";
-    case kSvgErr_InconsistentPlugin:
-        return "One of the game plugins did not restore its game data correctly.";
-    case kSvgErr_DifferentColorDepth:
-        return "Saved with the engine running at a different colour depth.";
-    case kSvgErr_GameObjectInitFailed:
-        return "Game object initialization failed after save restoration.";
-    case kSvgErr_ComponentUncompressedSizeMismatch:
-        return "Uncompressed component data size mismatch.";
-    case kSvgErr_InternalError:
-        return "Internal program error.";
-    default:
-        return "Unknown error.";
+    case kSvgErr_NoError: return "No error.";
+    case kSvgErr_FileOpenFailed: return "File not found or could not be opened.";
+    case kSvgErr_SignatureFailed: return "Not an AGS saved game or unsupported format.";
+    case kSvgErr_FormatVersionNotSupported: return "Save format version not supported.";
+    case kSvgErr_IncompatibleEngine: return "Save was written by incompatible engine, or file is corrupted.";
+    case kSvgErr_GameGuidMismatch: return "Game GUID does not match, saved by a different game.";
+    case kSvgErr_ComponentListOpeningTagFormat: return "Failed to parse opening tag of the components list.";
+    case kSvgErr_ComponentListClosingTagMissing: return "Closing tag of the components list was not met.";
+    case kSvgErr_ComponentOpeningTagFormat: return "Failed to parse opening component tag.";
+    case kSvgErr_ComponentClosingTagFormat: return "Failed to parse closing component tag.";
+    case kSvgErr_ComponentSizeMismatch: return "Component data size mismatch.";
+    case kSvgErr_UnsupportedComponent: return "Unknown and/or unsupported component.";
+    case kSvgErr_ComponentSerialization: return "Failed to write the savegame component.";
+    case kSvgErr_ComponentUnserialization: return "Failed to restore the savegame component.";
+    case kSvgErr_InconsistentFormat: return "Inconsistent format, or file is corrupted.";
+    case kSvgErr_UnsupportedComponentVersion: return "Component data version not supported.";
+    case kSvgErr_GameContentAssertion: return "Saved content does not match current game.";
+    case kSvgErr_InconsistentData: return "Inconsistent save data, or file is corrupted.";
+    case kSvgErr_InconsistentPlugin: return "One of the game plugins did not restore its game data correctly.";
+    case kSvgErr_DifferentColorDepth: return "Saved with the engine running at a different colour depth.";
+    case kSvgErr_GameObjectInitFailed: return "Game object initialization failed after save restoration.";
+    case kSvgErr_ComponentUncompressedSizeMismatch: return "Uncompressed component data size mismatch.";
+    case kSvgErr_InternalError: return "Internal program error.";
+    default: return "Unknown error.";
     }
 }
 
@@ -208,7 +178,7 @@ Bitmap *ReadBitmap(Stream *in, bool compressed)
     else
     {
         PixelOp::ReadPixelData(in, thispic->GetDataForWriting(), thispic->GetWidth(), thispic->GetHeight(),
-            thispic->GetBPP(), thispic->GetPitch());
+                               thispic->GetBPP(), thispic->GetPitch());
     }
 
     return thispic;
@@ -280,11 +250,11 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
 {
     svg_ver = (SavegameVersion)in->ReadInt32();
     if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_Current)
-        return new SavegameError(kSvgErr_FormatVersionNotSupported,
-            "Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current);
+        return new SavegameError(kSvgErr_FormatVersionNotSupported, "Required: %d, supported: %d - %d.", svg_ver,
+                                 kSvgVersion_LowestSupported, kSvgVersion_Current);
 
-    const bool has_fileformat = (svg_ver >= kSvgVersion_363 && svg_ver < kSvgVersion_399)
-        || (svg_ver >= kSvgVersion_400_18);
+    const bool has_fileformat =
+        (svg_ver >= kSvgVersion_363 && svg_ver < kSvgVersion_399) || (svg_ver >= kSvgVersion_400_18);
 
     // File format info
     if (has_fileformat)
@@ -322,8 +292,7 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
     soff_t user_desc_pos = in->GetPosition();
     if (svg_ver >= kSvgVersion_351)
     {
-        user_desc_pos = (desc.Format.UserDescOffset > 0u) ?
-            desc.Format.UserDescOffset : (env_info_pos + env_info_size);
+        user_desc_pos = (desc.Format.UserDescOffset > 0u) ? desc.Format.UserDescOffset : (env_info_pos + env_info_size);
         in->Seek(user_desc_pos, kSeekBegin);
     }
 
@@ -368,7 +337,8 @@ SavegameVersion CheckSaveSignature(Stream *in)
     return kSvgVersion_Undefined;
 }
 
-HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc, SavegameDescElem elems)
+HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc,
+                            SavegameDescElem elems)
 {
     UStream in(File::OpenFileRead(filename));
     if (!in.get())
@@ -540,7 +510,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
     const int cf_out_chan = play.crossfading_out_channel;
     play.crossfading_in_channel = 0;
     play.crossfading_out_channel = 0;
-    
+
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
         const RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
@@ -552,12 +522,15 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
             if ((size_t)chan_info.ClipID >= game.audioClips.size())
             {
                 return new SavegameError(kSvgErr_GameObjectInitFailed,
-                                         "Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID, game.audioClips.size());
+                                         "Invalid audio clip index: %d (clip count: %zu).", chan_info.ClipID,
+                                         game.audioClips.size());
             }
 
-            int audio_type = chan_info.AudioType != AUDIOTYPE_UNDEFINED ? chan_info.AudioType : game.audioClips[chan_info.ClipID].type;
-            play_audio_clip(AudioPlayback(&game.audioClips[chan_info.ClipID], audio_type), i,
-                chan_info.Priority, chan_info.Repeat, chan_info.Pos, true /* HACK: pass "queue" to avoid deleting existing queue */);
+            int audio_type = chan_info.AudioType != AUDIOTYPE_UNDEFINED ? chan_info.AudioType
+                                                                        : game.audioClips[chan_info.ClipID].type;
+            play_audio_clip(AudioPlayback(&game.audioClips[chan_info.ClipID], audio_type), i, chan_info.Priority,
+                            chan_info.Repeat, chan_info.Pos,
+                            true /* HACK: pass "queue" to avoid deleting existing queue */);
         }
         else
         {
@@ -566,7 +539,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
                 play_sound_on_channel(std::move(sound), i, chan_info.Priority, chan_info.Repeat, chan_info.Pos);
         }
 
-        auto* ch = AudioChans::GetChannel(i);
+        auto *ch = AudioChans::GetChannel(i);
         if (ch != nullptr)
         {
             ch->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
@@ -589,14 +562,14 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
     // different channels will have thrown them out of sync, so re-time it
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
-        auto* ch = AudioChans::GetChannelIfPlaying(i);
+        auto *ch = AudioChans::GetChannelIfPlaying(i);
         int pos = r_data.AudioChans[i].Pos;
         if ((pos > 0) && (ch != nullptr))
         {
             ch->seek(pos);
         }
     }
- 
+
     update_directional_sound_vol();
     return HSaveError::None();
 }
@@ -630,7 +603,8 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
         view->SetShader(view_dat.ShaderID, view_dat.ShaderHandle);
         // Restore camera link
         int cam_index = view_dat.CamID;
-        if (cam_index < 0) continue;
+        if (cam_index < 0)
+            continue;
         auto cam = play.GetRoomCamera(cam_index);
         view->LinkCamera(cam);
         cam->LinkToViewport(view);
@@ -653,7 +627,7 @@ static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedPar
 // Used in a call to ccTraverseManagedObjects.
 static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 {
-    ScriptDynamicSprite *dspr = static_cast<ScriptDynamicSprite*>(obj);
+    ScriptDynamicSprite *dspr = static_cast<ScriptDynamicSprite *>(obj);
     if (dspr->slot < 0 || static_cast<uint32_t>(dspr->slot) >= game.SpriteInfos.size() ||
         !game.SpriteInfos[dspr->slot].IsDynamicSprite())
     {
@@ -662,16 +636,16 @@ static void ValidateDynamicSprite(int handle, IScriptObject *obj)
 }
 
 // Call a scripting event to let user validate the restored save
-static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, const RestoredData &r_data, SaveRestoreFeedback &feedback)
+static HSaveError ValidateRestoredSave(const SavegameDescription &save_desc, const RestoredData &r_data,
+                                       SaveRestoreFeedback &feedback)
 {
     auto *saveinfo = new ScriptRestoredSaveInfo(
-        (SaveRestorationFlags)(r_data.Result.RestoreFlags & kSaveRestore_ResultMask),
-        save_desc, r_data.DataCounts,
+        (SaveRestorationFlags)(r_data.Result.RestoreFlags & kSaveRestore_ResultMask), save_desc, r_data.DataCounts,
         (r_data.Result.RestoreFlags & kSaveRestore_MismatchMask) != 0);
     int handle = ccRegisterManagedObject(saveinfo, saveinfo);
     ccAddObjectReference(handle); // add internal ref
 
-    RuntimeScriptValue params[1] = { RuntimeScriptValue().SetScriptObject(saveinfo, saveinfo) };
+    RuntimeScriptValue params[1] = {RuntimeScriptValue().SetScriptObject(saveinfo, saveinfo)};
     RunScriptFunctionInModules("validate_restored_save", 1, params); // TODO: run in room script too?
 
     const bool do_cancel = saveinfo->GetCancel();
@@ -822,7 +796,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
             }
         }
 
-        in_new_room = kEnterRoom_RestoredSave;  // don't run "enters screen" events
+        in_new_room = kEnterRoom_RestoredSave; // don't run "enters screen" events
         // now that room has loaded, copy saved light levels in
         for (size_t i = 0; i < MAX_ROOM_REGIONS; ++i)
         {
@@ -887,7 +861,7 @@ HSaveError DoAfterRestore(const PreservedParams &pp, RestoredData &r_data, SaveC
     }
 
     Mouse::SetMoveLimit(play.mbounds); // apply mouse bounds
-    
+
     // Apply accessibility options, must be done last, because some
     // may override restored game settings
     ApplyAccessibilityOptions(play, usetup);
@@ -906,8 +880,7 @@ static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
 {
     // If kSaveCmp_DynamicSprites is not set, then set kSaveCmp_ObjectSprites
     //     ensure that object-owned images are still serialized.
-    return (SaveCmpSelection)(select_cmp | 
-        kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
+    return (SaveCmpSelection)(select_cmp | kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
 }
 
 HSaveError RestoreGameState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
@@ -921,9 +894,9 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion save_ver, const Savegame
     DoBeforeRestore(pp, select_cmp); // WARNING: this frees scripts and some other data
 
     // Mark the clear game data state for restoration process
-    r_data.Result.RestoreFlags = (SaveRestorationFlags)(
-          (kSaveRestore_ClearData * options.IsGameClear) // tell that the game data is reset
-        | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
+    r_data.Result.RestoreFlags =
+        (SaveRestorationFlags)((kSaveRestore_ClearData * options.IsGameClear)       // tell that the game data is reset
+                               | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
         );
 
     HSaveError err = SavegameComponents::ReadAll(in, save_ver, select_cmp, pp, r_data);
@@ -934,7 +907,7 @@ HSaveError RestoreGameState(Stream *in, SavegameVersion save_ver, const Savegame
 }
 
 HSaveError PrescanSaveState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
-    const RestoreGameStateOptions &options)
+                            const RestoreGameStateOptions &options)
 {
     SaveCmpSelection select_cmp = FixupCmpSelection(options.SelectedComponents);
     const bool has_validate_cb = DoesScriptFunctionExistInModules("validate_restored_save");
@@ -944,9 +917,9 @@ HSaveError PrescanSaveState(Stream *in, SavegameVersion save_ver, const Savegame
     FillPreservedParams(pp);
 
     // Mark the clear game data state for restoration process
-    r_data.Result.RestoreFlags = (SaveRestorationFlags)(
-          (kSaveRestore_ClearData) // always tell that the game data is reset for prescanning
-        | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
+    r_data.Result.RestoreFlags =
+        (SaveRestorationFlags)((kSaveRestore_ClearData) // always tell that the game data is reset for prescanning
+                               | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
         );
 
     HSaveError err = SavegameComponents::PrescanAll(in, save_ver, select_cmp, pp, r_data);
@@ -970,7 +943,8 @@ HSaveError ReadSaveDescription(const String &filename, SavegameDescription &desc
     return OpenSavegame(filename, desc, elems);
 }
 
-HSaveError RestoreSavegame(const String &filename, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback)
+HSaveError RestoreSavegame(const String &filename, const RestoreGameStateOptions &options,
+                           SaveRestoreFeedback &feedback)
 {
     SavegameSource src;
     SavegameDescription desc;
@@ -984,8 +958,7 @@ HSaveError RestoreSavegame(const String &filename, const RestoreGameStateOptions
 
 void WriteUserImage(Stream *out, const Bitmap *screenshot, bool compress)
 {
-    uint32_t flags = (screenshot != nullptr) * kSvgImage_Present
-        | compress * kSvgImage_Deflate;
+    uint32_t flags = (screenshot != nullptr) * kSvgImage_Present | compress * kSvgImage_Deflate;
     out->WriteInt32(flags);
 
     if (screenshot)
@@ -1116,7 +1089,8 @@ HSaveError ReadPluginSaveData(Stream *in, PluginSvgVersion svg_ver, soff_t max_s
         // NOTE: we assume that the old save format won't be found in a compressed save,
         // so we can use StreamSection here. Fix the code below if this assumption becomes incorrect.
         String pl_name;
-        for (uint32_t pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_RestoreGame, pl_index, pl_name); ++pl_index)
+        for (uint32_t pl_index = 0; pl_query_next_plugin_for_event(kPluginEvt_RestoreGame, pl_index, pl_name);
+             ++pl_index)
         {
             try
             {
@@ -1250,12 +1224,12 @@ int SaveInfo_GetSlot(ScriptRestoredSaveInfo *info)
     return info->GetDesc().Slot;
 }
 
-const char* SaveInfo_GetDescription(ScriptRestoredSaveInfo *info)
+const char *SaveInfo_GetDescription(ScriptRestoredSaveInfo *info)
 {
     return CreateNewScriptString(info->GetDesc().UserText.GetCStr());
 }
 
-const char* SaveInfo_GetEngineVersion(ScriptRestoredSaveInfo *info)
+const char *SaveInfo_GetEngineVersion(ScriptRestoredSaveInfo *info)
 {
     return CreateNewScriptString(info->GetDesc().EngineVersion.LongString.GetCStr());
 }
@@ -1263,9 +1237,7 @@ const char* SaveInfo_GetEngineVersion(ScriptRestoredSaveInfo *info)
 const char *SaveInfo_GetGameVersion(ScriptRestoredSaveInfo *info)
 {
     return CreateNewScriptString(
-        (info->GetCounts().GameInfo.count("version") > 0) ?
-        info->GetCounts().GameInfo.at("version").GetCStr()
-        : "");
+        (info->GetCounts().GameInfo.count("version") > 0) ? info->GetCounts().GameInfo.at("version").GetCStr() : "");
 }
 
 int SaveInfo_GetAudioClipTypeCount(ScriptRestoredSaveInfo *info)
@@ -1292,7 +1264,8 @@ int SaveInfo_GetGUIControlCount(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().GUIControls.size())
     {
-        debug_script_error("RestoredSaveInfo::GUIControlCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().GUIs);
+        debug_script_error("RestoredSaveInfo::GUIControlCount: index %d out of bounds (%d..%d)", index, 0,
+                           info->GetCounts().GUIs);
         return 0;
     }
     return info->GetCounts().GUIControls[index];
@@ -1317,7 +1290,8 @@ int SaveInfo_GetViewLoopCount(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ViewLoops.size())
     {
-        debug_script_error("RestoredSaveInfo::ViewLoopCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().Views);
+        debug_script_error("RestoredSaveInfo::ViewLoopCount: index %d out of bounds (%d..%d)", index, 0,
+                           info->GetCounts().Views);
         return 0;
     }
     return info->GetCounts().ViewLoops[index];
@@ -1327,7 +1301,8 @@ int SaveInfo_GetViewFrameCount(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ViewFrames.size())
     {
-        debug_script_error("RestoredSaveInfo::ViewFrameCount: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().Views);
+        debug_script_error("RestoredSaveInfo::ViewFrameCount: index %d out of bounds (%d..%d)", index, 0,
+                           info->GetCounts().Views);
         return 0;
     }
     return info->GetCounts().ViewFrames[index];
@@ -1347,7 +1322,8 @@ const char *SaveInfo_GetScriptModuleNames(ScriptRestoredSaveInfo *info, int inde
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ScriptModuleDataSz.size())
     {
-        debug_script_error("RestoredSaveInfo::ScriptModuleNames: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
+        debug_script_error("RestoredSaveInfo::ScriptModuleNames: index %d out of bounds (%d..%d)", index, 0,
+                           info->GetCounts().ScriptModules);
         return 0;
     }
     return CreateNewScriptString(info->GetCounts().ScriptModuleNames[index]);
@@ -1357,7 +1333,8 @@ int SaveInfo_GetScriptModuleDataSizes(ScriptRestoredSaveInfo *info, int index)
 {
     if (index < 0 || static_cast<uint32_t>(index) >= info->GetCounts().ScriptModuleDataSz.size())
     {
-        debug_script_error("RestoredSaveInfo::ScriptModuleDataSize: index %d out of bounds (%d..%d)", index, 0, info->GetCounts().ScriptModules);
+        debug_script_error("RestoredSaveInfo::ScriptModuleDataSize: index %d out of bounds (%d..%d)", index, 0,
+                           info->GetCounts().ScriptModules);
         return 0;
     }
     return info->GetCounts().ScriptModuleDataSz[index];
@@ -1378,12 +1355,14 @@ RuntimeScriptValue Sc_SaveInfo_SetCancel(void *self, const RuntimeScriptValue *p
     API_OBJCALL_VOID_PBOOL(ScriptRestoredSaveInfo, SaveInfo_SetCancel);
 }
 
-RuntimeScriptValue Sc_SaveInfo_GetRetryWithoutComponents(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveInfo_GetRetryWithoutComponents(void *self, const RuntimeScriptValue *params,
+                                                         int32_t param_count)
 {
     API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetRetryWithoutComponents);
 }
 
-RuntimeScriptValue Sc_SaveInfo_SetRetryWithoutComponents(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveInfo_SetRetryWithoutComponents(void *self, const RuntimeScriptValue *params,
+                                                         int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptRestoredSaveInfo, SaveInfo_SetRetryWithoutComponents);
 }
@@ -1473,7 +1452,8 @@ RuntimeScriptValue Sc_SaveInfo_GetViewFrameCount(void *self, const RuntimeScript
     API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetViewFrameCount);
 }
 
-RuntimeScriptValue Sc_SaveInfo_GetGlobalScriptDataSize(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveInfo_GetGlobalScriptDataSize(void *self, const RuntimeScriptValue *params,
+                                                       int32_t param_count)
 {
     API_OBJCALL_INT(ScriptRestoredSaveInfo, SaveInfo_GetGlobalScriptDataSize);
 }
@@ -1488,7 +1468,8 @@ RuntimeScriptValue Sc_SaveInfo_GetScriptModuleNames(void *self, const RuntimeScr
     API_OBJCALL_OBJ_PINT(ScriptRestoredSaveInfo, const char, myScriptStringImpl, SaveInfo_GetScriptModuleNames);
 }
 
-RuntimeScriptValue Sc_SaveInfo_GetScriptModuleDataSizes(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_SaveInfo_GetScriptModuleDataSizes(void *self, const RuntimeScriptValue *params,
+                                                        int32_t param_count)
 {
     API_OBJCALL_INT_PINT(ScriptRestoredSaveInfo, SaveInfo_GetScriptModuleDataSizes);
 }
@@ -1501,32 +1482,32 @@ RuntimeScriptValue Sc_SaveInfo_GetRoom(void *self, const RuntimeScriptValue *par
 void RegisterSaveInfoAPI()
 {
     ScFnRegister saveinfo_api[] = {
-        { "RestoredSaveInfo::get_Cancel",               API_FN_PAIR(SaveInfo_GetCancel) },
-        { "RestoredSaveInfo::set_Cancel",               API_FN_PAIR(SaveInfo_SetCancel) },
-        { "RestoredSaveInfo::get_RetryWithoutComponents", API_FN_PAIR(SaveInfo_GetRetryWithoutComponents) },
-        { "RestoredSaveInfo::set_RetryWithoutComponents", API_FN_PAIR(SaveInfo_SetRetryWithoutComponents) },
-        { "RestoredSaveInfo::get_IsPrescan",            API_FN_PAIR(SaveInfo_IsPrescan) },
-        { "RestoredSaveInfo::get_HasExtraData",         API_FN_PAIR(SaveInfo_HasExtraData) },
-        { "RestoredSaveInfo::get_HasMissingData",       API_FN_PAIR(SaveInfo_HasMissingData) },
-        { "RestoredSaveInfo::get_Slot",                 API_FN_PAIR(SaveInfo_GetSlot) },
-        { "RestoredSaveInfo::get_Description",          API_FN_PAIR(SaveInfo_GetDescription) },
-        { "RestoredSaveInfo::get_EngineVersion",        API_FN_PAIR(SaveInfo_GetEngineVersion) },
-        { "RestoredSaveInfo::get_GameVersion",          API_FN_PAIR(SaveInfo_GetGameVersion) },
-        { "RestoredSaveInfo::get_AudioClipTypeCount",   API_FN_PAIR(SaveInfo_GetAudioClipTypeCount) },
-        { "RestoredSaveInfo::get_CharacterCount",       API_FN_PAIR(SaveInfo_GetCharacterCount) },
-        { "RestoredSaveInfo::get_DialogCount",          API_FN_PAIR(SaveInfo_GetDialogCount) },
-        { "RestoredSaveInfo::get_GUICount",             API_FN_PAIR(SaveInfo_GetGUICount) },
-        { "RestoredSaveInfo::geti_GUIControlCount",     API_FN_PAIR(SaveInfo_GetGUIControlCount) },
-        { "RestoredSaveInfo::get_InventoryItemCount",   API_FN_PAIR(SaveInfo_GetInventoryItemCount) },
-        { "RestoredSaveInfo::get_CursorCount",          API_FN_PAIR(SaveInfo_GetCursorCount) },
-        { "RestoredSaveInfo::get_ViewCount",            API_FN_PAIR(SaveInfo_GetViewCount) },
-        { "RestoredSaveInfo::geti_ViewLoopCount",       API_FN_PAIR(SaveInfo_GetViewLoopCount) },
-        { "RestoredSaveInfo::geti_ViewFrameCount",      API_FN_PAIR(SaveInfo_GetViewFrameCount) },
-        { "RestoredSaveInfo::get_GlobalScriptDataSize", API_FN_PAIR(SaveInfo_GetGlobalScriptDataSize) },
-        { "RestoredSaveInfo::get_ScriptModuleCount",    API_FN_PAIR(SaveInfo_GetScriptModuleCount) },
-        { "RestoredSaveInfo::geti_ScriptModuleNames",   API_FN_PAIR(SaveInfo_GetScriptModuleNames) },
-        { "RestoredSaveInfo::geti_ScriptModuleDataSizes",API_FN_PAIR(SaveInfo_GetScriptModuleDataSizes) },
-        { "RestoredSaveInfo::get_Room",                 API_FN_PAIR(SaveInfo_GetRoom) },
+        {"RestoredSaveInfo::get_Cancel", API_FN_PAIR(SaveInfo_GetCancel)},
+        {"RestoredSaveInfo::set_Cancel", API_FN_PAIR(SaveInfo_SetCancel)},
+        {"RestoredSaveInfo::get_RetryWithoutComponents", API_FN_PAIR(SaveInfo_GetRetryWithoutComponents)},
+        {"RestoredSaveInfo::set_RetryWithoutComponents", API_FN_PAIR(SaveInfo_SetRetryWithoutComponents)},
+        {"RestoredSaveInfo::get_IsPrescan", API_FN_PAIR(SaveInfo_IsPrescan)},
+        {"RestoredSaveInfo::get_HasExtraData", API_FN_PAIR(SaveInfo_HasExtraData)},
+        {"RestoredSaveInfo::get_HasMissingData", API_FN_PAIR(SaveInfo_HasMissingData)},
+        {"RestoredSaveInfo::get_Slot", API_FN_PAIR(SaveInfo_GetSlot)},
+        {"RestoredSaveInfo::get_Description", API_FN_PAIR(SaveInfo_GetDescription)},
+        {"RestoredSaveInfo::get_EngineVersion", API_FN_PAIR(SaveInfo_GetEngineVersion)},
+        {"RestoredSaveInfo::get_GameVersion", API_FN_PAIR(SaveInfo_GetGameVersion)},
+        {"RestoredSaveInfo::get_AudioClipTypeCount", API_FN_PAIR(SaveInfo_GetAudioClipTypeCount)},
+        {"RestoredSaveInfo::get_CharacterCount", API_FN_PAIR(SaveInfo_GetCharacterCount)},
+        {"RestoredSaveInfo::get_DialogCount", API_FN_PAIR(SaveInfo_GetDialogCount)},
+        {"RestoredSaveInfo::get_GUICount", API_FN_PAIR(SaveInfo_GetGUICount)},
+        {"RestoredSaveInfo::geti_GUIControlCount", API_FN_PAIR(SaveInfo_GetGUIControlCount)},
+        {"RestoredSaveInfo::get_InventoryItemCount", API_FN_PAIR(SaveInfo_GetInventoryItemCount)},
+        {"RestoredSaveInfo::get_CursorCount", API_FN_PAIR(SaveInfo_GetCursorCount)},
+        {"RestoredSaveInfo::get_ViewCount", API_FN_PAIR(SaveInfo_GetViewCount)},
+        {"RestoredSaveInfo::geti_ViewLoopCount", API_FN_PAIR(SaveInfo_GetViewLoopCount)},
+        {"RestoredSaveInfo::geti_ViewFrameCount", API_FN_PAIR(SaveInfo_GetViewFrameCount)},
+        {"RestoredSaveInfo::get_GlobalScriptDataSize", API_FN_PAIR(SaveInfo_GetGlobalScriptDataSize)},
+        {"RestoredSaveInfo::get_ScriptModuleCount", API_FN_PAIR(SaveInfo_GetScriptModuleCount)},
+        {"RestoredSaveInfo::geti_ScriptModuleNames", API_FN_PAIR(SaveInfo_GetScriptModuleNames)},
+        {"RestoredSaveInfo::geti_ScriptModuleDataSizes", API_FN_PAIR(SaveInfo_GetScriptModuleDataSizes)},
+        {"RestoredSaveInfo::get_Room", API_FN_PAIR(SaveInfo_GetRoom)},
     };
 
     ccAddExternalFunctions(saveinfo_api);

@@ -72,12 +72,9 @@ namespace std
 template<>
 struct hash<AGS::Common::String>
 {
-    size_t operator ()(const AGS::Common::String &key) const
-    {
-        return FNV::Hash(key.GetCStr(), key.GetLength());
-    }
+    size_t operator()(const AGS::Common::String &key) const { return FNV::Hash(key.GetCStr(), key.GetLength()); }
 };
-}
+} // namespace std
 
 
 namespace AGS
@@ -96,7 +93,7 @@ inline std::locale GetLocaleSafe(const char *locale_name)
         else
             return std::locale();
     }
-    catch (const std::runtime_error&)
+    catch (const std::runtime_error &)
     {
         return std::locale();
     }
@@ -109,40 +106,27 @@ inline std::locale GetLocaleSafe(const char *locale_name)
 // Test case-sensitive String equality
 struct StrEq
 {
-    bool operator()(const String &s1, const String &s2) const
-    {
-        return s1 == s2;
-    }
+    bool operator()(const String &s1, const String &s2) const { return s1 == s2; }
 };
 
 // Test case-insensitive String equality
 struct StrEqNoCase
 {
-    bool operator()(const String &s1, const String &s2) const
-    {
-        return s1.CompareNoCase(s2) == 0;
-    }
+    bool operator()(const String &s1, const String &s2) const { return s1.CompareNoCase(s2) == 0; }
 };
 
 // Test case-insensitive String equality for UTF-8 strings
 struct StrEqUtf8NoCase
 {
-    bool operator()(const String &s1, const String &s2) const
-    {
-        return s1.CompareUtf8NoCase(s2) == 0;
-    }
+    bool operator()(const String &s1, const String &s2) const { return s1.CompareUtf8NoCase(s2) == 0; }
 };
 
 // Test case-insensitive String equality as a pre-defined unary predicate
 struct StrEqNoCasePred
 {
-    StrEqNoCasePred(const String &look_for)
-        : _lookFor(look_for) {}
+    StrEqNoCasePred(const String &look_for) : _lookFor(look_for) {}
 
-    bool operator()(const String &s) const
-    {
-        return _lookFor.CompareNoCase(s) == 0;
-    }
+    bool operator()(const String &s) const { return _lookFor.CompareNoCase(s) == 0; }
 
 private:
     String _lookFor;
@@ -151,19 +135,13 @@ private:
 // Case-insensitive String less predicate
 struct StrLessNoCase
 {
-    bool operator()(const String &s1, const String &s2) const
-    {
-        return s1.CompareNoCase(s2) < 0;
-    }
+    bool operator()(const String &s1, const String &s2) const { return s1.CompareNoCase(s2) < 0; }
 };
 
 // Case-insensitive String less for UTF-8 strings
 struct StrLessUtf8NoCase
 {
-    bool operator()(const String &s1, const String &s2) const
-    {
-        return s1.CompareUtf8NoCase(s2) < 0;
-    }
+    bool operator()(const String &s1, const String &s2) const { return s1.CompareUtf8NoCase(s2) < 0; }
 };
 
 // Unicode String less predicate, comparing strings lexographically.
@@ -173,20 +151,14 @@ struct StrLessUtf8NoCase
 struct LexographicalStrLess
 {
 public:
-    LexographicalStrLess()
-        : _loc(std::locale())
-    {
-    }
+    LexographicalStrLess() : _loc(std::locale()) {}
 
-    LexographicalStrLess(const char *locale_name)
-        : _loc(GetLocaleSafe(locale_name))
-    {
-    }
+    LexographicalStrLess(const char *locale_name) : _loc(GetLocaleSafe(locale_name)) {}
 
     bool operator()(const String &s1, const String &s2) const
     {
-        return std::use_facet<std::collate<char>>(_loc).
-            compare(s1.GetCStr(), s1.GetCStr() + s1.GetLength(), s2.GetCStr(), s2.GetCStr() + s2.GetLength()) < 0;
+        return std::use_facet<std::collate<char>>(_loc).compare(s1.GetCStr(), s1.GetCStr() + s1.GetLength(),
+                                                                s2.GetCStr(), s2.GetCStr() + s2.GetLength()) < 0;
     }
 
 private:
@@ -200,15 +172,9 @@ private:
 // comparison, where 'À' is positioned after 'Z'.
 struct LexographicalStrLessNoCase
 {
-    LexographicalStrLessNoCase()
-        : _loc(std::locale())
-    {
-    }
+    LexographicalStrLessNoCase() : _loc(std::locale()) {}
 
-    LexographicalStrLessNoCase(const char *locale_name)
-        : _loc(GetLocaleSafe(locale_name))
-    {
-    }
+    LexographicalStrLessNoCase(const char *locale_name) : _loc(GetLocaleSafe(locale_name)) {}
 
     bool operator()(const String &s1, const String &s2) const
     {
@@ -216,8 +182,9 @@ struct LexographicalStrLessNoCase
         // and do collation over original strings instead (does C++ stdlib support that?)
         const String s1lower = s1.LowerUTF8();
         const String s2lower = s2.LowerUTF8();
-        return std::use_facet<std::collate<char>>(_loc).
-            compare(s1lower.GetCStr(), s1lower.GetCStr() + s1lower.GetLength(), s2lower.GetCStr(), s2lower.GetCStr() + s2lower.GetLength()) < 0;
+        return std::use_facet<std::collate<char>>(_loc).compare(
+                   s1lower.GetCStr(), s1lower.GetCStr() + s1lower.GetLength(), s2lower.GetCStr(),
+                   s2lower.GetCStr() + s2lower.GetLength()) < 0;
     }
 
 private:
@@ -227,20 +194,16 @@ private:
 // Intreface for the multi-purpose string comparison predicates
 struct IStrCmp
 {
-    virtual ~IStrCmp(){}
+    virtual ~IStrCmp() {}
     virtual int operator()(const String &s1, const String &s2) const = 0;
 };
 
 // The multi-mode 'equal' predicate, which acts according to its configuration
 struct StrEqAuto
 {
-    StrEqAuto(std::unique_ptr<IStrCmp> &&cmp_impl)
-        : _cmpImpl(std::move(cmp_impl)) { }
+    StrEqAuto(std::unique_ptr<IStrCmp> &&cmp_impl) : _cmpImpl(std::move(cmp_impl)) {}
 
-    bool operator()(const String &s1, const String &s2) const
-    {
-        return _cmpImpl->operator()(s1, s2) == 0;
-    }
+    bool operator()(const String &s1, const String &s2) const { return _cmpImpl->operator()(s1, s2) == 0; }
 
 private:
     // It's shared ptr, because STL requires a copy constructor for predicates
@@ -250,13 +213,9 @@ private:
 // The multi-mode 'less' predicate, which acts according to its configuration
 struct StrLessAuto
 {
-    StrLessAuto(std::unique_ptr<IStrCmp> &&cmp_impl)
-        : _cmpImpl(std::move(cmp_impl)) { }
+    StrLessAuto(std::unique_ptr<IStrCmp> &&cmp_impl) : _cmpImpl(std::move(cmp_impl)) {}
 
-    bool operator()(const String &s1, const String &s2) const
-    {
-        return _cmpImpl->operator()(s1, s2) < 0;
-    }
+    bool operator()(const String &s1, const String &s2) const { return _cmpImpl->operator()(s1, s2) < 0; }
 
 private:
     // It's shared ptr, because STL requires a copy constructor for predicates
@@ -265,40 +224,29 @@ private:
 
 struct StrCmpDirect : public IStrCmp
 {
-    int operator()(const String &s1, const String &s2) const override
-    {
-        return s1.Compare(s2);
-    }
+    int operator()(const String &s1, const String &s2) const override { return s1.Compare(s2); }
 };
 
 struct StrCmpNoCase : public IStrCmp
 {
-    int operator()(const String &s1, const String &s2) const override
-    {
-        return s1.CompareNoCase(s2);
-    }
+    int operator()(const String &s1, const String &s2) const override { return s1.CompareNoCase(s2); }
 };
 
 struct StrCmpUtf8NoCase : public IStrCmp
 {
-    int operator()(const String &s1, const String &s2) const override
-    {
-        return s1.CompareUtf8NoCase(s2);
-    }
+    int operator()(const String &s1, const String &s2) const override { return s1.CompareUtf8NoCase(s2); }
 };
 
 struct StrCmpLexographical : public IStrCmp
 {
-    StrCmpLexographical()
-        : _loc(std::locale()) {}
+    StrCmpLexographical() : _loc(std::locale()) {}
 
-    StrCmpLexographical(const char *locale_name)
-        : _loc(GetLocaleSafe(locale_name)) {}
+    StrCmpLexographical(const char *locale_name) : _loc(GetLocaleSafe(locale_name)) {}
 
     int operator()(const String &s1, const String &s2) const override
     {
-        return std::use_facet<std::collate<char>>(_loc).
-            compare(s1.GetCStr(), s1.GetCStr() + s1.GetLength(), s2.GetCStr(), s2.GetCStr() + s2.GetLength());
+        return std::use_facet<std::collate<char>>(_loc).compare(s1.GetCStr(), s1.GetCStr() + s1.GetLength(),
+                                                                s2.GetCStr(), s2.GetCStr() + s2.GetLength());
     }
 
 private:
@@ -307,11 +255,9 @@ private:
 
 struct StrCmpLexographicalNoCase : public IStrCmp
 {
-    StrCmpLexographicalNoCase()
-        : _loc(std::locale()) {}
+    StrCmpLexographicalNoCase() : _loc(std::locale()) {}
 
-    StrCmpLexographicalNoCase(const char *locale_name)
-        : _loc(GetLocaleSafe(locale_name)) {}
+    StrCmpLexographicalNoCase(const char *locale_name) : _loc(GetLocaleSafe(locale_name)) {}
 
     int operator()(const String &s1, const String &s2) const override
     {
@@ -319,8 +265,9 @@ struct StrCmpLexographicalNoCase : public IStrCmp
         // and do collation over original strings instead (does C++ stdlib support that?)
         const String s1lower = s1.LowerUTF8();
         const String s2lower = s2.LowerUTF8();
-        return std::use_facet<std::collate<char>>(_loc).
-            compare(s1lower.GetCStr(), s1lower.GetCStr() + s1lower.GetLength(), s2lower.GetCStr(), s2lower.GetCStr() + s2lower.GetLength());
+        return std::use_facet<std::collate<char>>(_loc).compare(
+            s1lower.GetCStr(), s1lower.GetCStr() + s1lower.GetLength(), s2lower.GetCStr(),
+            s2lower.GetCStr() + s2lower.GetLength());
     }
 
 private:
@@ -330,19 +277,13 @@ private:
 // Compute case-insensitive hash for a String object
 struct HashStrNoCase
 {
-    size_t operator ()(const String &key) const
-    {
-        return FNV::Hash_LowerCase(key.GetCStr(), key.GetLength());
-    }
+    size_t operator()(const String &key) const { return FNV::Hash_LowerCase(key.GetCStr(), key.GetLength()); }
 };
 
 // Compute case-insensitive hash for a String object containing UTF-8 string
 struct HashStrUtf8NoCase
 {
-    size_t operator ()(const String &key) const
-    {
-        return FNV::Hash_Utf8LowerCase(key.GetCStr(), key.GetLength());
-    }
+    size_t operator()(const String &key) const { return FNV::Hash_Utf8LowerCase(key.GetCStr(), key.GetLength()); }
 };
 
 // Alias for vector of Strings
@@ -352,7 +293,8 @@ typedef std::unordered_map<String, String> StringMap;
 // Alias for case-insensitive hash-map of Strings
 typedef std::unordered_map<String, String, HashStrNoCase, StrEqNoCase> StringIMap;
 // Alias for std::array of C-strings
-template <size_t SIZE> using CstrArr = std::array<const char*, SIZE>;
+template<size_t SIZE>
+using CstrArr = std::array<const char *, SIZE>;
 
 } // namespace Common
 } // namespace AGS

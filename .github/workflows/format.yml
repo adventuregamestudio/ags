@@ -1,0 +1,27 @@
+name: Code Format
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  clang-format:
+    name: clang-format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      # Pinned: other clang-format versions give a different result
+      - name: Install clang-format
+        run: pip install clang-format==19.1.7
+
+      # Whole files, with the .clang-format at the root of the repository;
+      # third-party directories have their own with "DisableFormat: true"
+      - name: Check formatting
+        run: |
+          git ls-files '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hpp' '*.inl' \
+            | xargs clang-format --dry-run -Werror

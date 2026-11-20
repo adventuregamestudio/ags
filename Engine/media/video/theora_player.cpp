@@ -36,25 +36,25 @@ TheoraPlayer::~TheoraPlayer()
 // Open stream for reading (return suggested cache buffer size).
 int apeg_stream_init(void *ptr)
 {
-    if (!ptr) return 0;
-    ((Stream*)ptr)->Seek(0, kSeekBegin);
+    if (!ptr)
+        return 0;
+    ((Stream *)ptr)->Seek(0, kSeekBegin);
     return F_BUF_SIZE;
 }
 // Read requested number of bytes into provided buffer,
 // return actual number of bytes managed to read.
 int apeg_stream_read(void *buffer, int bytes, void *ptr)
 {
-    return ((Stream*)ptr)->Read(buffer, bytes);
+    return ((Stream *)ptr)->Read(buffer, bytes);
 }
 // Skip requested number of bytes
 void apeg_stream_skip(int bytes, void *ptr)
 {
-    ((Stream*)ptr)->Seek(bytes);
+    ((Stream *)ptr)->Seek(bytes);
 }
 //
 
-HError TheoraPlayer::OpenImpl(std::unique_ptr<Stream> data_stream,
-    const String &name, int &flags, int target_depth)
+HError TheoraPlayer::OpenImpl(std::unique_ptr<Stream> data_stream, const String &name, int &flags, int target_depth)
 {
     // Init APEG
     HError err = OpenAPEGStream(data_stream.get(), name, flags, target_depth);
@@ -86,7 +86,7 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
     apeg_disable_length_detection(TRUE);
     apeg_ignore_audio((flags & kVideo_EnableAudio) == 0);
 
-    APEG_STREAM* apeg_stream = apeg_open_stream_ex(data_stream);
+    APEG_STREAM *apeg_stream = apeg_open_stream_ex(data_stream);
     if (!apeg_stream)
     {
         return new Error("Failed to open theora video '%s'; could be an invalid or unsupported format", name.GetCStr());
@@ -94,7 +94,8 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
     int video_w = apeg_stream->w, video_h = apeg_stream->h;
     if (video_w <= 0 || video_h <= 0)
     {
-        return new Error("Failed to run theora video '%s': invalid frame dimensions (%d x %d)", name.GetCStr(), video_w, video_h);
+        return new Error("Failed to run theora video '%s': invalid frame dimensions (%d x %d)", name.GetCStr(), video_w,
+                         video_h);
     }
 
     _apegStream = apeg_stream;
@@ -112,8 +113,7 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
     // Which means that the original content may end up positioned on a larger frame.
     // In such case we store this surface in a separate wrapper for the reference,
     // while the actual video frame is assigned a sub-bitmap (a portion of the full frame).
-    if (((flags & kVideo_LegacyFrameSize) == 0) &&
-        Size(_apegStream->bitmap->w, _apegStream->bitmap->h) != _frameSize)
+    if (((flags & kVideo_LegacyFrameSize) == 0) && Size(_apegStream->bitmap->w, _apegStream->bitmap->h) != _frameSize)
     {
         _theoraFullFrame.reset(BitmapHelper::CreateRawBitmapWrapper(_apegStream->bitmap));
         _theoraSrcFrame.reset(BitmapHelper::CreateSubBitmap(_theoraFullFrame.get(), RectWH(_frameSize)));
@@ -131,19 +131,22 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
     _videoFramesDecoded = 0u;
     _nextFrameTs = 0.f;
 
-    const char *pixelfmt_str[] = { "YUV 420", "YUV 422", "YUV 444" };
+    const char *pixelfmt_str[] = {"YUV 420", "YUV 422", "YUV 444"};
     Debug::Printf("TheoraPlayer: opened video \"%s\": %dx%d fmt: %s, fps: %.4f"
                   "\n\taudio: %d Hz, chans: %d",
-                  name.GetCStr(),
-                  apeg_stream->w, apeg_stream->h,
+                  name.GetCStr(), apeg_stream->w, apeg_stream->h,
                   // TODO: use temporary pixel_format_info field here, because APEG cannot have proper format set;
                   // see details in the related APEG code
-                  (apeg_stream->pixel_format_info >= APEG_STREAM::APEG_420 && apeg_stream->pixel_format_info <= APEG_STREAM::APEG_444) ? pixelfmt_str[apeg_stream->pixel_format_info] : "unknown",
-                  static_cast<float>(apeg_stream->frame_rate),
-                  _audioFreq, _audioChannels);
+                  (apeg_stream->pixel_format_info >= APEG_STREAM::APEG_420 &&
+                   apeg_stream->pixel_format_info <= APEG_STREAM::APEG_444)
+                      ? pixelfmt_str[apeg_stream->pixel_format_info]
+                      : "unknown",
+                  static_cast<float>(apeg_stream->frame_rate), _audioFreq, _audioChannels);
     // TODO: warn about anything but YUV 420, because APEG library does not handle it properly
     if (apeg_stream->pixel_format_info != APEG_STREAM::APEG_420)
-        Debug::Printf(kDbgMsg_Warn, "TheoraPlayer: underlying decoding library is unable to properly decode this pixel format. Color mistakes expected.");
+        Debug::Printf(
+            kDbgMsg_Warn,
+            "TheoraPlayer: underlying decoding library is unable to properly decode this pixel format. Color mistakes expected.");
 
     return HError::None();
 }
@@ -217,7 +220,8 @@ bool TheoraPlayer::NextAudioFrame(SoundBuffer &abuf)
     if (ret == APEG_ERROR || ret == APEG_EOF)
         return false;
 
-    abuf.AssignData(buf, count, -1.f, SoundHelper::MillisecondsFromBytes(count, _audioFormat, _audioChannels, _audioFreq));
+    abuf.AssignData(buf, count, -1.f,
+                    SoundHelper::MillisecondsFromBytes(count, _audioFormat, _audioChannels, _audioFreq));
     return true;
 }
 

@@ -20,7 +20,9 @@ namespace AGS
 namespace Common
 {
 
-struct DeflateStream::ags_z_stream : ::z_stream {};
+struct DeflateStream::ags_z_stream : ::z_stream
+{
+};
 
 DeflateStream::DeflateStream(std::unique_ptr<IStreamBase> &&base_stream, StreamMode mode)
     : TransformStream(std::move(base_stream), mode)
@@ -77,9 +79,9 @@ void DeflateStream::CloseTransform()
     }
 }
 
-DeflateStream::TransformResult
-DeflateStream::Transform(const uint8_t *input, size_t in_sz, uint8_t *output, size_t out_sz, bool finalize,
-                              size_t &in_read, size_t &out_wrote)
+DeflateStream::TransformResult DeflateStream::Transform(const uint8_t *input, size_t in_sz, uint8_t *output,
+                                                        size_t out_sz, bool finalize, size_t &in_read,
+                                                        size_t &out_wrote)
 {
     assert(_zstream);
     _zstream->next_in = input;
@@ -103,9 +105,9 @@ DeflateStream::Transform(const uint8_t *input, size_t in_sz, uint8_t *output, si
     }
 }
 
-DeflateStream::TransformResult
-DeflateStream::UnTransform(const uint8_t *input, size_t in_sz, uint8_t *output, size_t out_sz, bool finalize,
-                                size_t &in_read, size_t &out_wrote)
+DeflateStream::TransformResult DeflateStream::UnTransform(const uint8_t *input, size_t in_sz, uint8_t *output,
+                                                          size_t out_sz, bool finalize, size_t &in_read,
+                                                          size_t &out_wrote)
 {
     assert(_zstream);
     _zstream->next_in = input;
@@ -113,7 +115,7 @@ DeflateStream::UnTransform(const uint8_t *input, size_t in_sz, uint8_t *output, 
     _zstream->next_out = output;
     _zstream->avail_out = out_sz;
     // CHECKME: miniz does not like it when Z_FINISH is called with not enough output space
-    const int flush = Z_NO_FLUSH;// finalize ? Z_FINISH : Z_NO_FLUSH;
+    const int flush = Z_NO_FLUSH; // finalize ? Z_FINISH : Z_NO_FLUSH;
 
     int ret = inflate(_zstream.get(), flush);
     assert(ret != Z_STREAM_ERROR);

@@ -20,7 +20,7 @@
 // element moves when this is done.
 // This behavior results in fast real-time insertions and removals, while still
 // being able to use indexes for the fast access.
-// 
+//
 // TODO: also keep track of the highest used index. This might optimize
 // iterations over large object pools.
 //
@@ -45,7 +45,7 @@
 // This class is suggested to be used as a parent for the actual storage
 // class.
 //
-template <typename TIndex, TIndex NoIndexValue = 0>
+template<typename TIndex, TIndex NoIndexValue = 0>
 class IndexedPoolBase
 {
 public:
@@ -85,10 +85,7 @@ public:
     bool IsInUse(TIndex index) const { return !_isFree[index]; }
 
     // Requests an index to use for the new element, marks that index as "in use"
-    TIndex Add()
-    {
-        return AcquireFreeSlot();
-    }
+    TIndex Add() { return AcquireFreeSlot(); }
 
     // Requests particular index to be marked as "in use"
     void Set(const TIndex &index)
@@ -130,15 +127,13 @@ public:
 
     // Reserves memory for certain amount of indexes, useful when we expect
     // a sequential addition of very big number of elements ahead
-    void Reserve(size_t size)
-    {
-        _isFree.reserve(size);
-    }
+    void Reserve(size_t size) { _isFree.reserve(size); }
 
 protected:
     inline bool CanAllocMore() const
     {
-        return (_isFree.size() != SIZE_MAX) && (static_cast<TIndex>(_isFree.size()) < std::numeric_limits<TIndex>::max());
+        return (_isFree.size() != SIZE_MAX) &&
+               (static_cast<TIndex>(_isFree.size()) < std::numeric_limits<TIndex>::max());
     }
 
     // Returns the next free index, allocates more if necessary
@@ -220,7 +215,8 @@ protected:
         else
         {
             const size_t new_size = index + 1;
-            for (TIndex free_idx = _isFree.size(); free_idx != index && static_cast<size_t>(free_idx) < new_size; ++free_idx)
+            for (TIndex free_idx = _isFree.size(); free_idx != index && static_cast<size_t>(free_idx) < new_size;
+                 ++free_idx)
                 _freeIds.push(free_idx);
             _isFree.resize(new_size, true);
             _isFree[index] = false;
@@ -245,7 +241,7 @@ protected:
         }
     }
 
-    std::vector<bool>  _isFree;
+    std::vector<bool> _isFree;
     std::stack<TIndex> _freeIds;
     size_t _count = 0u;
     const size_t _fixedCount = 0u;
@@ -255,7 +251,7 @@ protected:
 // IndexedObjectPool provides a element storage and keeps record of free
 // and used indexes.
 //
-template <typename TElem, typename TIndex = size_t, TIndex NoIndexValue = 0>
+template<typename TElem, typename TIndex = size_t, TIndex NoIndexValue = 0>
 class IndexedObjectPool : protected IndexedPoolBase<TIndex, NoIndexValue>
 {
 public:
@@ -263,18 +259,11 @@ public:
     using ContainerType = std::vector<TElem>;
 
     // Constructs a default object pool.
-    IndexedObjectPool()
-    {
-        _elems.resize(BaseType::_fixedCount);
-    }
+    IndexedObjectPool() { _elems.resize(BaseType::_fixedCount); }
     // Constructs object pool, designating a number of fixed slots
     // that are allocated initially and never selected for use automatically.
     // (They may be still assigned an element via Set(elem, index).)
-    IndexedObjectPool(size_t fixed_count)
-        : BaseType(fixed_count)
-    {
-        _elems.resize(BaseType::_fixedCount);
-    }
+    IndexedObjectPool(size_t fixed_count) : BaseType(fixed_count) { _elems.resize(BaseType::_fixedCount); }
 
     // STL-compatibility
     typename ContainerType::iterator begin() { return _elems.begin(); }
@@ -287,8 +276,8 @@ public:
     // Returns the size of container, how many elements are in the pool;
     // this includes both used and free elements
     size_t size() const { return _elems.size(); }
-    const TElem &operator [](const TIndex &index) const { return _elems[static_cast<size_t>(index)]; }
-    TElem &operator [](const TIndex &index)
+    const TElem &operator[](const TIndex &index) const { return _elems[static_cast<size_t>(index)]; }
+    TElem &operator[](const TIndex &index)
     {
         assert(index >= 0u && static_cast<size_t>(index) < _elems.size() && index != NoIndexValue);
         assert(!BaseType::_isFree[index]);

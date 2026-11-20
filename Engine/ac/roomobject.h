@@ -24,7 +24,13 @@
 #include "gfx/graphicspace.h"
 #include "util/string.h"
 
-namespace AGS { namespace Common { class Stream; }}
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // RoomObject's legacy animation constants
@@ -39,38 +45,38 @@ class RoomObject
 public:
     static const uint16_t NoView = UINT16_MAX;
 
-    int   id = 0;
-    int   x,y;
-    int   transparent;    // "incorrect" alpha (in legacy 255-range units)
-    int16_t tint_r, tint_g;   // specific object tint
+    int id = 0;
+    int x, y;
+    int transparent;        // "incorrect" alpha (in legacy 255-range units)
+    int16_t tint_r, tint_g; // specific object tint
     int16_t tint_b, tint_level;
     int16_t tint_light;
-    int16_t zoom;           // zoom level, either manual or from the current area
-    Point spr_offset;       // fixed sprite offset (translation)
-    Pointf spr_anchor       // graphic anchor (relative alignment)
-        = Pointf(0.f, 1.f); // default: left-bottom
-    Pointf pivot            // relative rotation pivot
-        = Pointf(0.5f, 0.5f); // default: center
-    Point pivot_offset;     // relative rotation pivot offset (in pixels)
-    int   spr_width, spr_height; // last used sprite's size
-    int   frame_xoff, frame_yoff; // frame offsets (when using a view)
-    int16_t width, height;  // width/height based on a scaled sprite
-    uint16_t num;            // sprite slot number
-    int16_t baseline;       // <=0 to use Y co-ordinate; >0 for specific baseline
-    uint16_t view,loop,frame; // only used to track animation - 'num' holds the current sprite
-    int16_t wait,moving;
+    int16_t zoom;               // zoom level, either manual or from the current area
+    Point spr_offset;           // fixed sprite offset (translation)
+    Pointf spr_anchor           // graphic anchor (relative alignment)
+        = Pointf(0.f, 1.f);     // default: left-bottom
+    Pointf pivot                // relative rotation pivot
+        = Pointf(0.5f, 0.5f);   // default: center
+    Point pivot_offset;         // relative rotation pivot offset (in pixels)
+    int spr_width, spr_height;  // last used sprite's size
+    int frame_xoff, frame_yoff; // frame offsets (when using a view)
+    int16_t width, height;      // width/height based on a scaled sprite
+    uint16_t num;               // sprite slot number
+    int16_t baseline;           // <=0 to use Y co-ordinate; >0 for specific baseline
+    uint16_t view, loop, frame; // only used to track animation - 'num' holds the current sprite
+    int16_t wait, moving;
     ViewAnimateParams anim;
-    int   flags; // OBJF_* flags
+    int flags; // OBJF_* flags
     int16_t blocking_width = 0, blocking_height = 0, blocking_x = 0, blocking_y = 0;
-    int   audio_volume = 100; // default animation sounds volume (relative factor)
-    int   audio_panning = 0; // animation sounds panning (-100 to +100)
-    int   audio_speed = 0; // animation sounds speed, ms per second
+    int audio_volume = 100; // default animation sounds volume (relative factor)
+    int audio_panning = 0;  // animation sounds panning (-100 to +100)
+    int audio_speed = 0;    // animation sounds speed, ms per second
     Common::String name;
     Common::BlendMode blend_mode;
-    int   shader_id = 0;
-    int   shader_handle = 0; // script shader handle
+    int shader_id = 0;
+    int shader_handle = 0; // script shader handle
     float rotation;
-    int   movelist_handle = 0; // handle to the script movelist
+    int movelist_handle = 0; // handle to the script movelist
 
     RoomObject();
 
@@ -86,12 +92,12 @@ public:
     // this combines both "enabled" and "visible" factors.
     inline bool is_displayed() const { return is_enabled() && is_visible(); }
     inline bool has_explicit_light() const { return (flags & OBJF_HASLIGHT) != 0; }
-    inline bool has_explicit_tint()  const { return (flags & OBJF_HASTINT) != 0; }
-    inline bool is_moving()          const { return moving > 0; }
-    inline bool is_animating()       const { return anim.IsValid(); }
-    inline int  get_anim_repeat()    const { return anim.IsRepeating(); }
-    inline bool get_anim_forwards()  const { return anim.IsForward(); }
-    inline int  get_anim_delay()     const { return anim.Delay; }
+    inline bool has_explicit_tint() const { return (flags & OBJF_HASTINT) != 0; }
+    inline bool is_moving() const { return moving > 0; }
+    inline bool is_animating() const { return anim.IsValid(); }
+    inline int get_anim_repeat() const { return anim.IsRepeating(); }
+    inline bool get_anim_forwards() const { return anim.IsForward(); }
+    inline int get_anim_delay() const { return anim.Delay; }
     inline void set_enabled(bool on) { flags = (flags & ~OBJF_ENABLED) | (OBJF_ENABLED * on); }
     inline void set_visible(bool on) { flags = (flags & ~OBJF_VISIBLE) | (OBJF_VISIBLE * on); }
     inline void set_animating(AnimFlowStyle repeat, AnimFlowDirection dir, int delay, int anim_volume = 100)
@@ -105,7 +111,7 @@ public:
     void UpdateCyclingView(int ref_id);
     void OnStopMoving();
     // Calculate wanted frame sound volume based on multiple factors
-    int  GetFrameSoundVolume() const;
+    int GetFrameSoundVolume() const;
     // Process the current animation frame for the room object:
     // play linked sounds, and so forth.
     void CheckViewFrame();

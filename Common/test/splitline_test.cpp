@@ -16,7 +16,8 @@
 
 using namespace AGS::Common;
 
-TEST(SplitLines, WrapAtLinebreak) {
+TEST(SplitLines, WrapAtLinebreak)
+{
     SplitLines lines;
     split_lines("TextText", lines, INT32_MAX, 0);
     ASSERT_TRUE(lines.Count() == 1);
@@ -34,4 +35,3 @@ TEST(SplitLines, WrapAtLinebreak) {
     ASSERT_TRUE(lines[1] == "");
     ASSERT_TRUE(lines[2] == "Text");
 }
-

@@ -37,7 +37,7 @@ int Parser_FindWordID(const char *wordToFind)
     return word_id != WordsDictionary::INVALIDWORD ? word_id : -1;
 }
 
-const char* Parser_SaidUnknownWord()
+const char *Parser_SaidUnknownWord()
 {
     if (play.bad_parsed_word.IsEmpty())
         return nullptr;
@@ -57,7 +57,7 @@ void ParseText(const char *text)
 // Said: call with argument for example "get apple"; we then check
 // word by word if it matches (using dictonary ID equivalence to match
 // synonyms). Returns 1 if it does, 0 if not.
-int Parser_Said (const char *checkwords)
+int Parser_Said(const char *checkwords)
 {
     ITextParser *parser = nullptr;
     // If the Parser.Said input is auto-translated, then we got to parse it using the
@@ -102,9 +102,11 @@ public:
 
     uint16_t FindWordInDictionary(const String &lookfor) const override;
     // Parses a simple sentence, e.g. a user input, and converts it to the word ID list
-    bool ParseSentence(const String &src_text, ParsedSentence &words, size_t max_words, String *bad_parsed_word) override;
+    bool ParseSentence(const String &src_text, ParsedSentence &words, size_t max_words,
+                       String *bad_parsed_word) override;
     // Parses input text and converts it into a pattern sequence, that may be matched with a user input
-    bool ParsePattern(const String &src_text, ParsedPattern &pattern, size_t max_words, String *bad_parsed_word) override;
+    bool ParsePattern(const String &src_text, ParsedPattern &pattern, size_t max_words,
+                      String *bad_parsed_word) override;
     // Matches the given pattern with the input sentence
     bool MatchPattern(const ParsedSentence &input, const ParsedPattern &pattern) override;
 
@@ -112,8 +114,8 @@ private:
     inline bool IsValidWordChar(int ch) const
     {
         return std::isalnum<wchar_t>(ch, _loc)
-            // allow following punctuation chars to be a part of the word:
-            || (ch == '\'') || (ch == '-') || (ch == '_');
+               // allow following punctuation chars to be a part of the word:
+               || (ch == '\'') || (ch == '-') || (ch == '_');
     }
 
     // TODO: consider refactor & move this class to common utils
@@ -123,10 +125,7 @@ private:
         size_t CharIndex = 0u;
 
         Utf8StringView() = default;
-        Utf8StringView(const char *cstr)
-            : Ptr(cstr)
-            , CharIndex(0u)
-        {}
+        Utf8StringView(const char *cstr) : Ptr(cstr), CharIndex(0u) {}
     };
 
     // Returns the next text character
@@ -155,9 +154,7 @@ private:
 };
 
 TextParser::TextParser(const WordsDictionary *dict, bool is_unicode, const String &locale_name)
-    : _dict(dict)
-    , _isUnicode(is_unicode)
-    , _loc(GetLocaleSafe(locale_name.GetCStr()))
+    : _dict(dict), _isUnicode(is_unicode), _loc(GetLocaleSafe(locale_name.GetCStr()))
 {
 }
 
@@ -182,8 +179,9 @@ int TextParser::SkipWhitespace(Utf8StringView &text_ptr) const
     int text_char = 0;
     Utf8StringView prev_ptr = text_ptr;
     for (prev_ptr = text_ptr, text_char = ugetxc(&text_ptr.Ptr), ++text_ptr.CharIndex;
-        std::isspace<wchar_t>(text_char, _loc);
-        prev_ptr = text_ptr, text_char = ugetxc(&text_ptr.Ptr), ++text_ptr.CharIndex);
+         std::isspace<wchar_t>(text_char, _loc);
+         prev_ptr = text_ptr, text_char = ugetxc(&text_ptr.Ptr), ++text_ptr.CharIndex)
+        ;
     text_ptr = prev_ptr;
     return text_char;
 }
@@ -205,8 +203,7 @@ String TextParser::ScanWordOrMultiWord(Utf8StringView &text_ptr) const
         full_word.Append(word);
         // if nothing matches, then we'll return the first found word (it will be detected as invalid later);
         // if something else matches, then record that instead
-        if (best_word.IsEmpty() ||
-            (FindWordInDictionary(full_word) != WordsDictionary::INVALIDWORD))
+        if (best_word.IsEmpty() || (FindWordInDictionary(full_word) != WordsDictionary::INVALIDWORD))
         {
             after_best_word_ptr = text_ptr;
             best_word = full_word;
@@ -221,9 +218,9 @@ String TextParser::ReadWord(Utf8StringView &text_ptr) const
     Utf8StringView begin_ptr = text_ptr;
     Utf8StringView prev_ptr = text_ptr;
     int text_char = 0;
-    for (prev_ptr = text_ptr, text_char = ugetxc(&text_ptr.Ptr), ++text_ptr.CharIndex;
-        IsValidWordChar(text_char);
-        prev_ptr = text_ptr, text_char = ugetxc(&text_ptr.Ptr), ++text_ptr.CharIndex);
+    for (prev_ptr = text_ptr, text_char = ugetxc(&text_ptr.Ptr), ++text_ptr.CharIndex; IsValidWordChar(text_char);
+         prev_ptr = text_ptr, text_char = ugetxc(&text_ptr.Ptr), ++text_ptr.CharIndex)
+        ;
     text_ptr = prev_ptr;
     return String(begin_ptr.Ptr, text_ptr.Ptr - begin_ptr.Ptr);
 }
@@ -276,7 +273,8 @@ bool TextParser::ParsePattern(const String &src_text, ParsedPattern &pattern, si
         {
             if (is_optional)
             {
-                debug_script_warn("TextParser: invalid nested '[' at index %zu\n\tText: %s", text_char_index, src_text.GetCStr());
+                debug_script_warn("TextParser: invalid nested '[' at index %zu\n\tText: %s", text_char_index,
+                                  src_text.GetCStr());
                 return false;
             }
             // Finalize accumulated word sequence
@@ -289,12 +287,14 @@ bool TextParser::ParsePattern(const String &src_text, ParsedPattern &pattern, si
         {
             if (!is_optional)
             {
-                debug_script_warn("TextParser: unexpected ']' at index %zu\n\tText: %s", text_char_index, src_text.GetCStr());
+                debug_script_warn("TextParser: unexpected ']' at index %zu\n\tText: %s", text_char_index,
+                                  src_text.GetCStr());
                 return false;
             }
             else if (_wordSequence.size() == 0)
             {
-                debug_script_warn("TextParser: empty optional word around index %zu\n\tText: %s", text_char_index, src_text.GetCStr());
+                debug_script_warn("TextParser: empty optional word around index %zu\n\tText: %s", text_char_index,
+                                  src_text.GetCStr());
             }
             // Finalize accumulated word sequence
             FinalizeWordSequence(is_optional, is_alternate, bad_parsed_word);
@@ -306,7 +306,8 @@ bool TextParser::ParsePattern(const String &src_text, ParsedPattern &pattern, si
         {
             if ((_wordSequence.size() == 0) && _parsedWord.IsEmpty())
             {
-                debug_script_warn("TextParser: unexpected ',' at index %zu\n\tText: %s", text_char_index, src_text.GetCStr());
+                debug_script_warn("TextParser: unexpected ',' at index %zu\n\tText: %s", text_char_index,
+                                  src_text.GetCStr());
                 return false;
             }
             // Add previous word to the words sequence
@@ -318,7 +319,8 @@ bool TextParser::ParsePattern(const String &src_text, ParsedPattern &pattern, si
         {
             char uch[Utf8::UtfSz + 1]{};
             usetc(uch, text_char);
-            debug_script_warn("TextParser: unexpected '%s' at index %zu\n\tText: %s", uch, text_char_index, src_text.GetCStr());
+            debug_script_warn("TextParser: unexpected '%s' at index %zu\n\tText: %s", uch, text_char_index,
+                              src_text.GetCStr());
             return false;
         }
         // Beginning of the next word
@@ -331,8 +333,7 @@ bool TextParser::ParsePattern(const String &src_text, ParsedPattern &pattern, si
 
         text_ptr.Ptr++;
         text_ptr.CharIndex++;
-    }
-    while (*text_ptr.Ptr);
+    } while (*text_ptr.Ptr);
 
     if (is_optional)
     {
@@ -396,9 +397,9 @@ bool TextParser::MatchPattern(const ParsedSentence &input, const ParsedPattern &
 
             // Advance to the next pattern item;
             // skip any alternates for this pattern item (regardless of whether it was optional or not)
-            while ((++pattern_i < pattern.size()) && (pattern[pattern_i].second & kPatternItemAltNext));
-        }
-        while (try_next && pattern_i < pattern.size());
+            while ((++pattern_i < pattern.size()) && (pattern[pattern_i].second & kPatternItemAltNext))
+                ;
+        } while (try_next && pattern_i < pattern.size());
 
         if (!has_match)
             return false; // failure
@@ -429,13 +430,13 @@ void TextParser::FinalizeWordSequence(bool optional, bool alternate, String *bad
         AddToWordSequence();
 
     bool next_is_alt = false;
-    for (const auto& word : _wordSequence)
+    for (const auto &word : _wordSequence)
     {
         uint16_t word_id = FindWordInDictionary(word);
         // We add any words to the pattern here, including invalid word id.
         // The only way invalid words can be matched though is by ANYWORD or ROL.
-        int flags = kPatternItemOptional * optional | (kPatternItemAltFirst * alternate * !next_is_alt)
-            | (kPatternItemAltNext * alternate * next_is_alt);
+        int flags = kPatternItemOptional * optional | (kPatternItemAltFirst * alternate * !next_is_alt) |
+                    (kPatternItemAltNext * alternate * next_is_alt);
         _pattern.push_back(std::make_pair(word_id, static_cast<PatternItemFlags>(flags)));
         // Remember the first invalid word, in case script will ask about "unknown words"
         if (word_id == WordsDictionary::INVALIDWORD)
@@ -534,10 +535,10 @@ RuntimeScriptValue Sc_Parser_Said(const RuntimeScriptValue *params, int32_t para
 void RegisterParserAPI()
 {
     ScFnRegister parser_api[] = {
-        { "Parser::FindWordID^1",     API_FN_PAIR(Parser_FindWordID) },
-        { "Parser::ParseText^1",      API_FN_PAIR(ParseText) },
-        { "Parser::SaidUnknownWord^0",API_FN_PAIR(Parser_SaidUnknownWord) },
-        { "Parser::Said^1",           API_FN_PAIR(Parser_Said) },
+        {"Parser::FindWordID^1", API_FN_PAIR(Parser_FindWordID)},
+        {"Parser::ParseText^1", API_FN_PAIR(ParseText)},
+        {"Parser::SaidUnknownWord^0", API_FN_PAIR(Parser_SaidUnknownWord)},
+        {"Parser::Said^1", API_FN_PAIR(Parser_Said)},
     };
 
     ccAddExternalFunctions(parser_api);

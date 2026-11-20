@@ -18,22 +18,22 @@
 #include "gui/newcontrol.h"
 
 #define MAXLISTITEM 300
-#define ARROWWIDTH 8
+#define ARROWWIDTH  8
 
-struct MyListBox:public NewControl
+struct MyListBox : public NewControl
 {
-  int items, topitem, numonscreen, selected;
-  char *itemnames[MAXLISTITEM];
-  int textheight; // TODO: use font instead
+    int items, topitem, numonscreen, selected;
+    char *itemnames[MAXLISTITEM];
+    int textheight; // TODO: use font instead
 
-  MyListBox(int xx, int yy, int wii, int hii, int textheight);
-  void clearlist();
-  ~MyListBox() override;
+    MyListBox(int xx, int yy, int wii, int hii, int textheight);
+    void clearlist();
+    ~MyListBox() override;
 
-  void draw(Common::Bitmap *ds) override;
-  int pressedon(int mx, int my) override;
-  void additem(char *texx);
-  int processmessage(int mcode, int wParam, intptr_t ipParam) override;
+    void draw(Common::Bitmap *ds) override;
+    int pressedon(int mx, int my) override;
+    void additem(char *texx);
+    int processmessage(int mcode, int wParam, intptr_t ipParam) override;
 };
 
 #endif // __AC_MYLISTBOX_H

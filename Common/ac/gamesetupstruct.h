@@ -12,7 +12,7 @@
 //
 //=============================================================================
 //
-// GameSetupStruct is a contemporary main game data. 
+// GameSetupStruct is a contemporary main game data.
 //
 //=============================================================================
 #ifndef __AGS_CN_AC__GAMESETUPSTRUCT_H
@@ -44,7 +44,7 @@ struct GameSetupStruct : public GameSetupStructBase
     std::vector<FontInfo> fonts;
     std::vector<InventoryItemInfo> invinfo;
     std::vector<MouseCursor> mcurs;
-    char              lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{ 0 }};
+    char lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = {{0}};
     Common::PropertySchema propSchema;
     std::vector<Common::StringIMap> charProps;
     std::vector<Common::StringIMap> invProps;
@@ -60,25 +60,25 @@ struct GameSetupStruct : public GameSetupStructBase
     // TODO: move this array out of Game struct, but need to read legacy data
     // into some sort of a temporary container for post-load upgrading.
     std::vector<Common::String> dialogScriptNames;
-    char              guid[MAX_GUID_LENGTH] = { 0 };
-    char              saveGameFileExtension[MAX_SG_EXT_LENGTH] = { 0 };
+    char guid[MAX_GUID_LENGTH] = {0};
+    char saveGameFileExtension[MAX_SG_EXT_LENGTH] = {0};
     // NOTE: saveGameFolderName is generally used to create game subdirs in common user directories
-    Common::String    saveGameFolderName;
+    Common::String saveGameFolderName;
     // Existing room numbers
-    std::vector<int>  roomNumbers;
+    std::vector<int> roomNumbers;
     // Saved room names, known during the game compilation;
     // may be used to learn the total number of registered rooms
     std::map<int, Common::String> roomNames;
     std::vector<ScriptAudioClip> audioClips;
     std::vector<AudioClipType> audioClipTypes;
     // number of accessible game audio channels (the ones under direct user control)
-    int               numGameChannels = 0;
+    int numGameChannels = 0;
     // backward-compatible channel limit that may be exported to script and reserved by audiotypes
-    int               numCompatGameChannels = 0;
+    int numCompatGameChannels = 0;
 
     // Extended global game properties
     // Character face direction ratio (y/x)
-    float             faceDirectionRatio = 1.f;
+    float faceDirectionRatio = 1.f;
 
     // A dictionary of semi-arbitrary game info properties: title, developer's name, etc
     // Following keys are currently supported:
@@ -94,7 +94,7 @@ struct GameSetupStruct : public GameSetupStructBase
     Common::StringMap GameInfo;
     // Game text language definition, in the form of locale name ('en', 'en_US' etc)
     Common::String GameTextLanguage;
-        
+
     // TODO: I converted original array of sprite infos to vector here, because
     // statistically in most games sprites go in long continious sequences with minimal
     // gaps, and standard hash-map will have relatively big memory overhead compared.
@@ -109,7 +109,9 @@ struct GameSetupStruct : public GameSetupStructBase
 
     // Tells if the given game sprite is valid
     inline bool IsSpriteValid(int sprnum) const
-        { return (sprnum >= 0) && (static_cast<size_t>(sprnum) < SpriteInfos.size()) && SpriteInfos[sprnum].IsValid(); }
+    {
+        return (sprnum >= 0) && (static_cast<size_t>(sprnum) < SpriteInfos.size()) && SpriteInfos[sprnum].IsValid();
+    }
 
     // Returns a cursor index with standard Walk mode, or -1 if there's none
     int GetModeWalk() const { return _roleCursors[kCursorRole_Walk]; }
@@ -130,7 +132,7 @@ struct GameSetupStruct : public GameSetupStructBase
     GameSetupStruct(GameSetupStruct &&gss) = default;
     ~GameSetupStruct() = default;
 
-    GameSetupStruct &operator =(GameSetupStruct &&gss) = default;
+    GameSetupStruct &operator=(GameSetupStruct &&gss) = default;
 
     void ResolveStandardModes();
 
@@ -164,7 +166,8 @@ struct GameSetupStruct : public GameSetupStructBase
     void read_lipsync(Common::Stream *in, GameDataVersion data_ver);
     // NOTE: Global messages are cut out, but we still have to check them
     // so long as we keep support of loading an older game data
-    void skip_messages(Common::Stream *in, const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages, GameDataVersion data_ver);
+    void skip_messages(Common::Stream *in, const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages,
+                       GameDataVersion data_ver);
 
     void ReadCharacters(Common::Stream *in, GameDataVersion data_ver);
     void WriteCharacters(Common::Stream *out);
@@ -181,7 +184,7 @@ struct GameSetupStruct : public GameSetupStructBase
     void WriteForSavegame(Common::Stream *out);
 
 private:
-    std::array<int, kNumCursorRoles> _roleCursors = {{ -1, -1, -1, -1, -1, -1, -1, -1 }};
+    std::array<int, kNumCursorRoles> _roleCursors = {{-1, -1, -1, -1, -1, -1, -1, -1}};
 };
 
 

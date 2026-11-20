@@ -22,12 +22,9 @@ namespace AGS
 namespace Common
 {
 
-/* static */ ScriptEventSchema GUISlider::_eventSchema = {{
-        { "OnChange", kSliderEvent_OnChange }
-    }};
+/* static */ ScriptEventSchema GUISlider::_eventSchema = {{{"OnChange", kSliderEvent_OnChange}}};
 
-GUISlider::GUISlider()
-    : GUIControl(&GUISlider::_eventSchema)
+GUISlider::GUISlider() : GUIControl(&GUISlider::_eventSchema)
 {
     _backgroundColor = 16;
     _borderColor = 15;
@@ -135,12 +132,10 @@ Rect GUISlider::CalcGraphicRect(bool /*clipped*/)
     const Rect logical = RectWH(0, 0, _width, _height);
     const Rect &bar = _cachedBar;
     const Rect &handle = _handleGraphRange;
-    return Rect(
-        std::min(std::min(logical.Left, bar.Left), handle.Left),
-        std::min(std::min(logical.Top, bar.Top), handle.Top),
-        std::max(std::max(logical.Right, bar.Right), handle.Right),
-        std::max(std::max(logical.Bottom, bar.Bottom), handle.Bottom)
-    );
+    return Rect(std::min(std::min(logical.Left, bar.Left), handle.Left),
+                std::min(std::min(logical.Top, bar.Top), handle.Top),
+                std::max(std::max(logical.Right, bar.Right), handle.Right),
+                std::max(std::max(logical.Bottom, bar.Bottom), handle.Bottom));
 }
 
 void GUISlider::UpdateMetrics()
@@ -154,7 +149,8 @@ void GUISlider::UpdateMetrics()
     // New, simpler handle position math, since 3.6.0 Beta
     const bool handle_pos_360 = (GUI::DataVersion >= kGameVersion_360_21);
     // Test if sprite is available; // TODO: return a placeholder from spriteset instead!
-    const int handle_im = ((_handleImage > 0) && spriteset && spriteset->DoesSpriteExist(_handleImage)) ? _handleImage : 0;
+    const int handle_im =
+        ((_handleImage > 0) && spriteset && spriteset->DoesSpriteExist(_handleImage)) ? _handleImage : 0;
 
     // Depending on slider's orientation, thickness is either Height or Width
     const int thickness = IsHorizontal() ? _height : _width;
@@ -167,8 +163,7 @@ void GUISlider::UpdateMetrics()
     Size handle_sz;
     if (handle_im > 0) // handle is a sprite
     {
-        handle_sz = Size(get_adjusted_spritewidth(handle_im),
-            get_adjusted_spriteheight(handle_im));
+        handle_sz = Size(get_adjusted_spritewidth(handle_im), get_adjusted_spriteheight(handle_im));
     }
     else // handle is a drawn rectangle
     {
@@ -190,19 +185,16 @@ void GUISlider::UpdateMetrics()
         bar = RectWH(1, _height / 2 - thick_f, _width - 1, bar_thick);
         handle_range = _width - 4;
         int value_pos = (int)(((float)(_value - _minValue) * (float)handle_range) / (float)(_maxValue - _minValue));
-        handle = RectWH(
-            (bar.Left + 2) - (handle_sz.Width / 2) + 1 + value_pos - 2, // x pos, by value
-            handle_pos_360 ? // y pos, centering handle around bar
-                bar.Top + (bar.GetHeight() - handle_sz.Height) / 2 :
-                bar.Top + (bar.GetHeight() - 1) / 2 - handle_sz.Height / 2 + 1,
-            handle_sz.Width, handle_sz.Height);
+        handle = RectWH((bar.Left + 2) - (handle_sz.Width / 2) + 1 + value_pos - 2, // x pos, by value
+                        handle_pos_360 ? // y pos, centering handle around bar
+                            bar.Top + (bar.GetHeight() - handle_sz.Height) / 2
+                                       : bar.Top + (bar.GetHeight() - 1) / 2 - handle_sz.Height / 2 + 1,
+                        handle_sz.Width, handle_sz.Height);
         // add custom handle offset
         handle = Rect::MoveBy(handle, 0, _handleOffset);
-        handle_gfrange = Rect(
-            (bar.Left + 2) - (handle_sz.Width / 2) + 0 - 1,
-            handle.Top,
-            (bar.Left + 2) - (handle_sz.Width / 2) + handle_range - 1 + (handle_sz.Width - 1),
-            handle.Top + handle_sz.Height - 1);
+        handle_gfrange = Rect((bar.Left + 2) - (handle_sz.Width / 2) + 0 - 1, handle.Top,
+                              (bar.Left + 2) - (handle_sz.Width / 2) + handle_range - 1 + (handle_sz.Width - 1),
+                              handle.Top + handle_sz.Height - 1);
     }
     // vertical slider
     else
@@ -210,19 +202,16 @@ void GUISlider::UpdateMetrics()
         bar = RectWH(_width / 2 - thick_f, 1, bar_thick, _height - 1);
         handle_range = _height - 4;
         int value_pos = (int)(((float)(_maxValue - _value) * (float)handle_range) / (float)(_maxValue - _minValue));
-        handle = RectWH(
-            handle_pos_360 ? // x pos, centering handle around bar
-                bar.Left + (bar.GetWidth() - handle_sz.Width) / 2 :
-                bar.Left + (bar.GetWidth() - 1) / 2 - handle_sz.Width / 2 + 1,
-            (bar.Top + 2) - (handle_sz.Height / 2) + 1 + value_pos - 2, // y pos, by value
-            handle_sz.Width, handle_sz.Height);
+        handle = RectWH(handle_pos_360 ? // x pos, centering handle around bar
+                            bar.Left + (bar.GetWidth() - handle_sz.Width) / 2
+                                       : bar.Left + (bar.GetWidth() - 1) / 2 - handle_sz.Width / 2 + 1,
+                        (bar.Top + 2) - (handle_sz.Height / 2) + 1 + value_pos - 2, // y pos, by value
+                        handle_sz.Width, handle_sz.Height);
         // add custom handle offset
         handle = Rect::MoveBy(handle, _handleOffset, 0);
-        handle_gfrange = Rect(
-            handle.Left,
-            (bar.Top + 2) - (handle_sz.Height / 2) + 0 - 1,
-            handle.Left + handle_sz.Width - 1,
-            (bar.Top + 2) - (handle_sz.Height / 2) + handle_range - 1 + (handle_sz.Height - 1));
+        handle_gfrange =
+            Rect(handle.Left, (bar.Top + 2) - (handle_sz.Height / 2) + 0 - 1, handle.Left + handle_sz.Width - 1,
+                 (bar.Top + 2) - (handle_sz.Height / 2) + handle_range - 1 + (handle_sz.Height - 1));
     }
 
     _cachedBar = bar;
@@ -267,8 +256,7 @@ void GUISlider::Draw(Bitmap *ds, int x, int y)
             cx += x_inc;
             cy += y_inc;
             // done as a do..while so that at least one of the image is drawn
-        }
-        while ((cx + x_inc <= bar.Right) && (cy + y_inc <= bar.Bottom));
+        } while ((cx + x_inc <= bar.Right) && (cy + y_inc <= bar.Bottom));
     }
     else
     {
@@ -334,7 +322,8 @@ void GUISlider::OnMouseMove(int mx, int my)
     if (IsHorizontal())
         value = (int)(((float)(mp.X - 2) * (float)(_maxValue - _minValue)) / (float)_handleRange) + _minValue;
     else
-        value = (int)(((float)((_height - mp.Y) - 2) * (float)(_maxValue - _minValue)) / (float)_handleRange) + _minValue;
+        value =
+            (int)(((float)((_height - mp.Y) - 2) * (float)(_maxValue - _minValue)) / (float)_handleRange) + _minValue;
 
     value = Math::Clamp(value, _minValue, _maxValue);
     if (value != _value)
@@ -413,8 +402,7 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _maxValue = in->ReadInt32();
     _value = in->ReadInt32();
 
-    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) ||
-        (svg_ver >= kGuiSvgVersion_40026))
+    if ((svg_ver >= kGuiSvgVersion_36304) && (svg_ver < kGuiSvgVersion_400) || (svg_ver >= kGuiSvgVersion_40026))
     {
         _handleColor = in->ReadInt32();
         _borderShadeColor = in->ReadInt32();
@@ -436,7 +424,7 @@ void GUISlider::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     _maxValue = std::max(_minValue, _maxValue);
     _minValue = std::min(_minValue, _maxValue);
     _value = Math::Clamp(_value, _minValue, _maxValue);
-    
+
     UpdateMetrics();
     UpdateGraphicSpace();
 }

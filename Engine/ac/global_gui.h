@@ -16,21 +16,21 @@
 
 // This is an internal script function, and is undocumented.
 // It is used by the editor's automatic macro generation.
-int  FindGUIID (const char* GUIName);
+int FindGUIID(const char *GUIName);
 // Sets GUI visible property on
 void InterfaceOn(int ifn);
 // Sets GUI visible property off
 void InterfaceOff(int ifn);
-int  GetTextWidth(const char *text, int fontnum);
-int  GetTextHeight(const char *text, int fontnum, int width);
-int  GetFontHeight(int fontnum);
-int  GetFontLineSpacing(int fontnum);
+int GetTextWidth(const char *text, int fontnum);
+int GetTextHeight(const char *text, int fontnum, int width);
+int GetFontHeight(int fontnum);
+int GetFontLineSpacing(int fontnum);
 void DisableInterface();
 void EnableInterface();
 void DisableInterfaceEx(bool update_cursor);
 void EnableInterfaceEx(bool update_cursor);
 // Returns 1 if user interface is enabled, 0 if disabled
-int  IsInterfaceEnabled();
-void SetTextWindowGUI (int guinum);
+int IsInterfaceEnabled();
+void SetTextWindowGUI(int guinum);
 
 #endif // __AGS_EE_AC__GLOBALGUI_H

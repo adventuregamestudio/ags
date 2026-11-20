@@ -18,11 +18,13 @@
 #include <unordered_map>
 
 #include "script/cc_script.h"
-#include "cs_parser_common.h"   // macro definitions and typedefs
-#include "cc_symboltable.h"     // ScopeType
+#include "cs_parser_common.h" // macro definitions and typedefs
+#include "cc_symboltable.h"   // ScopeType
 
-namespace AGS {
-class ccCompiledScript : public ccScript {
+namespace AGS
+{
+class ccCompiledScript : public ccScript
+{
 public:
     struct FuncProps
     {
@@ -35,7 +37,7 @@ public:
     std::unordered_map<std::string, int> ImportIdx;
     std::unordered_map<std::string, int> ExportIdx;
 
-    std::vector<CodeLoc> Labels; // Code locations that will receive their actual value later on
+    std::vector<CodeLoc> Labels;                        // Code locations that will receive their actual value later on
     std::unordered_map<CodeCell, CodeCell> Label2Value; // map labels to actual values
 
     // Number of bytes that have been PUSHED onto the stack. Local variables begin below that
@@ -52,7 +54,7 @@ public:
     inline CodeLoc Codesize_i32() const { return static_cast<int32_t>(code.size()); }
 
     // Reserve siz bytes of memory for global data;
-    // copy the value at vall into this new memory space if given; 
+    // copy the value at vall into this new memory space if given;
     // return the offset at which the new space begins.
     GlobalLoc AddGlobal(size_t value_size, void *value_ptr);
 
@@ -84,23 +86,39 @@ public:
     // Start a new section of the code.
     ErrorType StartNewSection(std::string const &name);
 
-    // Write one Bytecode byte    
+    // Write one Bytecode byte
     void WriteCode(CodeCell cell);
 
     // Write a command
     inline void WriteCmd(CodeCell op) { WriteCode(op); }
 
     inline void WriteCmd(CodeCell op, CodeCell p1)
-        { WriteCode(op); WriteCode(p1); }
-    inline void WriteCmd(CodeCell op, CodeCell p1,CodeCell p2)
-        { WriteCode(op); WriteCode(p1); WriteCode(p2); };
+    {
+        WriteCode(op);
+        WriteCode(p1);
+    }
+    inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2)
+    {
+        WriteCode(op);
+        WriteCode(p1);
+        WriteCode(p2);
+    };
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
-        { WriteCode(op); WriteCode(p1); WriteCode(p2); WriteCode(p3); };
+    {
+        WriteCode(op);
+        WriteCode(p1);
+        WriteCode(p2);
+        WriteCode(p3);
+    };
 
     // Write a Linenum pseudo-command, coupling this point of the Bytecode with the source code line 'lno'
     void WriteLineno(size_t lno);
     // Only write Bytecode for source line no if it differs from the last emitted
-    inline void RefreshLineno(size_t lno) { if (LastEmittedLineno != lno) WriteLineno(lno); }
+    inline void RefreshLineno(size_t lno)
+    {
+        if (LastEmittedLineno != lno)
+            WriteLineno(lno);
+    }
 
     // write a 'push' command; track in 'OffsetToLocalVarBlock' the number of bytes pushed to the stack
     void PushReg(CodeCell regg);
@@ -108,7 +126,7 @@ public:
     void PopReg(CodeCell regg);
 
     // Returns the relative distance in a jump instruction
-    // 'here' is the location of the bytecode that will contain the (relative) destination. 
+    // 'here' is the location of the bytecode that will contain the (relative) destination.
     // It is not the location of the start of the command but the location of its first parameter
     inline static CodeLoc RelativeJumpDist(CodeLoc here, CodeLoc dest) { return dest - here - 1; }
 
@@ -130,7 +148,7 @@ public:
     std::vector<char> FixupTypes;
     std::vector<CodeLoc> Labels; // Locations of code cells that will receive their true value later
 
-    // Paste this snippet to the end of the code of 'script' 
+    // Paste this snippet to the end of the code of 'script'
     void Paste(ccCompiledScript &scrip);
 
     // Whether code is in the snippet, ignoring starting linenum directives
@@ -145,10 +163,7 @@ private:
     CodeLoc _rememberedCodeLocation;
 
 public:
-    RestorePoint(ccCompiledScript &scrip)
-        : _scrip(scrip)
-        , _rememberedCodeLocation(scrip.Codesize_i32())
-    { }
+    RestorePoint(ccCompiledScript &scrip) : _scrip(scrip), _rememberedCodeLocation(scrip.Codesize_i32()) {}
 
     // Cut the code that has been generated since the object has been created into the snippet
     // However, if 'keep_starting_linum' and the generated code begins with a 'linenum' pseudo-directive
@@ -158,7 +173,11 @@ public:
     // Discard all code that has been generated since the object has been created
     // However, if 'keep_starting_linum' and the generated code starts with a 'linenum' directive,
     // then don't cut out this directive.
-    inline void Restore(bool keep_starting_linum = true) { Snippet _dummy; Cut(_dummy, keep_starting_linum); }
+    inline void Restore(bool keep_starting_linum = true)
+    {
+        Snippet _dummy;
+        Cut(_dummy, keep_starting_linum);
+    }
 
     inline bool IsEmpty() const { return _scrip.Codesize_i32() <= _rememberedCodeLocation; }
     inline CodeLoc CodeLocation() const { return _rememberedCodeLocation; }
@@ -172,15 +191,12 @@ class ForwardJump
 private:
     ccCompiledScript &_scrip;
     std::vector<CodeLoc> _jumpDestParamLocs;
-    size_t  _lastEmittedSrcLineno;
+    size_t _lastEmittedSrcLineno;
 
 public:
-    ForwardJump(ccCompiledScript &scrip)
-        : _scrip(scrip)
-        , _lastEmittedSrcLineno(INT_MAX)
-    {}
+    ForwardJump(ccCompiledScript &scrip) : _scrip(scrip), _lastEmittedSrcLineno(INT_MAX) {}
 
-    // Add the parameter of a forward jump 
+    // Add the parameter of a forward jump
     void AddParam(int offset = -1);
 
     // Patch all the forward jump parameters to point to _scrip.codesize
@@ -200,13 +216,10 @@ class BackwardJumpDest
 private:
     ccCompiledScript &_scrip;
     CodeLoc _dest;
-    size_t  _lastEmittedSrcLineno;
+    size_t _lastEmittedSrcLineno;
+
 public:
-    BackwardJumpDest(ccCompiledScript &scrip)
-        : _scrip(scrip)
-        , _dest(-1)
-        , _lastEmittedSrcLineno(INT_MAX)
-    { }
+    BackwardJumpDest(ccCompiledScript &scrip) : _scrip(scrip), _dest(-1), _lastEmittedSrcLineno(INT_MAX) {}
 
     // Set the destination to the location given; default to current location in code
     void Set(CodeLoc cl = -1);

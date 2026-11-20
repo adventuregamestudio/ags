@@ -98,11 +98,11 @@ void WriteConfig(const RuntimeSetup &setup, const GameSettings *settings, Config
     cfg["graphics"]["antialias"] = setup.AAScaledSprites ? "1" : "0";
     bool render_at_screenres = setup.RenderAtScreenResolution;
     if (settings)
-        render_at_screenres = render_at_screenres
-            && (settings->RenderAtScreenResolution != ::kRenderAtScreenRes_Disabled)
-            || (settings->RenderAtScreenResolution == ::kRenderAtScreenRes_Enabled);
+        render_at_screenres =
+            render_at_screenres && (settings->RenderAtScreenResolution != ::kRenderAtScreenRes_Disabled) ||
+            (settings->RenderAtScreenResolution == ::kRenderAtScreenRes_Enabled);
     cfg["graphics"]["render_at_screenres"] = render_at_screenres ? "1" : "0";
-    
+
     cfg["graphics"]["rotation"] = MakeRotationConfig(setup.Rotation);
 
     bool audio_enabled = setup.AudioDriver != "Disabled";

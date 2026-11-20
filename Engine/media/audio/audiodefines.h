@@ -20,13 +20,13 @@
 // what is the future player state is, after data finishes loading. Review this!
 enum PlaybackState
 {
-    PlayStateInvalid,   // was not initialized
-    PlayStateInitial,   // initialized, but not started
-    PlayStatePlaying,   // playing
-    PlayStatePaused,    // paused
-    PlayStateStopped,   // stopped by command
-    PlayStateFinished,  // stopped by reaching the end
-    PlayStateError      // stopped due to the error
+    PlayStateInvalid,  // was not initialized
+    PlayStateInitial,  // initialized, but not started
+    PlayStatePlaying,  // playing
+    PlayStatePaused,   // paused
+    PlayStateStopped,  // stopped by command
+    PlayStateFinished, // stopped by reaching the end
+    PlayStateError     // stopped due to the error
 };
 
 // Tells if the playback state defines a valid and ready state
@@ -38,19 +38,19 @@ inline bool IsPlaybackReady(PlaybackState state)
 // Tells if the playback state defines an invalid or completed state
 inline bool IsPlaybackDone(PlaybackState state)
 {
-    return state == PlayStateInvalid || state == PlayStateStopped ||
-        state == PlayStateFinished || state == PlayStateError;
+    return state == PlayStateInvalid || state == PlayStateStopped || state == PlayStateFinished ||
+           state == PlayStateError;
 }
 
 // Max channels that are distributed among game's audio types
 #define MAX_GAME_CHANNELS         32
 #define SPECIAL_CROSSFADE_CHANNEL (MAX_GAME_CHANNELS)
 // Total number of channels: game chans + utility chans
-#define TOTAL_AUDIO_CHANNELS      (MAX_GAME_CHANNELS + 1)
+#define TOTAL_AUDIO_CHANNELS (MAX_GAME_CHANNELS + 1)
 // Number of game channels reserved for speech voice-over
-#define NUM_SPEECH_CHANS          1
+#define NUM_SPEECH_CHANS 1
 // Fixed audio channel ID used for speech
-#define SCHAN_SPEECH              0
+#define SCHAN_SPEECH 0
 
 // Used in locational sounds (FIXME: rename)
 #define AMBIENCE_FULL_DIST 25

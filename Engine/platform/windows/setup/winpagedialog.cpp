@@ -23,8 +23,7 @@ namespace AGS
 namespace Engine
 {
 
-PageControl::PageControl(HWND control_hwnd)
-    : _hwnd(control_hwnd)
+PageControl::PageControl(HWND control_hwnd) : _hwnd(control_hwnd)
 {
     assert(_hwnd);
     _parentRect = GetTabControlDisplayRect(_hwnd);

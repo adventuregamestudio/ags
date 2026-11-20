@@ -29,14 +29,14 @@ const char *CCInventory::GetType()
     return "Inventory";
 }
 
-size_t CCInventory::CalcSerializeSize(const void* /*address*/)
+size_t CCInventory::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
 void CCInventory::Serialize(const void *address, Stream *out)
 {
-    const ScriptInvItem *shh = static_cast<const ScriptInvItem*>(address);
+    const ScriptInvItem *shh = static_cast<const ScriptInvItem *>(address);
     out->WriteInt32(shh->id);
 }
 

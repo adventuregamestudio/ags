@@ -31,14 +31,13 @@ static const CstrArr<kNumSprCompressTypes> CompressionNames = {{"none", "rle", "
 
 String GetCompressionName(SpriteCompression compress)
 {
-    return String::Wrapper(StrUtil::SelectCStr<kNumSprCompressTypes>(
-        CompressionNames, compress, "unknown"));
+    return String::Wrapper(StrUtil::SelectCStr<kNumSprCompressTypes>(CompressionNames, compress, "unknown"));
 }
 
 SpriteCompression CompressionFromName(const String &compress_name)
 {
-    return StrUtil::ParseEnum<SpriteCompression, kNumSprCompressTypes>(
-        compress_name, CompressionNames, kSprCompress_None);
+    return StrUtil::ParseEnum<SpriteCompression, kNumSprCompressTypes>(compress_name, CompressionNames,
+                                                                       kSprCompress_None);
 }
 
 bool ResolveImageFilePattern(const String &pattern, String &res_pattern)
@@ -71,8 +70,8 @@ bool ResolveImageFilePattern(const String &pattern, String &res_pattern, String 
         else if (i < parts.size() - 1)
         {
             // Resolve placeholder
-            if ((parts[i].GetLast() == 'N' || parts[i].GetLast() == 'n')
-                && (parts[i].GetLength() == 2) && std::isdigit(parts[i][0]))
+            if ((parts[i].GetLast() == 'N' || parts[i].GetLast() == 'n') && (parts[i].GetLength() == 2) &&
+                std::isdigit(parts[i][0]))
             {
                 res_pattern.AppendFmt("%%0%dd", parts[i][0] - '0');
                 regex_pattern.AppendFmt("\\d{%d}", parts[i][0] - '0');
@@ -100,8 +99,7 @@ bool ResolveImageFilePattern(const String &pattern, String &res_pattern, String 
 
 HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, const std::regex &regex)
 {
-    for (FindFile ff = FindFile::Open(asset_dir, regex, true, false, 0);
-        !ff.AtEnd(); ff.Next())
+    for (FindFile ff = FindFile::Open(asset_dir, regex, true, false, 0); !ff.AtEnd(); ff.Next())
     {
         String filename = ff.Current();
         files.push_back(filename);
@@ -158,7 +156,7 @@ static void NormalizePaletteTransparency(BitmapData &bm_data, Palette &dst_pal, 
         // which is not used within the image, and turn it into "transparency".
         else
         {
-            bool used[256] = { 0 };
+            bool used[256] = {0};
             const uint8_t *px_ptr = bm_data.GetData();
             const uint8_t *px_end = px_ptr + bm_data.GetDataSize();
             for (; px_ptr != px_end; ++px_ptr)
@@ -172,7 +170,7 @@ static void NormalizePaletteTransparency(BitmapData &bm_data, Palette &dst_pal, 
 
         if (transparency_index >= 0)
         {
-            dst_pal[transparency_index] = { 0,0,0,0 };
+            dst_pal[transparency_index] = {0, 0, 0, 0};
         }
     }
 
@@ -197,8 +195,8 @@ static void NormalizePaletteTransparency(BitmapData &bm_data, Palette &dst_pal, 
 }
 
 // Converts imported image's palette to the native AGS format
-static void ConvertPaletteToGameFormat(BitmapData &bm_data, const int game_color_depth,
-    const Palette &src_pal, Palette &dst_pal, bool normalize_trans)
+static void ConvertPaletteToGameFormat(BitmapData &bm_data, const int game_color_depth, const Palette &src_pal,
+                                       Palette &dst_pal, bool normalize_trans)
 {
     assert(PixelFormatIndexed(bm_data.GetFormat()));
     // FIXME: currently we do not have means to get used palette slots here.
@@ -240,17 +238,26 @@ static void ConvertPaletteToGameFormat(BitmapData &bm_data, const int game_color
     }
 }
 
-template <typename T> T makecol_frompal_opaque(const RGB &c);
-template <> uint16_t makecol_frompal_opaque(const RGB &c) { return makecol16(c.r, c.g, c.b); }
-template <> uint32_t makecol_frompal_opaque(const RGB &c) { return makeacol32(c.r, c.g, c.b, 255); }
+template<typename T>
+T makecol_frompal_opaque(const RGB &c);
+template<>
+uint16_t makecol_frompal_opaque(const RGB &c)
+{
+    return makecol16(c.r, c.g, c.b);
+}
+template<>
+uint32_t makecol_frompal_opaque(const RGB &c)
+{
+    return makeacol32(c.r, c.g, c.b, 255);
+}
 
-template <typename PxType>
+template<typename PxType>
 static void Convert8BitToHiColorImpl(const uint8_t *src_buf, const uint8_t *src_end, const Palette &src_pal,
-    uint8_t *dst_buf, uint32_t src_width, size_t src_stride, size_t dst_stride)
+                                     uint8_t *dst_buf, uint32_t src_width, size_t src_stride, size_t dst_stride)
 {
     for (; src_buf < src_end; src_buf += src_stride, dst_buf += dst_stride)
     {
-        PxType *dst_ptr = reinterpret_cast<PxType*>(dst_buf);
+        PxType *dst_ptr = reinterpret_cast<PxType *>(dst_buf);
         for (const uint8_t *src_ptr = src_buf; src_ptr < src_buf + src_width; ++src_ptr, ++dst_ptr)
         {
             *dst_ptr = makecol_frompal_opaque<PxType>(src_pal[*src_ptr]);
@@ -258,13 +265,14 @@ static void Convert8BitToHiColorImpl(const uint8_t *src_buf, const uint8_t *src_
     }
 }
 
-template <typename PxType>
+template<typename PxType>
 static void Convert8BitToHiColorImpl(const uint8_t *src_buf, const uint8_t *src_end, const Palette &src_pal,
-    uint8_t *dst_buf, uint32_t src_width, size_t src_stride, size_t dst_stride, const uint32_t maskcolor, const uint32_t safe_magenta)
+                                     uint8_t *dst_buf, uint32_t src_width, size_t src_stride, size_t dst_stride,
+                                     const uint32_t maskcolor, const uint32_t safe_magenta)
 {
     for (; src_buf < src_end; src_buf += src_stride, dst_buf += dst_stride)
     {
-        PxType *dst_ptr = reinterpret_cast<PxType*>(dst_buf);
+        PxType *dst_ptr = reinterpret_cast<PxType *>(dst_buf);
         for (const uint8_t *src_ptr = src_buf; src_ptr < src_buf + src_width; ++src_ptr, ++dst_ptr)
         {
             const int px = *src_ptr;
@@ -282,7 +290,8 @@ static void Convert8BitToHiColorImpl(const uint8_t *src_buf, const uint8_t *src_
 // Converts 8-bit pixel data with RGB palette to either 16-bit or 32-bit buffer.
 // TODO: this should be a part of PixelOp::CopyConvert
 // TODO: rewrite as a template function, having respective integer type as pixel size.
-static void Convert8BitToHiColor(const BitmapData &src, const Palette &src_pal, PixelBuffer &dst, const bool keep_transparency)
+static void Convert8BitToHiColor(const BitmapData &src, const Palette &src_pal, PixelBuffer &dst,
+                                 const bool keep_transparency)
 {
     assert(dst.GetColorDepth() == 16 || dst.GetColorDepth() == 32);
     const int dst_depth = PixelFormatToPixelBits(dst.GetFormat());
@@ -292,34 +301,35 @@ static void Convert8BitToHiColor(const BitmapData &src, const Palette &src_pal, 
         const uint32_t maskcolor = GetDefaultMaskColor(dst.GetFormat());
         // define a safe magenta color to use to preserve opacity in colors that match maskcolor
         // manually compose to use the full palette instead of allegro 0-63 restricted one (???)
-        const uint32_t safe_magenta = (dst_depth == 16)
-            ? makecol_depth(dst_depth, 255, 4, 255)  // 16 bit
-            : makecol_depth(dst_depth, 255, 1, 255); // 24-32 bit
+        const uint32_t safe_magenta = (dst_depth == 16) ? makecol_depth(dst_depth, 255, 4, 255)  // 16 bit
+                                                        : makecol_depth(dst_depth, 255, 1, 255); // 24-32 bit
 
         if (dst_depth == 16)
         {
-            Convert8BitToHiColorImpl<uint16_t>(src.GetData(), src.GetData() + src.GetStride() * src.GetHeight(), src_pal,
-                dst.GetData(), src.GetWidth(), src.GetStride(), dst.GetStride(),
-                maskcolor, safe_magenta);
+            Convert8BitToHiColorImpl<uint16_t>(src.GetData(), src.GetData() + src.GetStride() * src.GetHeight(),
+                                               src_pal, dst.GetData(), src.GetWidth(), src.GetStride(), dst.GetStride(),
+                                               maskcolor, safe_magenta);
         }
-        else 
+        else
         {
-            Convert8BitToHiColorImpl<uint32_t>(src.GetData(), src.GetData() + src.GetStride() * src.GetHeight(), src_pal,
-                dst.GetData(), src.GetWidth(), src.GetStride(), dst.GetStride(),
-                maskcolor, safe_magenta);
+            Convert8BitToHiColorImpl<uint32_t>(src.GetData(), src.GetData() + src.GetStride() * src.GetHeight(),
+                                               src_pal, dst.GetData(), src.GetWidth(), src.GetStride(), dst.GetStride(),
+                                               maskcolor, safe_magenta);
         }
     }
     else
     {
         if (dst_depth == 16)
         {
-            Convert8BitToHiColorImpl<uint16_t>(src.GetData(), src.GetData() + src.GetStride() * src.GetHeight(), src_pal,
-                dst.GetData(), src.GetWidth(), src.GetStride(), dst.GetStride());
+            Convert8BitToHiColorImpl<uint16_t>(src.GetData(), src.GetData() + src.GetStride() * src.GetHeight(),
+                                               src_pal, dst.GetData(), src.GetWidth(), src.GetStride(),
+                                               dst.GetStride());
         }
         else
         {
-            Convert8BitToHiColorImpl<uint32_t>(src.GetData(), src.GetData() + src.GetStride() * src.GetHeight(), src_pal,
-                dst.GetData(), src.GetWidth(), src.GetStride(), dst.GetStride());
+            Convert8BitToHiColorImpl<uint32_t>(src.GetData(), src.GetData() + src.GetStride() * src.GetHeight(),
+                                               src_pal, dst.GetData(), src.GetWidth(), src.GetStride(),
+                                               dst.GetStride());
         }
     }
 }
@@ -337,7 +347,7 @@ static void Convert8BitARGBTo32(const BitmapData &src, const Palette &src_pal, P
     const size_t dst_stride = dst.GetStride();
     for (; src_buf < src_end; src_buf += src_stride, dst_buf += dst_stride)
     {
-        uint32_t *dst_ptr = reinterpret_cast<uint32_t*>(dst_buf);
+        uint32_t *dst_ptr = reinterpret_cast<uint32_t *>(dst_buf);
         for (const uint8_t *src_ptr = src_buf; src_ptr < src_buf + src_width; ++src_ptr, ++dst_ptr)
         {
             const RGB &pal_color = src_pal[*src_ptr];
@@ -346,25 +356,24 @@ static void Convert8BitARGBTo32(const BitmapData &src, const Palette &src_pal, P
     }
 }
 
-template <typename SrcPxType, typename DstPxType>
-static void FixMaskColorImpl(const uint8_t *src_buf, const uint8_t *src_end,
-    uint8_t *dst_buf, uint32_t src_width, size_t src_stride, size_t dst_stride,
-    const uint32_t src_maskcolor, const uint32_t dst_maskcolor, const uint32_t safe_color)
+template<typename SrcPxType, typename DstPxType>
+static void FixMaskColorImpl(const uint8_t *src_buf, const uint8_t *src_end, uint8_t *dst_buf, uint32_t src_width,
+                             size_t src_stride, size_t dst_stride, const uint32_t src_maskcolor,
+                             const uint32_t dst_maskcolor, const uint32_t safe_color)
 {
     for (; src_buf < src_end; src_buf += src_stride, dst_buf += dst_stride)
     {
-        DstPxType *dst_ptr = reinterpret_cast<DstPxType*>(dst_buf);
-        for (const SrcPxType *src_line = reinterpret_cast<const SrcPxType*>(src_buf), *src_ptr = src_line;
-            src_ptr < src_line + src_width; ++src_ptr, ++dst_ptr)
+        DstPxType *dst_ptr = reinterpret_cast<DstPxType *>(dst_buf);
+        for (const SrcPxType *src_line = reinterpret_cast<const SrcPxType *>(src_buf), *src_ptr = src_line;
+             src_ptr < src_line + src_width; ++src_ptr, ++dst_ptr)
         {
             const SrcPxType src_color = *src_ptr;
             const DstPxType dst_color = *dst_ptr;
             // A 32-bit source pixel is transparent if it has zero alpha,
             // or if it is an opaque mask color (src_maskcolor is passed opaque in this case);
             // semi-transparent mask colors are kept as normal colors.
-            const bool is_mask = (sizeof(SrcPxType) == 4) ?
-                ((geta32(src_color) == 0) || (src_color == src_maskcolor)) :
-                (src_color == src_maskcolor);
+            const bool is_mask = (sizeof(SrcPxType) == 4) ? ((geta32(src_color) == 0) || (src_color == src_maskcolor))
+                                                          : (src_color == src_maskcolor);
             if (is_mask)
                 *dst_ptr = dst_maskcolor;
             else if (dst_color == dst_maskcolor) // replace mask color with close match
@@ -392,15 +401,19 @@ static void ConvertAndFixMaskColor(const BitmapData &src, PixelBuffer &dst, cons
         const int dst_depth = dst.GetColorDepth();
         if (src_depth == 16 && dst_depth == 32)
         {
-            FixMaskColorImpl<uint16_t, uint32_t>(src.GetData(), src.GetData() + src.GetHeight() * src.GetStride(), dst.GetData(),
-                src.GetWidth(), src.GetStride(), dst.GetStride(),
-                GetDefaultMaskColor(src.GetFormat()), GetDefaultMaskColor(dst.GetFormat()), replacement_mask_color(dst.GetColorDepth(), GetDefaultMaskColor(dst.GetFormat())));
+            FixMaskColorImpl<uint16_t, uint32_t>(
+                src.GetData(), src.GetData() + src.GetHeight() * src.GetStride(), dst.GetData(), src.GetWidth(),
+                src.GetStride(), dst.GetStride(), GetDefaultMaskColor(src.GetFormat()),
+                GetDefaultMaskColor(dst.GetFormat()),
+                replacement_mask_color(dst.GetColorDepth(), GetDefaultMaskColor(dst.GetFormat())));
         }
         else if (src_depth == 32 && dst_depth == 16)
         {
-            FixMaskColorImpl<uint32_t, uint16_t>(src.GetData(), src.GetData() + src.GetHeight() * src.GetStride(), dst.GetData(),
-                src.GetWidth(), src.GetStride(), dst.GetStride(),
-                GetDefaultMaskColor(src.GetFormat()) | (0xFFu << _rgb_a_shift_32), GetDefaultMaskColor(dst.GetFormat()), replacement_mask_color(dst.GetColorDepth(), GetDefaultMaskColor(dst.GetFormat())));
+            FixMaskColorImpl<uint32_t, uint16_t>(
+                src.GetData(), src.GetData() + src.GetHeight() * src.GetStride(), dst.GetData(), src.GetWidth(),
+                src.GetStride(), dst.GetStride(), GetDefaultMaskColor(src.GetFormat()) | (0xFFu << _rgb_a_shift_32),
+                GetDefaultMaskColor(dst.GetFormat()),
+                replacement_mask_color(dst.GetColorDepth(), GetDefaultMaskColor(dst.GetFormat())));
         }
         else
         {
@@ -413,9 +426,9 @@ static void ConvertAndFixMaskColor(const BitmapData &src, PixelBuffer &dst, cons
 // - a moved source buffer, when no changes whatsoever were necessary.
 // - a moved and modified source buffer with the same pixel format, when only colors need to be replaces.
 // - new pixel data, when full format conversion was necessary.
-static HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const Palette *src_pal,
-    Palette *dst_pal, const int game_color_depth, const bool fix_color_depth,
-    const bool import_alpha, const bool keep_transparency, const bool fix_pal)
+static HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const Palette *src_pal, Palette *dst_pal,
+                                      const int game_color_depth, const bool fix_color_depth, const bool import_alpha,
+                                      const bool keep_transparency, const bool fix_pal)
 {
     assert((src.GetColorDepth() > 8) || (src_pal && dst_pal));
     // First we unpack the pixels from the src pixel buffer to a buffer,
@@ -425,7 +438,7 @@ static HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const 
     switch (src.GetFormat())
     {
     case PixelFormat::kPxFmt_Indexed1:
-    case PixelFormat::kPxFmt_Indexed4:    
+    case PixelFormat::kPxFmt_Indexed4:
     case PixelFormat::kPxFmt_Indexed8:
         dst_depth = 8; // convert any indexed to 8-bit
         break;
@@ -437,8 +450,7 @@ static HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const 
     case PixelFormat::kPxFmt_A8R8G8B8:
         dst_depth = 32; // convert to 32-bit
         break;
-    default:
-        return new Error("Unsupported pixel format: %s", PixelFormatName(src.GetFormat()).GetCStr());
+    default: return new Error("Unsupported pixel format: %s", PixelFormatName(src.GetFormat()).GetCStr());
     }
 
     if ((game_color_depth == 8) && (src_depth > 8))
@@ -491,7 +503,7 @@ static HError ConvertToGameCompatible(PixelBuffer &src, PixelBuffer &dst, const 
 
         use_buf = &final_buf;
     }
-    
+
     // Move output data to the destination buffer (this may be src buffer too!)
     dst = std::move(*use_buf);
     return HError::None();
@@ -551,7 +563,7 @@ static void MakeColorTransparent(BitmapData &bm_data, const Palette &src_pal, in
 
 // Adjusts sprite's transparency using the chosen method
 static void SortOutTransparency(BitmapData &bm_data, const SpriteImportTransparency sprite_trans, int trans_index,
-    const Palette &src_pal, const int src_color_depth, int &transcol)
+                                const Palette &src_pal, const int src_color_depth, int &transcol)
 {
     if (sprite_trans == kSpriteImport_LeaveAsIs)
     {
@@ -569,15 +581,9 @@ static void SortOutTransparency(BitmapData &bm_data, const SpriteImportTranspare
     const int dst_depth = bm_data.GetColorDepth();
     switch (sprite_trans)
     {
-    case kSpriteImport_TopLeft:
-        transcol = bm_data.GetPixel(0, 0);
-        break;
-    case kSpriteImport_BottomLeft:
-        transcol = bm_data.GetPixel(0, (bm_data.GetHeight()) - 1);
-        break;
-    case kSpriteImport_TopRight:
-        transcol = bm_data.GetPixel((bm_data.GetWidth()) - 1, 0);
-        break;
+    case kSpriteImport_TopLeft: transcol = bm_data.GetPixel(0, 0); break;
+    case kSpriteImport_BottomLeft: transcol = bm_data.GetPixel(0, (bm_data.GetHeight()) - 1); break;
+    case kSpriteImport_TopRight: transcol = bm_data.GetPixel((bm_data.GetWidth()) - 1, 0); break;
     case kSpriteImport_BottomRight:
         transcol = bm_data.GetPixel((bm_data.GetWidth()) - 1, (bm_data.GetHeight()) - 1);
         break;
@@ -592,7 +598,8 @@ static void SortOutTransparency(BitmapData &bm_data, const SpriteImportTranspare
                 // on conversion slot 0 was replaced by a standard mask color
                 transcol = GetDefaultMaskColor(bm_data.GetFormat());
             else
-                transcol = makecol_depth(bm_data.GetColorDepth(), src_pal[trans_index].r, src_pal[trans_index].g, src_pal[trans_index].b);
+                transcol = makecol_depth(bm_data.GetColorDepth(), src_pal[trans_index].r, src_pal[trans_index].g,
+                                         src_pal[trans_index].b);
         }
         else
         {
@@ -600,9 +607,7 @@ static void SortOutTransparency(BitmapData &bm_data, const SpriteImportTranspare
         }
         break;
     case kSpriteImport_PaletteIndex0:
-    default:
-        transcol = GetDefaultMaskColor(bm_data.GetFormat());
-        break;
+    default: transcol = GetDefaultMaskColor(bm_data.GetFormat()); break;
     }
 
     MakeColorTransparent(bm_data, src_pal, src_color_depth, transcol);
@@ -610,7 +615,7 @@ static void SortOutTransparency(BitmapData &bm_data, const SpriteImportTranspare
 
 // Adjusts 8-bit sprite's palette
 static void SortOutPalette(BitmapData &bm_data, Palette &pal, const Palette &game_pal,
-    const std::array<PaletteColourType, PAL_SIZE> &paluses, bool use_bg_slots, int transcol)
+                           const std::array<PaletteColourType, PAL_SIZE> &paluses, bool use_bg_slots, int transcol)
 {
     // Ensure that transparent color is index 0
     if (transcol != 0)
@@ -632,7 +637,8 @@ static void SortOutPalette(BitmapData &bm_data, Palette &pal, const Palette &gam
     PaletteOp::Remap(bm_data, pal, dst_pal);
 }
 
-void MergePalettes(Palette &dest_pal, const Palette &game_pal, const Palette &room_pal, const std::array<PaletteColourType, PAL_SIZE> &pal_uses)
+void MergePalettes(Palette &dest_pal, const Palette &game_pal, const Palette &room_pal,
+                   const std::array<PaletteColourType, PAL_SIZE> &pal_uses)
 {
     std::copy(game_pal.begin(), game_pal.end(), dest_pal.begin());
     for (size_t i = 0; i < PAL_SIZE; ++i)
@@ -640,8 +646,9 @@ void MergePalettes(Palette &dest_pal, const Palette &game_pal, const Palette &ro
             dest_pal[i] = room_pal[i];
 }
 
-HError ConvertSpriteForGame(PixelBuffer &image, const Palette *pal,
-    PixelBuffer &dst_image, const GameColorSettings &game_color_opt, const RoomPaletteCache *room_cache, const SpriteData &sprite)
+HError ConvertSpriteForGame(PixelBuffer &image, const Palette *pal, PixelBuffer &dst_image,
+                            const GameColorSettings &game_color_opt, const RoomPaletteCache *room_cache,
+                            const SpriteData &sprite)
 {
     assert(image);
     if (!image)
@@ -656,12 +663,14 @@ HError ConvertSpriteForGame(PixelBuffer &image, const Palette *pal,
     const SpriteImportTransparency sprite_trans = sprite.TransparentColour;
     const int trans_color = sprite.TransparentColourIndex;
     const bool keep_trans = (sprite_trans != kSpriteImport_NoTransparency);
-    const bool fix_palette = (sprite_trans != kSpriteImport_PaletteIndex0) && (sprite_trans != kSpriteImport_PaletteIndex);
-    const bool remap_colors = PixelFormatIndexed(image.GetFormat()) && (sprite.RemapToGamePalette || sprite.RemapToRoomPalette);
+    const bool fix_palette =
+        (sprite_trans != kSpriteImport_PaletteIndex0) && (sprite_trans != kSpriteImport_PaletteIndex);
+    const bool remap_colors =
+        PixelFormatIndexed(image.GetFormat()) && (sprite.RemapToGamePalette || sprite.RemapToRoomPalette);
     const bool use_room_pal = sprite.RemapToRoomPalette;
     PixelBuffer final_buf;
-    HError err = ConvertToGameCompatible(image, final_buf, pal, &img_pal_buf, game_color_depth, true /* fix color depth */,
-            alpha_channel, keep_trans, fix_palette);
+    HError err = ConvertToGameCompatible(image, final_buf, pal, &img_pal_buf, game_color_depth,
+                                         true /* fix color depth */, alpha_channel, keep_trans, fix_palette);
     if (!err)
         return err;
 
@@ -702,7 +711,8 @@ HError ConvertSpriteForGame(PixelBuffer &image, const Palette *pal,
             }
             else
             {
-                SortOutPalette(final_buf, img_pal_buf, game_color_opt.Palette, game_color_opt.PalUses, use_room_pal, transcol);
+                SortOutPalette(final_buf, img_pal_buf, game_color_opt.Palette, game_color_opt.PalUses, use_room_pal,
+                               transcol);
             }
         }
     }

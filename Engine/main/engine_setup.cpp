@@ -46,17 +46,17 @@ extern IGraphicsDriver *gfxDriver;
 
 void engine_adjust_for_rotation_settings()
 {
-    switch (usetup.Rotation) {
-        case ScreenRotation::kScreenRotation_Portrait:
-            SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait PortraitUpsideDown");
-            break;
-        case ScreenRotation::kScreenRotation_Landscape:
-            SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
-            break;
-        case kScreenRotation_Unlocked:
-            // let the user rotate as wished. No adjustment needed.
-        default:
-            break;
+    switch (usetup.Rotation)
+    {
+    case ScreenRotation::kScreenRotation_Portrait:
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, "Portrait PortraitUpsideDown");
+        break;
+    case ScreenRotation::kScreenRotation_Landscape:
+        SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft LandscapeRight");
+        break;
+    case kScreenRotation_Unlocked:
+        // let the user rotate as wished. No adjustment needed.
+    default: break;
     }
 }
 
@@ -122,17 +122,17 @@ void engine_post_gfxmode_mouse_setup(const Size &init_desktop)
         Size cur_desktop;
         if (sys_get_desktop_resolution(cur_desktop.Width, cur_desktop.Height))
             Mouse::SetSpeedUnit(std::max((float)cur_desktop.Width / (float)init_desktop.Width,
-            (float)cur_desktop.Height / (float)init_desktop.Height));
+                                         (float)cur_desktop.Height / (float)init_desktop.Height));
     }
 
     Mouse_EnableControl(usetup.MouseCtrlEnabled);
     Debug::Printf(kDbgMsg_Info, "Mouse speed control: %s, unit: %f, user value: %f",
-        usetup.MouseCtrlEnabled ? "enabled" : "disabled", Mouse::GetSpeedUnit(), Mouse::GetSpeed());
+                  usetup.MouseCtrlEnabled ? "enabled" : "disabled", Mouse::GetSpeedUnit(), Mouse::GetSpeed());
     Mouse::SetTouch2MouseMode(usetup.TouchEmulateMouse, usetup.TouchMotionRelative, usetup.MouseSpeed);
     Mouse::SetMouse2Touch(usetup.MouseEmulateTouch);
-    const char *emul_mode_names[] = { "none", "one finger", "two fingers" };
-    Debug::Printf(kDbgMsg_Info, "Touch-to-mouse emulation: %s, motion: %s",
-        emul_mode_names[usetup.TouchEmulateMouse], usetup.TouchMotionRelative ? "relative" : "absolute");
+    const char *emul_mode_names[] = {"none", "one finger", "two fingers"};
+    Debug::Printf(kDbgMsg_Info, "Touch-to-mouse emulation: %s, motion: %s", emul_mode_names[usetup.TouchEmulateMouse],
+                  usetup.TouchMotionRelative ? "relative" : "absolute");
     Debug::Printf(kDbgMsg_Info, "Mouse-to-touch emulation: %s", usetup.MouseEmulateTouch ? "enabled" : "disabled");
 
     on_coordinates_scaling_changed();

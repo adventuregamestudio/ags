@@ -25,7 +25,7 @@ public:
 private:
     // Unserializes an old GUIControl record
     void UnserializeGUIControl(int index, AGS::Common::Stream *in, size_t data_sz);
-    int  RegisterGUIControl(int index, int guinum, int objnum);
+    int RegisterGUIControl(int index, int guinum, int objnum);
 };
 
 #endif // __AC_SERIALIZER_H

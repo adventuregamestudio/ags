@@ -56,13 +56,12 @@ struct TaskInput
     uint32_t InputIndex = UINT32_MAX;
 
     TaskInput(const String &out_task, uint32_t out_index = UINT32_MAX, uint32_t in_index = UINT32_MAX)
-        : OutputTask(out_task), OutputIndex(out_index), InputIndex(in_index) {}
+        : OutputTask(out_task), OutputIndex(out_index), InputIndex(in_index)
+    {
+    }
 
     // Does deep-copy of TaskInput, used because String's reference count is not thread-safe
-    TaskInput Clone() const
-    {
-        return TaskInput(OutputTask.Clone(), OutputIndex, InputIndex);
-    }
+    TaskInput Clone() const { return TaskInput(OutputTask.Clone(), OutputIndex, InputIndex); }
 };
 
 // Makes a deep copy of a vector of strings (copy the vector, and explicitly copy each string)
@@ -109,10 +108,11 @@ protected:
 class TaskStub : public Task
 {
 public:
-    TaskStub(const String &name, ITaskManager *mgr)
-        : Task(name, mgr) {}
+    TaskStub(const String &name, ITaskManager *mgr) : Task(name, mgr) {}
     TaskStub(const String &name, ITaskManager *mgr, const std::vector<TaskInput> &input_tasks)
-        : Task(name, mgr, input_tasks) {}
+        : Task(name, mgr, input_tasks)
+    {
+    }
 };
 
 enum class FileMoveOp
@@ -126,19 +126,15 @@ class TaskMoveFiles : public Task
 {
 public:
     TaskMoveFiles(const String &name, ITaskManager *mgr, const std::vector<std::pair<String, String>> &files,
-        FileMoveOp file_op, bool skip_if_no_src)
-        : Task(name, mgr)
-        , _files(Clone(files))
-        , _fileOp(file_op)
-        , _skipIfNoSrc(skip_if_no_src)
-    {}
+                  FileMoveOp file_op, bool skip_if_no_src)
+        : Task(name, mgr), _files(Clone(files)), _fileOp(file_op), _skipIfNoSrc(skip_if_no_src)
+    {
+    }
     TaskMoveFiles(const String &name, ITaskManager *mgr, const std::vector<std::pair<String, String>> &files,
-        FileMoveOp file_op, bool skip_if_no_src, const std::vector<TaskInput> &input_tasks)
-        : Task(name, mgr, input_tasks)
-        , _files(Clone(files))
-        , _fileOp(file_op)
-        , _skipIfNoSrc(skip_if_no_src)
-    {}
+                  FileMoveOp file_op, bool skip_if_no_src, const std::vector<TaskInput> &input_tasks)
+        : Task(name, mgr, input_tasks), _files(Clone(files)), _fileOp(file_op), _skipIfNoSrc(skip_if_no_src)
+    {
+    }
 
 private:
     HError RunImpl() override;
@@ -152,9 +148,15 @@ class TaskDeleteFiles : public Task
 {
 public:
     TaskDeleteFiles(const String &name, ITaskManager *mgr, const std::vector<String> &files)
-        : Task(name, mgr), _files(Clone(files)) {}
-    TaskDeleteFiles(const String &name, ITaskManager *mgr, const std::vector<String> &files, const std::vector<TaskInput> &input_tasks)
-        : Task(name, mgr, input_tasks), _files(Clone(files)) {}
+        : Task(name, mgr), _files(Clone(files))
+    {
+    }
+    TaskDeleteFiles(const String &name, ITaskManager *mgr, const std::vector<String> &files,
+                    const std::vector<TaskInput> &input_tasks)
+        : Task(name, mgr, input_tasks), _files(Clone(files))
+    {
+    }
+
 private:
     HError RunImpl() override;
 
@@ -165,16 +167,14 @@ class TaskWriteStringList : public Task
 {
 public:
     TaskWriteStringList(const String &name, ITaskManager *mgr, const String &filepath, std::vector<String> &list)
-        : Task(name, mgr)
-        , _filepath(filepath.Clone())
-        , _list(Clone(list))
-    {}
+        : Task(name, mgr), _filepath(filepath.Clone()), _list(Clone(list))
+    {
+    }
     TaskWriteStringList(const String &name, ITaskManager *mgr, const String &filepath, std::vector<String> &list,
-        const std::vector<TaskInput> &input_tasks)
-        : Task(name, mgr, input_tasks)
-        , _filepath(filepath.Clone())
-        , _list(Clone(list))
-    {}
+                        const std::vector<TaskInput> &input_tasks)
+        : Task(name, mgr, input_tasks), _filepath(filepath.Clone()), _list(Clone(list))
+    {
+    }
 
 private:
     HError RunImpl() override;
@@ -191,13 +191,12 @@ struct PipedProcessParams
 
     PipedProcessParams() = default;
     PipedProcessParams(const String &exe_path, const String &params, bool out_to_std = false)
-        : ExePath(exe_path), Params(params), OutputToStdOut(out_to_std) {}
+        : ExePath(exe_path), Params(params), OutputToStdOut(out_to_std)
+    {
+    }
 
     // Does deep-copy of PipedProcessParams, used because String's reference count is not thread-safe
-    PipedProcessParams Clone() const
-    {
-        return PipedProcessParams(ExePath.Clone(), Params.Clone(), OutputToStdOut);
-    }
+    PipedProcessParams Clone() const { return PipedProcessParams(ExePath.Clone(), Params.Clone(), OutputToStdOut); }
 };
 
 class TaskPipedProcess : public Task
@@ -205,7 +204,7 @@ class TaskPipedProcess : public Task
 public:
     TaskPipedProcess(const String &name, ITaskManager *mgr, const PipedProcessParams &params);
     TaskPipedProcess(const String &name, ITaskManager *mgr, const PipedProcessParams &params,
-        const std::vector<TaskInput> &input_tasks);
+                     const std::vector<TaskInput> &input_tasks);
 
 private:
     HError RunImpl() override;
@@ -226,7 +225,8 @@ private:
     bool UpdateTaskState(bool &has_any_task_succeed);
     void CancelTask(Task *task, const String &parent_task, std::vector<String> &cancel_tasks);
     void CancelTaskDependents(const String &task_name, std::vector<String> &cancel_tasks);
-    void MoveTasks(std::vector<String> &tasks, std::unordered_map<String, Task*> &from, std::unordered_map<String, Task*> &to);
+    void MoveTasks(std::vector<String> &tasks, std::unordered_map<String, Task *> &from,
+                   std::unordered_map<String, Task *> &to);
 
     struct ThreadData
     {
@@ -240,11 +240,11 @@ private:
     // Main tasks collection, used for lifetime control and general lookup
     std::unordered_map<String, std::unique_ptr<Task>> _allTasks;
     // Lookup collection of tasks awaiting to be run
-    std::unordered_map<String, Task*> _pendingTasks;
+    std::unordered_map<String, Task *> _pendingTasks;
     // Lookup collection of the currently running tasks
-    std::unordered_map<String, Task*> _runTasks;
+    std::unordered_map<String, Task *> _runTasks;
     // Lookup collection of the finished tasks (successful, failed or cancelled)
-    std::unordered_map<String, Task*> _doneTasks;
+    std::unordered_map<String, Task *> _doneTasks;
     std::vector<ThreadData> _threads;
     uint32_t _freeThreads = 0u;
     uint32_t _unnamedTaskCounter = 0u;

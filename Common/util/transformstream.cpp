@@ -82,9 +82,8 @@ bool TransformStream::EOS() const
     // When reading, transform stream is at the end when:
     // - base stream is at the end
     // - output buffer is fully read out
-    return _base && (_base->GetPosition() >= _baseEndPos)
-        && (_lastResult == TransformResult::End)
-        && (_outBufPos == _outBufEnd);
+    return _base && (_base->GetPosition() >= _baseEndPos) && (_lastResult == TransformResult::End) &&
+           (_outBufPos == _outBufEnd);
 }
 
 void TransformStream::Close()
@@ -141,10 +140,8 @@ void TransformStream::ReadBuffer()
 
         // UN-transform
         size_t in_read = 0u, out_wrote = 0u;
-        _lastResult =
-            UnTransform(_inBuffer.data() + _inBufPos, _inBufEnd - _inBufPos,
-                    _outBuffer.data() + _outBufEnd, BufferSize - _outBufEnd,
-                    (_base->GetPosition() >= _baseEndPos), in_read, out_wrote);
+        _lastResult = UnTransform(_inBuffer.data() + _inBufPos, _inBufEnd - _inBufPos, _outBuffer.data() + _outBufEnd,
+                                  BufferSize - _outBufEnd, (_base->GetPosition() >= _baseEndPos), in_read, out_wrote);
         _inBufPos += in_read;
         _outBufEnd += out_wrote;
 
@@ -152,8 +149,7 @@ void TransformStream::ReadBuffer()
         // this may also happen if remaining free space in the output buffer is not enough
         if (_lastResult != TransformResult::OK)
             break;
-    }
-    while ((_outBufEnd < BufferSize) && (_base->GetPosition() < _baseEndPos));
+    } while ((_outBufEnd < BufferSize) && (_base->GetPosition() < _baseEndPos));
 }
 
 void TransformStream::WriteBuffer(bool finalize)
@@ -169,10 +165,8 @@ void TransformStream::WriteBuffer(bool finalize)
     {
         // Transform
         size_t in_read = 0u, out_wrote = 0u;
-        _lastResult =
-            Transform(_inBuffer.data() + _inBufPos, _inBufEnd - _inBufPos,
-                  _outBuffer.data() + _outBufEnd, BufferSize - _outBufEnd,
-                  finalize, in_read, out_wrote);
+        _lastResult = Transform(_inBuffer.data() + _inBufPos, _inBufEnd - _inBufPos, _outBuffer.data() + _outBufEnd,
+                                BufferSize - _outBufEnd, finalize, in_read, out_wrote);
         _inBufPos += in_read;
         _outBufEnd += out_wrote;
 
@@ -180,15 +174,13 @@ void TransformStream::WriteBuffer(bool finalize)
         // all read up, OR if there's not enough output buffer remaining
         // for the transform to continue,
         // then write it to the underlying stream, and reset
-        if ((_outBufEnd == BufferSize)
-            || (_lastResult != TransformResult::OK))
+        if ((_outBufEnd == BufferSize) || (_lastResult != TransformResult::OK))
         {
             // we write all accumulated buffer at once, and reset its end ptr
             _base->Write(_outBuffer.data(), _outBufEnd);
             _outBufEnd = 0u;
         }
-    }
-    while (_inBufPos < _inBufEnd);
+    } while (_inBufPos < _inBufEnd);
 
     // Reset input buffer
     _inBufPos = 0;
@@ -244,7 +236,10 @@ int32_t TransformStream::ReadByte()
 {
     uint8_t ch;
     auto bytesRead = Read(&ch, 1);
-    if (bytesRead != 1) { return EOF; }
+    if (bytesRead != 1)
+    {
+        return EOF;
+    }
     return ch;
 }
 
@@ -271,7 +266,10 @@ size_t TransformStream::Write(const void *buffer, size_t size)
 int32_t TransformStream::WriteByte(uint8_t val)
 {
     auto sz = Write(&val, 1);
-    if (sz != 1) { return -1; }
+    if (sz != 1)
+    {
+        return -1;
+    }
     return val;
 }
 
@@ -281,12 +279,10 @@ soff_t TransformStream::Seek(soff_t offset, StreamSeek origin)
     soff_t want_pos = -1;
     switch (origin)
     {
-    case StreamSeek::kSeekCurrent:  want_pos = _inputProcessed + offset; break;
-    case StreamSeek::kSeekBegin:    want_pos = 0 + offset; break;
+    case StreamSeek::kSeekCurrent: want_pos = _inputProcessed + offset; break;
+    case StreamSeek::kSeekBegin: want_pos = 0 + offset; break;
     case StreamSeek::kSeekEnd:
-    default:
-        assert(false);
-        return -1;
+    default: assert(false); return -1;
     }
 
     assert(want_pos >= _inputProcessed);

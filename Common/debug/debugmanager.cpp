@@ -22,11 +22,10 @@ namespace AGS
 namespace Common
 {
 
-DebugManager::DebugOutput::DebugOutput(const String &id,
-    std::unique_ptr<IOutputHandler> &&handler,
-    MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
-    : _id(id)
-    , _handler(std::move(handler))
+DebugManager::DebugOutput::DebugOutput(const String &id, std::unique_ptr<IOutputHandler> &&handler,
+                                       MessageType def_verbosity,
+                                       const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
+    : _id(id), _handler(std::move(handler))
 {
     SetFilters(def_verbosity, group_filters);
 }
@@ -61,7 +60,8 @@ void DebugManager::DebugOutput::SetFilter(const DebugGroupID &group_id, MessageT
     }
 }
 
-void DebugManager::DebugOutput::SetFilters(MessageType def_verbosity, const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
+void DebugManager::DebugOutput::SetFilters(MessageType def_verbosity,
+                                           const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
 {
     _groupFilter.clear();
     _unresolvedGroups.clear();
@@ -137,7 +137,9 @@ MessageGroupHandle DebugManager::FindFreeGroupID()
     }
     else
     {
-        for (; _freeGroupID < _groups.size() && _groups[_freeGroupID].UID.IsValid(); ++_freeGroupID) {}
+        for (; _freeGroupID < _groups.size() && _groups[_freeGroupID].UID.IsValid(); ++_freeGroupID)
+        {
+        }
     }
     return _freeGroupID;
 }
@@ -183,9 +185,9 @@ MessageGroupHandle DebugManager::RegisterGroupImpl(const DebugGroupID &group_id,
     return group_id.ID;
 }
 
-void DebugManager::RegisterOutput(const String &id,
-    std::unique_ptr<IOutputHandler> &&handler, MessageType def_verbosity,
-    const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
+void DebugManager::RegisterOutput(const String &id, std::unique_ptr<IOutputHandler> &&handler,
+                                  MessageType def_verbosity,
+                                  const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
 {
     assert(handler);
     if (!handler)
@@ -197,9 +199,9 @@ void DebugManager::RegisterOutput(const String &id,
     _outputs[id] = std::move(out);
 }
 
-DebugManager::DebugOutput DebugManager::CreateOutputImpl(const String &id,
-    std::unique_ptr<IOutputHandler> &&handler, MessageType def_verbosity,
-    const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
+DebugManager::DebugOutput
+DebugManager::CreateOutputImpl(const String &id, std::unique_ptr<IOutputHandler> &&handler, MessageType def_verbosity,
+                               const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
 {
     auto out = DebugOutput(id, std::move(handler), def_verbosity, group_filters);
     // Make sure that output allocates filters for all known groups
@@ -222,8 +224,10 @@ void DebugManager::SendBufferedMessages(DebugOutput &out)
     if (msg_lost > 0u)
     {
         DebugGroup gr = DbgMgr.GetGroup(kDbgGroup_Main);
-        out.SendMessage(DebugMessage(String::FromFormat("WARNING: output %s lost exceeding buffer: %zu debug messages\n", out.GetID().GetCStr(), msg_lost),
-            gr.UID.ID, gr.OutputName, kDbgMsg_All));
+        out.SendMessage(
+            DebugMessage(String::FromFormat("WARNING: output %s lost exceeding buffer: %zu debug messages\n",
+                                            out.GetID().GetCStr(), msg_lost),
+                         gr.UID.ID, gr.OutputName, kDbgMsg_All));
     }
     for (const auto &msg : _messageBuf->GetBuffer())
     {
@@ -258,7 +262,7 @@ bool DebugManager::HasOutput(const String &output_id)
 }
 
 void DebugManager::SetOutputFilters(const String &output_id, MessageType def_verbosity,
-    const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
+                                    const std::vector<std::pair<DebugGroupID, MessageType>> *group_filters)
 {
     std::lock_guard<std::mutex> lk(_mutex);
     auto it = _outputs.find(output_id);
@@ -394,5 +398,5 @@ void Printf(MessageGroupHandle group, MessageType mt, AGS_FORMAT_STRING_ARG cons
 
 } // namespace Debug
 
-}   // namespace Common
-}   // namespace AGS
+} // namespace Common
+} // namespace AGS

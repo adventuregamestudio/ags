@@ -36,7 +36,7 @@ protected:
 
     Compile2()
     {
-		// Initialisations for each test
+        // Initialisations for each test
         // Note: Don't use 'ccSetOption()', 'ccResetOptions()' etc.
         // googletests are often called in parallel, and these clobber each other
     }
@@ -147,7 +147,7 @@ TEST_F(Compile2, CompileTimeConstant5a)
     EXPECT_EQ(0u, mh.WarningsCount());
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
-    EXPECT_NE(std::string::npos, err_msg.find("'short'"));  
+    EXPECT_NE(std::string::npos, err_msg.find("'short'"));
 }
 
 TEST_F(Compile2, CompileTimeConstant5b)
@@ -204,8 +204,8 @@ TEST_F(Compile2, CompileTimeConstant6)
     EXPECT_NE(std::string::npos, err_msg.find("in use"));
 }
 
-TEST_F(Compile2, BinaryCompileTimeEval1) {
-
+TEST_F(Compile2, BinaryCompileTimeEval1)
+{
     // Checks binary compile time evaluations for integers.
 
     char const *inpl = "\
@@ -224,8 +224,8 @@ TEST_F(Compile2, BinaryCompileTimeEval1) {
     EXPECT_NE(std::string::npos, err_msg.find("'7 /"));
 }
 
-TEST_F(Compile2, BinaryCompileTimeEval2) {
-
+TEST_F(Compile2, BinaryCompileTimeEval2)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -240,11 +240,10 @@ TEST_F(Compile2, BinaryCompileTimeEval2) {
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("Overflow"));
-
 }
 
-TEST_F(Compile2, BinaryCompileTimeEval3) {
-
+TEST_F(Compile2, BinaryCompileTimeEval3)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -260,9 +259,8 @@ TEST_F(Compile2, BinaryCompileTimeEval3) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile2, CTEvalIntPlus1) {
-
-
+TEST_F(Compile2, CTEvalIntPlus1)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -279,9 +277,8 @@ TEST_F(Compile2, CTEvalIntPlus1) {
     EXPECT_NE(std::string::npos, err_msg.find("'7 /"));
 }
 
-TEST_F(Compile2, CTEvalIntPlus2) {
-
-
+TEST_F(Compile2, CTEvalIntPlus2)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -298,9 +295,8 @@ TEST_F(Compile2, CTEvalIntPlus2) {
     EXPECT_NE(std::string::npos, err_msg.find("Overflow"));
 }
 
-TEST_F(Compile2, CTEvalIntPlus3) {
-
-
+TEST_F(Compile2, CTEvalIntPlus3)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -317,9 +313,8 @@ TEST_F(Compile2, CTEvalIntPlus3) {
 }
 
 
-TEST_F(Compile2, CTEvalIntMinus1) {
-
-
+TEST_F(Compile2, CTEvalIntMinus1)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -331,14 +326,13 @@ TEST_F(Compile2, CTEvalIntMinus1) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'-12 /"));
 }
 
-TEST_F(Compile2, CTEvalIntMinus2) {
-
-
+TEST_F(Compile2, CTEvalIntMinus2)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -353,12 +347,10 @@ TEST_F(Compile2, CTEvalIntMinus2) {
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("Overflow"));
-
 }
 
-TEST_F(Compile2, CTEvalIntMinus3) {
-
-
+TEST_F(Compile2, CTEvalIntMinus3)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -374,9 +366,8 @@ TEST_F(Compile2, CTEvalIntMinus3) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile2, CTEvalIntMultiply1) {
-
-
+TEST_F(Compile2, CTEvalIntMultiply1)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -388,14 +379,13 @@ TEST_F(Compile2, CTEvalIntMultiply1) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'-1287 /"));
 }
 
-TEST_F(Compile2, CTEvalIntMultiply2) {
-
-
+TEST_F(Compile2, CTEvalIntMultiply2)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -410,12 +400,10 @@ TEST_F(Compile2, CTEvalIntMultiply2) {
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("Overflow"));
-
 }
 
-TEST_F(Compile2, CTEvalIntMultiply3) {
-
-
+TEST_F(Compile2, CTEvalIntMultiply3)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -431,9 +419,8 @@ TEST_F(Compile2, CTEvalIntMultiply3) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile2, CTEvalIntDivide) {
-
-
+TEST_F(Compile2, CTEvalIntDivide)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -445,14 +432,13 @@ TEST_F(Compile2, CTEvalIntDivide) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'6 /"));
 }
 
-TEST_F(Compile2, CTEvalIntModulo1) {
-
-
+TEST_F(Compile2, CTEvalIntModulo1)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -464,14 +450,13 @@ TEST_F(Compile2, CTEvalIntModulo1) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'10 /"));
-
 }
 
-TEST_F(Compile2, FloatModulo1) {
-
+TEST_F(Compile2, FloatModulo1)
+{
     // No modulo-assign for floats
 
     char const *inpl = "\
@@ -486,15 +471,14 @@ TEST_F(Compile2, FloatModulo1) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("%="));
     EXPECT_NE(std::string::npos, err_msg.find("float"));
 }
 
-TEST_F(Compile2, CTEvalIntModulo2) {
-
-
+TEST_F(Compile2, CTEvalIntModulo2)
+{
     char const *inpl = inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -511,9 +495,8 @@ TEST_F(Compile2, CTEvalIntModulo2) {
     EXPECT_NE(std::string::npos, err_msg.find("Modulo zero"));
 }
 
-TEST_F(Compile2, CTEvalIntShiftLeft1) {
-
-
+TEST_F(Compile2, CTEvalIntShiftLeft1)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -525,14 +508,13 @@ TEST_F(Compile2, CTEvalIntShiftLeft1) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'480 /"));
 }
 
-TEST_F(Compile2, CTEvalIntShiftLeft2) {
-
-
+TEST_F(Compile2, CTEvalIntShiftLeft2)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -549,9 +531,8 @@ TEST_F(Compile2, CTEvalIntShiftLeft2) {
     EXPECT_NE(std::string::npos, err_msg.find("Overflow"));
 }
 
-TEST_F(Compile2, CTEvalIntShiftLeft3) {
-
-
+TEST_F(Compile2, CTEvalIntShiftLeft3)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -568,9 +549,8 @@ TEST_F(Compile2, CTEvalIntShiftLeft3) {
     EXPECT_NE(std::string::npos, err_msg.find("'-17168 /"));
 }
 
-TEST_F(Compile2, CTEvalIntShiftLeft4) {
-
-
+TEST_F(Compile2, CTEvalIntShiftLeft4)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -587,9 +567,8 @@ TEST_F(Compile2, CTEvalIntShiftLeft4) {
     EXPECT_NE(std::string::npos, err_msg.find("'1073 /"));
 }
 
-TEST_F(Compile2, CTEvalIntShiftLeft5) {
-
-
+TEST_F(Compile2, CTEvalIntShiftLeft5)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -606,10 +585,9 @@ TEST_F(Compile2, CTEvalIntShiftLeft5) {
     EXPECT_NE(std::string::npos, err_msg.find("egative shift"));
 }
 
-TEST_F(Compile2, CTEvalIntShiftLeft6) {
-
-
-    char const* inpl = "\
+TEST_F(Compile2, CTEvalIntShiftLeft6)
+{
+    char const *inpl = "\
         int main()                              \n\
         {                                       \n\
             return (0xFF << 24) / 0;            \n\
@@ -617,7 +595,7 @@ TEST_F(Compile2, CTEvalIntShiftLeft6) {
         ";
 
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
-    std::string const& err_msg = mh.GetError().Message;
+    std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
@@ -625,9 +603,8 @@ TEST_F(Compile2, CTEvalIntShiftLeft6) {
     EXPECT_NE(std::string::npos, err_msg.find("-16777216"));
 }
 
-TEST_F(Compile2, CTEvalIntShiftRight1) {
-
-
+TEST_F(Compile2, CTEvalIntShiftRight1)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -642,11 +619,10 @@ TEST_F(Compile2, CTEvalIntShiftRight1) {
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'7 /"));
- }
+}
 
-TEST_F(Compile2, CTEvalIntShiftRight2) {
-
-
+TEST_F(Compile2, CTEvalIntShiftRight2)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -661,12 +637,10 @@ TEST_F(Compile2, CTEvalIntShiftRight2) {
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'-671 /"));
-
 }
 
-TEST_F(Compile2, CTEvalIntShiftRight3) {
-
-
+TEST_F(Compile2, CTEvalIntShiftRight3)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -683,9 +657,8 @@ TEST_F(Compile2, CTEvalIntShiftRight3) {
     EXPECT_NE(std::string::npos, err_msg.find("'1073 /"));
 }
 
-TEST_F(Compile2, CTEvalIntShiftRight4) {
-
-
+TEST_F(Compile2, CTEvalIntShiftRight4)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -702,8 +675,8 @@ TEST_F(Compile2, CTEvalIntShiftRight4) {
     EXPECT_NE(std::string::npos, err_msg.find("egative shift"));
 }
 
-TEST_F(Compile2, CTEvalIntComparisons) {
-
+TEST_F(Compile2, CTEvalIntComparisons)
+{
     // Will fail as soon as any one of those comparisons go awry
 
     char const *inpl = "\
@@ -740,8 +713,8 @@ TEST_F(Compile2, CTEvalIntComparisons) {
     EXPECT_NE(std::string::npos, err_msg.find("'121280 /"));
 }
 
-TEST_F(Compile2, CTEvalBitOps) {
-
+TEST_F(Compile2, CTEvalBitOps)
+{
     char const *inpl = "\
         int main()                        \n\
         {                                 \n\
@@ -770,8 +743,8 @@ TEST_F(Compile2, CTEvalBitOps) {
     EXPECT_NE(std::string::npos, err_msg.find("'5904 /"));
 }
 
-TEST_F(Compile2, CTEvalBitNeg) {
-
+TEST_F(Compile2, CTEvalBitNeg)
+{
     char const *inpl = "\
         int main()                        \n\
         {                                 \n\
@@ -783,13 +756,13 @@ TEST_F(Compile2, CTEvalBitNeg) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'-660753870 /"));
 }
 
-TEST_F(Compile2, CTEvalLogicalOps) {
-
+TEST_F(Compile2, CTEvalLogicalOps)
+{
     char const *inpl = "\
         int main()                              \n\
         {                                       \n\
@@ -809,13 +782,13 @@ TEST_F(Compile2, CTEvalLogicalOps) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'101577700 /"));
 }
 
-TEST_F(Compile2, ParamIsFunc) {
-
+TEST_F(Compile2, ParamIsFunc)
+{
     char const *inpl = R"&/(
         int crash(int crash, int x)
         { }
@@ -830,8 +803,8 @@ TEST_F(Compile2, ParamIsFunc) {
     EXPECT_NE(std::string::npos, err_msg.find("'crash'"));
 }
 
-TEST_F(Compile2, MultiDimCharArrayToString) {
-
+TEST_F(Compile2, MultiDimCharArrayToString)
+{
     // A character array with more than 1 dimension cannot be
     // converted to 'const string'.
 
@@ -850,8 +823,8 @@ TEST_F(Compile2, MultiDimCharArrayToString) {
     EXPECT_NE(std::string::npos, err_msg.find("convert"));
 }
 
-TEST_F(Compile2, ArrayInitLiteralOverflow) {
-
+TEST_F(Compile2, ArrayInitLiteralOverflow)
+{
     // Can't initialize the array because the literal
     // including the terminal '\0' is too long
 
@@ -866,8 +839,8 @@ TEST_F(Compile2, ArrayInitLiteralOverflow) {
     EXPECT_NE(std::string::npos, err_msg.find("too long"));
 }
 
-TEST_F(Compile2, ArrayInitSequenceTooLong) {
-
+TEST_F(Compile2, ArrayInitSequenceTooLong)
+{
     // Too many values to initialize an array of 5 elements
 
     char const *inpl = R"%&/(
@@ -881,8 +854,8 @@ TEST_F(Compile2, ArrayInitSequenceTooLong) {
     EXPECT_NE(std::string::npos, err_msg.find("at most 5"));
 }
 
-TEST_F(Compile2, ArrayInitNamedUnnamedMix01) {
-
+TEST_F(Compile2, ArrayInitNamedUnnamedMix01)
+{
     // Can't mix unnamed and named entries in
     // array initialization sequence
 
@@ -897,8 +870,8 @@ TEST_F(Compile2, ArrayInitNamedUnnamedMix01) {
     EXPECT_NE(std::string::npos, err_msg.find("':'"));
 }
 
-TEST_F(Compile2, ArrayInitNamedUnnamedMix02) {
-
+TEST_F(Compile2, ArrayInitNamedUnnamedMix02)
+{
     // Can't mix unnamed and named entries in
     // array initialization sequence
 
@@ -913,8 +886,8 @@ TEST_F(Compile2, ArrayInitNamedUnnamedMix02) {
     EXPECT_NE(std::string::npos, err_msg.find("':'"));
 }
 
-TEST_F(Compile2, ArrayInitNamedOutOfRange01) {
-
+TEST_F(Compile2, ArrayInitNamedOutOfRange01)
+{
     // Element's "name" must be a valid array index
 
     char const *inpl = R"%&/(
@@ -928,8 +901,8 @@ TEST_F(Compile2, ArrayInitNamedOutOfRange01) {
     EXPECT_NE(std::string::npos, err_msg.find("too low"));
 }
 
-TEST_F(Compile2, ArrayInitNamedOutOfRange02) {
-
+TEST_F(Compile2, ArrayInitNamedOutOfRange02)
+{
     // Element's "name" must be a valid array index
 
     char const *inpl = R"%&/(
@@ -943,8 +916,8 @@ TEST_F(Compile2, ArrayInitNamedOutOfRange02) {
     EXPECT_NE(std::string::npos, err_msg.find("too high"));
 }
 
-TEST_F(Compile2, ArrayInitNamedDouble) {
-
+TEST_F(Compile2, ArrayInitNamedDouble)
+{
     // Can't initialize same element twice
 
     char const *inpl = R"%&/(
@@ -961,7 +934,6 @@ TEST_F(Compile2, ArrayInitNamedDouble) {
 
 TEST_F(Compile2, InitManaged01)
 {
-    
     char const *inpl = R"%&/(
         managed struct Foo
         {
@@ -978,7 +950,6 @@ TEST_F(Compile2, InitManaged01)
 
 TEST_F(Compile2, InitManaged02)
 {
-    
     char const *inpl = R"%&/(
         int List[] = new int;
         )%&/";
@@ -1168,8 +1139,8 @@ TEST_F(Compile2, FormatFunction08)
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile2, NullAsConstOldstringArgument) {
-
+TEST_F(Compile2, NullAsConstOldstringArgument)
+{
     // Must be able to assign 'null' to a "const string" parameter
 
     char const *inpl = R"%&/(
@@ -1185,8 +1156,8 @@ TEST_F(Compile2, NullAsConstOldstringArgument) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile2, NullAsStringArgument) {
-
+TEST_F(Compile2, NullAsStringArgument)
+{
     // Must be able to assign 'null' to a String parameter
 
     std::string inpl = R"%&/(
@@ -1205,8 +1176,8 @@ TEST_F(Compile2, NullAsStringArgument) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile2, Unexpected_Undefined) {
-
+TEST_F(Compile2, Unexpected_Undefined)
+{
     // Should complain about "undeclared" function instead of "unexpected" symbol
     // Undefined symbol should be reported for line #9, not earlier
 

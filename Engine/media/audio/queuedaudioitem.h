@@ -16,14 +16,20 @@
 #include <memory>
 #include "media/audio/soundclip.h"
 
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 struct QueuedAudioItem
 {
     short audioClipIndex = -1;
     short priority = 0;
-    bool  repeat = false;
+    bool repeat = false;
     std::unique_ptr<SoundClip> cachedClip;
 
     void ReadFromSavegame(Common::Stream *in);

@@ -15,6 +15,6 @@
 #define __AGS_EE_AC__GLOBALVIDEO_H
 
 void PlayFlic(int numb, int flags);
-void PlayVideo(const char* name, int skip, int flags);
+void PlayVideo(const char *name, int skip, int flags);
 
 #endif // __AGS_EE_AC__GLOBALVIDEO_H

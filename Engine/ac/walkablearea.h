@@ -18,14 +18,14 @@
 #ifndef __AGS_EE_AC__WALKABLEAREA_H
 #define __AGS_EE_AC__WALKABLEAREA_H
 
-void  redo_walkable_areas();
-int   get_walkable_area_pixel(int x, int y);
-int   get_area_scaling (int onarea, int xx, int yy);
-void  scale_sprite_size(int sppic, int zoom_level, int *newwidth, int *newheight);
-void  remove_walkable_areas_from_temp(const Rect &area);
+void redo_walkable_areas();
+int get_walkable_area_pixel(int x, int y);
+int get_area_scaling(int onarea, int xx, int yy);
+void scale_sprite_size(int sppic, int zoom_level, int *newwidth, int *newheight);
+void remove_walkable_areas_from_temp(const Rect &area);
 // IMPORTANT: this function returns *global pointer*, do not delete the returned bitmap! -- subject to future refactor
-Common::Bitmap *prepare_walkable_areas (int sourceChar);
-int   get_walkable_area_at_location(int xx, int yy);
-int   get_walkable_area_at_character (int charnum);
+Common::Bitmap *prepare_walkable_areas(int sourceChar);
+int get_walkable_area_at_location(int xx, int yy);
+int get_walkable_area_at_character(int charnum);
 
 #endif // __AGS_EE_AC__WALKABLEAREA_H

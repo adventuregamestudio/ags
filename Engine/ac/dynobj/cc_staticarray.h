@@ -70,42 +70,40 @@ struct CCStaticObjectArray : public AGSCCStaticObject
 public:
     ~CCStaticObjectArray() override = default;
 
-    void Create(IScriptObject *mgr, size_t elem_script_size, size_t elem_mem_size, size_t elem_count = SIZE_MAX /*unknown*/);
+    void Create(IScriptObject *mgr, size_t elem_script_size, size_t elem_mem_size,
+                size_t elem_count = SIZE_MAX /*unknown*/);
 
-    inline IScriptObject *GetObjectManager() const
-    {
-        return _mgr;
-    }
+    inline IScriptObject *GetObjectManager() const { return _mgr; }
 
     // Legacy support for reading and writing object values by their relative offset
     inline void *GetElementPtr(void *address, intptr_t legacy_offset)
     {
-        return static_cast<uint8_t*>(address) + (legacy_offset / _elemScriptSize) * _elemMemSize;
+        return static_cast<uint8_t *>(address) + (legacy_offset / _elemScriptSize) * _elemMemSize;
     }
 
     inline const void *GetElementPtr(const void *address, intptr_t legacy_offset)
     {
-        return static_cast<const uint8_t*>(address) + (legacy_offset / _elemScriptSize) * _elemMemSize;
+        return static_cast<const uint8_t *>(address) + (legacy_offset / _elemScriptSize) * _elemMemSize;
     }
 
-    void   *GetFieldPtr(void *address, intptr_t offset) override;
+    void *GetFieldPtr(void *address, intptr_t offset) override;
     const void *GetFieldPtr(const void *address, intptr_t offset) override;
-    void    Read(const void *address, intptr_t offset, uint8_t *dest, size_t size) override;
+    void Read(const void *address, intptr_t offset, uint8_t *dest, size_t size) override;
     uint8_t ReadInt8(const void *address, intptr_t offset) override;
     int16_t ReadInt16(const void *address, intptr_t offset) override;
     int32_t ReadInt32(const void *address, intptr_t offset) override;
-    float   ReadFloat(const void *address, intptr_t offset) override;
-    void    Write(void *address, intptr_t offset, const uint8_t *src, size_t size) override;
-    void    WriteInt8(void *address, intptr_t offset, uint8_t val) override;
-    void    WriteInt16(void *address, intptr_t offset, int16_t val) override;
-    void    WriteInt32(void *address, intptr_t offset, int32_t val) override;
-    void    WriteFloat(void *address, intptr_t offset, float val) override;
+    float ReadFloat(const void *address, intptr_t offset) override;
+    void Write(void *address, intptr_t offset, const uint8_t *src, size_t size) override;
+    void WriteInt8(void *address, intptr_t offset, uint8_t val) override;
+    void WriteInt16(void *address, intptr_t offset, int16_t val) override;
+    void WriteInt32(void *address, intptr_t offset, int32_t val) override;
+    void WriteFloat(void *address, intptr_t offset, float val) override;
 
 private:
-    IScriptObject  *_mgr = nullptr;
-    size_t          _elemScriptSize = 0u;
-    size_t          _elemMemSize = 0u;
-    size_t          _elemCount = 0u;
+    IScriptObject *_mgr = nullptr;
+    size_t _elemScriptSize = 0u;
+    size_t _elemMemSize = 0u;
+    size_t _elemCount = 0u;
 };
 
 #endif // __AGS_EE_DYNOBJ__CCSTATICARRAY_H

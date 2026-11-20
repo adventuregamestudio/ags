@@ -60,21 +60,21 @@ v4.0.0.33: area script names
 */
 enum RoomFileVersion
 {
-    kRoomVersion_Undefined  = 0,
-    kRoomVersion_3508       = 33,
-    kRoomVersion_363_06     = 36306,
-    kRoomVersion_363_15     = 36315,
+    kRoomVersion_Undefined = 0,
+    kRoomVersion_3508 = 33,
+    kRoomVersion_363_06 = 36306,
+    kRoomVersion_363_15 = 36315,
     // FIXME: the value of this version is lower than ones of 363, this makes
     // it inconvenient to compare. Introduce a new constant with new format
     // value, and convert data version from 40 on room load.
-    kRoomVersion_399        = 40, // was reserved for early 4.0 alpha
-    kRoomVersion_400        = 4000000,
-    kRoomVersion_400_17     = 4000017,
-    kRoomVersion_400_24     = 4000024,
-    kRoomVersion_400_26     = 4000026,
-    kRoomVersion_400_33     = 4000033,
+    kRoomVersion_399 = 40, // was reserved for early 4.0 alpha
+    kRoomVersion_400 = 4000000,
+    kRoomVersion_400_17 = 4000017,
+    kRoomVersion_400_24 = 4000024,
+    kRoomVersion_400_26 = 4000026,
+    kRoomVersion_400_33 = 4000033,
     kRoomVersion_LowSupport = kRoomVersion_3508,
-    kRoomVersion_Current    = kRoomVersion_400_33
+    kRoomVersion_Current = kRoomVersion_400_33
 };
 
 #endif // __AGS_CN_AC__ROOMVERSION_H

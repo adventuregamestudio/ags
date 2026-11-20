@@ -32,10 +32,12 @@ inline void debug_script_event(AGS::Common::MessageType mt, const char *msg)
 }
 // prints debug messages of given type tagged with kDbgGroup_Game,
 // prepending it with current room number and script position info
-inline void debug_script_message(AGS::Common::MessageType mt, AGS_FORMAT_STRING_ARG const char *msg, ...) AGS_FORMAT_STRING(2);
+inline void debug_script_message(AGS::Common::MessageType mt, AGS_FORMAT_STRING_ARG const char *msg, ...)
+    AGS_FORMAT_STRING(2);
 inline void debug_script_message(AGS::Common::MessageType mt, AGS_FORMAT_STRING_ARG const char *msg, ...)
 {
-    va_list argptr; va_start(argptr, msg);
+    va_list argptr;
+    va_start(argptr, msg);
     debug_script_event(mt, AGS::Common::String::FromFormatV(msg, argptr));
     va_end(argptr);
 }
@@ -44,7 +46,8 @@ inline void debug_script_message(AGS::Common::MessageType mt, AGS_FORMAT_STRING_
 inline void debug_script_warn(AGS_FORMAT_STRING_ARG const char *msg, ...) AGS_FORMAT_STRING(1);
 inline void debug_script_warn(AGS_FORMAT_STRING_ARG const char *msg, ...)
 {
-    va_list argptr; va_start(argptr, msg);
+    va_list argptr;
+    va_start(argptr, msg);
     debug_script_event(AGS::Common::kDbgMsg_Warn, AGS::Common::String::FromFormatV(msg, argptr));
     va_end(argptr);
 }
@@ -53,7 +56,8 @@ inline void debug_script_warn(AGS_FORMAT_STRING_ARG const char *msg, ...)
 inline void debug_script_error(AGS_FORMAT_STRING_ARG const char *msg, ...) AGS_FORMAT_STRING(1);
 inline void debug_script_error(AGS_FORMAT_STRING_ARG const char *msg, ...)
 {
-    va_list argptr; va_start(argptr, msg);
+    va_list argptr;
+    va_start(argptr, msg);
     debug_script_event(AGS::Common::kDbgMsg_Error, AGS::Common::String::FromFormatV(msg, argptr));
     va_end(argptr);
 }
@@ -62,16 +66,23 @@ inline void debug_script_error(AGS_FORMAT_STRING_ARG const char *msg, ...)
 inline void debug_script_log(AGS_FORMAT_STRING_ARG const char *msg, ...) AGS_FORMAT_STRING(1);
 inline void debug_script_log(AGS_FORMAT_STRING_ARG const char *msg, ...)
 {
-    va_list argptr; va_start(argptr, msg);
+    va_list argptr;
+    va_start(argptr, msg);
     debug_script_event(AGS::Common::kDbgMsg_Debug, AGS::Common::String::FromFormatV(msg, argptr));
     va_end(argptr);
 }
 
-namespace AGS { namespace Engine { class ScriptExecutor; } }
+namespace AGS
+{
+namespace Engine
+{
+class ScriptExecutor;
+}
+} // namespace AGS
 
 // Connect engine to external debugger, if one is available
 bool init_editor_debugging(const AGS::Common::ConfigTree &cfg);
 // allow LShift to single-step,  RShift to pause flow
-void scriptDebugHook(AGS::Engine::ScriptExecutor *exec, int linenum) ;
+void scriptDebugHook(AGS::Engine::ScriptExecutor *exec, int linenum);
 
 #endif // __AC_DEBUG_LOG_H

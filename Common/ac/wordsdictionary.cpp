@@ -30,7 +30,7 @@ uint16_t WordsDictionary::FindWord(const String &word) const
     return WordsDictionary::INVALIDWORD;
 }
 
-void WordsDictionary::ReadFromFile(Stream* in)
+void WordsDictionary::ReadFromFile(Stream *in)
 {
     uint32_t word_count = static_cast<uint32_t>(in->ReadInt32());
     for (uint32_t i = 0; i < word_count; ++i)
@@ -41,7 +41,7 @@ void WordsDictionary::ReadFromFile(Stream* in)
     }
 }
 
-void WordsDictionary::WriteToFile(Stream* out) const
+void WordsDictionary::WriteToFile(Stream *out) const
 {
     out->WriteInt32(_words.size());
     for (auto item : _words)
@@ -51,5 +51,5 @@ void WordsDictionary::WriteToFile(Stream* out) const
     }
 }
 
-} // Common
-} // AGS
+} // namespace Common
+} // namespace AGS

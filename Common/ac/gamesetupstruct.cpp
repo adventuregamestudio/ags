@@ -40,9 +40,9 @@ void GameSetupStruct::ResolveStandardModes()
 
 void GameSetupStruct::read_savegame_info(Common::Stream *in, GameDataVersion data_ver)
 {
-        StrUtil::ReadCStrCount(guid, in, MAX_GUID_LENGTH);
-        StrUtil::ReadCStrCount(saveGameFileExtension, in, MAX_SG_EXT_LENGTH);
-        saveGameFolderName.ReadCount(in, LEGACY_MAX_SG_FOLDER_LEN);
+    StrUtil::ReadCStrCount(guid, in, MAX_GUID_LENGTH);
+    StrUtil::ReadCStrCount(saveGameFileExtension, in, MAX_SG_EXT_LENGTH);
+    saveGameFolderName.ReadCount(in, LEGACY_MAX_SG_FOLDER_LEN);
 }
 
 void GameSetupStruct::read_font_infos(Common::Stream *in, GameDataVersion data_ver)
@@ -141,8 +141,8 @@ void GameSetupStruct::read_lipsync(Common::Stream *in, GameDataVersion data_ver)
     in->ReadArray(&lipSyncFrameLetters[0][0], MAXLIPSYNCFRAMES, 50);
 }
 
-void GameSetupStruct::skip_messages(Common::Stream *in,
-    const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages, GameDataVersion data_ver)
+void GameSetupStruct::skip_messages(Common::Stream *in, const std::array<int, NUM_LEGACY_GLOBALMES> &load_messages,
+                                    GameDataVersion data_ver)
 {
     for (int i = 0; i < NUM_LEGACY_GLOBALMES; ++i)
     {
@@ -225,8 +225,7 @@ HGameFileError GameSetupStruct::read_audio(Common::Stream *in, GameDataVersion d
 
 void GameSetupStruct::read_room_names(Stream *in, GameDataVersion data_ver)
 {
-    if ((data_ver >= kGameVersion_400_13) ||
-        (options[OPT_DEBUGMODE] != 0))
+    if ((data_ver >= kGameVersion_400_13) || (options[OPT_DEBUGMODE] != 0))
     {
         uint32_t room_count = in->ReadInt32();
         roomNumbers.resize(room_count);

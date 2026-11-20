@@ -30,7 +30,10 @@
 namespace AGS
 {
 
-namespace Common { class Stream; }
+namespace Common
+{
+class Stream;
+}
 
 namespace Engine
 {
@@ -72,11 +75,11 @@ public:
 
 private:
     std::unique_ptr<Stream> _file;
-    String   _filePath;
+    String _filePath;
     OpenMode _openMode;
 };
 
-}   // namespace Engine
-}   // namespace AGS
+} // namespace Engine
+} // namespace AGS
 
 #endif // __AGS_EE_DEBUG__LOGFILE_H

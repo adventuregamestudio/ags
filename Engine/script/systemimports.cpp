@@ -18,7 +18,8 @@
 using namespace AGS::Common;
 
 
-ScriptImport::ScriptImport(const String &name, const RuntimeScriptValue &rval, const RuntimeScript *script, ScriptValueHint val_hint)
+ScriptImport::ScriptImport(const String &name, const RuntimeScriptValue &rval, const RuntimeScript *script,
+                           ScriptValueHint val_hint)
     : Name(name), Value(rval), ScriptPtr(script), ValueHint(val_hint)
 {
     if (script)
@@ -62,7 +63,7 @@ uint32_t ScriptSymbolsMap::GetIndexOfAny(const String &name) const
     // export separator '$', and only one kind is used in a string.
     // The direct match of a full symbol name is always a priority.
     // If no direct match is found, then we search for alternatives:
-    // 
+    //
     // * If the search name does not have any appendages, then we don't know
     // which arg list to expect, and so lookup for the first found script
     // export with arg list matching the symbol name.
@@ -107,7 +108,8 @@ uint32_t ScriptSymbolsMap::GetIndexOfAny(const String &name) const
                 name_only_match = item->second; // save in case we won't find a arg list match
             // if request had a arg list, then choose a script export with a matching one
             // if request did not have any arg list, then choose a first found script export with any args
-            else if ((try_sym[args_at] == ScriptExportSeparator) && ((args_separator == 0) || (try_sym.Mid(args_at + 1) == argnum_only)))
+            else if ((try_sym[args_at] == ScriptExportSeparator) &&
+                     ((args_separator == 0) || (try_sym.Mid(args_at + 1) == argnum_only)))
                 return item->second;
         }
         return name_only_match;
@@ -126,7 +128,8 @@ uint32_t ScriptSymbolsMap::GetIndexOfAny(const String &name) const
 }
 
 
-uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value, const RuntimeScript *script, ScriptValueHint val_hint)
+uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value, const RuntimeScript *script,
+                            ScriptValueHint val_hint)
 {
     assert(!name.IsEmpty());
     assert(value.IsValid());

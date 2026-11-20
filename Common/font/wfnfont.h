@@ -30,9 +30,9 @@
 // which this font corresponds to (ASCII, ANSI, Unicode). In offsets table
 // all char indexes must be sequential, meaning that the format may support a
 // range of 0-64k glyph indexes.
-// 
+//
 // All offsets in this format are relative to the beginning of the WFN data.
-// 
+//
 // NOTE: unfortunately, at the moment the format does not provide means to
 // know the number of supported characters for certain, and the size of the
 // data (file) is used to determine that.
@@ -84,7 +84,13 @@
 #include "platform/types.h"
 #include "util/geometry.h"
 
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 
 enum WFNError
 {
@@ -99,27 +105,18 @@ enum WFNError
 
 struct WFNChar
 {
-    uint16_t       Width;
-    uint16_t       Height;
+    uint16_t Width;
+    uint16_t Height;
     const uint8_t *Data;
     uint8_t BitsPerPixel = 1;
 
     WFNChar();
 
-    inline bool IsValid() const
-    {
-        return Width != 0 && Height != 0;
-    }
+    inline bool IsValid() const { return Width != 0 && Height != 0; }
 
-    inline size_t GetRowByteCount() const
-    {
-        return (BitsPerPixel * Width + 7) / 8;
-    }
+    inline size_t GetRowByteCount() const { return (BitsPerPixel * Width + 7) / 8; }
 
-    inline size_t GetRequiredPixelSize() const
-    {
-        return GetRowByteCount() * Height;
-    }
+    inline size_t GetRequiredPixelSize() const { return GetRowByteCount() * Height; }
 
     // Ensure character's width & height fit in given number of pixel bytes
     void RestrictToBytes(size_t bytes);
@@ -129,16 +126,10 @@ struct WFNChar
 class WFNFont
 {
 public:
-    inline size_t GetCharCount() const
-    {
-        return _refs.size();
-    }
+    inline size_t GetCharCount() const { return _refs.size(); }
 
     // Get WFN character for the given code; if the character is missing, returns empty character
-    inline const WFNChar &GetChar(uint16_t code) const
-    {
-        return code < _refs.size() ? *_refs[code] : _emptyChar;
-    }
+    inline const WFNChar &GetChar(uint16_t code) const { return code < _refs.size() ? *_refs[code] : _emptyChar; }
 
     // The font's real height is calculated from the highest glyph found
     inline int GetHeight() const { return _height; }
@@ -156,17 +147,17 @@ public:
     WFNError ReadFromFile(AGS::Common::Stream *in, const soff_t data_size = 0);
 
 private:
-    WFNError ReadExtendedFromFile(AGS::Common::Stream* in, const soff_t used_data_size);
-    WFNError ReadClassicFromFile(AGS::Common::Stream* in, const soff_t used_data_size);
-    std::vector<const WFNChar*> _refs;      // reference array, contains pointers to elements of _items
-    std::vector<WFNChar>        _items;     // actual character items
-    std::vector<uint8_t>        _pixelData; // pixel data array
-    int  _height = 0;   // font's height (calculated from the max glyph's height)
-    Rect _bbox;         // bounding box (maximal glyphs extent)
-    uint32_t _baseShadeIndex = 8; // base shade representing the exact AGS text color (4-bit fonts)
-    uint8_t _bitsPerPixel = 1; // font pixel depth in bits per pixel
+    WFNError ReadExtendedFromFile(AGS::Common::Stream *in, const soff_t used_data_size);
+    WFNError ReadClassicFromFile(AGS::Common::Stream *in, const soff_t used_data_size);
+    std::vector<const WFNChar *> _refs; // reference array, contains pointers to elements of _items
+    std::vector<WFNChar> _items;        // actual character items
+    std::vector<uint8_t> _pixelData;    // pixel data array
+    int _height = 0;                    // font's height (calculated from the max glyph's height)
+    Rect _bbox;                         // bounding box (maximal glyphs extent)
+    uint32_t _baseShadeIndex = 8;       // base shade representing the exact AGS text color (4-bit fonts)
+    uint8_t _bitsPerPixel = 1;          // font pixel depth in bits per pixel
 
-    static const WFNChar        _emptyChar; // a dummy character to substitute bad symbols
+    static const WFNChar _emptyChar; // a dummy character to substitute bad symbols
 };
 
 #endif // __AGS_CN_FONT__WFNFONT_H

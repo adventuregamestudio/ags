@@ -39,11 +39,10 @@ Bitmap *ConvertBitmap(const Bitmap *src, int dst_color_depth, bool keep_mask)
         set_color_conversion(old_conv);
         return dst;
     }
-    return const_cast<Bitmap*>(src);
+    return const_cast<Bitmap *>(src);
 }
 
-void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, const Bitmap *sprite,
-                       BlendMode blend_mode, int alpha)
+void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, const Bitmap *sprite, BlendMode blend_mode, int alpha)
 {
     if (alpha <= 0)
         return; // do not draw 100% transparent image
@@ -54,8 +53,7 @@ void DrawSpriteBlend(Bitmap *ds, const Point &ds_at, const Bitmap *sprite,
         ds->Blit(sprite, ds_at.X, ds_at.Y);
     }
     // support only 32-bit blending at the moment
-    else if ((ds->GetColorDepth() == 32) && (sprite->GetColorDepth() == 32) &&
-        SetBlender(blend_mode, alpha))
+    else if ((ds->GetColorDepth() == 32) && (sprite->GetColorDepth() == 32) && SetBlender(blend_mode, alpha))
     {
         ds->TransBlendBlt(sprite, ds_at.X, ds_at.Y);
     }
@@ -74,7 +72,7 @@ void DrawSpriteWithTransparency(Bitmap *ds, const Bitmap *sprite, int x, int y, 
     }
 
     const int surface_depth = ds->GetColorDepth();
-    const int sprite_depth  = sprite->GetColorDepth();
+    const int sprite_depth = sprite->GetColorDepth();
 
     // Allegro does not support masked blit or blend between different formats
     // *except* when drawing 8-bit sprites.

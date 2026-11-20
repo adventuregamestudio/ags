@@ -19,20 +19,20 @@
 #include "platform/platform.h"
 
 #if AGS_OPENGL_ES2
-#  include <SDL.h>
-#  if !AGS_PLATFORM_OS_IOS
-#    include <EGL/egl.h>
-#  endif
-#  include "glad/glad.h"
+#include <SDL.h>
+#if !AGS_PLATFORM_OS_IOS
+#include <EGL/egl.h>
+#endif
+#include "glad/glad.h"
 #elif AGS_PLATFORM_OS_WINDOWS
-#  include <SDL.h>
-#  include "platform/windows/windows.h"
-#  include "glad/glad.h"
+#include <SDL.h>
+#include "platform/windows/windows.h"
+#include "glad/glad.h"
 #elif AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_FREEBSD || AGS_PLATFORM_OS_MACOS
-#  include <SDL.h>
-#  include "glad/glad.h"
+#include <SDL.h>
+#include "glad/glad.h"
 #else
-#  error "opengl: unsupported platform"
+#error "opengl: unsupported platform"
 #endif
 
 #ifndef GLAPI
@@ -41,6 +41,6 @@
 
 #if AGS_OPENGL_ES2
 #ifndef GL_CLAMP
-    #define GL_CLAMP GL_CLAMP_TO_EDGE
+#define GL_CLAMP GL_CLAMP_TO_EDGE
 #endif
 #endif // AGS_OPENGL_ES2

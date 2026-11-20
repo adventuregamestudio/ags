@@ -39,7 +39,7 @@ public:
     // Initializes Al source for the given format; if there's no direct format equivalent
     // found, setups a resampler.
     OpenAlSource(SDL_AudioFormat format, int channels, int freq);
-    OpenAlSource(OpenAlSource&& src);
+    OpenAlSource(OpenAlSource &&src);
     ~OpenAlSource();
 
     // Tells if the al source is valid and usable
@@ -82,10 +82,10 @@ private:
 
     ALuint _source = 0u;
     Sound_AudioInfo _inputFmt; // actual input format
-    Sound_AudioInfo _recvFmt; // corrected format (if necessary)
-    ALenum _alFormat = 0u; // matching OpenAl format
+    Sound_AudioInfo _recvFmt;  // corrected format (if necessary)
+    ALenum _alFormat = 0u;     // matching OpenAl format
     PlaybackState _playState = PlayStateInitial;
-    float _speed = 1.f; // change in playback rate
+    float _speed = 1.f;     // change in playback rate
     float _predictTs = 0.f; // next timestamp prediction
     unsigned _queued = 0u;
 

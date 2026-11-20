@@ -51,7 +51,7 @@ int ValidateFontNumber(const char *apiname, int font_num)
 
 const char *CreateNewScriptString(const char *text)
 {
-    return static_cast<const char*>(ScriptString::Create(text).Obj());
+    return static_cast<const char *>(ScriptString::Create(text).Obj());
 }
 
 // Gets a offset corresponding to a character index in a script String;
@@ -59,7 +59,7 @@ const char *CreateNewScriptString(const char *text)
 // of a offset search from the header. Updates header on success.
 size_t GetStringCharOff(const char *thisString, int index)
 {
-    auto &header = ScriptString::GetHeader((void*)thisString);
+    auto &header = ScriptString::GetHeader((void *)thisString);
     assert((index >= 0) && (static_cast<uint32_t>(index) < header.ULength));
 
     int off;
@@ -81,7 +81,7 @@ size_t GetStringCharOff(const char *thisString, int index)
     return off;
 }
 
-int String_IsNullOrEmpty(const char *thisString) 
+int String_IsNullOrEmpty(const char *thisString)
 {
     if ((thisString == nullptr) || (thisString[0] == 0))
         return 1;
@@ -89,12 +89,12 @@ int String_IsNullOrEmpty(const char *thisString)
     return 0;
 }
 
-const char * String_Join(void* arrobj, const char *separator)
+const char *String_Join(void *arrobj, const char *separator)
 {
-    if(arrobj == nullptr)
+    if (arrobj == nullptr)
         return CreateNewScriptString("");
 
-    std::vector<void*> items{};
+    std::vector<void *> items{};
     if (!DynamicArrayHelpers::ResolvePointerArray(arrobj, items))
     {
         // somehow this is not a managed array, this would have to be a compiler error
@@ -102,10 +102,11 @@ const char * String_Join(void* arrobj, const char *separator)
     }
 
     const size_t count = items.size();
-    if(count == 0)
+    if (count == 0)
         return CreateNewScriptString("");
 
-    if(separator == nullptr) {
+    if (separator == nullptr)
+    {
         // I am not sure this can actually happen or the compiler will prevent this
         separator = "";
     }
@@ -118,28 +119,31 @@ const char * String_Join(void* arrobj, const char *separator)
     total_ulen = 0;
     for (uint32_t i = 0; i < count; ++i)
     {
-        auto address = static_cast<const char*>(items[i]);
-        if (address != nullptr) {
-            auto const& sh = ScriptString::GetHeader(address);
+        auto address = static_cast<const char *>(items[i]);
+        if (address != nullptr)
+        {
+            auto const &sh = ScriptString::GetHeader(address);
             total_len += sh.Length;
             total_ulen += sh.ULength;
         }
     }
     total_len += sep_len * (count - 1);
     total_ulen += sep_ulen * (count - 1);
-    
+
     auto buf = ScriptString::CreateBuffer(total_len, total_ulen);
 
     // concatenate the array elements with a separator between elements: el1+sep+el2+sep...elN
-    char* p = buf.Get();
+    char *p = buf.Get();
     for (uint32_t i = 0; i < count; ++i)
     {
-        auto address = static_cast<const char*>(items[i]);
-        if (address != nullptr) {
-            auto const& sh = ScriptString::GetHeader(address);
-            p = std::copy(address, address +sh.Length, p);
+        auto address = static_cast<const char *>(items[i]);
+        if (address != nullptr)
+        {
+            auto const &sh = ScriptString::GetHeader(address);
+            p = std::copy(address, address + sh.Length, p);
         }
-        if (i != count - 1) {
+        if (i != count - 1)
+        {
             p = std::copy(separator, separator + sep_len, p);
         }
     }
@@ -147,11 +151,13 @@ const char * String_Join(void* arrobj, const char *separator)
     return CreateNewScriptString(std::move(buf));
 }
 
-const char* String_Copy(const char *srcString) {
+const char *String_Copy(const char *srcString)
+{
     return CreateNewScriptString(srcString);
 }
 
-const char* String_Append(const char *thisString, const char *extrabit) {
+const char *String_Append(const char *thisString, const char *extrabit)
+{
     const auto &header = ScriptString::GetHeader(thisString);
     int str2_len, str2_ulen;
     ustrlen2(extrabit, &str2_len, &str2_ulen);
@@ -161,7 +167,8 @@ const char* String_Append(const char *thisString, const char *extrabit) {
     return CreateNewScriptString(std::move(buf));
 }
 
-const char* String_AppendChar(const char *thisString, int extraOne) {
+const char *String_AppendChar(const char *thisString, int extraOne)
+{
     char chr[5]{};
     const auto &header = ScriptString::GetHeader(thisString);
     size_t new_chw = usetc(chr, extraOne);
@@ -171,7 +178,8 @@ const char* String_AppendChar(const char *thisString, int extraOne) {
     return CreateNewScriptString(std::move(buf));
 }
 
-const char* String_ReplaceCharAt(const char *thisString, int index, int newChar) {
+const char *String_ReplaceCharAt(const char *thisString, int index, int newChar)
+{
     const auto &header = ScriptString::GetHeader(thisString);
     if ((index < 0) || ((size_t)index >= header.ULength))
         quit("!String.ReplaceCharAt: index outside range of string");
@@ -189,7 +197,7 @@ const char* String_ReplaceCharAt(const char *thisString, int index, int newChar)
     return CreateNewScriptString(std::move(buf));
 }
 
-const char* String_Reverse(const char *thisString)
+const char *String_Reverse(const char *thisString)
 {
     // TODO: i was in a rush when writing this, optimize to do with less copying?
     // we might have string algorithms separated from String class and shared used
@@ -199,7 +207,8 @@ const char* String_Reverse(const char *thisString)
     return CreateNewScriptString(str);
 }
 
-const char* String_Truncate(const char *thisString, int length) {
+const char *String_Truncate(const char *thisString, int length)
+{
     if (length < 0)
         quit("!String.Truncate: invalid length");
     const auto &header = ScriptString::GetHeader(thisString);
@@ -213,17 +222,21 @@ const char* String_Truncate(const char *thisString, int length) {
     return CreateNewScriptString(std::move(buf));
 }
 
-const char *TrimFront(const char *front, const char *back) {
-    for (int c = ugetc(front); front != back && uisspace(c);) {
+const char *TrimFront(const char *front, const char *back)
+{
+    for (int c = ugetc(front); front != back && uisspace(c);)
+    {
         front += ucwidth(c);
         c = ugetc(front);
     }
     return front;
 }
 
-const char *TrimBack(const char *front, const char *back) {
-    const char* prev = Utf8::BackOneChar(back, front);
-    for (int c = ugetc(prev); prev != front && uisspace(c); ) {
+const char *TrimBack(const char *front, const char *back)
+{
+    const char *prev = Utf8::BackOneChar(back, front);
+    for (int c = ugetc(prev); prev != front && uisspace(c);)
+    {
         back = prev;
         prev = Utf8::BackOneChar(prev, front);
         c = ugetc(prev);
@@ -231,11 +244,11 @@ const char *TrimBack(const char *front, const char *back) {
     return back;
 }
 
-const char* String_Trim(const char *thisString)
+const char *String_Trim(const char *thisString)
 {
     const auto &this_header = ScriptString::GetHeader(thisString);
-    const char* front = thisString;
-    const char* back = front + this_header.Length;
+    const char *front = thisString;
+    const char *back = front + this_header.Length;
 
     front = TrimFront(front, back);
 
@@ -255,7 +268,8 @@ const char* String_Trim(const char *thisString)
     return CreateNewScriptString(std::move(buf));
 }
 
-const char* String_Substring(const char *thisString, int index, int length) {
+const char *String_Substring(const char *thisString, int index, int length)
+{
     if (length < 0)
         quit("!String.Substring: invalid length");
     const auto &header = ScriptString::GetHeader(thisString);
@@ -318,17 +332,18 @@ int String_EndsWith(const char *thisString, const char *checkForString, int comp
         return 0;
 
     const bool case_sensitive = (compare_style & kScCaseSensitiveFlag) != 0;
-    if (case_sensitive) 
+    if (case_sensitive)
     {
         return (strcmp(thisString + (header.Length - checklen), checkForString) == 0) ? 1 : 0;
     }
-    else 
+    else
     {
         return (ustricmp(thisString + (header.Length - checklen), checkForString) == 0) ? 1 : 0;
     }
 }
 
-const char* String_Replace(const char *thisString, const char *lookForText, const char *replaceWithText, int compare_style)
+const char *String_Replace(const char *thisString, const char *lookForText, const char *replaceWithText,
+                           int compare_style)
 {
     compare_style = ValidateStringComparison("String.CompareTo", compare_style);
     const bool case_sensitive = (compare_style & kScCaseSensitiveFlag) != 0;
@@ -336,17 +351,17 @@ const char* String_Replace(const char *thisString, const char *lookForText, cons
     const auto &this_header = ScriptString::GetHeader(thisString);
     // For case-sensitive search select simple ascii "strstr", for strict byte-to-byte comparison;
     // For case-insensitive search select no-case unicode-compatible variant
-    typedef const char* (*fn_strstr)(const char *, const char *);
-    fn_strstr pfn_strstr = 
+    typedef const char *(*fn_strstr)(const char *, const char *);
+    fn_strstr pfn_strstr =
         case_sensitive ? reinterpret_cast<fn_strstr>(ags_strstr) : reinterpret_cast<fn_strstr>(ustrcasestr);
     int match_len, match_ulen;
     ustrlen2(lookForText, &match_len, &match_ulen);
 
     // Record positions of matches
     std::vector<size_t> matches; // TODO: use optimized container to avoid extra allocs on heap
-    for (const char *match_ptr = pfn_strstr(thisString, lookForText);
-        match_ptr;
-        matches.push_back(match_ptr - thisString), match_ptr = pfn_strstr(match_ptr + match_len, lookForText));
+    for (const char *match_ptr = pfn_strstr(thisString, lookForText); match_ptr;
+         matches.push_back(match_ptr - thisString), match_ptr = pfn_strstr(match_ptr + match_len, lookForText))
+        ;
 
     if (matches.size() == 0)
         return thisString; // nothing to replace, return original string
@@ -362,16 +377,17 @@ const char* String_Replace(const char *thisString, const char *lookForText, cons
     const char *prev_ptr = thisString;
     for (const auto &m : matches)
     {
-        write_ptr = std::copy(prev_ptr, thisString + m, write_ptr); // copy unchanged part
+        write_ptr = std::copy(prev_ptr, thisString + m, write_ptr);                       // copy unchanged part
         write_ptr = std::copy(replaceWithText, replaceWithText + replace_len, write_ptr); // copy replacement
         prev_ptr = thisString + m + match_len;
     }
     std::copy(prev_ptr, thisString + this_header.Length, write_ptr); // copy unchanged part (if any left)
-    buf.Get()[final_len] = 0; // terminate
+    buf.Get()[final_len] = 0;                                        // terminate
     return CreateNewScriptString(std::move(buf));
 }
 
-const char* String_LowerCase(const char *thisString) {
+const char *String_LowerCase(const char *thisString)
+{
     const auto &header = ScriptString::GetHeader(thisString);
     auto buf = ScriptString::CreateBuffer(header.Length, header.ULength);
     memcpy(buf.Get(), thisString, header.Length + 1);
@@ -379,7 +395,8 @@ const char* String_LowerCase(const char *thisString) {
     return CreateNewScriptString(std::move(buf));
 }
 
-const char* String_UpperCase(const char *thisString) {
+const char *String_UpperCase(const char *thisString)
+{
     const auto &header = ScriptString::GetHeader(thisString);
     auto buf = ScriptString::CreateBuffer(header.Length, header.ULength);
     memcpy(buf.Get(), thisString, header.Length + 1);
@@ -387,24 +404,26 @@ const char* String_UpperCase(const char *thisString) {
     return CreateNewScriptString(std::move(buf));
 }
 
-void * String_Split(const char *thisString, const char *separator, int splitOptions)
+void *String_Split(const char *thisString, const char *separator, int splitOptions)
 {
     if (thisString == nullptr)
         return nullptr;
 
     bool removeEmpty = (splitOptions & 0x0001) != 0;
     bool trim = (splitOptions & 0x0002) != 0;
-    auto const &header = ScriptString::GetHeader((void*)thisString);
+    auto const &header = ScriptString::GetHeader((void *)thisString);
 
     if ((thisString[0] == 0) || (separator == nullptr) || (separator[0] == 0) || strlen(separator) > header.Length)
     {
         std::vector<DynObjectRef> objs{};
-        const char* front = thisString;
-        const char* back = thisString + header.Length;
+        const char *front = thisString;
+        const char *back = thisString + header.Length;
 
-        if (trim) {
+        if (trim)
+        {
             front = TrimFront(front, back);
-            if (front != back) {
+            if (front != back)
+            {
                 back = TrimBack(front, back);
             }
         }
@@ -412,7 +431,8 @@ void * String_Split(const char *thisString, const char *separator, int splitOpti
         auto buf = ScriptString::CreateBuffer(len, 0);
         std::copy(front, back, buf.Get());
         buf.Get()[len] = 0;
-        if(!(removeEmpty && len == 0)) {
+        if (!(removeEmpty && len == 0))
+        {
             objs.push_back(ScriptString::Create(thisString));
         }
         DynObjectRef arr = DynamicArrayHelpers::CreateScriptArray(std::move(objs));
@@ -427,16 +447,19 @@ void * String_Split(const char *thisString, const char *separator, int splitOpti
     while (ptr <= end)
     {
         const char *found_cstr = strstr(ptr, separator);
-        if (!found_cstr) {
+        if (!found_cstr)
+        {
             found_cstr = end;
         }
 
-        const char* front = ptr;
-        const char* back = found_cstr;
+        const char *front = ptr;
+        const char *back = found_cstr;
 
-        if (trim) {
+        if (trim)
+        {
             front = TrimFront(front, back);
-            if (front != back) {
+            if (front != back)
+            {
                 back = TrimBack(front, back);
             }
         }
@@ -457,8 +480,9 @@ void * String_Split(const char *thisString, const char *separator, int splitOpti
     return arr.Obj();
 }
 
-int String_GetChars(const char *thisString, int index) {
-    auto &header = ScriptString::GetHeader((void*)thisString);
+int String_GetChars(const char *thisString, int index)
+{
+    auto &header = ScriptString::GetHeader((void *)thisString);
     if ((index < 0) || (static_cast<uint32_t>(index) >= header.ULength))
         return 0;
 
@@ -466,7 +490,8 @@ int String_GetChars(const char *thisString, int index) {
     return ugetc(thisString + off);
 }
 
-int String_AsInt(const char*stino) {
+int String_AsInt(const char *stino)
+{
     return atoi(stino);
 }
 
@@ -475,23 +500,27 @@ float String_AsFloat(const char *theString)
     return static_cast<float>(atof(theString));
 }
 
-int String_IndexOf (const char *thisString, const char *lookForText, bool caseSensitive, int startIndex, int count) {
+int String_IndexOf(const char *thisString, const char *lookForText, bool caseSensitive, int startIndex, int count)
+{
     VALIDATE_STRING(thisString);
     VALIDATE_STRING(lookForText);
 
     const auto &header = ScriptString::GetHeader(thisString);
-    if ((startIndex != 0) && ((startIndex < 0) || ((size_t) startIndex >= header.ULength))) {
+    if ((startIndex != 0) && ((startIndex < 0) || ((size_t)startIndex >= header.ULength)))
+    {
         debug_script_warn("String.IndexOf: invalid start index %d, string length is %u.", startIndex, header.ULength);
         return -1;
     }
 
-    if (count < 0) {
+    if (count < 0)
+    {
         debug_script_warn("String.IndexOf: invalid count %d. Did you meant to use '0' for until string end?", count);
         return -1;
     }
 
     // Empty strings will never contain anything, empty input won't be found
-    if (header.ULength == 0 || lookForText[0] == 0) {
+    if (header.ULength == 0 || lookForText[0] == 0)
+    {
         return -1;
     }
 
@@ -500,9 +529,9 @@ int String_IndexOf (const char *thisString, const char *lookForText, bool caseSe
 
     // Use GetStringCharOff to possibly speed up start offset search in utf-8
     size_t start = GetStringCharOff(thisString, startIndex);
-    size_t end   = (startIndex + count == header.ULength) ?
-        header.Length :
-        uoffset(thisString + start, count); // end offset searched from the found start
+    size_t end = (startIndex + count == header.ULength)
+                     ? header.Length
+                     : uoffset(thisString + start, count); // end offset searched from the found start
 
     auto thistmpbuf = StrUtil::Substring(thisString, start, end - start);
     auto looktmpbuf = StrUtil::Duplicate(lookForText);
@@ -523,21 +552,24 @@ int String_IndexOf (const char *thisString, const char *lookForText, bool caseSe
     return startIndex + ustrlen(thistmpbuf.get());
 }
 
-int String_IndexOf1(const char *s1, const char *s2) {
+int String_IndexOf1(const char *s1, const char *s2)
+{
     return String_IndexOf(s1, s2, false, 0, 0);
 }
 
-int String_GetLength(const char *thisString) {
+int String_GetLength(const char *thisString)
+{
     return ScriptString::GetHeader(thisString).ULength;
 }
 
 //=============================================================================
 
-size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLines &lines, int wii, int fonnt, size_t max_lines)
+size_t break_up_text_into_lines(const char *todis, bool apply_direction, SplitLines &lines, int wii, int fonnt,
+                                size_t max_lines)
 {
     lines.Reset();
     // FIXME: stop using the global variable, pass as a reference!
-    longestline=0;
+    longestline = 0;
 
     // If empty string - bail out now
     if (todis[0] == 0)
@@ -577,7 +609,9 @@ const char *parse_voiceover_token(const char *text, int *voice_num)
     if (voice_num)
         *voice_num = atoi(&text[1]);
     // Skip the token and a single following space char
-    for (; *text && *text != ' '; ++text) {}
+    for (; *text && *text != ' '; ++text)
+    {
+    }
     if (*text == ' ')
         ++text;
     return text;
@@ -652,7 +686,7 @@ RuntimeScriptValue Sc_String_EndsWith(void *self, const RuntimeScriptValue *para
 RuntimeScriptValue Sc_String_Format(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_SCRIPT_SPRINTF(String_Format, 1);
-    return RuntimeScriptValue().SetScriptObject((void*)CreateNewScriptString(scsf_buffer), &myScriptStringImpl);
+    return RuntimeScriptValue().SetScriptObject((void *)CreateNewScriptString(scsf_buffer), &myScriptStringImpl);
 }
 
 // const char* (const char *thisString)
@@ -734,7 +768,7 @@ RuntimeScriptValue Sc_String_GetChars(void *self, const RuntimeScriptValue *para
 RuntimeScriptValue Sc_String_GetLength(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     ASSERT_SELF(String_GetLength);
-    return RuntimeScriptValue().SetInt32(String_GetLength((const char*)self));
+    return RuntimeScriptValue().SetInt32(String_GetLength((const char *)self));
 }
 
 //=============================================================================
@@ -754,32 +788,32 @@ const char *ScPl_String_Format(const char *texx, ...)
 void RegisterStringAPI()
 {
     ScFnRegister string_api[] = {
-        { "String::IsNullOrEmpty^1",  API_FN_PAIR(String_IsNullOrEmpty) },
-        { "String::Format^101",       Sc_String_Format, ScPl_String_Format },
-        { "String::Join^2",           API_FN_PAIR(String_Join) },
+        {"String::IsNullOrEmpty^1", API_FN_PAIR(String_IsNullOrEmpty)},
+        {"String::Format^101", Sc_String_Format, ScPl_String_Format},
+        {"String::Join^2", API_FN_PAIR(String_Join)},
 
-        { "String::Append^1",         API_FN_PAIR(String_Append) },
-        { "String::AppendChar^1",     API_FN_PAIR(String_AppendChar) },
-        { "String::CompareTo^2",      API_FN_PAIR(String_CompareTo) },
-        { "String::Contains^1",       API_FN_PAIR(String_IndexOf1) },
-        { "String::Copy^0",           API_FN_PAIR(String_Copy) },
-        { "String::EndsWith^2",       API_FN_PAIR(String_EndsWith) },
-        { "String::IndexOf^1",        API_FN_PAIR(String_IndexOf1) },
-        { "String::IndexOf^4",        API_FN_PAIR(String_IndexOf) },
-        { "String::LowerCase^0",      API_FN_PAIR(String_LowerCase) },
-        { "String::Replace^3",        API_FN_PAIR(String_Replace) },
-        { "String::ReplaceCharAt^2",  API_FN_PAIR(String_ReplaceCharAt) },
-        { "String::Reverse^0",        API_FN_PAIR(String_Reverse) },
-        { "String::StartsWith^2",     API_FN_PAIR(String_StartsWith) },
-        { "String::Substring^2",      API_FN_PAIR(String_Substring) },
-        { "String::Truncate^1",       API_FN_PAIR(String_Truncate) },
-        { "String::Trim^0",           API_FN_PAIR(String_Trim) },
-        { "String::UpperCase^0",      API_FN_PAIR(String_UpperCase) },
-        { "String::Split^2",          API_FN_PAIR(String_Split) },
-        { "String::get_AsFloat",      API_FN_PAIR(String_AsFloat) },
-        { "String::get_AsInt",        API_FN_PAIR(String_AsInt) },
-        { "String::geti_Chars",       API_FN_PAIR(String_GetChars) },
-        { "String::get_Length",       API_FN_PAIR(String_GetLength) },
+        {"String::Append^1", API_FN_PAIR(String_Append)},
+        {"String::AppendChar^1", API_FN_PAIR(String_AppendChar)},
+        {"String::CompareTo^2", API_FN_PAIR(String_CompareTo)},
+        {"String::Contains^1", API_FN_PAIR(String_IndexOf1)},
+        {"String::Copy^0", API_FN_PAIR(String_Copy)},
+        {"String::EndsWith^2", API_FN_PAIR(String_EndsWith)},
+        {"String::IndexOf^1", API_FN_PAIR(String_IndexOf1)},
+        {"String::IndexOf^4", API_FN_PAIR(String_IndexOf)},
+        {"String::LowerCase^0", API_FN_PAIR(String_LowerCase)},
+        {"String::Replace^3", API_FN_PAIR(String_Replace)},
+        {"String::ReplaceCharAt^2", API_FN_PAIR(String_ReplaceCharAt)},
+        {"String::Reverse^0", API_FN_PAIR(String_Reverse)},
+        {"String::StartsWith^2", API_FN_PAIR(String_StartsWith)},
+        {"String::Substring^2", API_FN_PAIR(String_Substring)},
+        {"String::Truncate^1", API_FN_PAIR(String_Truncate)},
+        {"String::Trim^0", API_FN_PAIR(String_Trim)},
+        {"String::UpperCase^0", API_FN_PAIR(String_UpperCase)},
+        {"String::Split^2", API_FN_PAIR(String_Split)},
+        {"String::get_AsFloat", API_FN_PAIR(String_AsFloat)},
+        {"String::get_AsInt", API_FN_PAIR(String_AsInt)},
+        {"String::geti_Chars", API_FN_PAIR(String_GetChars)},
+        {"String::get_Length", API_FN_PAIR(String_GetLength)},
     };
 
     ccAddExternalFunctions(string_api);

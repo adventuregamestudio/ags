@@ -62,7 +62,7 @@ using D3D::AAD3DGfxFilter;
 // Transforms a unit quad using a combined world-view-projection matrix.
 // The matrix is uploaded exactly as glm keeps it (column-major), which
 // matches HLSL default packing of float4x4.
-static const char* VertexShaderSrc = R"HLSL(
+static const char *VertexShaderSrc = R"HLSL(
 cbuffer VSConstants : register(b0)
 {
     float4x4 uWVP;
@@ -102,7 +102,7 @@ VSOutput main(VSInput i)
 //   COLOROP: MODULATE / ADD / ADDSMOOTH  with the "texture factor"
 //   ALPHAOP: SELECTARG1(texture) / MODULATE(texture, factor)
 //   Alpha test (alpha > 0)
-static const char* StandardPixelShaderSrc = R"HLSL(
+static const char *StandardPixelShaderSrc = R"HLSL(
 cbuffer PSConstants : register(b0)
 {
     float4 uFactor;  // rgb: color factor, a: alpha factor
@@ -144,7 +144,7 @@ float4 main(PSInput i) : SV_Target
 // NOTE: this is written from scratch, because the Direct3D 9 renderer used a
 // precompiled shader stored as an exe resource. Replace with the original
 // HLSL source if you need bit-exact tinting.
-static const char* TintPixelShaderSrc = R"HLSL(
+static const char *TintPixelShaderSrc = R"HLSL(
 cbuffer PSConstants : register(b0)
 {
     float4 uTintHSV;     // x: hue (0..1), y: saturation, z: value, w: tint amount
@@ -181,7 +181,7 @@ float4 main(PSInput i) : SV_Target
 //
 // Direct3D helpers
 //
-static void RectToRECT(const Rect& in_rc, RECT& out_rc)
+static void RectToRECT(const Rect &in_rc, RECT &out_rc)
 {
     out_rc.left = in_rc.Left;
     out_rc.top = in_rc.Top;
@@ -203,10 +203,8 @@ static bool DXGIFormatHasAlpha(DXGI_FORMAT format)
     switch (format)
     {
     case DXGI_FORMAT_B8G8R8A8_UNORM:
-    case DXGI_FORMAT_R8G8B8A8_UNORM:
-        return true;
-    default:
-        return false;
+    case DXGI_FORMAT_R8G8B8A8_UNORM: return true;
+    default: return false;
     }
 }
 
@@ -224,17 +222,17 @@ static D3D11_BLEND ToAlphaBlend(D3D11_BLEND b)
 {
     switch (b)
     {
-    case D3D11_BLEND_SRC_COLOR:      return D3D11_BLEND_SRC_ALPHA;
-    case D3D11_BLEND_INV_SRC_COLOR:  return D3D11_BLEND_INV_SRC_ALPHA;
-    case D3D11_BLEND_DEST_COLOR:     return D3D11_BLEND_DEST_ALPHA;
+    case D3D11_BLEND_SRC_COLOR: return D3D11_BLEND_SRC_ALPHA;
+    case D3D11_BLEND_INV_SRC_COLOR: return D3D11_BLEND_INV_SRC_ALPHA;
+    case D3D11_BLEND_DEST_COLOR: return D3D11_BLEND_DEST_ALPHA;
     case D3D11_BLEND_INV_DEST_COLOR: return D3D11_BLEND_INV_DEST_ALPHA;
     default: return b;
     }
 }
 
 // Finds DXGI adapter and output which correspond to the SDL display index
-static bool GetAdapterAndOutput(IDXGIFactory1* factory, int display_index,
-    ComPtr<IDXGIAdapter1>& adapter, ComPtr<IDXGIOutput>& output)
+static bool GetAdapterAndOutput(IDXGIFactory1 *factory, int display_index, ComPtr<IDXGIAdapter1> &adapter,
+                                ComPtr<IDXGIOutput> &output)
 {
     int adapter_index = 0, output_index = 0;
     if (!SDL_DXGIGetOutputInfo(display_index, &adapter_index, &output_index))
@@ -253,25 +251,19 @@ static bool GetAdapterAndOutput(IDXGIFactory1* factory, int display_index,
 size_t D3D11Texture::GetMemSize() const
 {
     size_t sz = 0u;
-    for (const auto& tile : _tiles)
+    for (const auto &tile : _tiles)
         sz += tile.allocWidth * tile.allocHeight * 4;
     return sz;
 }
 
-D3D11Shader::D3D11Shader(const String& name)
-    : BaseShader(name)
+D3D11Shader::D3D11Shader(const String &name) : BaseShader(name) {}
+
+D3D11Shader::D3D11Shader(const String &name, D3D11Shader::ProgramData &&data) : BaseShader(name), _data(std::move(data))
 {
 }
 
-D3D11Shader::D3D11Shader(const String& name, D3D11Shader::ProgramData&& data)
-    : BaseShader(name)
-    , _data(std::move(data))
-{
-}
-
-D3D11Shader::D3D11Shader(const String& name, const D3D11Shader& copy_shader)
-    : BaseShader(name)
-    , _data(copy_shader.GetData())
+D3D11Shader::D3D11Shader(const String &name, const D3D11Shader &copy_shader)
+    : BaseShader(name), _data(copy_shader.GetData())
 {
 }
 
@@ -299,7 +291,7 @@ uint32_t D3D11Shader::GetConstantByIndex(uint32_t iter_index)
     return _data.ConstantsOrdered[iter_index].first;
 }
 
-uint32_t D3D11Shader::GetConstantByName(const String& const_name)
+uint32_t D3D11Shader::GetConstantByName(const String &const_name)
 {
     if (!_data.ShaderPtr)
         return UINT32_MAX;
@@ -317,9 +309,8 @@ void D3D11Shader::ResetConstants()
     // and it's overwritten whenever any shader is used in rendering
 }
 
-D3D11ShaderInstance::D3D11ShaderInstance(D3D11Shader* shader, const String& name)
-    : BaseShaderInstance(name)
-    , _shader(shader)
+D3D11ShaderInstance::D3D11ShaderInstance(D3D11Shader *shader, const String &name)
+    : BaseShaderInstance(name), _shader(shader)
 {
     _constantData.resize((D3D11Shader::NullConstantIndex + 1) * D3D11Shader::ConstantSize);
     _samplers.resize(D3D11Shader::SamplersCap);
@@ -358,7 +349,7 @@ size_t D3D11ShaderInstance::GetConstantDataSize()
     return _constantData.size();
 }
 
-void D3D11ShaderInstance::GetConstantData(std::vector<float>& data)
+void D3D11ShaderInstance::GetConstantData(std::vector<float> &data)
 {
     data = _constantData;
 }
@@ -381,7 +372,7 @@ void D3D11ShaderInstance::SetShaderSampler(uint32_t sampler_index, std::shared_p
     _samplers[sampler_index] = std::dynamic_pointer_cast<D3D11Texture>(tex);
 }
 
-D3D11GfxModeList::D3D11GfxModeList(const DXGIFactoryPtr& factory, int display_index, DXGI_FORMAT format)
+D3D11GfxModeList::D3D11GfxModeList(const DXGIFactoryPtr &factory, int display_index, DXGI_FORMAT format)
     : _displayIndex(display_index)
 {
     ComPtr<IDXGIAdapter1> adapter;
@@ -401,17 +392,19 @@ D3D11GfxModeList::D3D11GfxModeList(const DXGIFactoryPtr& factory, int display_in
     _modes.resize(count);
 }
 
-bool D3D11GfxModeList::GetMode(int index, DisplayMode& mode) const
+bool D3D11GfxModeList::GetMode(int index, DisplayMode &mode) const
 {
     if (index >= 0 && index < static_cast<int>(_modes.size()))
     {
-        const DXGI_MODE_DESC& dxgi_mode = _modes[index];
+        const DXGI_MODE_DESC &dxgi_mode = _modes[index];
         mode.DisplayIndex = _displayIndex;
         mode.Width = dxgi_mode.Width;
         mode.Height = dxgi_mode.Height;
         mode.ColorDepth = 32; // all supported formats are 32-bit
-        mode.RefreshRate = dxgi_mode.RefreshRate.Denominator > 0 ?
-            (dxgi_mode.RefreshRate.Numerator + dxgi_mode.RefreshRate.Denominator / 2) / dxgi_mode.RefreshRate.Denominator : 0;
+        mode.RefreshRate = dxgi_mode.RefreshRate.Denominator > 0
+                               ? (dxgi_mode.RefreshRate.Numerator + dxgi_mode.RefreshRate.Denominator / 2) /
+                                     dxgi_mode.RefreshRate.Denominator
+                               : 0;
         return true;
     }
     return false;
@@ -420,16 +413,14 @@ bool D3D11GfxModeList::GetMode(int index, DisplayMode& mode) const
 
 // Default whole-texture quad; texture tiles are always allocated to have exactly
 // the tile's size, so this is also suitable for all the tiles.
-static const D3D11Vertex DefaultVertices[4] =
-{
-    { 0.0f,  0.0f, 0.0f, 0.0f, 0.0f },
-    { 1.0f,  0.0f, 0.0f, 1.0f, 0.0f },
-    { 0.0f, -1.0f, 0.0f, 0.0f, 1.0f },
-    { 1.0f, -1.0f, 0.0f, 1.0f, 1.0f },
+static const D3D11Vertex DefaultVertices[4] = {
+    {0.0f, 0.0f, 0.0f, 0.0f, 0.0f},
+    {1.0f, 0.0f, 0.0f, 1.0f, 0.0f},
+    {0.0f, -1.0f, 0.0f, 0.0f, 1.0f},
+    {1.0f, -1.0f, 0.0f, 1.0f, 1.0f},
 };
 
-D3D11GraphicsDriver::D3D11GraphicsDriver(const D3D11Api& api)
-    : _api(api)
+D3D11GraphicsDriver::D3D11GraphicsDriver(const D3D11Api &api) : _api(api)
 {
     // Shifts comply to DXGI_FORMAT_B8G8R8A8_UNORM
     _vmem_a_shift_32 = 24;
@@ -439,25 +430,35 @@ D3D11GraphicsDriver::D3D11GraphicsDriver(const D3D11Api& api)
     _curProjection = glm::mat4(1.f);
 }
 
-D3D11GraphicsDriver::BackbufferState::BackbufferState(const D3D11RTVPtr& view,
-    const Size& surf_size, const Size& rend_sz,
-    const Rect& view_rc, const glm::mat4& proj, const PlaneScaling& scale, bool linear_filter)
-    : View(view), SurfSize(surf_size), RendSize(rend_sz)
-    , Viewport(view_rc), Projection(proj), Scaling(scale), LinearFilter(linear_filter)
+D3D11GraphicsDriver::BackbufferState::BackbufferState(const D3D11RTVPtr &view, const Size &surf_size,
+                                                      const Size &rend_sz, const Rect &view_rc, const glm::mat4 &proj,
+                                                      const PlaneScaling &scale, bool linear_filter)
+    : View(view)
+    , SurfSize(surf_size)
+    , RendSize(rend_sz)
+    , Viewport(view_rc)
+    , Projection(proj)
+    , Scaling(scale)
+    , LinearFilter(linear_filter)
 {
     assert(View != nullptr);
 }
 
-D3D11GraphicsDriver::BackbufferState::BackbufferState(D3D11RTVPtr&& view,
-    const Size& surf_size, const Size& rend_sz,
-    const Rect& view_rc, const glm::mat4& proj, const PlaneScaling& scale, bool linear_filter)
-    : View(std::move(view)), SurfSize(surf_size), RendSize(rend_sz)
-    , Viewport(view_rc), Projection(proj), Scaling(scale), LinearFilter(linear_filter)
+D3D11GraphicsDriver::BackbufferState::BackbufferState(D3D11RTVPtr &&view, const Size &surf_size, const Size &rend_sz,
+                                                      const Rect &view_rc, const glm::mat4 &proj,
+                                                      const PlaneScaling &scale, bool linear_filter)
+    : View(std::move(view))
+    , SurfSize(surf_size)
+    , RendSize(rend_sz)
+    , Viewport(view_rc)
+    , Projection(proj)
+    , Scaling(scale)
+    , LinearFilter(linear_filter)
 {
     assert(View != nullptr);
 }
 
-void D3D11GraphicsDriver::OnModeSet(const DisplayMode& mode)
+void D3D11GraphicsDriver::OnModeSet(const DisplayMode &mode)
 {
     GraphicsDriverBase::OnModeSet(mode);
 
@@ -504,7 +505,9 @@ bool D3D11GraphicsDriver::FirstTimeInit()
     if (!CreateStandardShaders())
     {
         // NOTE: we don't have an obligatory transparency shader in Direct3D, so all standard shaders are optional
-        Debug::Printf(kDbgMsg_Error, "ERROR: Direct3D 11: one or more standard shaders failed to compile, the game may run but have unexpected visuals.");
+        Debug::Printf(
+            kDbgMsg_Error,
+            "ERROR: Direct3D 11: one or more standard shaders failed to compile, the game may run but have unexpected visuals.");
     }
 
     return true;
@@ -522,19 +525,20 @@ bool D3D11GraphicsDriver::CreateDeviceObjects()
         SDL_SetError("Failed to compile the vertex shader");
         return false;
     }
-    hr = _device->CreateVertexShader(vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(), nullptr, _vertexShader.Acquire());
+    hr = _device->CreateVertexShader(vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(), nullptr,
+                                     _vertexShader.Acquire());
     if (FAILED(hr))
     {
         SDL_SetError("Failed to create the vertex shader: 0x%08X", (unsigned)hr);
         return false;
     }
 
-    const D3D11_INPUT_ELEMENT_DESC layout[] =
-    {
-      { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-      { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    const D3D11_INPUT_ELEMENT_DESC layout[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
-    hr = _device->CreateInputLayout(layout, 2, vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(), _inputLayout.Acquire());
+    hr = _device->CreateInputLayout(layout, 2, vs_blob->GetBufferPointer(), vs_blob->GetBufferSize(),
+                                    _inputLayout.Acquire());
     if (FAILED(hr))
     {
         SDL_SetError("Failed to create the input layout: 0x%08X", (unsigned)hr);
@@ -548,7 +552,8 @@ bool D3D11GraphicsDriver::CreateDeviceObjects()
         SDL_SetError("Failed to compile the standard pixel shader");
         return false;
     }
-    hr = _device->CreatePixelShader(ps_blob->GetBufferPointer(), ps_blob->GetBufferSize(), nullptr, _psStandard.Acquire());
+    hr = _device->CreatePixelShader(ps_blob->GetBufferPointer(), ps_blob->GetBufferSize(), nullptr,
+                                    _psStandard.Acquire());
     if (FAILED(hr))
     {
         SDL_SetError("Failed to create the standard pixel shader: 0x%08X", (unsigned)hr);
@@ -572,7 +577,7 @@ bool D3D11GraphicsDriver::CreateDeviceObjects()
     }
 
     // Constant buffers
-    auto make_const_buffer = [this](UINT byte_size, D3D11BufferPtr& buf) -> bool
+    auto make_const_buffer = [this](UINT byte_size, D3D11BufferPtr &buf) -> bool
     {
         D3D11_BUFFER_DESC bd = {};
         bd.ByteWidth = byte_size;
@@ -583,9 +588,8 @@ bool D3D11GraphicsDriver::CreateDeviceObjects()
     };
     // VS: one float4x4; PS: has to fit any shader's constants (ConstantCap + 1 registers)
     static_assert((D3D11Shader::NullConstantIndex + 1) * D3D11Shader::ConstantSize * sizeof(float) <= 256,
-        "Pixel shader constant buffer is too small");
-    if (!make_const_buffer(sizeof(float) * 16, _vsConstBuffer) ||
-        !make_const_buffer(256, _psConstBuffer))
+                  "Pixel shader constant buffer is too small");
+    if (!make_const_buffer(sizeof(float) * 16, _vsConstBuffer) || !make_const_buffer(256, _psConstBuffer))
     {
         SDL_SetError("Failed to create constant buffers");
         return false;
@@ -600,15 +604,27 @@ bool D3D11GraphicsDriver::CreateDeviceObjects()
         sd.MaxLOD = D3D11_FLOAT32_MAX;
         sd.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
         hr = _device->CreateSamplerState(&sd, _samplerPoint.Acquire());
-        if (FAILED(hr)) { SDL_SetError("Failed to create sampler state"); return false; }
+        if (FAILED(hr))
+        {
+            SDL_SetError("Failed to create sampler state");
+            return false;
+        }
         sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
         hr = _device->CreateSamplerState(&sd, _samplerLinear.Acquire());
-        if (FAILED(hr)) { SDL_SetError("Failed to create sampler state"); return false; }
+        if (FAILED(hr))
+        {
+            SDL_SetError("Failed to create sampler state");
+            return false;
+        }
         // Extra shader samplers used D3D9 defaults: point filter, wrap addressing
         sd.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
         sd.AddressU = sd.AddressV = sd.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
         hr = _device->CreateSamplerState(&sd, _samplerAux.Acquire());
-        if (FAILED(hr)) { SDL_SetError("Failed to create sampler state"); return false; }
+        if (FAILED(hr))
+        {
+            SDL_SetError("Failed to create sampler state");
+            return false;
+        }
     }
 
     // Rasterizer states (no culling, no depth)
@@ -619,10 +635,18 @@ bool D3D11GraphicsDriver::CreateDeviceObjects()
         rd.DepthClipEnable = TRUE;
         rd.ScissorEnable = FALSE;
         hr = _device->CreateRasterizerState(&rd, _rsNoScissor.Acquire());
-        if (FAILED(hr)) { SDL_SetError("Failed to create rasterizer state"); return false; }
+        if (FAILED(hr))
+        {
+            SDL_SetError("Failed to create rasterizer state");
+            return false;
+        }
         rd.ScissorEnable = TRUE;
         hr = _device->CreateRasterizerState(&rd, _rsScissor.Acquire());
-        if (FAILED(hr)) { SDL_SetError("Failed to create rasterizer state"); return false; }
+        if (FAILED(hr))
+        {
+            SDL_SetError("Failed to create rasterizer state");
+            return false;
+        }
     }
 
     return true;
@@ -644,7 +668,7 @@ void D3D11GraphicsDriver::ReleaseDeviceObjects()
     _vertexShader = nullptr;
 }
 
-bool D3D11GraphicsDriver::IsModeSupported(const DisplayMode& mode)
+bool D3D11GraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
     if (mode.Width <= 0 || mode.Height <= 0 || mode.ColorDepth <= 0)
     {
@@ -661,8 +685,7 @@ bool D3D11GraphicsDriver::IsModeSupported(const DisplayMode& mode)
     for (int i = 0; i < mode_list.GetModeCount(); ++i)
     {
         DisplayMode list_mode;
-        if (mode_list.GetMode(i, list_mode) &&
-            (list_mode.Width == mode.Width) && (list_mode.Height == mode.Height))
+        if (mode_list.GetMode(i, list_mode) && (list_mode.Width == mode.Width) && (list_mode.Height == mode.Height))
         {
             return true;
         }
@@ -700,13 +723,13 @@ void D3D11GraphicsDriver::SetGamma(int newGamma)
 
     // Same as in D3D9 backend: scale the default (linear) ramp by the gamma percentage
     DXGI_GAMMA_CONTROL gamma = {};
-    gamma.Scale = { 1.f, 1.f, 1.f };
-    gamma.Offset = { 0.f, 0.f, 0.f };
+    gamma.Scale = {1.f, 1.f, 1.f};
+    gamma.Offset = {0.f, 0.f, 0.f};
     const UINT points = std::min<UINT>(caps.NumGammaControlPoints, 1025u);
     for (UINT i = 0; i < points; ++i)
     {
         const float v = std::min(1.f, caps.ControlPointPositions[i] * newGamma / 100.f);
-        gamma.GammaCurve[i] = { v, v, v };
+        gamma.GammaCurve[i] = {v, v, v};
     }
     output->SetGammaControl(&gamma);
 }
@@ -722,7 +745,7 @@ void D3D11GraphicsDriver::CheckDeviceState()
     }
 }
 
-bool D3D11GraphicsDriver::CreateDeviceAndSwapChain(void* hwnd, int display_index, const DisplayMode& mode)
+bool D3D11GraphicsDriver::CreateDeviceAndSwapChain(void *hwnd, int display_index, const DisplayMode &mode)
 {
     ComPtr<IDXGIAdapter1> adapter;
     ComPtr<IDXGIOutput> output;
@@ -733,25 +756,22 @@ bool D3D11GraphicsDriver::CreateDeviceAndSwapChain(void* hwnd, int display_index
     }
 
     // Feature level 10.0 is the minimum; older hardware should use the D3D9 renderer
-    static const D3D_FEATURE_LEVEL feature_levels[] =
-    {
-      D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0
-    };
+    static const D3D_FEATURE_LEVEL feature_levels[] = {D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_1,
+                                                       D3D_FEATURE_LEVEL_10_0};
     const UINT level_count = static_cast<UINT>(sizeof(feature_levels) / sizeof(feature_levels[0]));
     const UINT base_flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
     HRESULT hr = E_FAIL;
 #if defined(_DEBUG)
     // Try with the debug layer first; it's not always installed
-    hr = _api.CreateDevice(adapter.get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr,
-        base_flags | D3D11_CREATE_DEVICE_DEBUG, feature_levels, level_count, D3D11_SDK_VERSION,
-        _device.Acquire(), &_featureLevel, _context.Acquire());
+    hr = _api.CreateDevice(adapter.get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, base_flags | D3D11_CREATE_DEVICE_DEBUG,
+                           feature_levels, level_count, D3D11_SDK_VERSION, _device.Acquire(), &_featureLevel,
+                           _context.Acquire());
 #endif
     if (FAILED(hr))
     {
-        hr = _api.CreateDevice(adapter.get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr,
-            base_flags, feature_levels, level_count, D3D11_SDK_VERSION,
-            _device.Acquire(), &_featureLevel, _context.Acquire());
+        hr = _api.CreateDevice(adapter.get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, base_flags, feature_levels, level_count,
+                               D3D11_SDK_VERSION, _device.Acquire(), &_featureLevel, _context.Acquire());
     }
     if (FAILED(hr))
     {
@@ -762,28 +782,30 @@ bool D3D11GraphicsDriver::CreateDeviceAndSwapChain(void* hwnd, int display_index
     // Texture size limits by the feature level (D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION)
     _maxTextureSize = (_featureLevel >= D3D_FEATURE_LEVEL_11_0) ? 16384u : 8192u;
 
-    const char* fl_name = "10.0";
-    if (_featureLevel >= D3D_FEATURE_LEVEL_11_0) fl_name = "11.0";
-    else if (_featureLevel >= D3D_FEATURE_LEVEL_10_1) fl_name = "10.1";
+    const char *fl_name = "10.0";
+    if (_featureLevel >= D3D_FEATURE_LEVEL_11_0)
+        fl_name = "11.0";
+    else if (_featureLevel >= D3D_FEATURE_LEVEL_10_1)
+        fl_name = "10.1";
     Debug::Printf("Direct3D 11 device created, feature level %s", fl_name);
 
     // The immediate context is used by the the main thread, so turn on the protection
     // (equivalent of D3DCREATE_MULTITHREADED)
     {
         ComPtr<ID3D11Multithread> mt;
-        if (SUCCEEDED(_context->QueryInterface(__uuidof(ID3D11Multithread), reinterpret_cast<void**>(mt.Acquire()))))
+        if (SUCCEEDED(_context->QueryInterface(__uuidof(ID3D11Multithread), reinterpret_cast<void **>(mt.Acquire()))))
             mt->SetMultithreadProtected(TRUE);
     }
     // Optional: ID3D11DeviceContext1 is used for clearing partial rects
-    _context->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(_context1.Acquire()));
+    _context->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void **>(_context1.Acquire()));
 
     // Get the DXGI factory of the device's adapter, as swap chain must be created by it
     ComPtr<IDXGIDevice> dxgi_device;
     ComPtr<IDXGIAdapter> dev_adapter;
     ComPtr<IDXGIFactory> factory;
-    if (FAILED(_device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(dxgi_device.Acquire()))) ||
+    if (FAILED(_device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void **>(dxgi_device.Acquire()))) ||
         FAILED(dxgi_device->GetAdapter(dev_adapter.Acquire())) ||
-        FAILED(dev_adapter->GetParent(__uuidof(IDXGIFactory), reinterpret_cast<void**>(factory.Acquire()))))
+        FAILED(dev_adapter->GetParent(__uuidof(IDXGIFactory), reinterpret_cast<void **>(factory.Acquire()))))
     {
         SDL_SetError("Failed to obtain DXGI factory from the device");
         return false;
@@ -830,7 +852,8 @@ HRESULT D3D11GraphicsDriver::ResizeSwapChain(int width, int height)
     _context->OMSetRenderTargets(0, nullptr, nullptr);
     _context->ClearState();
     _context->Flush();
-    HRESULT hr = _swapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+    HRESULT hr =
+        _swapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
     if (SUCCEEDED(hr))
         _swapChain->GetDesc(&_scDesc);
     return hr;
@@ -839,7 +862,7 @@ HRESULT D3D11GraphicsDriver::ResizeSwapChain(int width, int height)
 bool D3D11GraphicsDriver::CreateBackbufferView()
 {
     ComPtr<ID3D11Texture2D> buffer;
-    HRESULT hr = _swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(buffer.Acquire()));
+    HRESULT hr = _swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(buffer.Acquire()));
     if (FAILED(hr))
     {
         SDL_SetError("Failed to get swap chain buffer: 0x%08X", (unsigned)hr);
@@ -860,7 +883,7 @@ void D3D11GraphicsDriver::ReleaseBackbufferView()
     _backbufferView = nullptr;
 }
 
-bool D3D11GraphicsDriver::SetSwapChainMode(const DisplayMode& mode, bool first_time)
+bool D3D11GraphicsDriver::SetSwapChainMode(const DisplayMode &mode, bool first_time)
 {
     ReleaseBackbufferView();
 
@@ -906,12 +929,12 @@ bool D3D11GraphicsDriver::SetSwapChainMode(const DisplayMode& mode, bool first_t
     return CreateBackbufferView();
 }
 
-bool D3D11GraphicsDriver::CreateDisplayMode(const DisplayMode& mode)
+bool D3D11GraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
 {
     if (!IsModeSupported(mode))
         return false;
 
-    SDL_Window* window = sys_get_window();
+    SDL_Window *window = sys_get_window();
     int use_display = mode.DisplayIndex;
     if (!window)
     {
@@ -924,8 +947,8 @@ bool D3D11GraphicsDriver::CreateDisplayMode(const DisplayMode& mode)
         // because DXGI does not normally support switching displays in exclusive mode.
         // NOTE: we may in theory support this, but we'd have to release and recreate
         // ALL the resources, including all textures currently in memory.
-        if (mode.IsRealFullscreen() &&
-            (_fullscreenDisplay > 0) && (sys_get_window_display_index() != _fullscreenDisplay))
+        if (mode.IsRealFullscreen() && (_fullscreenDisplay > 0) &&
+            (sys_get_window_display_index() != _fullscreenDisplay))
         {
             use_display = _fullscreenDisplay;
             sys_window_fit_in_display(_fullscreenDisplay);
@@ -963,7 +986,7 @@ void D3D11GraphicsDriver::InitializeRenderState()
     // Clear the backbuffer to black
     if (_backbufferView)
     {
-        const float black[4] = { 0.f, 0.f, 0.f, 1.f };
+        const float black[4] = {0.f, 0.f, 0.f, 1.f};
         _context->ClearRenderTargetView(_backbufferView.get(), black);
     }
 
@@ -992,8 +1015,9 @@ void D3D11GraphicsDriver::SetupViewport()
     // Set Viewport.
     SetD3DViewport(_dstRect);
 
-    _screenBackbuffer = BackbufferState(_backbufferView, Size(_mode.Width, _mode.Height), _srcRect.GetSize(),
-        _dstRect, mat_ortho, _scaling, _filter ? IsLinearFilterValue(_filter->GetSamplerStateForStandardSprite()) : false);
+    _screenBackbuffer =
+        BackbufferState(_backbufferView, Size(_mode.Width, _mode.Height), _srcRect.GetSize(), _dstRect, mat_ortho,
+                        _scaling, _filter ? IsLinearFilterValue(_filter->GetSamplerStateForStandardSprite()) : false);
 
     // View and Projection matrixes are currently fixed in Direct3D renderer
     _stageMatrixes.View = identity;
@@ -1007,7 +1031,7 @@ void D3D11GraphicsDriver::SetGraphicsFilter(PD3D11Filter filter)
     OnSetFilter();
 }
 
-bool D3D11GraphicsDriver::SetDisplayMode(const DisplayMode& mode)
+bool D3D11GraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 {
     ReleaseDisplayMode();
 
@@ -1031,7 +1055,7 @@ bool D3D11GraphicsDriver::SetDisplayMode(const DisplayMode& mode)
     return true;
 }
 
-void D3D11GraphicsDriver::UpdateDeviceScreen(const Size& screen_sz)
+void D3D11GraphicsDriver::UpdateDeviceScreen(const Size &screen_sz)
 {
     if (_mode.IsRealFullscreen())
         return; // ignore in exclusive fs mode
@@ -1069,11 +1093,11 @@ void D3D11GraphicsDriver::CreateVirtualScreen()
         DestroyDDB(_nativeSurface);
         _nativeSurface = nullptr;
     }
-    _nativeSurface = (D3D11Bitmap*)CreateRenderTargetDDB(
-        _srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth, kTxFlags_Opaque);
+    _nativeSurface = (D3D11Bitmap *)CreateRenderTargetDDB(_srcRect.GetWidth(), _srcRect.GetHeight(), _mode.ColorDepth,
+                                                          kTxFlags_Opaque);
     glm::mat4 mat_ortho = glmex::ortho_d3d(_srcRect.GetWidth(), _srcRect.GetHeight());
-    _nativeBackbuffer = BackbufferState(_nativeSurface->GetRenderTargetView(),
-        _srcRect.GetSize(), _srcRect.GetSize(), _srcRect, mat_ortho, PlaneScaling(), false);
+    _nativeBackbuffer = BackbufferState(_nativeSurface->GetRenderTargetView(), _srcRect.GetSize(), _srcRect.GetSize(),
+                                        _srcRect, mat_ortho, PlaneScaling(), false);
 
     // Preset initial stage screen for plugin raw drawing
     SetStageScreen(0, _srcRect.GetSize());
@@ -1090,19 +1114,19 @@ void D3D11GraphicsDriver::DeleteShaders()
     _tintShader = nullptr;
 }
 
-ComPtr<ID3DBlob> D3D11GraphicsDriver::CompileShader(const char* src, const char* name,
-    const char* entry, const char* target, UINT flags, bool log_as_error)
+ComPtr<ID3DBlob> D3D11GraphicsDriver::CompileShader(const char *src, const char *name, const char *entry,
+                                                    const char *target, UINT flags, bool log_as_error)
 {
     if (!_api.Compile)
     {
-        Debug::Printf(kDbgMsg_Error, "ERROR: Direct3D 11: shader compiler is not available, cannot compile \"%s\"", name);
+        Debug::Printf(kDbgMsg_Error, "ERROR: Direct3D 11: shader compiler is not available, cannot compile \"%s\"",
+                      name);
         return {};
     }
 
     ComPtr<ID3DBlob> out_data, out_errors;
-    HRESULT hr = _api.Compile(src, strlen(src), name, nullptr /* no defines */, nullptr /* no includes */,
-        entry, target, flags, 0 /* no effect flags */,
-        out_data.Acquire(), out_errors.Acquire());
+    HRESULT hr = _api.Compile(src, strlen(src), name, nullptr /* no defines */, nullptr /* no includes */, entry,
+                              target, flags, 0 /* no effect flags */, out_data.Acquire(), out_errors.Acquire());
     if (out_errors)
         OutputShaderLog(out_errors, name, FAILED(hr) && log_as_error);
     if (FAILED(hr))
@@ -1110,8 +1134,8 @@ ComPtr<ID3DBlob> D3D11GraphicsDriver::CompileShader(const char* src, const char*
     return out_data;
 }
 
-bool D3D11GraphicsDriver::CreateShaderProgram(D3D11Shader::ProgramData& prg, const String& name,
-    const void* data_ptr, size_t data_size)
+bool D3D11GraphicsDriver::CreateShaderProgram(D3D11Shader::ProgramData &prg, const String &name, const void *data_ptr,
+                                              size_t data_size)
 {
     D3D11PixelShaderPtr shader_ptr;
     HRESULT hr = _device->CreatePixelShader(data_ptr, data_size, nullptr, shader_ptr.Acquire());
@@ -1126,11 +1150,11 @@ bool D3D11GraphicsDriver::CreateShaderProgram(D3D11Shader::ProgramData& prg, con
     return true;
 }
 
-D3D11Shader* D3D11GraphicsDriver::CreateTintShader(const D3D11Shader* fallback_shader)
+D3D11Shader *D3D11GraphicsDriver::CreateTintShader(const D3D11Shader *fallback_shader)
 {
     D3D11Shader::ProgramData prg;
-    ComPtr<ID3DBlob> blob = CompileShader(TintPixelShaderSrc, "Tinting", "main", "ps_4_0",
-        D3DCOMPILE_OPTIMIZATION_LEVEL3, true);
+    ComPtr<ID3DBlob> blob =
+        CompileShader(TintPixelShaderSrc, "Tinting", "main", "ps_4_0", D3DCOMPILE_OPTIMIZATION_LEVEL3, true);
     if (blob && CreateShaderProgram(prg, "Tinting", blob->GetBufferPointer(), blob->GetBufferSize()))
     {
         AssignBaseShaderArgs(prg, nullptr);
@@ -1153,9 +1177,10 @@ D3D11Shader* D3D11GraphicsDriver::CreateTintShader(const D3D11Shader* fallback_s
 // that lets read any map values and returns default value if key not present;
 // may be useful in multiple other places; move to Common/util.
 // Also it will help to let cast keys (e.g. from const char* to String)
-template <typename TKey, typename TValue, typename THash, typename TEqualTo, typename TAllocator,
-    template<class, class, class, class, class> class TMap>
-const TValue& GetValueOrDef(const TMap<TKey, TValue, THash, TEqualTo, TAllocator>& map, const TKey& key, const TValue& def_val)
+template<typename TKey, typename TValue, typename THash, typename TEqualTo, typename TAllocator,
+         template<class, class, class, class, class> class TMap>
+const TValue &GetValueOrDef(const TMap<TKey, TValue, THash, TEqualTo, TAllocator> &map, const TKey &key,
+                            const TValue &def_val)
 {
     auto it_found = map.find(key);
     if (it_found == map.end())
@@ -1163,7 +1188,7 @@ const TValue& GetValueOrDef(const TMap<TKey, TValue, THash, TEqualTo, TAllocator
     return it_found->second;
 }
 
-void D3D11GraphicsDriver::AssignBaseShaderArgs(D3D11Shader::ProgramData& prg, const ShaderDefinition* def)
+void D3D11GraphicsDriver::AssignBaseShaderArgs(D3D11Shader::ProgramData &prg, const ShaderDefinition *def)
 {
     const uint32_t reg_sz = D3D11Shader::ConstantSize;
     const uint32_t reg_cap = D3D11Shader::ConstantCap;
@@ -1202,15 +1227,15 @@ void D3D11GraphicsDriver::AssignBaseShaderArgs(D3D11Shader::ProgramData& prg, co
         prg.Constants = def->Constants;
         // Allocate a buffer big enough to contain all constants;
         // cap the register amount for safety
-        for (auto& cc : prg.Constants)
+        for (auto &cc : prg.Constants)
         {
             if (cc.second > reg_cap)
                 cc.second = null_index;
 
             auto constant = std::make_pair(cc.second, cc.first);
-            prg.ConstantsOrdered.insert(
-                std::upper_bound(prg.ConstantsOrdered.begin(), prg.ConstantsOrdered.end(), constant, D3D11Shader_ConstantOrder),
-                constant);
+            prg.ConstantsOrdered.insert(std::upper_bound(prg.ConstantsOrdered.begin(), prg.ConstantsOrdered.end(),
+                                                         constant, D3D11Shader_ConstantOrder),
+                                        constant);
         }
     }
 }
@@ -1221,7 +1246,7 @@ void D3D11GraphicsDriver::UpdateGlobalShaderArgValues()
     // Their constants have to be set each time they are used.
 }
 
-void D3D11GraphicsDriver::OutputShaderLog(ComPtr<ID3DBlob>& out_errors, const String& shader_name, bool as_error)
+void D3D11GraphicsDriver::OutputShaderLog(ComPtr<ID3DBlob> &out_errors, const String &shader_name, bool as_error)
 {
     assert(out_errors);
     if (!out_errors)
@@ -1236,7 +1261,7 @@ void D3D11GraphicsDriver::OutputShaderLog(ComPtr<ID3DBlob>& out_errors, const St
     if (out_errors->GetBufferSize() > 0)
     {
         Debug::Printf(mt, "----------------------------------------");
-        Debug::Printf(mt, "%s", static_cast<const char*>(out_errors->GetBufferPointer()));
+        Debug::Printf(mt, "%s", static_cast<const char *>(out_errors->GetBufferPointer()));
         Debug::Printf(mt, "----------------------------------------");
     }
     else
@@ -1245,7 +1270,7 @@ void D3D11GraphicsDriver::OutputShaderLog(ComPtr<ID3DBlob>& out_errors, const St
     }
 }
 
-bool D3D11GraphicsDriver::SetNativeResolution(const GraphicResolution& native_res)
+bool D3D11GraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
 {
     OnSetNativeRes(native_res);
     // Also make sure viewport is updated using new native & destination rectangles
@@ -1254,7 +1279,7 @@ bool D3D11GraphicsDriver::SetNativeResolution(const GraphicResolution& native_re
     return !_srcRect.IsEmpty();
 }
 
-bool D3D11GraphicsDriver::SetRenderFrame(const Rect& dst_rect)
+bool D3D11GraphicsDriver::SetRenderFrame(const Rect &dst_rect)
 {
     OnSetRenderFrame(dst_rect);
     // Also make sure viewport is updated using new native & destination rectangles
@@ -1268,7 +1293,7 @@ int D3D11GraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*
     return 32;
 }
 
-IGfxModeList* D3D11GraphicsDriver::GetSupportedModeList(int display_index, int /*color_depth*/)
+IGfxModeList *D3D11GraphicsDriver::GetSupportedModeList(int display_index, int /*color_depth*/)
 {
     return new D3D11GfxModeList(_api.Factory, display_index, DXGI_FORMAT_B8G8R8A8_UNORM);
 }
@@ -1319,21 +1344,22 @@ D3D11GraphicsDriver::~D3D11GraphicsDriver()
     D3D11GraphicsDriver::UnInit();
 }
 
-void D3D11GraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB* colorToUse)
+void D3D11GraphicsDriver::ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse)
 {
     // NOTE: this function is practically useless at the moment, because D3D redraws whole game frame each time
-    if (!_device) return;
+    if (!_device)
+        return;
     Rect r(x1, y1, x2, y2);
     r = _scaling.ScaleRange(r);
     ClearScreenRect(r, colorToUse);
 }
 
-void D3D11GraphicsDriver::ClearScreenRect(const Rect& r, RGB* colorToUse)
+void D3D11GraphicsDriver::ClearScreenRect(const Rect &r, RGB *colorToUse)
 {
     if (!_context || !_backbufferView)
         return;
 
-    float color[4] = { 0.f, 0.f, 0.f, 0.f };
+    float color[4] = {0.f, 0.f, 0.f, 0.f};
     if (colorToUse != nullptr)
     {
         color[0] = colorToUse->r / 255.f;
@@ -1342,8 +1368,8 @@ void D3D11GraphicsDriver::ClearScreenRect(const Rect& r, RGB* colorToUse)
         color[3] = 1.f;
     }
 
-    const bool whole_screen = (r.Left <= 0) && (r.Top <= 0) &&
-        (r.Right >= _mode.Width - 1) && (r.Bottom >= _mode.Height - 1);
+    const bool whole_screen =
+        (r.Left <= 0) && (r.Top <= 0) && (r.Right >= _mode.Width - 1) && (r.Bottom >= _mode.Height - 1);
     if (whole_screen)
     {
         _context->ClearRenderTargetView(_backbufferView.get(), color);
@@ -1358,8 +1384,8 @@ void D3D11GraphicsDriver::ClearScreenRect(const Rect& r, RGB* colorToUse)
     // else: partial clear is not supported by the runtime, skip
 }
 
-void D3D11GraphicsDriver::ReadTextureIntoBitmap(ID3D11Texture2D* src, const Rect& src_rc,
-    bool force_opaque, Bitmap* destination)
+void D3D11GraphicsDriver::ReadTextureIntoBitmap(ID3D11Texture2D *src, const Rect &src_rc, bool force_opaque,
+                                                Bitmap *destination)
 {
     D3D11_TEXTURE2D_DESC src_desc = {};
     src->GetDesc(&src_desc);
@@ -1395,16 +1421,16 @@ void D3D11GraphicsDriver::ReadTextureIntoBitmap(ID3D11Texture2D* src, const Rect
     // then fill it with opaqueness while copying pixels, otherwise plain copy data
     if (DXGIFormatHasAlpha(src_desc.Format) && !force_opaque)
     {
-        BitmapHelper::ReadPixelsFromMemory(destination, static_cast<uint8_t*>(mapped.pData), mapped.RowPitch);
+        BitmapHelper::ReadPixelsFromMemory(destination, static_cast<uint8_t *>(mapped.pData), mapped.RowPitch);
     }
     else
     {
         // NOTE: this is currently hardcoded to read from a 32-bit surface
         const int bpp = destination->GetBPP();
-        uint8_t* src_ptr = static_cast<uint8_t*>(mapped.pData);
+        uint8_t *src_ptr = static_cast<uint8_t *>(mapped.pData);
         for (int y = 0; y < destination->GetHeight(); ++y)
         {
-            uint32_t* dst_ptr = reinterpret_cast<uint32_t*>(destination->GetScanLineForWriting(y));
+            uint32_t *dst_ptr = reinterpret_cast<uint32_t *>(destination->GetScanLineForWriting(y));
             for (int dx = 0, sx = 0; dx < destination->GetWidth(); ++dx, sx = dx * bpp)
             {
                 dst_ptr[dx] = makeacol32(src_ptr[sx + 2], src_ptr[sx + 1], src_ptr[sx + 0], 0xFF /* opaque */);
@@ -1415,7 +1441,7 @@ void D3D11GraphicsDriver::ReadTextureIntoBitmap(ID3D11Texture2D* src, const Rect
     _context->Unmap(staging.get(), 0);
 }
 
-void D3D11GraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap* target, uint32_t batch_skip_filter)
+void D3D11GraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter)
 {
     // If we normally render in screen res, restore last frame's lists and
     // render in native res on the given target;
@@ -1431,11 +1457,11 @@ void D3D11GraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap* target,
     else
     {
         // If we normally render in native res, then simply render backbuffer contents
-        D3D11Bitmap* bitmap = (D3D11Bitmap*)target;
+        D3D11Bitmap *bitmap = (D3D11Bitmap *)target;
         Size surf_sz = bitmap->GetSize();
-        BackbufferState backbuffer = BackbufferState(bitmap->GetRenderTargetView(), surf_sz, surf_sz,
-            RectWH(0, 0, surf_sz.Width, surf_sz.Height), glmex::ortho_d3d(surf_sz.Width, surf_sz.Height),
-            PlaneScaling(), false);
+        BackbufferState backbuffer = BackbufferState(
+            bitmap->GetRenderTargetView(), surf_sz, surf_sz, RectWH(0, 0, surf_sz.Width, surf_sz.Height),
+            glmex::ortho_d3d(surf_sz.Width, surf_sz.Height), PlaneScaling(), false);
         SetBackbufferState(&backbuffer, true);
         SetupPostFx(_nativeSurface, backbuffer);
         RenderTexture(_nativeSurface, 0, 0, glmex::identity(), SpriteColorTransform(), _srcRect.GetSize());
@@ -1444,9 +1470,8 @@ void D3D11GraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap* target,
     }
 }
 
-bool D3D11GraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap* destination,
-    const Rect* src_rect, bool at_native_res,
-    GraphicResolution* want_fmt, uint32_t batch_skip_filter)
+bool D3D11GraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
+                                                    GraphicResolution *want_fmt, uint32_t batch_skip_filter)
 {
     // Currently don't support copying in screen resolution when we are rendering in native
     if (!_renderAtScreenRes)
@@ -1485,7 +1510,8 @@ bool D3D11GraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap* destination,
         // Get the back buffer texture; its alpha channel contains junk, so treat as opaque
         ComPtr<ID3D11Resource> res;
         _screenBackbuffer.View->GetResource(res.Acquire());
-        if (!res || FAILED(res->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void**>(src_tex.Acquire()))))
+        if (!res ||
+            FAILED(res->QueryInterface(__uuidof(ID3D11Texture2D), reinterpret_cast<void **>(src_tex.Acquire()))))
             throw Ali3DException("Failed to get backbuffer texture");
         force_opaque = true;
     }
@@ -1511,25 +1537,25 @@ void D3D11GraphicsDriver::RenderToBackBuffer()
     RenderImpl(true);
 }
 
-void D3D11GraphicsDriver::Render(IDriverDependantBitmap* target)
+void D3D11GraphicsDriver::Render(IDriverDependantBitmap *target)
 {
     CheckDeviceState();
-    D3D11Bitmap* bitmap = (D3D11Bitmap*)target;
+    D3D11Bitmap *bitmap = (D3D11Bitmap *)target;
     Size surf_sz = bitmap->GetSize();
-    BackbufferState backbuffer = BackbufferState(bitmap->GetRenderTargetView(), surf_sz, surf_sz,
-        RectWH(0, 0, surf_sz.Width, surf_sz.Height), glmex::ortho_d3d(surf_sz.Width, surf_sz.Height),
-        PlaneScaling(), false);
+    BackbufferState backbuffer =
+        BackbufferState(bitmap->GetRenderTargetView(), surf_sz, surf_sz, RectWH(0, 0, surf_sz.Width, surf_sz.Height),
+                        glmex::ortho_d3d(surf_sz.Width, surf_sz.Height), PlaneScaling(), false);
     RenderToSurface(&backbuffer, true);
     _currentBackbuffer = nullptr; // "backbuffer" is a local object
 }
 
-void D3D11GraphicsDriver::RenderSprite(const D3D11DrawListEntry* drawListEntry, const glm::mat4& matGlobal,
-    const SpriteColorTransform& color, const Size& rend_sz)
+void D3D11GraphicsDriver::RenderSprite(const D3D11DrawListEntry *drawListEntry, const glm::mat4 &matGlobal,
+                                       const SpriteColorTransform &color, const Size &rend_sz)
 {
     RenderTexture(drawListEntry->ddb, drawListEntry->x, drawListEntry->y, matGlobal, color, rend_sz);
 }
 
-void D3D11GraphicsDriver::UploadPSConstants(const float* data, size_t byte_size)
+void D3D11GraphicsDriver::UploadPSConstants(const float *data, size_t byte_size)
 {
     D3D11_MAPPED_SUBRESOURCE mapped = {};
     if (FAILED(_context->Map(_psConstBuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
@@ -1538,7 +1564,7 @@ void D3D11GraphicsDriver::UploadPSConstants(const float* data, size_t byte_size)
     _context->Unmap(_psConstBuffer.get(), 0);
 }
 
-void D3D11GraphicsDriver::UploadVSConstants(const glm::mat4& wvp)
+void D3D11GraphicsDriver::UploadVSConstants(const glm::mat4 &wvp)
 {
     D3D11_MAPPED_SUBRESOURCE mapped = {};
     if (FAILED(_context->Map(_vsConstBuffer.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
@@ -1547,7 +1573,7 @@ void D3D11GraphicsDriver::UploadVSConstants(const glm::mat4& wvp)
     _context->Unmap(_vsConstBuffer.get(), 0);
 }
 
-ID3D11BlendState* D3D11GraphicsDriver::GetBlendState(const D3D11BlendDesc& desc)
+ID3D11BlendState *D3D11GraphicsDriver::GetBlendState(const D3D11BlendDesc &desc)
 {
     const uint32_t key = desc.GetKey();
     auto it = _blendStates.find(key);
@@ -1555,7 +1581,7 @@ ID3D11BlendState* D3D11GraphicsDriver::GetBlendState(const D3D11BlendDesc& desc)
         return it->second.get();
 
     D3D11_BLEND_DESC bd = {};
-    auto& rt = bd.RenderTarget[0];
+    auto &rt = bd.RenderTarget[0];
     rt.BlendEnable = TRUE;
     rt.SrcBlend = desc.RGB.Src;
     rt.DestBlend = desc.RGB.Dst;
@@ -1568,13 +1594,14 @@ ID3D11BlendState* D3D11GraphicsDriver::GetBlendState(const D3D11BlendDesc& desc)
     ComPtr<ID3D11BlendState> state;
     HRESULT hr = _device->CreateBlendState(&bd, state.Acquire());
     if (FAILED(hr))
-        throw Ali3DException(String::FromFormat("ID3D11Device::CreateBlendState failed: error code 0x%08X", (unsigned)hr));
+        throw Ali3DException(
+            String::FromFormat("ID3D11Device::CreateBlendState failed: error code 0x%08X", (unsigned)hr));
     auto res = _blendStates.emplace(key, state);
     return res.first->second.get();
 }
 
-void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int draw_y,
-    const glm::mat4& matGlobal, const SpriteColorTransform& color, const Size& rend_sz)
+void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap *bmpToDraw, int draw_x, int draw_y, const glm::mat4 &matGlobal,
+                                        const SpriteColorTransform &color, const Size &rend_sz)
 {
     const int alpha = (color.Alpha * bmpToDraw->GetAlpha()) / 255;
     const int invalpha = 255 - alpha;
@@ -1590,7 +1617,7 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
     D3D11BlendDesc blend;
     blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_INV_SRC_ALPHA);
     blend.Alpha = _rtBlendAlpha;
-    float blend_factor[4] = { 1.f, 1.f, 1.f, 1.f };
+    float blend_factor[4] = {1.f, 1.f, 1.f, 1.f};
     bool alpha_test = true;
 
     // Treat special render modes
@@ -1600,8 +1627,7 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
         blend_factor[0] = blend_factor[1] = blend_factor[2] = alpha / 255.f;
         blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_BLEND_FACTOR, D3D11_BLEND_INV_SRC_ALPHA);
         break;
-    default:
-        break;
+    default: break;
     }
 
     // FIXME: user blend modes break the above special blend for RT textures
@@ -1611,16 +1637,34 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
     case kBlend_Normal:
         // default alpha blending, set above
         break;
-    case kBlend_Add: blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_ONE); break; // ADD (transparency = strength)
-    case kBlend_Darken: blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_MIN, D3D11_BLEND_ONE, D3D11_BLEND_ONE); break; // DARKEN
-    case kBlend_Lighten: blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_MAX, D3D11_BLEND_ONE, D3D11_BLEND_ONE); break; // LIGHTEN
-    case kBlend_Multiply: blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_ZERO, D3D11_BLEND_SRC_COLOR); break; // MULTIPLY
-    case kBlend_Screen: blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_ONE, D3D11_BLEND_INV_SRC_COLOR); break; // SCREEN
-    case kBlend_Subtract: blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_REV_SUBTRACT, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_ONE); break; // SUBTRACT (transparency = strength)
-    case kBlend_Exclusion: blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_INV_DEST_COLOR, D3D11_BLEND_INV_SRC_COLOR); break; // EXCLUSION
+    case kBlend_Add:
+        blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_ONE);
+        break; // ADD (transparency = strength)
+    case kBlend_Darken:
+        blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_MIN, D3D11_BLEND_ONE, D3D11_BLEND_ONE);
+        break; // DARKEN
+    case kBlend_Lighten:
+        blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_MAX, D3D11_BLEND_ONE, D3D11_BLEND_ONE);
+        break; // LIGHTEN
+    case kBlend_Multiply:
+        blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_ZERO, D3D11_BLEND_SRC_COLOR);
+        break; // MULTIPLY
+    case kBlend_Screen:
+        blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_ONE, D3D11_BLEND_INV_SRC_COLOR);
+        break; // SCREEN
+    case kBlend_Subtract:
+        blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_REV_SUBTRACT, D3D11_BLEND_SRC_ALPHA, D3D11_BLEND_ONE);
+        break; // SUBTRACT (transparency = strength)
+    case kBlend_Exclusion:
+        blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_INV_DEST_COLOR, D3D11_BLEND_INV_SRC_COLOR);
+        break; // EXCLUSION
     // APPROXIMATIONS (need pixel shaders)
-    case kBlend_Burn: blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_SUBTRACT, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR); break; // LINEAR BURN (approximation)
-    case kBlend_Dodge: blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_ONE); break; // fake color dodge (half strength of the real thing)
+    case kBlend_Burn:
+        blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_SUBTRACT, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR);
+        break; // LINEAR BURN (approximation)
+    case kBlend_Dodge:
+        blend.RGB = D3D11BlendFunc(D3D11_BLEND_OP_ADD, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_ONE);
+        break; // fake color dodge (half strength of the real thing)
     // IMPORTANT: please note that we are rendering onto a surface that has a premultiplied alpha,
     // that's why Copy blend modes are somewhat different from the math you'd normally expect;
     // i.e. we do not use ONE, ZERO to copy RGB, but SRC_ALPHA, ZERO.
@@ -1649,29 +1693,29 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
     //-------------------------------------------------------------------------
     // Pixel shader and its constants
     //-------------------------------------------------------------------------
-    ID3D11PixelShader* ps = nullptr;
+    ID3D11PixelShader *ps = nullptr;
     float ps_consts[16] = {};
-    const float* ps_data = ps_consts;
+    const float *ps_data = ps_consts;
     size_t ps_data_size = sizeof(ps_consts);
     bool use_aux_textures = false;
-    ID3D11ShaderResourceView* aux_srv[D3D11Shader::SamplersCap - 1] = {};
+    ID3D11ShaderResourceView *aux_srv[D3D11Shader::SamplersCap - 1] = {};
 
     if (bmpToDraw->GetShader())
     {
         // Use custom shader
-        D3D11ShaderInstance* shaderinst = (D3D11ShaderInstance*)bmpToDraw->GetShader();
-        const D3D11Shader::ProgramData* program = &shaderinst->GetShaderData();
+        D3D11ShaderInstance *shaderinst = (D3D11ShaderInstance *)bmpToDraw->GetShader();
+        const D3D11Shader::ProgramData *program = &shaderinst->GetShaderData();
         ps = program->ShaderPtr.get();
 
         // FIXME: figure out a better approach to getting writeable internal array's pointer?
-        float* data = shaderinst->GetConstantData();
+        float *data = shaderinst->GetConstantData();
         data[program->Time.Off] = _globalShaderConst.Time;
         data[program->GameFrame.Off] = static_cast<float>(_globalShaderConst.GameFrame);
         data[program->TextureDim[0].Off + 0] = static_cast<float>(bmpToDraw->GetWidth());
         data[program->TextureDim[0].Off + 1] = static_cast<float>(bmpToDraw->GetHeight());
         data[program->Alpha.Off] = alpha / 255.0f;
 
-        const auto& samplers = shaderinst->GetShaderSamplers();
+        const auto &samplers = shaderinst->GetShaderSamplers();
         for (uint32_t i = 1u; i < samplers.size(); ++i)
         {
             aux_srv[i - 1] = samplers[i].SRV;
@@ -1694,7 +1738,7 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
         ps_consts[5] = (light_lev > 0) ? (float)light_lev / 256.0f : 1.0f;
         ps_consts[6] = alpha_test ? 1.f : 0.f;
 
-        const D3D11Shader::ProgramData* program = &_tintShader->GetData();
+        const D3D11Shader::ProgramData *program = &_tintShader->GetData();
         ps = program->ShaderPtr.get();
     }
     else
@@ -1748,8 +1792,7 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
             color_op = 0.f; // modulate
             ps_consts[0] = ps_consts[1] = ps_consts[2] = ps_consts[3] = alpha / 255.f;
             break;
-        default:
-            break;
+        default: break;
         }
         // BLENDMODES WORKAROUNDS - END
 
@@ -1768,16 +1811,16 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
     //-------------------------------------------------------------------------
     // Sampler
     //-------------------------------------------------------------------------
-    const bool use_linear = (_smoothScaling) && bmpToDraw->GetUseResampler()
-        && bmpToDraw->GetSizeToRender() != bmpToDraw->GetSize();
-    ID3D11SamplerState* sampler = (use_linear || _currentBackbuffer->LinearFilter) ?
-        _samplerLinear.get() : _samplerPoint.get();
+    const bool use_linear =
+        (_smoothScaling) && bmpToDraw->GetUseResampler() && bmpToDraw->GetSizeToRender() != bmpToDraw->GetSize();
+    ID3D11SamplerState *sampler =
+        (use_linear || _currentBackbuffer->LinearFilter) ? _samplerLinear.get() : _samplerPoint.get();
     _context->PSSetSamplers(0, 1, &sampler);
 
     //-------------------------------------------------------------------------
     // Geometry: draw each texture tile as a quad
     //-------------------------------------------------------------------------
-    const auto* txdata = bmpToDraw->GetTexture();
+    const auto *txdata = bmpToDraw->GetTexture();
 
     float width = bmpToDraw->GetWidthToRender();
     float height = bmpToDraw->GetHeightToRender();
@@ -1826,19 +1869,17 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
 
         // Setup rotation and pivot
         float rotZ = bmpToDraw->GetRotation();
-        const Pointf& pivot = bmpToDraw->GetPivot();
+        const Pointf &pivot = bmpToDraw->GetPivot();
         float pivotX = -(widthToScale * pivot.X), pivotY = (heightToScale * pivot.Y);
 
         // Self sprite transform (first scale, then rotate and then translate, reversed);
         // NOTE: no half-pixel offset here, unlike in Direct3D 9
-        glm::mat4 transform = glmex::make_transform2d(
-            thisX, thisY, widthToScale, heightToScale,
-            rotZ, pivotX, pivotY);
+        glm::mat4 transform = glmex::make_transform2d(thisX, thisY, widthToScale, heightToScale, rotZ, pivotX, pivotY);
         // Global batch transform
         transform = matGlobal * transform;
 
         UploadVSConstants(_curProjection * transform);
-        ID3D11ShaderResourceView* srv = txdata->_tiles[ti].srv.get();
+        ID3D11ShaderResourceView *srv = txdata->_tiles[ti].srv.get();
         _context->PSSetShaderResources(0, 1, &srv);
 
         // workaround: extra render pass for the blend modes that cannot be achieved with one
@@ -1854,7 +1895,7 @@ void D3D11GraphicsDriver::RenderTexture(D3D11Bitmap* bmpToDraw, int draw_x, int 
 void D3D11GraphicsDriver::PostRenderCleanup()
 {
     // Reset textures in all slots which we use in shaders, etc
-    ID3D11ShaderResourceView* null_srv[D3D11Shader::SamplersCap] = {};
+    ID3D11ShaderResourceView *null_srv[D3D11Shader::SamplersCap] = {};
     _context->PSSetShaderResources(0, D3D11Shader::SamplersCap, null_srv);
     _context->PSSetShader(nullptr, nullptr, 0);
 }
@@ -1864,9 +1905,9 @@ void D3D11GraphicsDriver::Present()
     HRESULT hr = _swapChain->Present(_vsync ? 1 : 0, 0);
     if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
     {
-        throw Ali3DException(String::FromFormat(
-            "IDXGISwapChain::Present: device lost: error code: 0x%08X, reason: 0x%08X",
-            (unsigned)hr, (unsigned)_device->GetDeviceRemovedReason()));
+        throw Ali3DException(
+            String::FromFormat("IDXGISwapChain::Present: device lost: error code: 0x%08X, reason: 0x%08X", (unsigned)hr,
+                               (unsigned)_device->GetDeviceRemovedReason()));
     }
     // NOTE: DXGI_STATUS_OCCLUDED (window is hidden / fullscreen lost) is not an error
 }
@@ -1899,7 +1940,7 @@ void D3D11GraphicsDriver::RenderImpl(bool clearDrawListAfterwards)
     }
 }
 
-void D3D11GraphicsDriver::RenderToSurface(BackbufferState* state, bool clearDrawListAfterwards)
+void D3D11GraphicsDriver::RenderToSurface(BackbufferState *state, bool clearDrawListAfterwards)
 {
     SetBackbufferState(state, true);
 
@@ -1921,29 +1962,29 @@ void D3D11GraphicsDriver::ApplyBaseState()
     // this is re-applied each time as some of the calls (like resizing swap chain) reset the state.
     const UINT stride = sizeof(D3D11Vertex);
     const UINT offset = 0;
-    ID3D11Buffer* vb = _vertexBuffer.get();
+    ID3D11Buffer *vb = _vertexBuffer.get();
     _context->IASetInputLayout(_inputLayout.get());
     _context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
     _context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
     _context->VSSetShader(_vertexShader.get(), nullptr, 0);
-    ID3D11Buffer* cb = _vsConstBuffer.get();
+    ID3D11Buffer *cb = _vsConstBuffer.get();
     _context->VSSetConstantBuffers(0, 1, &cb);
     cb = _psConstBuffer.get();
     _context->PSSetConstantBuffers(0, 1, &cb);
-    ID3D11SamplerState* aux[D3D11Shader::SamplersCap - 1] = { _samplerAux.get(), _samplerAux.get(), _samplerAux.get() };
+    ID3D11SamplerState *aux[D3D11Shader::SamplersCap - 1] = {_samplerAux.get(), _samplerAux.get(), _samplerAux.get()};
     _context->PSSetSamplers(1, D3D11Shader::SamplersCap - 1, aux);
     _context->RSSetState(_rsNoScissor.get());
     _context->OMSetDepthStencilState(nullptr, 0); // no depth buffer
 }
 
-void D3D11GraphicsDriver::SetBackbufferState(BackbufferState* state, bool clear)
+void D3D11GraphicsDriver::SetBackbufferState(BackbufferState *state, bool clear)
 {
     _currentBackbuffer = state;
     ApplyBaseState();
 
     // Make sure no textures are bound while we are switching render targets
     PostRenderCleanup();
-    ID3D11RenderTargetView* rtv = _currentBackbuffer->View.get();
+    ID3D11RenderTargetView *rtv = _currentBackbuffer->View.get();
     _context->OMSetRenderTargets(1, &rtv, nullptr);
     SetD3DViewport(_currentBackbuffer->Viewport);
     _curProjection = _currentBackbuffer->Projection;
@@ -1951,12 +1992,12 @@ void D3D11GraphicsDriver::SetBackbufferState(BackbufferState* state, bool clear)
 
     if (clear)
     {
-        const float transparent[4] = { 0.f, 0.f, 0.f, 0.f };
+        const float transparent[4] = {0.f, 0.f, 0.f, 0.f};
         _context->ClearRenderTargetView(rtv, transparent);
     }
 }
 
-void D3D11GraphicsDriver::SetD3DViewport(const Rect& rc)
+void D3D11GraphicsDriver::SetD3DViewport(const Rect &rc)
 {
     D3D11_VIEWPORT view = {};
     view.TopLeftX = static_cast<float>(rc.Left);
@@ -1968,7 +2009,7 @@ void D3D11GraphicsDriver::SetD3DViewport(const Rect& rc)
     _context->RSSetViewports(1, &view);
 }
 
-void D3D11GraphicsDriver::SetScissor(const Rect& clip, bool render_on_texture)
+void D3D11GraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture)
 {
     if (!clip.IsEmpty())
     {
@@ -1985,9 +2026,9 @@ void D3D11GraphicsDriver::SetScissor(const Rect& clip, bool render_on_texture)
     }
 }
 
-void D3D11GraphicsDriver::SetRenderTarget(const D3D11SpriteBatch* batch, Size& rend_sz, bool clear)
+void D3D11GraphicsDriver::SetRenderTarget(const D3D11SpriteBatch *batch, Size &rend_sz, bool clear)
 {
-    ID3D11RenderTargetView* rtv = nullptr;
+    ID3D11RenderTargetView *rtv = nullptr;
     // Make sure no textures are bound while we are switching render targets
     PostRenderCleanup();
 
@@ -2018,20 +2059,20 @@ void D3D11GraphicsDriver::SetRenderTarget(const D3D11SpriteBatch* batch, Size& r
 
     if (clear)
     {
-        const float transparent[4] = { 0.f, 0.f, 0.f, 0.f };
+        const float transparent[4] = {0.f, 0.f, 0.f, 0.f};
         _context->ClearRenderTargetView(rtv, transparent);
     }
 }
 
-void D3D11GraphicsDriver::SetupPostFx(D3D11Bitmap* surface, const BackbufferState& bufferstate)
+void D3D11GraphicsDriver::SetupPostFx(D3D11Bitmap *surface, const BackbufferState &bufferstate)
 {
-    D3D11ShaderInstance* shader = static_cast<D3D11ShaderInstance*>(surface->GetShader());
+    D3D11ShaderInstance *shader = static_cast<D3D11ShaderInstance *>(surface->GetShader());
     if (!shader)
         return;
 
     shader->SetShaderConstantF2(shader->GetShaderData().OutputDim.Index,
-        bufferstate.Scaling.X.ScaleDistance(surface->GetWidthToRender()),
-        bufferstate.Scaling.Y.ScaleDistance(surface->GetHeightToRender()));
+                                bufferstate.Scaling.X.ScaleDistance(surface->GetWidthToRender()),
+                                bufferstate.Scaling.Y.ScaleDistance(surface->GetHeightToRender()));
 }
 
 void D3D11GraphicsDriver::RenderSpriteBatches()
@@ -2057,15 +2098,15 @@ void D3D11GraphicsDriver::RenderSpriteBatches()
     // For these we save their IDs in a stack (rt_parents).
     // The top of the stack lets us know which batch's RT we are using.
     std::stack<uint32_t> rt_parents;
-    ID3D11RenderTargetView* back_buffer = _currentBackbuffer->View.get();
+    ID3D11RenderTargetView *back_buffer = _currentBackbuffer->View.get();
     assert(back_buffer);
-    ID3D11RenderTargetView* cur_rt = back_buffer; // current render target
-    Size rend_sz = _currentBackbuffer->RendSize; // current rt surface size
+    ID3D11RenderTargetView *cur_rt = back_buffer; // current render target
+    Size rend_sz = _currentBackbuffer->RendSize;  // current rt surface size
 
     const size_t last_batch_to_rend = _spriteBatchDesc.size() - 1;
     for (size_t cur_bat = 0u, last_bat = 0u, cur_spr = 0u; last_bat <= last_batch_to_rend;)
     {
-        const auto& batch = _spriteBatches[cur_bat];
+        const auto &batch = _spriteBatches[cur_bat];
         // Test if we are entering this batch (and not continuing after coming back from nested)
         const bool new_batch = cur_bat == last_bat;
         if (new_batch)
@@ -2082,8 +2123,8 @@ void D3D11GraphicsDriver::RenderSpriteBatches()
         if (_spriteBatchRange[cur_bat].first < _spriteBatchRange[cur_bat].second)
         {
             // If render target is different in this batch, then set it up
-            const auto& rt_parent = _spriteBatches[rt_parents.top()];
-            ID3D11RenderTargetView* want_rt = rt_parent.RenderView ? rt_parent.RenderView.get() : back_buffer;
+            const auto &rt_parent = _spriteBatches[rt_parents.top()];
+            ID3D11RenderTargetView *want_rt = rt_parent.RenderView ? rt_parent.RenderView.get() : back_buffer;
             if (cur_rt != want_rt)
             {
                 cur_rt = want_rt;
@@ -2109,7 +2150,7 @@ void D3D11GraphicsDriver::RenderSpriteBatches()
         // and if there's no nested batches (even if empty ones)
         const uint32_t was_bat = cur_bat;
         while ((cur_bat != UINT32_MAX) && (cur_spr >= _spriteBatchRange[cur_bat].second) &&
-            ((last_bat == last_batch_to_rend) || (_spriteBatchDesc[last_bat + 1].Parent != cur_bat)))
+               ((last_bat == last_batch_to_rend) || (_spriteBatchDesc[last_bat + 1].Parent != cur_bat)))
         {
             rt_parents.pop(); // pop RT ref from the history
             // Back to the parent batch
@@ -2130,17 +2171,18 @@ void D3D11GraphicsDriver::RenderSpriteBatches()
     _context->RSSetState(_rsNoScissor.get());
 }
 
-size_t D3D11GraphicsDriver::RenderSpriteBatch(const D3D11SpriteBatch& batch, size_t from, const Size& rend_sz)
+size_t D3D11GraphicsDriver::RenderSpriteBatch(const D3D11SpriteBatch &batch, size_t from, const Size &rend_sz)
 {
     if (batch.Skip)
     {
-        for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from);
+        for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from)
+            ;
         return from;
     }
 
     for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from)
     {
-        const auto& e = _spriteList[from];
+        const auto &e = _spriteList[from];
         if (e.skip)
             continue;
 
@@ -2150,27 +2192,24 @@ size_t D3D11GraphicsDriver::RenderSpriteBatch(const D3D11SpriteBatch& batch, siz
             // raw-draw plugin support
             // NOTE: the plugins now receive ID3D11Device*, rather than IDirect3DDevice9*
             int sx, sy;
-            if (auto* ddb = DoSpriteEvtCallback(e.x, reinterpret_cast<intptr_t>(_device.get()), sx, sy))
+            if (auto *ddb = DoSpriteEvtCallback(e.x, reinterpret_cast<intptr_t>(_device.get()), sx, sy))
             {
-                auto stageEntry = D3D11DrawListEntry((D3D11Bitmap*)ddb, batch.ID, sx, sy);
+                auto stageEntry = D3D11DrawListEntry((D3D11Bitmap *)ddb, batch.ID, sx, sy);
                 RenderSprite(&stageEntry, batch.Matrix, batch.Color, rend_sz);
             }
             break;
-        default:
-            RenderSprite(&e, batch.Matrix, batch.Color, rend_sz);
-            break;
+        default: RenderSprite(&e, batch.Matrix, batch.Color, rend_sz); break;
         }
     }
     return from;
 }
 
-void D3D11GraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc& desc)
+void D3D11GraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &desc)
 {
     // Render target size, depends on whether this batch will render to a
     // intermediate texture, or the final surface of _srcRect size.
-    const Size rt_size = desc.RenderTarget ?
-        Size(desc.RenderTarget->GetWidth(), desc.RenderTarget->GetHeight())
-      : _srcRect.GetSize();
+    const Size rt_size =
+        desc.RenderTarget ? Size(desc.RenderTarget->GetWidth(), desc.RenderTarget->GetHeight()) : _srcRect.GetSize();
 
     // Create transformation matrix for this batch
     const float pivotx = -rt_size.Width * 0.5f + desc.SizeRef.Width * desc.Transform.Pivot.X;
@@ -2178,10 +2217,9 @@ void D3D11GraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc& d
 
     // Inverse transformation, because it should affect the textures drawn within this batch,
     // and these should be transitioned opposite to the scene's transition.
-    const glm::mat4 msrt = glmex::make_inv_transform2d(
-        (float)desc.Transform.X, (float)-desc.Transform.Y,
-        desc.Transform.ScaleX, desc.Transform.ScaleY,
-        Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
+    const glm::mat4 msrt = glmex::make_inv_transform2d((float)desc.Transform.X, (float)-desc.Transform.Y,
+                                                       desc.Transform.ScaleX, desc.Transform.ScaleY,
+                                                       Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
     // Translate scaled node into Top-Left screen coordinates
     const float scaled_offx = rt_size.Width * ((1.f - desc.Transform.ScaleX) * 0.5f);
     const float scaled_offy = rt_size.Height * ((1.f - desc.Transform.ScaleY) * 0.5f);
@@ -2195,7 +2233,10 @@ void D3D11GraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc& d
     {
     case kFlip_Vertical: flip_sx = -flip_sx; break;
     case kFlip_Horizontal: flip_sy = -flip_sy; break;
-    case kFlip_Both: flip_sx = -flip_sx; flip_sy = -flip_sy; break;
+    case kFlip_Both:
+        flip_sx = -flip_sx;
+        flip_sy = -flip_sy;
+        break;
     default: break;
     }
     glm::mat4 mflip = glmex::scale(flip_sx, flip_sy);
@@ -2204,13 +2245,11 @@ void D3D11GraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc& d
     // Also create separate viewport transformation matrix:
     // it will use a slightly different set of transforms,
     // because the viewport's coordinates origin is different from sprites.
-    glm::mat4 mat_viewport = glmex::make_transform2d(
-        (float)desc.Transform.X, (float)desc.Transform.Y,
-        desc.Transform.ScaleX, desc.Transform.ScaleY,
-        Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
-    glm::mat4 vp_flip_off = glmex::translate(
-        rt_size.Width * ((1.f - flip_sx) * 0.5f),
-        rt_size.Height * ((1.f - flip_sy) * 0.5f));
+    glm::mat4 mat_viewport =
+        glmex::make_transform2d((float)desc.Transform.X, (float)desc.Transform.Y, desc.Transform.ScaleX,
+                                desc.Transform.ScaleY, Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
+    glm::mat4 vp_flip_off =
+        glmex::translate(rt_size.Width * ((1.f - flip_sx) * 0.5f), rt_size.Height * ((1.f - flip_sy) * 0.5f));
     mat_viewport = mflip * mat_viewport;
     mat_viewport = vp_flip_off * mat_viewport;
 
@@ -2219,7 +2258,7 @@ void D3D11GraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc& d
     Rect viewport = desc.Viewport;
     if ((desc.Parent != UINT32_MAX) && !desc.RenderTarget)
     {
-        const auto& parent = _spriteBatches[desc.Parent];
+        const auto &parent = _spriteBatches[desc.Parent];
         // Combine sprite matrix with the parent's
         model = parent.Matrix * model;
         // Combine viewport's matrix with the parent's
@@ -2245,8 +2284,8 @@ void D3D11GraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc& d
     // Assign the new spritebatch
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
-    _spriteBatches[index] = D3D11SpriteBatch(index, (D3D11Bitmap*)desc.RenderTarget, viewport,
-        model, mat_viewport, desc.Transform.Color);
+    _spriteBatches[index] =
+        D3D11SpriteBatch(index, (D3D11Bitmap *)desc.RenderTarget, viewport, model, mat_viewport, desc.Transform.Color);
 
     // Preset stage screen for plugin raw drawing
     SetStageScreen(index, viewport.GetSize());
@@ -2304,10 +2343,10 @@ void D3D11GraphicsDriver::RedrawLastFrame(uint32_t skip_filter)
     FilterSpriteBatches(skip_filter);
 }
 
-void D3D11GraphicsDriver::DrawSprite(int ox, int oy, int /*ltx*/, int /*lty*/, IDriverDependantBitmap* ddb)
+void D3D11GraphicsDriver::DrawSprite(int ox, int oy, int /*ltx*/, int /*lty*/, IDriverDependantBitmap *ddb)
 {
     assert(_actSpriteBatch != UINT32_MAX);
-    _spriteList.push_back(D3D11DrawListEntry((D3D11Bitmap*)ddb, _actSpriteBatch, ox, oy));
+    _spriteList.push_back(D3D11DrawListEntry((D3D11Bitmap *)ddb, _actSpriteBatch, ox, oy));
 }
 
 void D3D11GraphicsDriver::AddRenderEvent(int evt, int param)
@@ -2316,13 +2355,13 @@ void D3D11GraphicsDriver::AddRenderEvent(int evt, int param)
     _spriteList.push_back(D3D11DrawListEntry(nullptr, _actSpriteBatch, evt, param));
 }
 
-void D3D11GraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
+void D3D11GraphicsDriver::DestroyDDB(IDriverDependantBitmap *ddb)
 {
     // Remove deleted render target DDB from batches backup
-    auto* txdata = ((D3D11Bitmap*)ddb)->GetTexture();
+    auto *txdata = ((D3D11Bitmap *)ddb)->GetTexture();
     if (txdata && txdata->RenderTarget)
     {
-        for (auto& backup_rt : _backupBatches)
+        for (auto &backup_rt : _backupBatches)
         {
             if (backup_rt.RenderTarget == ddb)
             {
@@ -2333,15 +2372,15 @@ void D3D11GraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
         }
     }
     // Remove deleted DDB from spritelist backup
-    for (auto& backup_spr : _backupSpriteList)
+    for (auto &backup_spr : _backupSpriteList)
     {
         if (backup_spr.ddb == ddb)
             backup_spr.skip = true;
     }
-    delete (D3D11Bitmap*)ddb;
+    delete (D3D11Bitmap *)ddb;
 }
 
-void D3D11GraphicsDriver::UpdateTextureRegion(D3D11TextureTile* tile, const Bitmap* bitmap, bool opaque)
+void D3D11GraphicsDriver::UpdateTextureRegion(D3D11TextureTile *tile, const Bitmap *bitmap, bool opaque)
 {
     D3D11_MAPPED_SUBRESOURCE mapped = {};
     HRESULT hr = _context->Map(tile->texture.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
@@ -2351,7 +2390,7 @@ void D3D11GraphicsDriver::UpdateTextureRegion(D3D11TextureTile* tile, const Bitm
     }
 
     bool usingLinearFiltering = (_filter && _filter->NeedToColourEdgeLines()) || (_smoothScaling && !opaque);
-    uint8_t* memPtr = static_cast<uint8_t*>(mapped.pData);
+    uint8_t *memPtr = static_cast<uint8_t *>(mapped.pData);
 
     if (opaque)
         BitmapToVideoMemOpaque(bitmap, tile, memPtr, mapped.RowPitch);
@@ -2361,14 +2400,14 @@ void D3D11GraphicsDriver::UpdateTextureRegion(D3D11TextureTile* tile, const Bitm
     _context->Unmap(tile->texture.get(), 0);
 }
 
-void D3D11GraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap* bitmap)
+void D3D11GraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, const Bitmap *bitmap)
 {
     // FIXME: what to do if texture is shared??
-    D3D11Bitmap* target = (D3D11Bitmap*)ddb;
+    D3D11Bitmap *target = (D3D11Bitmap *)ddb;
     UpdateTexture(target->GetTexture(), bitmap, target->IsOpaque());
 }
 
-void D3D11GraphicsDriver::UpdateTexture(Texture* txdata, const Bitmap* bitmap, bool opaque)
+void D3D11GraphicsDriver::UpdateTexture(Texture *txdata, const Bitmap *bitmap, bool opaque)
 {
     const int color_depth = bitmap->GetColorDepth();
     if (bitmap->GetColorDepth() != txdata->Res.ColorDepth)
@@ -2379,8 +2418,8 @@ void D3D11GraphicsDriver::UpdateTexture(Texture* txdata, const Bitmap* bitmap, b
     if (color_depth == 8)
         select_palette(palette);
 
-    auto* d3ddata = reinterpret_cast<D3D11Texture*>(txdata);
-    for (auto& tile : d3ddata->_tiles)
+    auto *d3ddata = reinterpret_cast<D3D11Texture *>(txdata);
+    for (auto &tile : d3ddata->_tiles)
     {
         UpdateTextureRegion(&tile, bitmap, opaque);
     }
@@ -2406,9 +2445,9 @@ uint64_t D3D11GraphicsDriver::GetAvailableTextureMemory()
     ComPtr<IDXGIDevice> dxgi_device;
     ComPtr<IDXGIAdapter> adapter;
     ComPtr<IDXGIAdapter3> adapter3;
-    if (FAILED(_device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(dxgi_device.Acquire()))) ||
+    if (FAILED(_device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void **>(dxgi_device.Acquire()))) ||
         FAILED(dxgi_device->GetAdapter(adapter.Acquire())) ||
-        FAILED(adapter->QueryInterface(__uuidof(IDXGIAdapter3), reinterpret_cast<void**>(adapter3.Acquire()))))
+        FAILED(adapter->QueryInterface(__uuidof(IDXGIAdapter3), reinterpret_cast<void **>(adapter3.Acquire()))))
         return 0;
     DXGI_QUERY_VIDEO_MEMORY_INFO info = {};
     if (FAILED(adapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info)))
@@ -2416,50 +2455,50 @@ uint64_t D3D11GraphicsDriver::GetAvailableTextureMemory()
     return info.Budget > info.CurrentUsage ? info.Budget - info.CurrentUsage : 0;
 }
 
-IDriverDependantBitmap* D3D11GraphicsDriver::CreateDDB()
+IDriverDependantBitmap *D3D11GraphicsDriver::CreateDDB()
 {
     return new D3D11Bitmap();
 }
 
-IDriverDependantBitmap* D3D11GraphicsDriver::CreateDDB(int width, int height, int color_depth, int txflags)
+IDriverDependantBitmap *D3D11GraphicsDriver::CreateDDB(int width, int height, int color_depth, int txflags)
 {
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
-    D3D11Bitmap* ddb = new D3D11Bitmap(width, height, color_depth, txflags);
+    D3D11Bitmap *ddb = new D3D11Bitmap(width, height, color_depth, txflags);
     ddb->SetTexture(std::shared_ptr<D3D11Texture>(
-        reinterpret_cast<D3D11Texture*>(CreateTexture(width, height, color_depth, txflags))));
+        reinterpret_cast<D3D11Texture *>(CreateTexture(width, height, color_depth, txflags))));
     return ddb;
 }
 
-IDriverDependantBitmap* D3D11GraphicsDriver::CreateDDB(std::shared_ptr<Texture> txdata, int txflags)
+IDriverDependantBitmap *D3D11GraphicsDriver::CreateDDB(std::shared_ptr<Texture> txdata, int txflags)
 {
     if (txdata->Res.ColorDepth != GetCompatibleBitmapFormat(txdata->Res.ColorDepth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     // Use the existing texture directly, do not allocate a new one
-    D3D11Bitmap* ddb = new D3D11Bitmap(txdata->Res.Width, txdata->Res.Height, txdata->Res.ColorDepth, txflags);
+    D3D11Bitmap *ddb = new D3D11Bitmap(txdata->Res.Width, txdata->Res.Height, txdata->Res.ColorDepth, txflags);
     ddb->SetTexture(std::static_pointer_cast<D3D11Texture>(txdata));
     return ddb;
 }
 
-IDriverDependantBitmap* D3D11GraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, int txflags)
+IDriverDependantBitmap *D3D11GraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, int txflags)
 {
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
 
     txflags |= kTxFlags_RenderTarget;
     auto txdata = std::shared_ptr<D3D11Texture>(
-        reinterpret_cast<D3D11Texture*>(CreateTexture(width, height, color_depth, txflags)));
-    D3D11Bitmap* ddb = new D3D11Bitmap(width, height, color_depth, txflags);
+        reinterpret_cast<D3D11Texture *>(CreateTexture(width, height, color_depth, txflags)));
+    D3D11Bitmap *ddb = new D3D11Bitmap(width, height, color_depth, txflags);
     ddb->SetTexture(txdata, kTxHint_PremulAlpha);
     return ddb;
 }
 
-std::shared_ptr<Texture> D3D11GraphicsDriver::GetTexture(IDriverDependantBitmap* ddb)
+std::shared_ptr<Texture> D3D11GraphicsDriver::GetTexture(IDriverDependantBitmap *ddb)
 {
-    return std::static_pointer_cast<Texture>((reinterpret_cast<D3D11Bitmap*>(ddb))->GetSharedTexture());
+    return std::static_pointer_cast<Texture>((reinterpret_cast<D3D11Bitmap *>(ddb))->GetSharedTexture());
 }
 
-Texture* D3D11GraphicsDriver::CreateTexture(int width, int height, int color_depth, int txflags)
+Texture *D3D11GraphicsDriver::CreateTexture(int width, int height, int color_depth, int txflags)
 {
     assert(width > 0);
     assert(height > 0);
@@ -2483,7 +2522,7 @@ Texture* D3D11GraphicsDriver::CreateTexture(int width, int height, int color_dep
     const int tileHeight = height / tilesDown;
     const int lastTileExtraHeight = height % tilesDown;
 
-    auto* txdata = new D3D11Texture(GraphicResolution(width, height, color_depth), as_render_target);
+    auto *txdata = new D3D11Texture(GraphicResolution(width, height, color_depth), as_render_target);
     std::vector<D3D11TextureTile> tiles(tilesAcross * tilesDown);
 
     // NOTE: pay attention that the texture format does not depend on the source
@@ -2494,7 +2533,7 @@ Texture* D3D11GraphicsDriver::CreateTexture(int width, int height, int color_dep
     {
         for (int y = 0; y < tilesDown; y++)
         {
-            D3D11TextureTile* thisTile = &tiles[y * tilesAcross + x];
+            D3D11TextureTile *thisTile = &tiles[y * tilesAcross + x];
             thisTile->x = x * tileWidth;
             thisTile->y = y * tileHeight;
             thisTile->width = tileWidth;
@@ -2532,9 +2571,9 @@ Texture* D3D11GraphicsDriver::CreateTexture(int width, int height, int color_dep
             if (FAILED(hr))
             {
                 delete txdata;
-                throw Ali3DException(String::FromFormat(
-                    "ID3D11Device::CreateTexture2D(X=%d, Y=%d, FMT=%d) failed: error code 0x%08X",
-                    td.Width, td.Height, (int)texture_fmt, (unsigned)hr));
+                throw Ali3DException(
+                    String::FromFormat("ID3D11Device::CreateTexture2D(X=%d, Y=%d, FMT=%d) failed: error code 0x%08X",
+                                       td.Width, td.Height, (int)texture_fmt, (unsigned)hr));
             }
             hr = _device->CreateShaderResourceView(thisTile->texture.get(), nullptr, thisTile->srv.Acquire());
             if (FAILED(hr))
@@ -2562,21 +2601,22 @@ Texture* D3D11GraphicsDriver::CreateTexture(int width, int height, int color_dep
 
 // A value of "ps_4_0_level_9_3" would let compile dx9 shaders, but with macro definitions
 // it's possible to achieve the same results and not lose out on modern features
-static const char* DefaultShaderCompileTarget = "ps_5_0";
-static const char* DefaultShaderEntryPoint = "main";
+static const char *DefaultShaderCompileTarget = "ps_5_0";
+static const char *DefaultShaderEntryPoint = "main";
 
-IGraphicShader* D3D11GraphicsDriver::CreateShaderProgram(const String& name, const char* fragment_shader_src, const ShaderDefinition* def)
+IGraphicShader *D3D11GraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src,
+                                                         const ShaderDefinition *def)
 {
-    const char* compile_target = def && !def->CompileTarget.IsEmpty() ?
-        def->CompileTarget.GetCStr() : DefaultShaderCompileTarget;
-    const char* entry_point = def && !def->EntryPoint.IsEmpty() ?
-        def->EntryPoint.GetCStr() : DefaultShaderEntryPoint;
+    const char *compile_target =
+        def && !def->CompileTarget.IsEmpty() ? def->CompileTarget.GetCStr() : DefaultShaderCompileTarget;
+    const char *entry_point = def && !def->EntryPoint.IsEmpty() ? def->EntryPoint.GetCStr() : DefaultShaderEntryPoint;
 
     // Shader model 2 and 3 targets produce bytecode that Direct3D 11 cannot load
     if (strncmp(compile_target, "ps_2", 4) == 0 || strncmp(compile_target, "ps_3", 4) == 0)
     {
-        Debug::Printf(kDbgMsg_Warn, "Direct3D 11: shader \"%s\": compile target \"%s\" is not supported, using \"%s\" instead",
-            name.GetCStr(), compile_target, DefaultShaderCompileTarget);
+        Debug::Printf(kDbgMsg_Warn,
+                      "Direct3D 11: shader \"%s\": compile target \"%s\" is not supported, using \"%s\" instead",
+                      name.GetCStr(), compile_target, DefaultShaderCompileTarget);
         compile_target = DefaultShaderCompileTarget;
     }
 
@@ -2586,7 +2626,8 @@ IGraphicShader* D3D11GraphicsDriver::CreateShaderProgram(const String& name, con
     if (strstr(compile_target, "level_9") == nullptr)
         flags |= D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY;
 
-    ComPtr<ID3DBlob> blob = CompileShader(fragment_shader_src, name.GetCStr(), entry_point, compile_target, flags, true);
+    ComPtr<ID3DBlob> blob =
+        CompileShader(fragment_shader_src, name.GetCStr(), entry_point, compile_target, flags, true);
     if (!blob)
         return nullptr;
 
@@ -2598,7 +2639,8 @@ IGraphicShader* D3D11GraphicsDriver::CreateShaderProgram(const String& name, con
     return new D3D11Shader(name, std::move(prg));
 }
 
-IGraphicShader* D3D11GraphicsDriver::CreateShaderProgram(const String& name, const std::vector<uint8_t>& compiled_data, const ShaderDefinition* def)
+IGraphicShader *D3D11GraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data,
+                                                         const ShaderDefinition *def)
 {
     if (compiled_data.empty())
         return nullptr;
@@ -2611,35 +2653,35 @@ IGraphicShader* D3D11GraphicsDriver::CreateShaderProgram(const String& name, con
     return new D3D11Shader(name, std::move(prg));
 }
 
-void D3D11GraphicsDriver::DeleteShaderProgram(IGraphicShader* shader)
+void D3D11GraphicsDriver::DeleteShaderProgram(IGraphicShader *shader)
 {
     assert(shader);
     if (shader)
-        delete (D3D11Shader*)shader;
+        delete (D3D11Shader *)shader;
 }
 
-IShaderInstance* D3D11GraphicsDriver::CreateShaderInstance(IGraphicShader* shader, const String& name)
+IShaderInstance *D3D11GraphicsDriver::CreateShaderInstance(IGraphicShader *shader, const String &name)
 {
     assert(shader);
     if (!shader)
         return nullptr;
 
-    return new D3D11ShaderInstance((D3D11Shader*)shader, name);
+    return new D3D11ShaderInstance((D3D11Shader *)shader, name);
 }
 
-void D3D11GraphicsDriver::DeleteShaderInstance(IShaderInstance* shader_inst)
+void D3D11GraphicsDriver::DeleteShaderInstance(IShaderInstance *shader_inst)
 {
     assert(shader_inst);
     if (shader_inst)
-        delete (D3D11ShaderInstance*)shader_inst;
+        delete (D3D11ShaderInstance *)shader_inst;
 }
 
 void D3D11GraphicsDriver::SetScreenFade(int red, int green, int blue)
 {
     assert(_actSpriteBatch != UINT32_MAX);
-    D3D11Bitmap* ddb = static_cast<D3D11Bitmap*>(MakeFx(red, green, blue));
+    D3D11Bitmap *ddb = static_cast<D3D11Bitmap *>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
-        _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
+                    _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
     ddb->SetAlpha(255);
     _spriteList.push_back(D3D11DrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
@@ -2647,15 +2689,16 @@ void D3D11GraphicsDriver::SetScreenFade(int red, int green, int blue)
 void D3D11GraphicsDriver::SetScreenTint(int red, int green, int blue)
 {
     assert(_actSpriteBatch != UINT32_MAX);
-    if (red == 0 && green == 0 && blue == 0) return;
-    D3D11Bitmap* ddb = static_cast<D3D11Bitmap*>(MakeFx(red, green, blue));
+    if (red == 0 && green == 0 && blue == 0)
+        return;
+    D3D11Bitmap *ddb = static_cast<D3D11Bitmap *>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
-        _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
+                    _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
     ddb->SetAlpha(128);
     _spriteList.push_back(D3D11DrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
 
-void D3D11GraphicsDriver::SetScreenShader(IShaderInstance* shinst)
+void D3D11GraphicsDriver::SetScreenShader(IShaderInstance *shinst)
 {
     // TODO: expand this to not depend on whether we use a native-resolution surface or not;
     // ideally this setup has to be done outside of gfx driver
@@ -2663,7 +2706,7 @@ void D3D11GraphicsDriver::SetScreenShader(IShaderInstance* shinst)
         _nativeSurface->SetShader(shinst);
 }
 
-bool D3D11GraphicsDriver::SetVsyncImpl(bool enabled, bool& vsync_res)
+bool D3D11GraphicsDriver::SetVsyncImpl(bool enabled, bool &vsync_res)
 {
     // In Direct3D 11 vsync is simply a Present() parameter, no device reset is needed
     _vsync = enabled;
@@ -2672,7 +2715,7 @@ bool D3D11GraphicsDriver::SetVsyncImpl(bool enabled, bool& vsync_res)
 }
 
 
-D3D11GraphicsFactory* D3D11GraphicsFactory::_factory = nullptr;
+D3D11GraphicsFactory *D3D11GraphicsFactory::_factory = nullptr;
 Library D3D11GraphicsFactory::_libDXGI;
 Library D3D11GraphicsFactory::_libD3D11;
 Library D3D11GraphicsFactory::_libCompiler;
@@ -2682,7 +2725,9 @@ D3D11GraphicsFactory::~D3D11GraphicsFactory()
     DestroyDriver(); // driver must be destroyed before the libraries are disposed
     uint64_t ref_cnt = _api.Factory.ReleaseAndCheck();
     if (ref_cnt > 0)
-        Debug::Printf(kDbgMsg_Warn, "WARNING: Not all of the Direct3D 11 resources have been disposed; IDXGIFactory ref count: %llu", ref_cnt);
+        Debug::Printf(kDbgMsg_Warn,
+                      "WARNING: Not all of the Direct3D 11 resources have been disposed; IDXGIFactory ref count: %llu",
+                      ref_cnt);
     _factory = nullptr;
 }
 
@@ -2691,16 +2736,13 @@ size_t D3D11GraphicsFactory::GetFilterCount() const
     return 2;
 }
 
-const GfxFilterInfo* D3D11GraphicsFactory::GetFilterInfo(size_t index) const
+const GfxFilterInfo *D3D11GraphicsFactory::GetFilterInfo(size_t index) const
 {
     switch (index)
     {
-    case 0:
-        return &D3DGfxFilter::FilterInfo;
-    case 1:
-        return &AAD3DGfxFilter::FilterInfo;
-    default:
-        return nullptr;
+    case 0: return &D3DGfxFilter::FilterInfo;
+    case 1: return &AAD3DGfxFilter::FilterInfo;
+    default: return nullptr;
     }
 }
 
@@ -2709,7 +2751,7 @@ String D3D11GraphicsFactory::GetDefaultFilterID() const
     return D3DGfxFilter::FilterInfo.Id;
 }
 
-/* static */ D3D11GraphicsFactory* D3D11GraphicsFactory::GetFactory()
+/* static */ D3D11GraphicsFactory *D3D11GraphicsFactory::GetFactory()
 {
     if (!_factory)
     {
@@ -2723,7 +2765,7 @@ String D3D11GraphicsFactory::GetDefaultFilterID() const
     return _factory;
 }
 
-/* static */ D3D11GraphicsDriver* D3D11GraphicsFactory::GetD3D11Driver()
+/* static */ D3D11GraphicsDriver *D3D11GraphicsFactory::GetD3D11Driver()
 {
     if (!_factory)
         _factory = GetFactory();
@@ -2732,7 +2774,7 @@ String D3D11GraphicsFactory::GetDefaultFilterID() const
     return nullptr;
 }
 
-D3D11GraphicsDriver* D3D11GraphicsFactory::EnsureDriverCreated()
+D3D11GraphicsDriver *D3D11GraphicsFactory::EnsureDriverCreated()
 {
     if (!_driver)
     {
@@ -2741,7 +2783,7 @@ D3D11GraphicsDriver* D3D11GraphicsFactory::EnsureDriverCreated()
     return _driver;
 }
 
-D3DGfxFilter* D3D11GraphicsFactory::CreateFilter(const String& id)
+D3DGfxFilter *D3D11GraphicsFactory::CreateFilter(const String &id)
 {
     if (D3DGfxFilter::FilterInfo.Id.CompareNoCase(id) == 0)
         return new D3DGfxFilter();
@@ -2774,7 +2816,7 @@ bool D3D11GraphicsFactory::Init()
         SDL_SetError("DXGI is not installed");
         return false;
     }
-    typedef HRESULT(WINAPI* CreateDXGIFactory1Fn)(REFIID, void**);
+    typedef HRESULT(WINAPI * CreateDXGIFactory1Fn)(REFIID, void **);
     CreateDXGIFactory1Fn create_factory = (CreateDXGIFactory1Fn)_libDXGI.GetFunctionAddress("CreateDXGIFactory1");
     if (!create_factory)
     {
@@ -2782,7 +2824,7 @@ bool D3D11GraphicsFactory::Init()
         SDL_SetError("Entry point not found in dxgi.dll");
         return false;
     }
-    HRESULT hr = create_factory(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(_api.Factory.Acquire()));
+    HRESULT hr = create_factory(__uuidof(IDXGIFactory1), reinterpret_cast<void **>(_api.Factory.Acquire()));
     if (FAILED(hr) || !_api.Factory)
     {
         _libDXGI.Unload();
@@ -2812,15 +2854,14 @@ bool D3D11GraphicsFactory::Init()
         adapter->GetDesc1(&desc);
         char desc_str[256] = {};
         WideCharToMultiByte(CP_UTF8, 0, desc.Description, -1, desc_str, sizeof(desc_str) - 1, nullptr, nullptr);
-        String adapter_info = String::FromFormat(
-            "\tDescription: %s\n\tDedicated video memory: %llu MB",
-            desc_str, (unsigned long long)(desc.DedicatedVideoMemory / (1024 * 1024)));
+        String adapter_info = String::FromFormat("\tDescription: %s\n\tDedicated video memory: %llu MB", desc_str,
+                                                 (unsigned long long)(desc.DedicatedVideoMemory / (1024 * 1024)));
         LARGE_INTEGER umd_version = {};
         if (SUCCEEDED(adapter->CheckInterfaceSupport(__uuidof(IDXGIDevice), &umd_version)))
         {
-            adapter_info.Append(String::FromFormat("\n\tDriver: v%d.%d.%d.%d",
-                HIWORD(umd_version.HighPart), LOWORD(umd_version.HighPart),
-                HIWORD(umd_version.LowPart), LOWORD(umd_version.LowPart)));
+            adapter_info.Append(String::FromFormat("\n\tDriver: v%d.%d.%d.%d", HIWORD(umd_version.HighPart),
+                                                   LOWORD(umd_version.HighPart), HIWORD(umd_version.LowPart),
+                                                   LOWORD(umd_version.LowPart)));
         }
         Debug::Printf(kDbgMsg_Info, "Direct3D 11 adapter info:\n%s", adapter_info.GetCStr());
     }

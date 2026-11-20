@@ -37,13 +37,13 @@ public:
     enum ScanType
     {
         kSct_Unspecified = 0,
-        kSct_Identifier,      // Identifier or keyword --- [A-Za-z][A-Za-z_]*
-        kSct_FloatLiteral,    // Float literal in C++ syntax
-        kSct_IntLiteral,      // Integer literal in C++ syntax
-        kSct_NonAlphanum,     // i.e., +, ++, /=; this can be one character or two characters
-        kSct_OnePastLongMax,  // 1 plus largest signed integer
-        kSct_SectionChange,   // String literal beginning with magic string
-        kSct_StringLiteral,   // Quoted strings --- ["]([\\].[^"]*)*["]
+        kSct_Identifier,     // Identifier or keyword --- [A-Za-z][A-Za-z_]*
+        kSct_FloatLiteral,   // Float literal in C++ syntax
+        kSct_IntLiteral,     // Integer literal in C++ syntax
+        kSct_NonAlphanum,    // i.e., +, ++, /=; this can be one character or two characters
+        kSct_OnePastLongMax, // 1 plus largest signed integer
+        kSct_SectionChange,  // String literal beginning with magic string
+        kSct_StringLiteral,  // Quoted strings --- ["]([\\].[^"]*)*["]
     };
 
     static std::string const kNewSectionLitPrefix;
@@ -58,12 +58,8 @@ private:
         const char *what(void) const noexcept { return _msg.c_str(); }
 
     public:
-        ScanningError()
-            : _msg("Compiling error")
-        {}
-        ScanningError(std::string const &msg)
-            : _msg(msg)
-        {}
+        ScanningError() : _msg("Compiling error") {}
+        ScanningError(std::string const &msg) : _msg(msg) {}
     };
 
     // Collect a sequence of opening ("([{") and closing (")]}") symbols; check matching
@@ -73,7 +69,7 @@ private:
         struct OpenInfo
         {
             Symbol Opener;
-            size_t Pos;  // of the Opener symbol in the token list
+            size_t Pos; // of the Opener symbol in the token list
         };
         std::vector<OpenInfo> _openInfoStack;
         Scanner &_scanner;
@@ -107,11 +103,23 @@ private:
     ccCompiledScript &_stringCollector;
 
     // Get the next char from the input stream
-    inline int Get() { int ret = _inputStream.get(); _eofReached |= _inputStream.eof(); _failed |= _inputStream.fail(); return ret; }
+    inline int Get()
+    {
+        int ret = _inputStream.get();
+        _eofReached |= _inputStream.eof();
+        _failed |= _inputStream.fail();
+        return ret;
+    }
     // Undoes the last character read. But won't reset _eofReached: Once the end-of-stream is reached, it stays reached.
-    void  UnGet() { _inputStream.unget(); }
+    void UnGet() { _inputStream.unget(); }
     // Look ahead at the next char to be read without reading it. If there aren't any chars to be read, _eofReached is set.
-    inline int Peek() { int ret = _inputStream.peek(); _eofReached |= _inputStream.eof(); _failed |= _inputStream.fail(); return ret; }
+    inline int Peek()
+    {
+        int ret = _inputStream.peek();
+        _eofReached |= _inputStream.eof();
+        _failed |= _inputStream.fail();
+        return ret;
+    }
 
     // Skip through the input, ignoring it, until a non-whitespace is found. Don't eat the non-whitespace.
     void SkipWhitespace();
@@ -143,15 +151,15 @@ private:
 
     // Read in a character literal
     void ReadInCharLit(std::string &symstring, CodeCell &value);
-    
+
     // Read in a string literal. valstring is the interpreted literal (no quotes, '\\' combinations resolved)
     void ReadInStringLit(std::string &symstring, std::string &valstring);
 
-    // Read in an identifier or a keyword 
+    // Read in an identifier or a keyword
     void ReadInIdentifier(std::string &symstring);
 
     // Read in a single-char symstring
-    void ReadIn1Char(std::string & symstring);
+    void ReadIn1Char(std::string &symstring);
 
     // Read in a single-char symstring (such as "*"), or a double-char one (such as "*=")
     // A double-char symstring is detected if and only if the second char is in PossibleSecondChars.
@@ -178,25 +186,32 @@ private:
     void Error(bool is_internal, std::string const &message);
 
     // Abort scanning with an error caused by wrong user input
-    void UserError(char const *desc ...);
+    void UserError(char const *desc...);
 
     // Abort scanning with an internal error
-    void InternalError(char const *desc  ...);
+    void InternalError(char const *desc...);
 
     // Warn, but don't abort.
-    void Warning(char const *desc ...);
+    void Warning(char const *desc...);
 
 protected:
     inline static bool IsDigit(int ch) { return (ch >= '0' && ch <= '9'); }
-    inline static bool IsHexDigit(int ch) { return IsDigit(ch) || (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'); }
+    inline static bool IsHexDigit(int ch)
+    {
+        return IsDigit(ch) || (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z');
+    }
     inline static bool IsAlpha(int ch) { return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z'); }
     inline static bool IsSpace(int ch) { return (std::strchr(" \t\n\v\f\r", ch) != 0); }
 
     // Change 'where': replace the first occurrence of 'token' in 'where' by 'replacement'.
-    inline static void ReplaceToken(std::string &where, std::string const &token, std::string const &replacement) { where.replace(where.find(token), token.length(), replacement); }
+    inline static void ReplaceToken(std::string &where, std::string const &token, std::string const &replacement)
+    {
+        where.replace(where.find(token), token.length(), replacement);
+    }
 
 public:
-    Scanner(std::string const &input, bool use_utf8, SrcList &token_list, ccCompiledScript &string_collector, SymbolTable &symt, MessageHandler &messageHandler);
+    Scanner(std::string const &input, bool use_utf8, SrcList &token_list, ccCompiledScript &string_collector,
+            SymbolTable &symt, MessageHandler &messageHandler);
 
     // Scan the input into token_list; symbols into symt; strings into _string_collector
     void Scan();

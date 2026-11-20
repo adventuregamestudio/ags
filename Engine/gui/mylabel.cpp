@@ -41,7 +41,8 @@ void MyLabel::draw(Bitmap *ds)
     const char *draw_text = skip_voiceover_token(text);
     if (break_up_text_into_lines(draw_text, Lines, wid, acdialog_font) == 0)
         return;
-    for (size_t ee = 0; ee < Lines.Count(); ee++) {
+    for (size_t ee = 0; ee < Lines.Count(); ee++)
+    {
         wouttext_outline(ds, x, cyp, acdialog_font, text_color, Lines[ee].GetCStr());
         cyp += textheight;
     }
@@ -54,5 +55,5 @@ int MyLabel::pressedon(int /*mx*/, int /*my*/)
 
 int MyLabel::processmessage(int /*mcode*/, int /*wParam*/, intptr_t /*lParam*/)
 {
-    return -1;                  // doesn't support messages
+    return -1; // doesn't support messages
 }

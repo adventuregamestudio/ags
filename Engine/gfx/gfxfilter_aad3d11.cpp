@@ -10,8 +10,7 @@ namespace Engine
 namespace D3D11
 {
 
-const GfxFilterInfo AAD3D11GfxFilter::FilterInfo =
-    GfxFilterInfo("Linear", "Linear interpolation");
+const GfxFilterInfo AAD3D11GfxFilter::FilterInfo = GfxFilterInfo("Linear", "Linear interpolation");
 
 const GfxFilterInfo &AAD3D11GfxFilter::GetInfo() const
 {

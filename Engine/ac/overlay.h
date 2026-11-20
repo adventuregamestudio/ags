@@ -24,7 +24,13 @@
 #include "util/geometry.h"
 #include "util/indexedobjectpool.h"
 
-namespace AGS { namespace Common { class Bitmap; } }
+namespace AGS
+{
+namespace Common
+{
+class Bitmap;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // Gets an actual ScreenOverlay object given its index;
@@ -33,28 +39,32 @@ ScreenOverlay *GetOverlayValidate(const char *apiname, int over_id);
 // Gets an actual ScreenOverlay object from its ScriptOverlay reference;
 // validate object, send an error to the logging system on failure
 inline ScreenOverlay *GetOverlayValidate(const char *apiname, ScriptOverlay *scover)
-    { return GetOverlayValidate(apiname, scover->GetOverlayID()); }
+{
+    return GetOverlayValidate(apiname, scover->GetOverlayID());
+}
 
 void Overlay_Remove(ScriptOverlay *sco);
 void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_color, const char *text);
 void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, int text_color, const char *text);
-int  Overlay_GetX(ScriptOverlay *scover);
+int Overlay_GetX(ScriptOverlay *scover);
 void Overlay_SetX(ScriptOverlay *scover, int newx);
-int  Overlay_GetY(ScriptOverlay *scover);
+int Overlay_GetY(ScriptOverlay *scover);
 void Overlay_SetY(ScriptOverlay *scover, int newy);
-int  Overlay_GetValid(ScriptOverlay *scover);
-ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, bool clone);
-ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text);
+int Overlay_GetValid(ScriptOverlay *scover);
+ScriptOverlay *Overlay_CreateGraphical(int x, int y, int slot, bool clone);
+ScriptOverlay *Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char *text);
 ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot, bool clone = false);
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
-    const char *text, int over_type, DisplayTextStyle style, DisplayTextShrink allow_shrink, int speech_for_char = -1);
+                                      const char *text, int over_type, DisplayTextStyle style,
+                                      DisplayTextShrink allow_shrink, int speech_for_char = -1);
 
 ScreenOverlay *get_overlay(int type);
 // Autopositions overlay, that is linked to a character
 void autoposition_overlay(ScreenOverlay &over);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, int sprnum);
 size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Common::Bitmap> piccy);
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Common::Bitmap> piccy, int pic_offx, int pic_offy);
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Common::Bitmap> piccy, int pic_offx,
+                          int pic_offy);
 void remove_screen_overlay(int type);
 void remove_all_overlays();
 // Restores overlays, e.g. after restoring a game save

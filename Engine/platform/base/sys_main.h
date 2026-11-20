@@ -41,7 +41,7 @@ struct SystemConfig
 // Initializes main backend system;
 // should be called before anything else backend related.
 // Returns 0 on success, non-0 on failure.
-int  sys_main_init(/*config*/);
+int sys_main_init(/*config*/);
 // Set system config.
 void sys_set_config(const SystemConfig &cfg);
 // Configure the display size reference for the event handling system
@@ -85,7 +85,8 @@ void sys_audio_shutdown();
 //
 struct SDL_Window;
 // Create a new single game window.
-SDL_Window *sys_window_create(const char *window_title, int display_index, int w, int h, AGS::Engine::WindowMode mode, int ex_flags = 0);
+SDL_Window *sys_window_create(const char *window_title, int display_index, int w, int h, AGS::Engine::WindowMode mode,
+                              int ex_flags = 0);
 // Returns current game window, if one exists, or null.
 SDL_Window *sys_get_window();
 // Changes the window style for the given mode (fullscreen / windowed).
@@ -116,5 +117,5 @@ void sys_window_set_icon();
 
 #if AGS_PLATFORM_OS_WINDOWS
 // Returns game window's handle.
-void* sys_win_get_window();
+void *sys_win_get_window();
 #endif

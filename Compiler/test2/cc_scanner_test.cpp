@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "gtest/gtest.h" 
+#include "gtest/gtest.h"
 
 #include <string>
 #include <iostream>
@@ -115,36 +115,36 @@ TEST_F(Scan, ShortInputSimple2)
     ASSERT_TRUE(scanner.EOFReached());
 }
 
-TEST_F(Scan, ShortInputString1) {
-
+TEST_F(Scan, ShortInputString1)
+{
     // String literal isn't ended
 
     char const *Input = "\"Supercalifragilisticexpialidocious";
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
 
     EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     std::string errmsg = mh.GetError().Message;
     EXPECT_NE(std::string::npos, errmsg.find("nput ended"));
 }
 
-TEST_F(Scan, ShortInputString2) {
-
+TEST_F(Scan, ShortInputString2)
+{
     // String literal isn't ended
 
     char const *Input = "\"Donaudampfschiffahrtskapitaen\\";
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
 
     EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     std::string errmsg = mh.GetError().Message;
     EXPECT_NE(std::string::npos, errmsg.find("nput ended"));
 }
 
-TEST_F(Scan, ShortInputString3) {
-
+TEST_F(Scan, ShortInputString3)
+{
     // String literal isn't ended
 
     char const *Input = "\"Aldiborontiphoscophornio!\nWhere left you...";
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
 
     EXPECT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     std::string errmsg = mh.GetError().Message;
@@ -248,8 +248,7 @@ TEST_F(Scan, Strings)
 {
     // Should scan tokens as noted in comments below.
 
-    std::string Input =
-        "\"ABC\"\n'G' \
+    std::string Input = "\"ABC\"\n'G' \
          \"\nH\" flurp";
 
     AGS::Scanner scanner(Input, false, token_list, string_collector, sym, mh);
@@ -293,7 +292,7 @@ TEST_F(Scan, StringCollect)
     EXPECT_FALSE(mh.HasError());
 
     std::string text_in_buffer;
-    
+
     AGS::Symbol const s1 = sym.Find("\"Zwiebelkuchen\"");
     ASSERT_LT(0, s1);
     ASSERT_TRUE(sym.IsLiteral(s1));
@@ -393,7 +392,7 @@ TEST_F(Scan, LiteralInt6a)
 
 TEST_F(Scan, LiteralInt6b)
 {
-    // Huge decimal 
+    // Huge decimal
     char const *inp = "1234567890123456789012345678901234567890123456789012345678901234567890"
                       "1234567890123456789012345678901234567890123456789012345678901234567890"
                       "1234567890123456789012345678901234567890123456789012345678901234567890";
@@ -429,7 +428,7 @@ TEST_F(Scan, LiteralIntLimits)
     // This translates to a symbol that gets special treatment
     // within expressions in the parser but is NOT recognized
     // as a literal. I had to treat it this way because 2147483648
-    // is too large for a value for literals. 
+    // is too large for a value for literals.
     // ASSERT_TRUE(sym.IsLiteral(lit_min));
     // EXPECT_EQ(INT32_MIN, sym[lit_min].LiteralD->Value);
 
@@ -442,7 +441,7 @@ TEST_F(Scan, LiteralIntOverflow)
 {
     // Should detect int32 overflow
     char const *inp1 = "-2147483649";
-    
+
     AGS::Scanner scanner1(inp1, false, token_list, string_collector, sym, mh);
     scanner1.Scan();
     ASSERT_TRUE(mh.HasError());
@@ -544,7 +543,7 @@ TEST_F(Scan, CharLit1)
     // Should detect unclosed char literal.
 
     std::string Input = "foo \'";
-    
+
     AGS::Scanner scanner(Input, false, token_list, string_collector, sym, mh);
     EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("foo", symstring.c_str());
@@ -561,7 +560,7 @@ TEST_F(Scan, CharLit2)
 
     std::string Input = "foo '\\";
     AGS::Scanner scanner(Input, false, token_list, string_collector, sym, mh);
-    
+
     EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("foo", symstring.c_str());
 
@@ -605,7 +604,7 @@ TEST_F(Scan, CharLit5)
     // Should convert backslash combination to 10
 
     std::string Input = "'\\n'";
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
 
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_EQ(10, value);
@@ -617,7 +616,7 @@ TEST_F(Scan, CharLit6)
     // Should accept UTF-8 sequence
 
     std::string Input = "'\xc3\xa7'"; // cedille
-    AGS::Scanner scanner = { Input, true, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, true, token_list, string_collector, sym, mh};
 
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_EQ(231, value);
@@ -629,7 +628,7 @@ TEST_F(Scan, CharLit7)
     // Should accept UTF-8 sequence
 
     std::string Input = "'\xf0\x9f\x91\xb9'"; // devil mask
-    AGS::Scanner scanner = { Input, true, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, true, token_list, string_collector, sym, mh};
 
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_EQ(128121, value);
@@ -641,18 +640,18 @@ TEST_F(Scan, CharLit8)
     // Should NOT accept illegal UTF-8
 
     std::string Input = "'\xe0\x9f\x91'"; // 2nd byte is illegal
-    AGS::Scanner scanner = { Input, true, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, true, token_list, string_collector, sym, mh};
 
     ASSERT_GT(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_NE(std::string::npos, mh.GetError().Message.find("9F'"));
 }
 
-TEST_F(Scan, BackslashBracketInChar) {
-
+TEST_F(Scan, BackslashBracketInChar)
+{
     // Character literal '\[' is forbidden ('[' is okay)
 
     char const *Input = "int i = '\\[';";
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
 
     scanner.Scan();
     EXPECT_TRUE(mh.HasError());
@@ -660,13 +659,13 @@ TEST_F(Scan, BackslashBracketInChar) {
     EXPECT_NE(std::string::npos, errmsg.find("'\\['"));
 }
 
-TEST_F(Scan, BackslashOctal1) {
-
+TEST_F(Scan, BackslashOctal1)
+{
     // "\19" is equivalent to "\1" + "9" because 9 isn't an octal digit
 
     char const *Input = "String s = \"Boom\\19 Box\";";
 
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
 
     EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     EXPECT_STREQ("String", symstring.c_str());
@@ -676,35 +675,41 @@ TEST_F(Scan, BackslashOctal1) {
     EXPECT_STREQ("=", symstring.c_str());
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
-    EXPECT_STREQ("Boom\1" "9 Box", &(string_collector.strings[value]));
+    EXPECT_STREQ("Boom\1"
+                 "9 Box",
+                 &(string_collector.strings[value]));
 }
 
-TEST_F(Scan, BackslashOctal2) {
-
+TEST_F(Scan, BackslashOctal2)
+{
     // '/' is just below the lowest digit '0'; "\7/" is equivalent to "\7" + "/"
     // Octal 444 is too large for a character, so this is equivalent to "\44" + "4"
 
     char const *Input = "String s = \"Boom\\7/Box\\444/Borg\";";
 
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
 
-    for (size_t symbol_idx = 4; symbol_idx --> 1 ;) // note! smiley ";)" needed
+    for (size_t symbol_idx = 4; symbol_idx-- > 1;) // note! smiley ";)" needed
         EXPECT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
-    
+
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
-    EXPECT_STREQ("Boom\7" "/Box" "\44" "4/Borg", &(string_collector.strings[value]));
+    EXPECT_STREQ("Boom\7"
+                 "/Box"
+                 "\44"
+                 "4/Borg",
+                 &(string_collector.strings[value]));
     EXPECT_STREQ("\"Boom\\7/Box\\444/Borg\"", symstring.c_str());
 }
 
-TEST_F(Scan, BackslashOctal3) {
-
+TEST_F(Scan, BackslashOctal3)
+{
     // '\102' is 66 corresponds to 'B'; '\234' is 156u is -100
 
     char const *Input = "\"b\\102b\" '\\234'";
 
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
-    
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
+
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
     EXPECT_STREQ("bBb", &(string_collector.strings[value]));
@@ -713,13 +718,13 @@ TEST_F(Scan, BackslashOctal3) {
     EXPECT_STREQ("'\\234'", symstring.c_str());
 }
 
-TEST_F(Scan, BackslashHex1) {
-
+TEST_F(Scan, BackslashHex1)
+{
     // Expect a hex digit after '\x'
 
     char const *Input = "\"Le\\xicon\"";
 
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
 
     scanner.Scan();
     EXPECT_TRUE(mh.HasError());
@@ -727,8 +732,8 @@ TEST_F(Scan, BackslashHex1) {
     EXPECT_NE(std::string::npos, errmsg.find("hex digit"));
 }
 
-TEST_F(Scan, BackslashHex2) {
-
+TEST_F(Scan, BackslashHex2)
+{
     // End hex when '/' is encountered; that's directly before '0'
     // End hex when '@' is encountered; that's between '9' and 'A'
     // End hex when 'g' is encountered; that's directly after 'F'
@@ -736,7 +741,7 @@ TEST_F(Scan, BackslashHex2) {
 
     char const *Input = "\"He\\xA/meter \\xC@fe Nicolas C\\xAGE \\xFACE \"";
 
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
 
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
@@ -744,15 +749,13 @@ TEST_F(Scan, BackslashHex2) {
     EXPECT_STREQ("He\12/meter \14@fe Nicolas C\12GE \372CE ", &(string_collector.strings[value]));
 }
 
-TEST_F(Scan, BackslashOctHex) {
-
-    
+TEST_F(Scan, BackslashOctHex)
+{
     // Test all combinations of upper and lower letters and numbers
 
-    char const *Input =
-        "\" \\x19 \\x2a \\x3A \\xb4 \\xcd \\xeB \\xC5 \\xDf \\xEF \""
-        "\" \\31 \\52 \\72 \\264 \\315 \\353 \\305 \\337 \\357 \"";
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    char const *Input = "\" \\x19 \\x2a \\x3A \\xb4 \\xcd \\xeB \\xC5 \\xDf \\xEF \""
+                        "\" \\31 \\52 \\72 \\264 \\315 \\353 \\305 \\337 \\357 \"";
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
 
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
@@ -763,12 +766,12 @@ TEST_F(Scan, BackslashOctHex) {
     EXPECT_STREQ(&(string_collector.strings[value]), &(string_collector.strings[value2]));
 }
 
-TEST_F(Scan, BackslashCSym) {
-    
+TEST_F(Scan, BackslashCSym)
+{
     // Test different symbol characters after '\'
 
     char const *Input = "\" Is \\'Java\\' \\equal to \\\"Ja\\va\\\" \\? \"";
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
 
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
@@ -776,18 +779,18 @@ TEST_F(Scan, BackslashCSym) {
     EXPECT_STREQ(" Is 'Java' \x1bqual to \"Ja\va\" ? ", &(string_collector.strings[value]));
 }
 
-TEST_F(Scan, BackslashBackslash) {
-    
+TEST_F(Scan, BackslashBackslash)
+{
     // Backslash Backslash in strings or char literals converts to backslash.
 
     char const *Input = "'\\\\' \"\\\\a\\\\b\\\\\"";
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
 
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
     EXPECT_STREQ("'\\\\'", symstring.c_str());
     EXPECT_EQ('\\', value);
-  
+
     ASSERT_LE(0, scanner.GetNextSymstringT(symstring, sct, value));
     ASSERT_LE(0, value);
     EXPECT_STREQ("\"\\\\a\\\\b\\\\\"", symstring.c_str());
@@ -807,18 +810,19 @@ TEST_F(Scan, String1)
     EXPECT_STREQ("\"Oh, \\the \\brow\\n \\fo\\x5e jumps [ove\\r] the \\100\\azy dog.\"", symstring.c_str());
 }
 
-TEST_F(Scan, UnknownKeywordAfterReadonly) {
+TEST_F(Scan, UnknownKeywordAfterReadonly)
+{
     // This incorrect code would crash the scanner.
     // Now, semantic struct parsing has been completely relocated into the parser,
     // and thus this sequence should not pose problems.
 
-    char const *inpl =   "struct MyStruct \
+    char const *inpl = "struct MyStruct \
                     {\
                       readonly int2 a; \
                       readonly int2 b; \
                     };";
 
-    AGS::Scanner scanner = { inpl, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {inpl, false, token_list, string_collector, sym, mh};
     scanner.Scan();
     EXPECT_FALSE(mh.HasError());
 }
@@ -833,11 +837,11 @@ TEST_F(Scan, SectionChange)
         String A = \"__NEWSCRIPTSTART_Foo\"; \n\
      ";
 
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
     scanner.Scan();
     ASSERT_FALSE(mh.HasError());
     token_list.SetCursor(0u);
-    
+
     // String
     ASSERT_FALSE(token_list.ReachedEOF());
     AGS::Symbol s = token_list.GetNext();
@@ -874,7 +878,7 @@ TEST_F(Scan, MatchBraceParen1)
         ];                  \r\n\
         ";
 
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
     scanner.Scan();
     EXPECT_TRUE(mh.HasError());
 
@@ -889,7 +893,7 @@ TEST_F(Scan, MatchBraceParen2)
     // "This closing ')' does not match the '[' on this line"
 
     std::string Input = "f(a[bb.ccc * (d + e - ( f - g)))";
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
     scanner.Scan();
     EXPECT_TRUE(mh.HasError());
     EXPECT_EQ(1u, scanner.GetLineno());
@@ -907,7 +911,7 @@ TEST_F(Scan, MatchBraceParen3)
             float A;        \r\n\
         };";
 
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
     scanner.Scan();
     ASSERT_TRUE(mh.HasError());
     EXPECT_EQ(5u, scanner.GetLineno());
@@ -921,7 +925,7 @@ TEST_F(Scan, MatchBraceParen4)
 
     std::string Input = "struct B );";
 
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
     scanner.Scan();
     ASSERT_TRUE(mh.HasError());
     EXPECT_EQ(1u, scanner.GetLineno());
@@ -944,7 +948,7 @@ TEST_F(Scan, MatchBraceParen5)
                 S.          \n\
         ";
 
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
     scanner.Scan();
     ASSERT_TRUE(mh.HasError());
     EXPECT_EQ(6u, scanner.GetLineno());
@@ -967,7 +971,7 @@ TEST_F(Scan, MatchBraceParen6)
             }               \n\
         ";
 
-    AGS::Scanner scanner = { Input, false, token_list, string_collector, sym, mh };
+    AGS::Scanner scanner = {Input, false, token_list, string_collector, sym, mh};
     scanner.Scan();
     ASSERT_TRUE(mh.HasError());
     EXPECT_EQ(2u, scanner.GetLineno());

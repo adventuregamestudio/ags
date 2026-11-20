@@ -23,54 +23,49 @@ namespace Common
 
 namespace MFLUtil
 {
-    const String HeadSig = "CLIB\x1a";
-    const String HeadSigMinimal = "CLIB";
-    const String TailSig = "CLIB\x1\x2\x3\x4SIGE";
+const String HeadSig = "CLIB\x1a";
+const String HeadSigMinimal = "CLIB";
+const String TailSig = "CLIB\x1\x2\x3\x4SIGE";
 
-    static const size_t SingleFilePswLen = 13;
+static const size_t SingleFilePswLen = 13;
 
-    static const size_t MaxAssetFileLen  = 100;
-    static const size_t MaxDataFileLen   = 50;
-    static const size_t V10LibFileLen    = 20;
-    static const size_t V10AssetFileLen  = 25;
+static const size_t MaxAssetFileLen = 100;
+static const size_t MaxDataFileLen = 50;
+static const size_t V10LibFileLen = 20;
+static const size_t V10AssetFileLen = 25;
 
-    static const int EncryptionRandSeed  = 9338638;
-    static const String EncryptionString = "My\x1\xde\x4Jibzle";
+static const int EncryptionRandSeed = 9338638;
+static const String EncryptionString = "My\x1\xde\x4Jibzle";
 
-    MFLError ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_version, soff_t *p_abs_offset);
-    MFLError ReadSingleFileLib(AssetLibInfo &lib, Stream *in);
-    MFLError ReadMultiFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
-    MFLError ReadV10(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
-    MFLError ReadV20(AssetLibInfo &lib, Stream *in);
-    MFLError ReadV21(AssetLibInfo &lib, Stream *in);
-    MFLError ReadV30(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
+MFLError ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_version, soff_t *p_abs_offset);
+MFLError ReadSingleFileLib(AssetLibInfo &lib, Stream *in);
+MFLError ReadMultiFileLib(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
+MFLError ReadV10(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
+MFLError ReadV20(AssetLibInfo &lib, Stream *in);
+MFLError ReadV21(AssetLibInfo &lib, Stream *in);
+MFLError ReadV30(AssetLibInfo &lib, Stream *in, MFLVersion lib_version);
 
-    void     WriteV30(const AssetLibInfo &lib, Stream *out);
+void WriteV30(const AssetLibInfo &lib, Stream *out);
 
-    // Encryption / decryption 
-    int      GetNextPseudoRand(int &rand_val);
-    void     DecryptText(char *text);
-    void     ReadEncArray(void *data, size_t size, size_t count, Stream *in, int &rand_val);
-    int8_t   ReadEncInt8(Stream *in, int &rand_val);
-    int32_t  ReadEncInt32(Stream *in, int &rand_val);
-    void     ReadEncString(char *buffer, size_t max_len, Stream *in, int &rand_val);
-};
+// Encryption / decryption
+int GetNextPseudoRand(int &rand_val);
+void DecryptText(char *text);
+void ReadEncArray(void *data, size_t size, size_t count, Stream *in, int &rand_val);
+int8_t ReadEncInt8(Stream *in, int &rand_val);
+int32_t ReadEncInt32(Stream *in, int &rand_val);
+void ReadEncString(char *buffer, size_t max_len, Stream *in, int &rand_val);
+}; // namespace MFLUtil
 
 
 String MFLUtil::GetMFLErrorText(MFLError err)
 {
     switch (err)
     {
-    case kMFLNoError:
-        return "No error.";
-    case kMFLErrNoLibSig:
-        return "Not an asset library file or unsupported format.";
-    case kMFLErrLibVersion:
-        return "Format version not supported.";
-    case kMFLErrNoLibBase:
-        return "Not the base asset library file.";
-    default:
-        return "Unknown error.";
+    case kMFLNoError: return "No error.";
+    case kMFLErrNoLibSig: return "Not an asset library file or unsupported format.";
+    case kMFLErrLibVersion: return "Format version not supported.";
+    case kMFLErrNoLibBase: return "Not the base asset library file.";
+    default: return "Unknown error.";
     }
 }
 
@@ -211,7 +206,7 @@ MFLUtil::MFLError MFLUtil::ReadSigsAndVersion(Stream *in, MFLVersion *p_lib_vers
 MFLUtil::MFLError MFLUtil::ReadSingleFileLib(AssetLibInfo &lib, Stream *in)
 {
     char passwmodifier = in->ReadInt8();
-    in->ReadInt8(); // unused byte
+    in->ReadInt8();             // unused byte
     lib.LibFileNames.resize(1); // only one library part
     size_t asset_count = (uint16_t)in->ReadInt16();
     lib.AssetInfos.resize(asset_count);
@@ -400,7 +395,7 @@ void MFLUtil::WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int l
 {
     out->Write(MFLUtil::HeadSig.GetCStr(), MFLUtil::HeadSig.GetLength());
     out->WriteInt8(static_cast<uint8_t>(lib_version));
-    out->WriteInt8(static_cast<uint8_t>(lib_index));   // file number
+    out->WriteInt8(static_cast<uint8_t>(lib_index)); // file number
 
     // First datafile in chain: write the table of contents
     if (lib_index == 0)
@@ -441,8 +436,8 @@ void MFLUtil::WriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out)
 
 void MFLUtil::OverwriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out)
 {
-    soff_t ender_size = ((lib_version < kMFLVersion_MultiV30) ? sizeof(int32_t) : sizeof(int64_t))
-        + (soff_t)TailSig.GetLength();
+    soff_t ender_size =
+        ((lib_version < kMFLVersion_MultiV30) ? sizeof(int32_t) : sizeof(int64_t)) + (soff_t)TailSig.GetLength();
     out->Seek(-ender_size, kSeekEnd);
     MFLUtil::WriteEnder(lib_offset, lib_version, out);
 }
@@ -466,14 +461,13 @@ void MFLUtil::DecryptText(char *text)
 
 int MFLUtil::GetNextPseudoRand(int &rand_val)
 {
-    return( ((rand_val = rand_val * 214013L
-        + 2531011L) >> 16) & 0x7fff );
+    return (((rand_val = rand_val * 214013L + 2531011L) >> 16) & 0x7fff);
 }
 
 void MFLUtil::ReadEncArray(void *data, size_t size, size_t count, Stream *in, int &rand_val)
 {
     in->ReadArray(data, size, count);
-    uint8_t *ch = (uint8_t*)data;
+    uint8_t *ch = (uint8_t *)data;
     const size_t len = size * count;
     for (size_t i = 0; i < len; ++i)
     {
@@ -506,5 +500,5 @@ void MFLUtil::ReadEncString(char *buffer, size_t max_len, Stream *in, int &rand_
     }
 }
 
-} // namespace AGS
 } // namespace Common
+} // namespace AGS

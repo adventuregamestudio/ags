@@ -24,14 +24,10 @@ String GetDataExtErrorText(DataExtErrorType err)
 {
     switch (err)
     {
-    case kDataExtErr_NoError:
-        return "No error.";
-    case kDataExtErr_UnexpectedEOF:
-        return "Unexpected end of file.";
-    case kDataExtErr_BlockDataOverlapping:
-        return "Block data overlapping.";
-    default:
-        return "Unknown error.";
+    case kDataExtErr_NoError: return "No error.";
+    case kDataExtErr_UnexpectedEOF: return "Unexpected end of file.";
+    case kDataExtErr_BlockDataOverlapping: return "Block data overlapping.";
+    default: return "Unknown error.";
     }
 }
 
@@ -42,9 +38,7 @@ HError DataExtParser::OpenBlock()
     //               and -1 indicates end of the block list.
     //    - 16 bytes - string ID of an extension (if numeric ID is 0).
     //    - 4 or 8 bytes - length of extension data, in bytes.
-    _block.ID.ID = ((_flags & kDataExt_NumID32) != 0) ?
-        _in->ReadInt32() :
-        _in->ReadInt8();
+    _block.ID.ID = ((_flags & kDataExt_NumID32) != 0) ? _in->ReadInt32() : _in->ReadInt8();
 
     if (_block.ID.ID < 0)
         return HError::None(); // end of list
@@ -78,7 +72,8 @@ HError DataExtParser::PostAssert()
     if (cur_pos > block_end)
     {
         String err = String::FromFormat("Block: '%s', expected to end at offset: %jd, finished reading at %jd.",
-            _block.ID.Name.GetCStr(), static_cast<intmax_t>(block_end), static_cast<intmax_t>(cur_pos));
+                                        _block.ID.Name.GetCStr(), static_cast<intmax_t>(block_end),
+                                        static_cast<intmax_t>(cur_pos));
         if (cur_pos <= block_end + GetOverLeeway(_block.ID.ID))
             Debug::Printf(kDbgMsg_Warn, err);
         else
@@ -88,7 +83,9 @@ HError DataExtParser::PostAssert()
     {
         if ((_flags & kDataExt_IgnoreUnread) == 0)
         {
-            Debug::Printf(kDbgMsg_Warn, "WARNING: data blocks nonsequential, block '%s' expected to end at %jd, finished reading at %jd",
+            Debug::Printf(
+                kDbgMsg_Warn,
+                "WARNING: data blocks nonsequential, block '%s' expected to end at %jd, finished reading at %jd",
                 _block.ID.Name.GetCStr(), static_cast<intmax_t>(block_end), static_cast<intmax_t>(cur_pos));
         }
         _in->Seek(block_end, Common::kSeekBegin);
@@ -98,7 +95,8 @@ HError DataExtParser::PostAssert()
 
 HError DataExtParser::FindOne(int id)
 {
-    if (id <= 0) return new DataExtError(kDataExtErr_BlockNotFound);
+    if (id <= 0)
+        return new DataExtError(kDataExtErr_BlockNotFound);
 
     HError err = HError::None();
     for (err = OpenBlock(); err && !AtEnd(); err = OpenBlock())
@@ -128,8 +126,11 @@ HError DataExtReader::Read()
         }
         if (!err)
         {
-            String use_block_name = _block.ID.Name.IsEmpty() ? String::FromFormat("%d", _block.ID.ID)
-                : (_block.ID.ID > 0 ? String::FromFormat("%d ('%s')", _block.ID.ID, _block.ID.Name.GetCStr()) : _block.ID.Name);
+            String use_block_name =
+                _block.ID.Name.IsEmpty()
+                    ? String::FromFormat("%d", _block.ID.ID)
+                    : (_block.ID.ID > 0 ? String::FromFormat("%d ('%s')", _block.ID.ID, _block.ID.Name.GetCStr())
+                                        : _block.ID.Name);
             return new Error(err, "Error reading extension block '%s'.", use_block_name.GetCStr());
         }
     }
@@ -153,22 +154,19 @@ HError ReadExtBlockList(std::vector<DataExtBlockInfo> &blk_infos, DataExtParser 
 }
 
 // Generic function that saves a block and automatically adds its size into header
-void WriteExtBlock(int block, const String &ext_id, const PfnWriteExtBlock& writer, const std::vector<uint8_t> *data, int flags, Stream *out)
+void WriteExtBlock(int block, const String &ext_id, const PfnWriteExtBlock &writer, const std::vector<uint8_t> *data,
+                   int flags, Stream *out)
 {
     const bool is_id32 = (flags & kDataExt_NumID32) != 0;
     // 64-bit file offsets are written for blocks with ext_id, OR File64 flag
     const bool is_file64 = (block == 0) || ((flags & kDataExt_File64) != 0);
     // Write block's header
-    is_id32 ?
-        out->WriteInt32(block) :
-        out->WriteInt8(static_cast<int8_t>(block));
+    is_id32 ? out->WriteInt32(block) : out->WriteInt8(static_cast<int8_t>(block));
     if (block == 0) // new-style string id
         ext_id.WriteCount(out, 16);
     soff_t sz_at = out->GetPosition();
     // block size placeholder
-    is_file64 ?
-        out->WriteInt64(0) :
-        out->WriteInt32(0);
+    is_file64 ? out->WriteInt64(0) : out->WriteInt32(0);
     soff_t start_at = out->GetPosition();
 
     if (writer)
@@ -187,9 +185,7 @@ void WriteExtBlock(int block, const String &ext_id, const PfnWriteExtBlock& writ
     soff_t block_size = (end_at - start_at);
     // ...return back and write block's size in the placeholder
     out->Seek(sz_at, Common::kSeekBegin);
-    is_file64 ?
-        out->WriteInt64(block_size) :
-        out->WriteInt32((int32_t)block_size);
+    is_file64 ? out->WriteInt64(block_size) : out->WriteInt32((int32_t)block_size);
     // ...and get back to the end of the file
     out->Seek(0, Common::kSeekEnd);
 }

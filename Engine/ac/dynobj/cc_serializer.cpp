@@ -45,22 +45,22 @@ extern CCGUIListBox ccDynamicGUIListBox;
 extern CCGUISlider ccDynamicGUISlider;
 extern CCGUITextBox ccDynamicGUITextBox;
 extern CCCharacter ccDynamicCharacter;
-extern CCHotspot   ccDynamicHotspot;
-extern CCRegion    ccDynamicRegion;
+extern CCHotspot ccDynamicHotspot;
+extern CCRegion ccDynamicRegion;
 extern CCWalkableArea ccDynamicWalkarea;
 extern CCWalkbehind ccDynamicWalkbehind;
 extern CCInventory ccDynamicInv;
-extern CCGUI       ccDynamicGUI;
+extern CCGUI ccDynamicGUI;
 extern CCTextWindowGUI ccDynamicTextWindowGUI;
-extern CCObject    ccDynamicObject;
-extern CCDialog    ccDynamicDialog;
+extern CCObject ccDynamicObject;
+extern CCDialog ccDynamicDialog;
 extern std::vector<PluginObjectReader> pluginReaders;
 extern std::vector<std::vector<int>> StaticGUIControlsHandles;
 
 // *** De-serialization of script objects
 
-void AGSDeSerializer::Unserialize(int index, const char *objectType, const char *serializedData, int dataSize) {
-
+void AGSDeSerializer::Unserialize(int index, const char *objectType, const char *serializedData, int dataSize)
+{
     if (dataSize < 0)
     {
         quitprintf("Unserialise: invalid data size (%d) for object type '%s'", dataSize, objectType);
@@ -71,7 +71,7 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     // part of the plugin API.
     size_t data_sz = static_cast<size_t>(dataSize);
     assert(data_sz <= INT32_MAX); // dynamic object API does not support size > int32
-    Stream mems(std::make_unique<MemoryStream>(reinterpret_cast<const uint8_t*>(serializedData), dataSize));
+    Stream mems(std::make_unique<MemoryStream>(reinterpret_cast<const uint8_t *>(serializedData), dataSize));
 
     // TODO: consider this: there are object types that are part of the
     // script's foundation, because they are created by the bytecode ops:
@@ -80,90 +80,116 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     //
     // TODO: should we support older save versions here (DynArray, UserObj)?
     // might have to use older class names to distinguish save formats
-    if (strcmp(objectType, CCDynamicArray::TypeName) == 0) {
+    if (strcmp(objectType, CCDynamicArray::TypeName) == 0)
+    {
         globalDynamicArray.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, ScriptUserObject::TypeName) == 0) {
+    else if (strcmp(objectType, ScriptUserObject::TypeName) == 0)
+    {
         globalDynamicStruct.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "GUIObject") == 0 || // old historical name
-             strcmp(objectType, "GUIControl") == 0) {
+             strcmp(objectType, "GUIControl") == 0)
+    {
         UnserializeGUIControl(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "Button") == 0) {
+    else if (strcmp(objectType, "Button") == 0)
+    {
         ccDynamicGUIButton.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "InvWindow") == 0) {
+    else if (strcmp(objectType, "InvWindow") == 0)
+    {
         ccDynamicGUIInvWindow.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "Label") == 0) {
+    else if (strcmp(objectType, "Label") == 0)
+    {
         ccDynamicGUILabel.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "ListBox") == 0) {
+    else if (strcmp(objectType, "ListBox") == 0)
+    {
         ccDynamicGUIListBox.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "Slider") == 0) {
+    else if (strcmp(objectType, "Slider") == 0)
+    {
         ccDynamicGUISlider.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "TextBox") == 0) {
+    else if (strcmp(objectType, "TextBox") == 0)
+    {
         ccDynamicGUITextBox.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "Character") == 0) {
+    else if (strcmp(objectType, "Character") == 0)
+    {
         ccDynamicCharacter.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "Hotspot") == 0) {
+    else if (strcmp(objectType, "Hotspot") == 0)
+    {
         ccDynamicHotspot.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "Region") == 0) {
+    else if (strcmp(objectType, "Region") == 0)
+    {
         ccDynamicRegion.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "WalkableArea") == 0) {
+    else if (strcmp(objectType, "WalkableArea") == 0)
+    {
         ccDynamicWalkarea.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "Walkbehind") == 0) {
+    else if (strcmp(objectType, "Walkbehind") == 0)
+    {
         ccDynamicWalkbehind.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "Inventory") == 0) {
+    else if (strcmp(objectType, "Inventory") == 0)
+    {
         ccDynamicInv.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "Dialog") == 0) {
+    else if (strcmp(objectType, "Dialog") == 0)
+    {
         ccDynamicDialog.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "GUI") == 0) {
+    else if (strcmp(objectType, "GUI") == 0)
+    {
         ccDynamicGUI.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "TextWindowGUI") == 0) {
+    else if (strcmp(objectType, "TextWindowGUI") == 0)
+    {
         ccDynamicTextWindowGUI.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "Object") == 0) {
+    else if (strcmp(objectType, "Object") == 0)
+    {
         ccDynamicObject.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "String") == 0) {
+    else if (strcmp(objectType, "String") == 0)
+    {
         myScriptStringImpl.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "File") == 0) {
+    else if (strcmp(objectType, "File") == 0)
+    {
         // files cannot be restored properly -- so just recreate
         // the object; attempting any operations on it will fail
         sc_File *scf = new sc_File();
         ccRegisterUnserializedObject(index, scf, scf);
     }
-    else if (strcmp(objectType, "Overlay") == 0) {
+    else if (strcmp(objectType, "Overlay") == 0)
+    {
         ScriptOverlay *scf = new ScriptOverlay();
         scf->Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "DateTime") == 0) {
+    else if (strcmp(objectType, "DateTime") == 0)
+    {
         ScriptDateTime *scf = new ScriptDateTime();
         scf->Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "ViewFrame") == 0) {
+    else if (strcmp(objectType, "ViewFrame") == 0)
+    {
         ScriptViewFrame *scf = new ScriptViewFrame();
         scf->Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "DynamicSprite") == 0) {
+    else if (strcmp(objectType, "DynamicSprite") == 0)
+    {
         ScriptDynamicSprite *scf = new ScriptDynamicSprite();
         scf->Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "DrawingSurface") == 0) {
+    else if (strcmp(objectType, "DrawingSurface") == 0)
+    {
         ScriptDrawingSurface *sds = new ScriptDrawingSurface();
         sds->Unserialize(index, &mems, data_sz);
     }
@@ -223,15 +249,18 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
         ScriptShaderInstance *sc_shinst = new ScriptShaderInstance();
         sc_shinst->Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, "AnimatedOverlay") == 0) {
+    else if (strcmp(objectType, "AnimatedOverlay") == 0)
+    {
         ScriptAnimatedOverlay *sc_aover = new ScriptAnimatedOverlay();
         sc_aover->Unserialize(index, &mems, data_sz);
     }
     else
     {
         // check if the type is read by a plugin
-        for (const auto &pr : pluginReaders) {
-            if (pr.Type == objectType) {
+        for (const auto &pr : pluginReaders)
+        {
+            if (pr.Type == objectType)
+            {
                 pr.Reader->Unserialize(index, serializedData, dataSize);
                 return;
             }
@@ -252,7 +281,9 @@ int AGSDeSerializer::RegisterGUIControl(int index, int guinum, int objnum)
     case kGUISlider: return ccRegisterUnserializedPersistentObject(index, obj, &ccDynamicGUISlider);
     case kGUITextBox: return ccRegisterUnserializedPersistentObject(index, obj, &ccDynamicGUITextBox);
     case kGUIListBox: return ccRegisterUnserializedPersistentObject(index, obj, &ccDynamicGUIListBox);
-    default: assert(false); /* should not happen */ return 0;
+    default:
+        assert(false); /* should not happen */
+        return 0;
     }
 }
 

@@ -33,22 +33,23 @@ void ExecutingScript::QueueAction(PostScriptAction &&act)
         case ePSARestoreGameDialog:
         case ePSARunAGSGame:
         case ePSARestartGame:
-            debug_script_warn("!%s: Cannot run this command, since there was a %s command already queued to run in \"%s\", line %d",
-                act.Name.GetCStr(), prev_act.Name.GetCStr(),
-                prev_act.Position.Section.GetCStr(), prev_act.Position.Line);
+            debug_script_warn(
+                "!%s: Cannot run this command, since there was a %s command already queued to run in \"%s\", line %d",
+                act.Name.GetCStr(), prev_act.Name.GetCStr(), prev_act.Position.Section.GetCStr(),
+                prev_act.Position.Line);
             return;
         // Dialog-state changing commands are mutually exclusive
         case ePSARunDialog:
         case ePSAStopDialog:
             if (act.Type == ePSARunDialog || act.Type == ePSAStopDialog)
             {
-                debug_script_warn("!%s: Cannot run this command, since there was a %s command already queued to run in \"%s\", line %d",
-                    act.Name.GetCStr(), prev_act.Name.GetCStr(),
-                    prev_act.Position.Section.GetCStr(), prev_act.Position.Line);
+                debug_script_warn(
+                    "!%s: Cannot run this command, since there was a %s command already queued to run in \"%s\", line %d",
+                    act.Name.GetCStr(), prev_act.Name.GetCStr(), prev_act.Position.Section.GetCStr(),
+                    prev_act.Position.Line);
                 return;
             }
-        default:
-            break;
+        default: break;
         }
     }
 

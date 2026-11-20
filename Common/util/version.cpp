@@ -22,59 +22,37 @@ namespace Common
 
 const Version Version::LastOldFormatVersion(3, 2, 2, 1120);
 
-Version::Version()
-    : Major(0)
-    , Minor(0)
-    , Release(0)
-    , Revision(0)
+Version::Version() : Major(0), Minor(0), Release(0), Revision(0)
 {
     MakeString();
 }
 
 Version::Version(int32_t major, int32_t minor, int32_t release)
-    : Major(major)
-    , Minor(minor)
-    , Release(release)
-    , Revision(0)
+    : Major(major), Minor(minor), Release(release), Revision(0)
 {
     MakeString();
 }
 
 Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision)
-    : Major(major)
-    , Minor(minor)
-    , Release(release)
-    , Revision(revision)
+    : Major(major), Minor(minor), Release(release), Revision(revision)
 {
     MakeString();
 }
 
 Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special)
-    : Major(major)
-    , Minor(minor)
-    , Release(release)
-    , Revision(revision)
-    , Special(special)
+    : Major(major), Minor(minor), Release(release), Revision(revision), Special(special)
 {
     MakeString();
 }
 
-Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special, const String &build_info)
-    : Major(major)
-    , Minor(minor)
-    , Release(release)
-    , Revision(revision)
-    , Special(special)
-    , BuildInfo(build_info)
+Version::Version(int32_t major, int32_t minor, int32_t release, int32_t revision, const String &special,
+                 const String &build_info)
+    : Major(major), Minor(minor), Release(release), Revision(revision), Special(special), BuildInfo(build_info)
 {
     MakeString();
 }
 
-Version::Version(const String &version_string)
-    : Major(0)
-    , Minor(0)
-    , Release(0)
-    , Revision(0)
+Version::Version(const String &version_string) : Major(0), Minor(0), Release(0), Revision(0)
 {
     SetFromString(version_string);
 }
@@ -123,12 +101,12 @@ void Version::SetFromString(const String &version_string)
             seek_ptr++;
         }
     }
-    
+
     Revision = revision_section.Left(revision_length).ToInt();
     // In old version format a special tag was added right after revision digits.
     // In new version format a special tag is separated from revision digits with single space char.
     Special = revision_section.Mid(revision_length + (old_version_format ? 0 : 1));
-    
+
     MakeString();
 }
 

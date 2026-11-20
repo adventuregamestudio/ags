@@ -25,7 +25,13 @@
 #include "util/string.h"
 #include "util/string_types.h"
 
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // Character flags (32-bit)
@@ -57,15 +63,15 @@ using namespace AGS; // FIXME later
 #define CHF_TINTLIGHTMASK   (CHF_NOLIGHTING | CHF_HASTINT | CHF_HASLIGHT)
 #define CHF_TURNWHENFACE    0x00080000 // Turn step-by-step when changing standing direction
 // reserve (skip) 4 bits for compatibility with 3.* branch (CHECKME revise some time later)
-#define CHF_ENABLED         0x01000000 // Enabled (can be visible + being updated)
-#define CHF_VISIBLE         0x02000000 // Visible (actual visibility requires both ENABLED + VISIBLE)
+#define CHF_ENABLED 0x01000000 // Enabled (can be visible + being updated)
+#define CHF_VISIBLE 0x02000000 // Visible (actual visibility requires both ENABLED + VISIBLE)
 
 // Value of walk speed indicating that X and Y speed is the same
 // Value of CharacterInfo::walkspeed_y that tells to use walkspeed_x
-#define UNIFORM_WALK_SPEED  0
+#define UNIFORM_WALK_SPEED 0
 // Value of "followinfo" field that tells to draw follower char above followed
 // Value of CharacterInfo::followinfo that tells to keep follower z-sorted above the leading char
-#define FOLLOW_ALWAYSONTOP  0x7ffe
+#define FOLLOW_ALWAYSONTOP 0x7ffe
 
 // Maximal number of character's face directions (loops)
 #define MAX_FACE_DIRECTIONS 8
@@ -76,59 +82,57 @@ using namespace AGS; // FIXME later
 #define LEGACY_MAX_CHAR_NAME_LEN 40
 
 // Legacy Character's animation flags, packed in a byte
-#define LEGACY_CHANIM_MASK         0xFF
-#define LEGACY_CHANIM_ON           0x01
-#define LEGACY_CHANIM_REPEAT       0x02
-#define LEGACY_CHANIM_BACKWARDS    0x04
+#define LEGACY_CHANIM_MASK      0xFF
+#define LEGACY_CHANIM_ON        0x01
+#define LEGACY_CHANIM_REPEAT    0x02
+#define LEGACY_CHANIM_BACKWARDS 0x04
 
 // These deprecated values were **added** to CharacterInfo's MoveList index;
 // TURNING_AROUND was added times the character must turn,
 // TURNING_BACKWARDS was added if the character is turning counter-clockwise;
 // which meant that the number of MoveList users will be limited by 1000,
 // and the number of possible turns limited to 9.
-#define LEGACY_CHAR_TURNING_AROUND      1000
-#define LEGACY_CHAR_TURNING_BACKWARDS   10000
+#define LEGACY_CHAR_TURNING_AROUND    1000
+#define LEGACY_CHAR_TURNING_BACKWARDS 10000
 
 
 // Converts character flags (CHF_*) to matching RoomObject flags (OBJF_*)
 inline int CharFlagsToObjFlags(int chflags)
 {
     using namespace AGS::Common;
-    return 
-        FlagToFlag(chflags,   CHF_NOINTERACT,       OBJF_NOINTERACT) |
-        FlagToFlag(chflags,   CHF_NOWALKBEHINDS,    OBJF_NOWALKBEHINDS) |
-        FlagToFlag(chflags,   CHF_HASTINT,          OBJF_HASTINT) |
-        FlagToFlag(chflags,   CHF_HASLIGHT,         OBJF_HASLIGHT) |
-        // following flags are inverse
-        FlagToNoFlag(chflags, CHF_NOLIGHTING,       OBJF_USEREGIONTINTS) |
-        FlagToNoFlag(chflags, CHF_MANUALSCALING,    OBJF_USEROOMSCALING) |
-        FlagToNoFlag(chflags, CHF_NOBLOCKING,       OBJF_SOLID);
+    return FlagToFlag(chflags, CHF_NOINTERACT, OBJF_NOINTERACT) |
+           FlagToFlag(chflags, CHF_NOWALKBEHINDS, OBJF_NOWALKBEHINDS) | FlagToFlag(chflags, CHF_HASTINT, OBJF_HASTINT) |
+           FlagToFlag(chflags, CHF_HASLIGHT, OBJF_HASLIGHT) |
+           // following flags are inverse
+           FlagToNoFlag(chflags, CHF_NOLIGHTING, OBJF_USEREGIONTINTS) |
+           FlagToNoFlag(chflags, CHF_MANUALSCALING, OBJF_USEROOMSCALING) |
+           FlagToNoFlag(chflags, CHF_NOBLOCKING, OBJF_SOLID);
 }
 
 enum CharacterSvgVersion
 {
-    kCharSvgVersion_Initial = 0, // [UNSUPPORTED] from 3.5.0 pre-alpha
-    kCharSvgVersion_350     = 1, // new movelist format (along with pathfinder)
-    kCharSvgVersion_36025   = 2, // animation volume
-    kCharSvgVersion_36109   = 3, // removed movelists, save externally
-    kCharSvgVersion_36115   = 4, // no limit on character name's length
-    kCharSvgVersion_36205   = 3060205, // 32-bit "following" parameters
-    kCharSvgVersion_36304   = 3060304, // blocking x,y
-    kCharSvgVersion_36310   = 3060310, // audio panning and speed
-    kCharSvgVersion_36317   = 3060317, // fixes for <=2.72 interaction lists
+    kCharSvgVersion_Initial = 0,     // [UNSUPPORTED] from 3.5.0 pre-alpha
+    kCharSvgVersion_350 = 1,         // new movelist format (along with pathfinder)
+    kCharSvgVersion_36025 = 2,       // animation volume
+    kCharSvgVersion_36109 = 3,       // removed movelists, save externally
+    kCharSvgVersion_36115 = 4,       // no limit on character name's length
+    kCharSvgVersion_36205 = 3060205, // 32-bit "following" parameters
+    kCharSvgVersion_36304 = 3060304, // blocking x,y
+    kCharSvgVersion_36310 = 3060310, // audio panning and speed
+    kCharSvgVersion_36317 = 3060317, // fixes for <=2.72 interaction lists
     //--------------------------------------------------------------------------------------------
-    kCharSvgVersion_400     = 4000000, // extended graphic effects (blend, rotate,...)
-    kCharSvgVersion_400_03  = 4000003, // compat with kCharSvgVersion_36115
-    kCharSvgVersion_400_09  = 4000009, // 32-bit color properties
-    kCharSvgVersion_400_13  = 4000013, // compat with kCharSvgVersion_36205
-    kCharSvgVersion_400_14  = 4000014, // proper ARGB color properties
-    kCharSvgVersion_400_16  = 4000016, // motion path exposed to script, separate runtime flags, turns
-    kCharSvgVersion_400_18  = 4000018, // shaders
-    kCharSvgVersion_400_20  = 4000020, // expanded and bit more consistent anim params serialization
-    kCharSvgVersion_400_26  = 4000026, // sync with kCharSvgVersion_36304
-    kCharSvgVersion_400_28  = 4000028, // sync with kCharSvgVersion_36310
-    kCharSvgVersion_400_29  = 4000029, // rotation pivot
-    kCharSvgVersion_400_33  = 4000033, // removed MAX_INV
+    kCharSvgVersion_400 = 4000000,    // extended graphic effects (blend, rotate,...)
+    kCharSvgVersion_400_03 = 4000003, // compat with kCharSvgVersion_36115
+    kCharSvgVersion_400_09 = 4000009, // 32-bit color properties
+    kCharSvgVersion_400_13 = 4000013, // compat with kCharSvgVersion_36205
+    kCharSvgVersion_400_14 = 4000014, // proper ARGB color properties
+    kCharSvgVersion_400_16 = 4000016, // motion path exposed to script, separate runtime flags, turns
+    kCharSvgVersion_400_18 = 4000018, // shaders
+    kCharSvgVersion_400_20 = 4000020, // expanded and bit more consistent anim params serialization
+    kCharSvgVersion_400_26 = 4000026, // sync with kCharSvgVersion_36304
+    kCharSvgVersion_400_28 = 4000028, // sync with kCharSvgVersion_36310
+    kCharSvgVersion_400_29 = 4000029, // rotation pivot
+    kCharSvgVersion_400_33 = 4000033, // removed MAX_INV
     kCharSvgVersion_Current = kCharSvgVersion_400_33
 };
 
@@ -145,32 +149,32 @@ enum CharacterEventID
 // TODO: must refactor, some parts of it should be in a runtime Character class.
 struct CharacterInfo
 {
-    int     defview     = 0;
-    int     talkview    = 0;
-    int     view        = 0;
-    int     room        = 0;
-    int     prevroom    = 0;
-    int     x           = 0;
-    int     y           = 0;
-    int     wait        = 0;
-    int     flags       = 0;  // CHF_* flags
-    int     idleview    = 0; // idle view number
+    int defview = 0;
+    int talkview = 0;
+    int view = 0;
+    int room = 0;
+    int prevroom = 0;
+    int x = 0;
+    int y = 0;
+    int wait = 0;
+    int flags = 0;    // CHF_* flags
+    int idleview = 0; // idle view number
     // delay in seconds to wait before switching to idle animation (0 = continuous idling)
-    int16_t idledelay    = 0;
-    int16_t idleleft    = 0; // time in seconds left before switching to idle animation
+    int16_t idledelay = 0;
+    int16_t idleleft = 0;     // time in seconds left before switching to idle animation
     int16_t transparency = 0; // "incorrect" alpha (in legacy 255-range units)
-    int16_t baseline    = -1;
-    int     activeinv   = -1; // selected inventory item
-    int     talkcolor   = 0;
-    int     thinkview   = 0;
-    int16_t blinkview   = 0;
+    int16_t baseline = -1;
+    int activeinv = -1; // selected inventory item
+    int talkcolor = 0;
+    int thinkview = 0;
+    int16_t blinkview = 0;
     int16_t blinkinterval = 0;
-    int16_t blinktimer  = 0;
-    int16_t blinkframe  = 0;
+    int16_t blinktimer = 0;
+    int16_t blinkframe = 0;
     int16_t walkspeed_y = 0;
-    int     z           = 0; // z-location, for flying etc
-    int     walkwait    = 0; // number of frames to wait before advancing a move;
-                             // also used as a turning counter
+    int z = 0;        // z-location, for flying etc
+    int walkwait = 0; // number of frames to wait before advancing a move;
+                      // also used as a turning counter
     int16_t speech_anim_speed = 0;
     int16_t idle_anim_speed = 0; // idle animation delay
     // relative offset of the blocking rect
@@ -178,18 +182,18 @@ struct CharacterInfo
     int16_t blocking_y = 0;
     int16_t blocking_width = 0;
     int16_t blocking_height = 0;
-    int     index_id    = 0; // this character's numeric ID
+    int index_id = 0; // this character's numeric ID
     int16_t walkwaitcounter = 0;
-    uint16_t loop       = 0;
-    uint16_t frame      = 0;
-    int16_t walking     = 0; // stores movelist index
-    int16_t walkspeed   = 0;
-    int16_t animspeed   = 0;
+    uint16_t loop = 0;
+    uint16_t frame = 0;
+    int16_t walking = 0; // stores movelist index
+    int16_t walkspeed = 0;
+    int16_t animspeed = 0;
     // Quantities of inventory items, by item ID;
     // these may be read from the game data, in case it sets up character start with certain items
     std::unordered_map<int, int> invq;
     AGS::Common::String scrname = {}; // script name
-    AGS::Common::String name = {}; // regular name (aka description)
+    AGS::Common::String name = {};    // regular name (aka description)
     // Interaction events (cursor-based)
     AGS::Common::ScriptEventHandlers interactions = {};
 
@@ -218,53 +222,44 @@ struct CharacterInfo
     }
 
     // Gets current character's movelist id
-    inline int  get_movelist_id()    const { return walking; }
+    inline int get_movelist_id() const { return walking; }
     // Tells if the character is performing a move, that is - either moving along
     // a path or turning between move path segments.
-    inline bool is_moving()          const { return walking > 0; }
+    inline bool is_moving() const { return walking > 0; }
     // Is moving *and* playing walking animation
     // FIXME: would be proper to also test is_moving() in is_moving_walkanim()
     // and in is_moving_no_anim(), but it breaks animation logic;
     // some further adjustments would be required in the engine code.
     inline bool is_moving_walkanim() const { return (flags & CHF_MOVENOTWALK) == 0; }
     // Is moving, but *not* playing walking animation
-    inline bool is_moving_no_anim()  const { return (flags & CHF_MOVENOTWALK) != 0; }
+    inline bool is_moving_no_anim() const { return (flags & CHF_MOVENOTWALK) != 0; }
     inline bool has_explicit_light() const { return (flags & CHF_HASLIGHT) != 0; }
-    inline bool has_explicit_tint()  const { return (flags & CHF_HASTINT) != 0; }
+    inline bool has_explicit_tint() const { return (flags & CHF_HASTINT) != 0; }
     inline void set_enabled(bool on) { flags = (flags & ~CHF_ENABLED) | (CHF_ENABLED * on); }
     inline void set_visible(bool on) { flags = (flags & ~CHF_VISIBLE) | (CHF_VISIBLE * on); }
 
-    inline bool is_idling()          const { return (idleleft < 0); }
+    inline bool is_idling() const { return (idleleft < 0); }
 
     // Gets if character follows another, while being drawn behind
-    inline bool get_follow_sort_behind() const
-    {
-        return (flags & CHF_BEHINDSHEPHERD) != 0;
-    }
+    inline bool get_follow_sort_behind() const { return (flags & CHF_BEHINDSHEPHERD) != 0; }
     // Sets "following sort behind" flag
     void set_following_sortbehind(bool sort_behind = false)
     {
         flags = (flags & ~CHF_BEHINDSHEPHERD) | (CHF_BEHINDSHEPHERD * sort_behind);
     }
 
-    bool has_any_of_item(int item_id) const
-    {
-        return invq.count(item_id) > 0 && invq.at(item_id) > 0;
-    }
+    bool has_any_of_item(int item_id) const { return invq.count(item_id) > 0 && invq.at(item_id) > 0; }
 
-    int get_item_quantity(int item_id) const
-    {
-        return invq.count(item_id) > 0 ? invq.at(item_id) : 0;
-    }
+    int get_item_quantity(int item_id) const { return invq.count(item_id) > 0 ? invq.at(item_id) : 0; }
 
     void set_item_quantity(int item_id, int quant);
 
     CharacterInfo() = default;
-    CharacterInfo(const CharacterInfo&) = default;
+    CharacterInfo(const CharacterInfo &) = default;
     CharacterInfo(CharacterInfo &&) = default;
 
-    CharacterInfo &operator = (const CharacterInfo&) = default;
-    CharacterInfo &operator = (CharacterInfo&&) = default;
+    CharacterInfo &operator=(const CharacterInfo &) = default;
+    CharacterInfo &operator=(CharacterInfo &&) = default;
 
     // Provides a script events table
     const AGS::Common::ScriptEventTable &GetEvents() const { return _events; }

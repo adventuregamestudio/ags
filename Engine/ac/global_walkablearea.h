@@ -19,17 +19,17 @@
 #ifndef __AGS_EE_AC__GLOBALWALKABLEAREA_H
 #define __AGS_EE_AC__GLOBALWALKABLEAREA_H
 
-int   GetScalingAt (int x, int y);
-void  SetAreaScaling(int area, int min, int max);
-void  RemoveWalkableArea(int areanum);
-void  RestoreWalkableArea(int areanum);
+int GetScalingAt(int x, int y);
+void SetAreaScaling(int area, int min, int max);
+void RemoveWalkableArea(int areanum);
+void RestoreWalkableArea(int areanum);
 // Gets walkable area at the given room coordinates;
 // if area is disabled, returns 0 (empty area)
-int   GetWalkableAreaAtRoom(int x, int y);
+int GetWalkableAreaAtRoom(int x, int y);
 // Gets walkable area at the given screen coordinates
 // if area is disabled, returns 0 (empty area);
 // NOTE: if there's no room viewport under screen coordinates,
 // then returns -1 (no area)
-int   GetWalkableAreaAtScreen(int x, int y);
+int GetWalkableAreaAtScreen(int x, int y);
 
 #endif // __AGS_EE_AC__GLOBALWALKABLEAREA_H

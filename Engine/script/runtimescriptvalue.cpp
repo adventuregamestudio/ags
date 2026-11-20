@@ -31,17 +31,15 @@ uint8_t RuntimeScriptValue::ReadByte() const
     case kScValGlobalVar:
         if (RValue->Type == kScValData)
         {
-            return *(uint8_t*)(GetRValuePtrWithOffset());
+            return *(uint8_t *)(GetRValuePtrWithOffset());
         }
         else
         {
             return static_cast<uint8_t>(RValue->IValue);
         }
     case kScValStaticArray:
-    case kScValScriptObject:
-        return this->ObjMgr->ReadInt8(this->Ptr, this->IValue);
-    default:
-        return *((uint8_t*)this->GetPtrWithOffset());
+    case kScValScriptObject: return this->ObjMgr->ReadInt8(this->Ptr, this->IValue);
+    default: return *((uint8_t *)this->GetPtrWithOffset());
     }
 }
 
@@ -52,7 +50,7 @@ int16_t RuntimeScriptValue::ReadInt16() const
     case kScValStackPtr:
         if (RValue->Type == kScValData)
         {
-            return *(int16_t*)(GetRValuePtrWithOffset());
+            return *(int16_t *)(GetRValuePtrWithOffset());
         }
         else
         {
@@ -68,10 +66,8 @@ int16_t RuntimeScriptValue::ReadInt16() const
             return static_cast<int16_t>(RValue->IValue);
         }
     case kScValStaticArray:
-    case kScValScriptObject:
-        return this->ObjMgr->ReadInt16(this->Ptr, this->IValue);
-    default:
-        return *((int16_t*)this->GetPtrWithOffset());
+    case kScValScriptObject: return this->ObjMgr->ReadInt16(this->Ptr, this->IValue);
+    default: return *((int16_t *)this->GetPtrWithOffset());
     }
 }
 
@@ -82,7 +78,7 @@ int32_t RuntimeScriptValue::ReadInt32() const
     case kScValStackPtr:
         if (RValue->Type == kScValData)
         {
-            return *(int32_t*)(GetRValuePtrWithOffset());
+            return *(int32_t *)(GetRValuePtrWithOffset());
         }
         else
         {
@@ -98,10 +94,8 @@ int32_t RuntimeScriptValue::ReadInt32() const
             return static_cast<uint32_t>(RValue->IValue);
         }
     case kScValStaticArray:
-    case kScValScriptObject:
-        return this->ObjMgr->ReadInt32(this->Ptr, this->IValue);
-    default:
-        return *((int32_t*)this->GetPtrWithOffset());
+    case kScValScriptObject: return this->ObjMgr->ReadInt32(this->Ptr, this->IValue);
+    default: return *((int32_t *)this->GetPtrWithOffset());
     }
 }
 
@@ -113,7 +107,7 @@ void RuntimeScriptValue::WriteByte(uint8_t val)
     case kScValGlobalVar:
         if (RValue->Type == kScValData)
         {
-            *(uint8_t*)(GetRValuePtrWithOffset()) = val;
+            *(uint8_t *)(GetRValuePtrWithOffset()) = val;
         }
         else
         {
@@ -121,12 +115,8 @@ void RuntimeScriptValue::WriteByte(uint8_t val)
         }
         break;
     case kScValStaticArray:
-    case kScValScriptObject:
-        this->ObjMgr->WriteInt8(this->Ptr, this->IValue, val);
-        break;
-    default:
-        *((uint8_t*)this->GetPtrWithOffset()) = val;
-        break;
+    case kScValScriptObject: this->ObjMgr->WriteInt8(this->Ptr, this->IValue, val); break;
+    default: *((uint8_t *)this->GetPtrWithOffset()) = val; break;
     }
 }
 
@@ -137,7 +127,7 @@ void RuntimeScriptValue::WriteInt16(int16_t val)
     case kScValStackPtr:
         if (RValue->Type == kScValData)
         {
-            *(int16_t*)(GetRValuePtrWithOffset()) = val;
+            *(int16_t *)(GetRValuePtrWithOffset()) = val;
         }
         else
         {
@@ -155,12 +145,8 @@ void RuntimeScriptValue::WriteInt16(int16_t val)
         }
         break;
     case kScValStaticArray:
-    case kScValScriptObject:
-        this->ObjMgr->WriteInt16(this->Ptr, this->IValue, val);
-        break;
-    default:
-        *((int16_t*)this->GetPtrWithOffset()) = val;
-        break;
+    case kScValScriptObject: this->ObjMgr->WriteInt16(this->Ptr, this->IValue, val); break;
+    default: *((int16_t *)this->GetPtrWithOffset()) = val; break;
     }
 }
 
@@ -171,7 +157,7 @@ void RuntimeScriptValue::WriteInt32(int32_t val)
     case kScValStackPtr:
         if (RValue->Type == kScValData)
         {
-            *(int32_t*)(GetRValuePtrWithOffset()) = val;
+            *(int32_t *)(GetRValuePtrWithOffset()) = val;
         }
         else
         {
@@ -189,12 +175,8 @@ void RuntimeScriptValue::WriteInt32(int32_t val)
         }
         break;
     case kScValStaticArray:
-    case kScValScriptObject:
-        this->ObjMgr->WriteInt32(this->Ptr, this->IValue, val);
-        break;
-    default:
-        *((int32_t*)this->GetPtrWithOffset()) = val;
-        break;
+    case kScValScriptObject: this->ObjMgr->WriteInt32(this->Ptr, this->IValue, val); break;
+    default: *((int32_t *)this->GetPtrWithOffset()) = val; break;
     }
 }
 
@@ -231,8 +213,8 @@ void *RuntimeScriptValue::GetDirectPtr() const
     int ival = temp_val->IValue;
     if (temp_val->Type == kScValGlobalVar || temp_val->Type == kScValStackPtr)
     {
-        temp_val  = temp_val->RValue;
-        ival     += temp_val->IValue;
+        temp_val = temp_val->RValue;
+        ival += temp_val->IValue;
     }
     if (temp_val->Type == kScValScriptObject)
         return temp_val->ObjMgr->GetFieldPtr(temp_val->Ptr, ival);

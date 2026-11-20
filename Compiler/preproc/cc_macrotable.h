@@ -19,15 +19,17 @@
 
 typedef AGS::Common::String AGString;
 
-struct MacroTable {
+struct MacroTable
+{
 private:
-    std::map<AGString,AGString> _macro_table;
+    std::map<AGString, AGString> _macro_table;
+
 public:
     bool contains(const AGString &name) const;
     AGString get_macro(const AGString &name);
     void add(const AGString &macroname, const AGString &value);
     void remove(const AGString &macroname);
-    void merge(MacroTable & macro_table);
+    void merge(MacroTable &macro_table);
     void clear();
 };
 

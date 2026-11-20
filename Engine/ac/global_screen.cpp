@@ -38,7 +38,8 @@ extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern RGB palette[256];
 
-void FlipScreen(int direction) {
+void FlipScreen(int direction)
+{
     direction = ValidateFlip("FlipScreen", direction);
     play.screen_flipped = direction;
 }
@@ -46,8 +47,7 @@ void FlipScreen(int direction) {
 class ShakeScreenState : public GameState
 {
 public:
-    ShakeScreenState(int severe)
-        : _severe(severe) {}
+    ShakeScreenState(int severe) : _severe(severe) {}
 
     // Begin the state, initialize and prepare any resources;
     // returns if the state should continue, or ends instantly
@@ -91,9 +91,7 @@ public:
         play.shakesc_amount = 0;
     }
     // Draw the state
-    void Draw() override
-    {
-    }
+    void Draw() override {}
     // Update the state during a game tick;
     // returns whether should continue to run state loop, or stop
     bool Run() override
@@ -122,7 +120,8 @@ private:
     int _step = 0;
 };
 
-void ShakeScreen(int severe) {
+void ShakeScreen(int severe)
+{
     EndSkippingUntilCharStops();
 
     if (play.fast_forward)
@@ -134,27 +133,31 @@ void ShakeScreen(int severe) {
 
     ShakeScreenState shake(severe);
     shake.Begin();
-    while (shake.Run());
+    while (shake.Run())
+        ;
     shake.End();
 
     sync_audio_playback();
 }
 
-void ShakeScreenBackground (int delay, int amount, int length) {
-    if (delay < 2) 
+void ShakeScreenBackground(int delay, int amount, int length)
+{
+    if (delay < 2)
         quit("!ShakeScreenBackground: invalid delay parameter");
     play.shakesc_amount = amount;
     play.shakesc_delay = delay;
     play.shakesc_length = length;
 }
 
-void TintScreen(int red, int grn, int blu) {
+void TintScreen(int red, int grn, int blu)
+{
     if ((red < 0) || (grn < 0) || (blu < 0) || (red > 100) || (grn > 100) || (blu > 100))
         quit("!TintScreen: RGB values must be 0-100");
 
     invalidate_screen();
 
-    if ((red == 0) && (grn == 0) && (blu == 0)) {
+    if ((red == 0) && (grn == 0) && (blu == 0))
+    {
         play.screen_tint = -1;
         return;
     }
@@ -164,7 +167,8 @@ void TintScreen(int red, int grn, int blu) {
     play.screen_tint = red + (grn << 8) + (blu << 16);
 }
 
-void FadeOut(int sppd) {
+void FadeOut(int sppd)
+{
     EndSkippingUntilCharStops();
 
     if (play.fast_forward)
@@ -185,14 +189,14 @@ void FadeOut(int sppd) {
     // Older engines did not mark the screen as "faded out" specifically for
     // the 8-bit games, for unknown reasons. There's at least one game where
     // this was accidentally useful, as it did not run FadeIn after FadeOut.
-    if ((loaded_game_file_version < kGameVersion_361)
-        && game.color_depth == 1)
+    if ((loaded_game_file_version < kGameVersion_361) && game.color_depth == 1)
     {
         play.screen_is_faded_out = false;
     }
 }
 
-void SetScreenTransition(int newtrans) {
+void SetScreenTransition(int newtrans)
+{
     if ((newtrans < 0) || (newtrans >= kNumScrTransitions))
         quit("!SetScreenTransition: invalid transition type");
 
@@ -201,7 +205,8 @@ void SetScreenTransition(int newtrans) {
     debug_script_log("Screen transition changed");
 }
 
-void SetNextScreenTransition(int newtrans) {
+void SetNextScreenTransition(int newtrans)
+{
     if ((newtrans < 0) || (newtrans >= kNumScrTransitions))
         quit("!SetNextScreenTransition: invalid transition type");
 
@@ -210,9 +215,9 @@ void SetNextScreenTransition(int newtrans) {
     debug_script_log("SetNextScreenTransition engaged");
 }
 
-void SetFadeColor(int red, int green, int blue) {
-    if ((red < 0) || (red > 255) || (green < 0) || (green > 255) ||
-        (blue < 0) || (blue > 255))
+void SetFadeColor(int red, int green, int blue)
+{
+    if ((red < 0) || (red > 255) || (green < 0) || (green > 255) || (blue < 0) || (blue > 255))
         quit("!SetFadeColor: Red, Green and Blue must be 0-255");
 
     play.fade_to_red = red;
@@ -220,7 +225,8 @@ void SetFadeColor(int red, int green, int blue) {
     play.fade_to_blue = blue;
 }
 
-void FadeIn(int sppd) {
+void FadeIn(int sppd)
+{
     EndSkippingUntilCharStops();
 
     if (play.fast_forward)

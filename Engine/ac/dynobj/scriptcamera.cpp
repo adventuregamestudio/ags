@@ -25,7 +25,7 @@ const char *ScriptCamera::GetType()
     return "Camera";
 }
 
-int ScriptCamera::Dispose(void* /*address*/, bool /*force*/)
+int ScriptCamera::Dispose(void * /*address*/, bool /*force*/)
 {
     // Note that ScriptCamera is a reference to actual Camera object,
     // and this deletes the reference, while camera may remain in GameState.
@@ -33,12 +33,12 @@ int ScriptCamera::Dispose(void* /*address*/, bool /*force*/)
     return 1;
 }
 
-size_t ScriptCamera::CalcSerializeSize(const void* /*address*/)
+size_t ScriptCamera::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void ScriptCamera::Serialize(const void* /*address*/, Stream *out)
+void ScriptCamera::Serialize(const void * /*address*/, Stream *out)
 {
     out->WriteInt32(_id);
 }

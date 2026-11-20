@@ -24,7 +24,7 @@
 
 using namespace AGS::Common;
 
-const char* SENT_MESSAGE_FILE_NAME = "dbgrecv.tmp";
+const char *SENT_MESSAGE_FILE_NAME = "dbgrecv.tmp";
 
 bool FileBasedAGSDebugger::Initialize()
 {
@@ -35,11 +35,9 @@ bool FileBasedAGSDebugger::Initialize()
     return true;
 }
 
-void FileBasedAGSDebugger::Shutdown()
-{
-}
+void FileBasedAGSDebugger::Shutdown() {}
 
-bool FileBasedAGSDebugger::SendMessageToEditor(const char *message) 
+bool FileBasedAGSDebugger::SendMessageToEditor(const char *message)
 {
     while (File::IsFile(SENT_MESSAGE_FILE_NAME))
     {
@@ -59,7 +57,7 @@ bool FileBasedAGSDebugger::IsMessageAvailable()
     return (File::IsFile("dbgsend.tmp") != 0);
 }
 
-char* FileBasedAGSDebugger::GetNextMessage()
+char *FileBasedAGSDebugger::GetNextMessage()
 {
     auto in = File::OpenFileRead("dbgsend.tmp");
     if (in == nullptr)
@@ -68,7 +66,7 @@ char* FileBasedAGSDebugger::GetNextMessage()
         return nullptr;
     }
     size_t fileSize = (size_t)std::min((soff_t)std::numeric_limits<size_t>::max, in->GetLength());
-    char *msg = (char*)malloc(fileSize + 1);
+    char *msg = (char *)malloc(fileSize + 1);
     in->Read(msg, fileSize);
     File::DeleteFile("dbgsend.tmp");
     msg[fileSize] = 0;

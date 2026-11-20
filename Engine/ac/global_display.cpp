@@ -40,9 +40,10 @@ extern GameSetupStruct game;
 
 void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bool as_speech);
 
-void Display(AGS_FORMAT_STRING_ARG const char *texx, ...) {
+void Display(AGS_FORMAT_STRING_ARG const char *texx, ...)
+{
     va_list ap;
-    va_start(ap,texx);
+    va_start(ap, texx);
     String text = String::FromFormatV(get_translation(texx), ap);
     va_end(ap);
     DisplayAtY(-1, text.GetCStr());
@@ -77,8 +78,7 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
         font = play.top_bar_font;
     else
         font = FONT_NORMAL;
-    int height = get_font_height_outlined(font)
-        + play.top_bar_borderwidth * 2 + 1;
+    int height = get_font_height_outlined(font) + play.top_bar_borderwidth * 2 + 1;
 
     const TopBarSettings topbar(get_translation(title), FONT_NORMAL, height);
 
@@ -89,16 +89,20 @@ void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const 
     DisplayAtYImpl(play.top_bar_ypos, text, &topbar, game.options[OPT_ALWAYSSPCH] != 0);
 }
 
-void DisplayAt(int xxp,int yyp,int widd, const char* text) {
+void DisplayAt(int xxp, int yyp, int widd, const char *text)
+{
     if (play.screen_is_faded_out)
         debug_script_warn("Blocking Display call during fade-out.");
 
-    if (widd<1) widd=play.GetUIViewport().GetWidth()/2;
-    if (xxp<0) xxp=play.GetUIViewport().GetWidth()/2-widd/2;
+    if (widd < 1)
+        widd = play.GetUIViewport().GetWidth() / 2;
+    if (xxp < 0)
+        xxp = play.GetUIViewport().GetWidth() / 2 - widd / 2;
     display_at(xxp, yyp, widd, text, nullptr);
 }
 
-void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bool as_speech) {
+void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bool as_speech)
+{
     const Rect &ui_view = play.GetUIViewport();
     if ((ypos < -1) || (ypos >= ui_view.GetHeight()))
         quitprintf("!DisplayAtY: invalid Y co-ordinate supplied (used: %d; valid: 0..%d)", ypos, ui_view.GetHeight());
@@ -115,30 +119,36 @@ void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bo
         DisplaySpeechAt(-1, ypos, -1, game.playercharacter, texx);
     }
     else
-    { 
+    {
         // Normal "Display" in text box
         display_at(-1, ypos, ui_view.GetWidth() / 2 + ui_view.GetWidth() / 4, get_translation(texx), topbar);
     }
 }
 
-void DisplayAtY(int ypos, const char *texx) {
+void DisplayAtY(int ypos, const char *texx)
+{
     DisplayAtYImpl(ypos, texx, nullptr, game.options[OPT_ALWAYSSPCH] != 0);
 }
 
-void DisplaySpeechAt(int xx, int yy, int wii, int aschar, const char *spch) {
+void DisplaySpeechAt(int xx, int yy, int wii, int aschar, const char *spch)
+{
     display_speech(get_translation(spch), aschar, xx, yy, wii, true /*not auto-pos*/, false /* not thought */);
 }
 
 // [DEPRECATED] left only for use in Display, replace/merge with modern function
-static int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char *text, int over_type, DisplayTextStyle style, int speech_for_char) {
+static int CreateTextOverlay(int xx, int yy, int wii, int fontid, int text_color, const char *text, int over_type,
+                             DisplayTextStyle style, int speech_for_char)
+{
     // allow DisplaySpeechBackground to be shrunk
     DisplayTextShrink allow_shrink = (speech_for_char >= 0) ? kDisplayTextShrink_Left : kDisplayTextShrink_None;
-    auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, over_type, style, allow_shrink, speech_for_char);
+    auto *over = Overlay_CreateTextCore(false, xx, yy, wii, fontid, text_color, text, over_type, style, allow_shrink,
+                                        speech_for_char);
     return over ? over->GetID() : 0;
 }
 
 // [DEPRECATED] but still used by Character_SayBackground, might merge since there are no other instances
-int DisplaySpeechBackground(int charid, const char *speel) {
+int DisplaySpeechBackground(int charid, const char *speel)
+{
     // remove any previous background speech for this character
     // TODO: have a map character -> bg speech over?
     const auto &overs = get_overlays();
@@ -151,8 +161,8 @@ int DisplaySpeechBackground(int charid, const char *speel) {
         }
     }
 
-    int ovrl = CreateTextOverlay(0, 0, play.GetUIViewport().GetWidth() / 2, FONT_SPEECH,
-                                 game.chars[charid].talkcolor, get_translation(speel), OVER_CUSTOM, kDisplayTextStyle_Overchar, charid);
+    int ovrl = CreateTextOverlay(0, 0, play.GetUIViewport().GetWidth() / 2, FONT_SPEECH, game.chars[charid].talkcolor,
+                                 get_translation(speel), OVER_CUSTOM, kDisplayTextStyle_Overchar, charid);
 
     auto *over = get_overlay(ovrl);
     over->SetAsSpeech(charid, GetTextDisplayTime(speel, 1));

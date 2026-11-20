@@ -20,23 +20,23 @@
 const char *get_engine_name();
 const char *get_engine_version();
 AGS::Common::String get_engine_version_and_build();
-void        show_preload();
-void        engine_init_game_settings();
+void show_preload();
+void engine_init_game_settings();
 AGS::Common::HError engine_init_sprites();
-int         initialize_engine(const AGS::Common::ConfigTree &startup_opts);
+int initialize_engine(const AGS::Common::ConfigTree &startup_opts);
 
 struct DisplayModeSetup;
 // Try to set new graphics mode deduced from given configuration;
 // if requested mode fails, tries to find any compatible mode close to the
 // requested one.
-bool        engine_try_set_gfxmode_any(const DisplayModeSetup &setup);
+bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup);
 // Tries to switch between fullscreen and windowed mode; uses previously saved
 // setup if it is available, or default settings for the new mode
-bool        engine_try_switch_windowed_gfxmode();
+bool engine_try_switch_windowed_gfxmode();
 // Update graphic renderer and render frame when window size changes
-void        engine_on_window_changed(const Size &sz);
+void engine_on_window_changed(const Size &sz);
 // Shutdown graphics mode (used before shutting down tha application)
-void        engine_shutdown_gfxmode();
+void engine_shutdown_gfxmode();
 
 using AGS::Common::String;
 // Defines a package file location
@@ -53,13 +53,13 @@ struct ResourcePaths
     PackLocation GamePak;    // main game package
     PackLocation AudioPak;   // audio package
     PackLocation SpeechPak;  // voice-over package
-    String       DataDir;    // path to the data directory
-    bool         VoiceAvail = false; // tells whether voice files available in either location
+    String DataDir;          // path to the data directory
+    bool VoiceAvail = false; // tells whether voice files available in either location
     // Optional directories are represented by pairs of "path" and "filter".
     // Currently are only set for compatibility with Editor (game test runs from IDE),
     // see "--runfromide" command line arg.
     std::vector<std::pair<String, String>> OptDataDirs; // optional data directories
-    String       VoiceDirSub;// full voice-over directory with optional sub-dir
+    String VoiceDirSub;                                 // full voice-over directory with optional sub-dir
 };
 extern ResourcePaths ResPaths;
 

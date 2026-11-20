@@ -30,23 +30,23 @@ class TextWriter
 public:
     virtual ~TextWriter() = default;
 
-    virtual bool    IsValid() const                         = 0;
+    virtual bool IsValid() const = 0;
 
     // Write single character
-    virtual void    WriteChar(char c)                       = 0;
+    virtual void WriteChar(char c) = 0;
     // Write string as a plain text (without null-terminator)
-    virtual void    WriteString(const String &str)          = 0;
+    virtual void WriteString(const String &str) = 0;
     // Write string and add line break at the end
-    virtual void    WriteLine(const String &str)            = 0;
+    virtual void WriteLine(const String &str) = 0;
     // Write formatted string (see *printf)
-    virtual void    WriteFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING_OBJECT(1) = 0;
+    virtual void WriteFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING_OBJECT(1) = 0;
     // Write formatted string and line break at the end
-    virtual void    WriteLineFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING_OBJECT(1) = 0;
+    virtual void WriteLineFormat(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING_OBJECT(1) = 0;
     // Write line break
-    virtual void    WriteLineBreak()                        = 0;
+    virtual void WriteLineBreak() = 0;
 
     // Flushes the underlying device (does nothing in def impl)
-    virtual void    Flush() { /* do nothing */ }
+    virtual void Flush() { /* do nothing */ }
 };
 
 } // namespace Common

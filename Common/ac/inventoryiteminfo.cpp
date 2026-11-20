@@ -18,9 +18,7 @@
 
 using namespace AGS::Common;
 
-/* static */ ScriptEventSchema InventoryItemInfo::_eventSchema = {{
-        { "OnAnyClick", kInventoryEvent_AnyClick }
-    }};
+/* static */ ScriptEventSchema InventoryItemInfo::_eventSchema = {{{"OnAnyClick", kInventoryEvent_AnyClick}}};
 
 void InventoryItemInfo::RemapOldInteractions()
 {
@@ -29,13 +27,13 @@ void InventoryItemInfo::RemapOldInteractions()
     // this is just for safety, it's supposed to be that large
     old_interactions.resize(NUM_STANDARD_VERBS);
     new_interactions.resize(NUM_STANDARD_VERBS);
-    new_interactions[STD_MODE_WALK]    = {};
-    new_interactions[STD_MODE_LOOK]    = old_interactions[0];
-    new_interactions[STD_MODE_HAND]    = old_interactions[1];
-    new_interactions[STD_MODE_TALK]    = old_interactions[2];
-    new_interactions[STD_MODE_USE]     = old_interactions[3];
+    new_interactions[STD_MODE_WALK] = {};
+    new_interactions[STD_MODE_LOOK] = old_interactions[0];
+    new_interactions[STD_MODE_HAND] = old_interactions[1];
+    new_interactions[STD_MODE_TALK] = old_interactions[2];
+    new_interactions[STD_MODE_USE] = old_interactions[3];
     // "Other click" event handler is assigned to any other standard interaction
-    new_interactions[STD_MODE_PICKUP]  = old_interactions[4];
+    new_interactions[STD_MODE_PICKUP] = old_interactions[4];
     new_interactions[STD_MODE_CUSTOM1] = old_interactions[4];
     new_interactions[STD_MODE_CUSTOM2] = old_interactions[4];
 
@@ -52,7 +50,7 @@ void InventoryItemInfo::ReadFromFile(Stream *in, GameDataVersion game_ver)
     hotx = in->ReadInt32();
     hoty = in->ReadInt32();
     hotAlign = static_cast<FrameAlignment>(in->ReadInt32()); // since kGameVersion_363_14
-    in->Seek(sizeof(int32_t) * 4); // reserved
+    in->Seek(sizeof(int32_t) * 4);                           // reserved
     flags = in->ReadInt8();
     in->Seek(3); // alignment padding to int32
 
@@ -70,7 +68,7 @@ void InventoryItemInfo::WriteToFile(Stream *out) const
     out->WriteInt32(cursorPic);
     out->WriteInt32(hotx);
     out->WriteInt32(hoty);
-    out->WriteInt32(hotAlign); // since kGameVersion_363_14
+    out->WriteInt32(hotAlign);                   // since kGameVersion_363_14
     out->WriteByteCount(0, sizeof(int32_t) * 4); // reserved
     out->WriteInt8(flags);
     out->WriteByteCount(0, 3); // alignment padding to int32

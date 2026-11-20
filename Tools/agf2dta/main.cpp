@@ -14,18 +14,18 @@ using namespace AGS::Common::CmdLineOpts;
 using namespace AGS;
 
 const char *HELP_STRING =
-//------------------------------------------------------------------------------|
-"Usage: agf2dta <INPUT-GAME.AGF> <OUTPUT-FILE.DAT>\n"
-"      Parses AGS project file INPUT-GAME.AGF and writes a compiled AGS game\n"
-"      data file (v3.x-4.x engines expect 'game28.dta' by default).\n"
-"Options:\n"
-"  -h, --help             Show this help message\n";
+    //------------------------------------------------------------------------------|
+    "Usage: agf2dta <INPUT-GAME.AGF> <OUTPUT-FILE.DAT>\n"
+    "      Parses AGS project file INPUT-GAME.AGF and writes a compiled AGS game\n"
+    "      data file (v3.x-4.x engines expect 'game28.dta' by default).\n"
+    "Options:\n"
+    "  -h, --help             Show this help message\n";
 
 int main(int argc, char *argv[])
 {
-    printf("agf2dta v0.1.0 - AGS game main data file build tool\n"\
-        "Copyright (c) 2026 AGS Team and contributors\n");
-    ParseResult parseResult = Parse(argc,argv,{});
+    printf("agf2dta v0.1.0 - AGS game main data file build tool\n"
+           "Copyright (c) 2026 AGS Team and contributors\n");
+    ParseResult parseResult = Parse(argc, argv, {});
     if (parseResult.HelpRequested)
     {
         printf("%s\n", HELP_STRING);
@@ -37,13 +37,13 @@ int main(int argc, char *argv[])
         printf("%s\n", HELP_STRING);
         return -1;
     }
-	
+
     const String &src_agf = parseResult.PosArgs[0];
     const String &out_file = parseResult.PosArgs[1];
-	
+
     printf("Input game AGF: %s\n", src_agf.GetCStr());
     printf("Output dat file: %s\n", out_file.GetCStr());
-	
+
     //-----------------------------------------------------------------------//
     // validate inputs
     //-----------------------------------------------------------------------//

@@ -31,17 +31,18 @@ namespace Common
 namespace CmdLineOpts
 {
 
-    struct ParseResult {
-        bool HelpRequested = false;
-        std::vector<std::pair<String, String>> OptWithValue{};
-        std::vector<String> PosArgs;
-        std::multiset<String> Opt;
-        String OptWithMissingValue{};
-    };
+struct ParseResult
+{
+    bool HelpRequested = false;
+    std::vector<std::pair<String, String>> OptWithValue{};
+    std::vector<String> PosArgs;
+    std::multiset<String> Opt;
+    String OptWithMissingValue{};
+};
 
-    // opt_params_with_values are the options that always take an argument.
-    // example: `-l Val` or `--long Val` are passed with {"-l","--long"}.
-    ParseResult Parse(int argc, const char *const argv[], const std::set<String> &opt_params_with_values);
+// opt_params_with_values are the options that always take an argument.
+// example: `-l Val` or `--long Val` are passed with {"-l","--long"}.
+ParseResult Parse(int argc, const char *const argv[], const std::set<String> &opt_params_with_values);
 
 } // namespace CmdLineOpts
 

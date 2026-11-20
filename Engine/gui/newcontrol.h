@@ -24,19 +24,19 @@ using namespace AGS; // FIXME later
 
 struct NewControl
 {
-  int x, y, wid, hit, state, typeandflags, wlevel;
-  char visible, enabled;        // not implemented
-  char needredraw;
-  virtual void draw(Common::Bitmap *ds) = 0;
-  virtual int pressedon(int mx, int my) = 0;
-  virtual int processmessage(int, int, intptr_t) = 0;
+    int x, y, wid, hit, state, typeandflags, wlevel;
+    char visible, enabled; // not implemented
+    char needredraw;
+    virtual void draw(Common::Bitmap *ds) = 0;
+    virtual int pressedon(int mx, int my) = 0;
+    virtual int processmessage(int, int, intptr_t) = 0;
 
-  NewControl(int xx, int yy, int wi, int hi);
-  NewControl();
-  virtual ~NewControl() = default;
-  int mouseisinarea(int mx, int my);
-  void drawifneeded();
-  void drawandmouse();
+    NewControl(int xx, int yy, int wi, int hi);
+    NewControl();
+    virtual ~NewControl() = default;
+    int mouseisinarea(int mx, int my);
+    void drawifneeded();
+    void drawandmouse();
 };
 
 #endif // __AGS_EE_GUI__NEWCONTROL_H

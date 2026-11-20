@@ -38,39 +38,37 @@ public:
     virtual String GetOldBlockName(int block_id) const;
 
 private:
-    static int GetDataExtFlags(RoomFileVersion /*data_ver*/)
-    {
-        return kDataExt_NumID8 | kDataExt_File64;
-    }
+    static int GetDataExtFlags(RoomFileVersion /*data_ver*/) { return kDataExt_NumID8 | kDataExt_File64; }
 };
 
 // Type of function that reads (or skips) a single room block
-typedef std::function<HError(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block, const String &ext_id,
-    soff_t block_len, RoomFileVersion data_ver, const RoomReadOptions &room_read_opts)> PfnReadRoomBlock;
+typedef std::function<HError(RoomData *room, RoomDataAux *room_aux, Stream *in, RoomFileBlock block,
+                             const String &ext_id, soff_t block_len, RoomFileVersion data_ver,
+                             const RoomReadOptions &room_read_opts)>
+    PfnReadRoomBlock;
 
 // RoomBlockReader reads whole room data, block by block
 class RoomBlockReader : public DataExtReader
 {
 public:
     RoomBlockReader(RoomData *room, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
-        const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr);
+                    const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr);
     RoomBlockReader(RoomData *room, RoomDataAux *room_aux, RoomFileVersion data_ver, std::unique_ptr<Stream> &&in,
-        const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr);
+                    const RoomReadOptions &read_opts, PfnReadRoomBlock pfn_read = nullptr);
 
 private:
     static int GetDataExtFlags(RoomFileVersion /*data_ver*/, const RoomReadOptions &read_opts)
     {
-        return kDataExt_NumID8 | kDataExt_File64
-            | (kDataExt_IgnoreUnread * (read_opts.PartialRead | read_opts.SkipImageData));
+        return kDataExt_NumID8 | kDataExt_File64 |
+               (kDataExt_IgnoreUnread * (read_opts.PartialRead | read_opts.SkipImageData));
     }
 
     String GetOldBlockName(int block_id) const override;
-    HError ReadBlock(Stream *in, int block_id, const String &ext_id,
-        soff_t block_len, bool &read_next) override;
+    HError ReadBlock(Stream *in, int block_id, const String &ext_id, soff_t block_len, bool &read_next) override;
 
-    RoomData *_room {};
-    RoomDataAux *_roomAux {};
-    RoomFileVersion _dataVer {};
+    RoomData *_room{};
+    RoomDataAux *_roomAux{};
+    RoomFileVersion _dataVer{};
     RoomReadOptions _roomReadOpts;
     PfnReadRoomBlock _readFn;
 };
@@ -78,7 +76,7 @@ private:
 
 //
 // TODO: RoomBlockWriter to pair the RoomBlockReader
-// 
+//
 // Type of function that writes single room block.
 typedef std::function<void(const RoomData *room, Stream *out)> PfnWriteRoomBlock;
 // Helper for new-style blocks with string id

@@ -591,7 +591,7 @@ struct GameSettings
     int DialogOptionsGUI;
     int DialogOptionsGap;
     String DialogScriptNarrateFunction; // Custom narrate function name
-    String DialogScriptSayFunction; // Custom speech function name
+    String DialogScriptSayFunction;     // Custom speech function name
     bool DisplayMultipleInventory;
     bool DisplaySingleDialogOption;
     bool EnforceNewAudio;
@@ -660,19 +660,19 @@ struct RuntimeSetup
     bool Windowed = false;
     bool FullscreenDesktop = false;
     String FullscreenGameScaling; // enum-like field
-    String WindowGameScaling; // enum-like field
+    String WindowGameScaling;     // enum-like field
     int GameScalingMultiplier = 0;
     String GraphicsFilter;
     bool VSync = false;
     bool AAScaledSprites = false;
     bool RenderAtScreenResolution = false;
-    String Rotation; // enum-like field
+    String Rotation;    // enum-like field
     String AudioDriver; // enum-like field
     bool UseVoicePack = false;
     String Translation;
     bool AutoLockMouse = false;
     float MouseSpeed = 0.f;
-    String TouchToMouseEmulation; // enum-like field
+    String TouchToMouseEmulation;  // enum-like field
     String TouchToMouseMotionMode; // enum-like field
     bool ShowFPS = false;
     int SpriteCacheSize = 0;
@@ -742,16 +742,16 @@ struct GameRef
     std::vector<EntityRef> Cursors;
     std::vector<DialogRef> Dialogs;
     std::vector<EntityRef> Fonts;
-    std::vector<GUIRef>    GUI;
+    std::vector<GUIRef> GUI;
     std::vector<EntityRef> Inventory;
     std::vector<EntityRef> Views;
     std::vector<std::pair<int, String>> Rooms;
 
-    std::vector<Variable>  GlobalVars;
+    std::vector<Variable> GlobalVars;
     std::vector<CustomPropertySchemaItem> PropertySchema;
 
-    int                    PlayerCharacter = -1;
-    GameSettings           Settings;
+    int PlayerCharacter = -1;
+    GameSettings Settings;
 };
 
 // Full game data required for serializing a compiled game. The base GameRef

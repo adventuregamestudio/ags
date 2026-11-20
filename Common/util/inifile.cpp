@@ -27,7 +27,7 @@ inline int isblank(int ch)
 {
     return ch == ' ' || ch == '\t';
 }
-} // std
+} // namespace agsstd
 
 namespace AGS
 {
@@ -82,13 +82,13 @@ void IniFile::ItemDef::SetValue(const String &value)
         return; // no key
 
     if (SepAt != String::NoIndex)
-    {   // replacing existing value
+    { // replacing existing value
         size_t diff = value.GetLength() - (Value.second - Value.first);
         ReplaceSubString(Line, Value, value);
         Value.second += diff;
     }
     else
-    {   // inserting value behind the key
+    { // inserting value behind the key
         StrPos valpos(Key.second, Key.second);
         ReplaceSubString(Line, valpos, String::FromFormat("=%s", value.GetCStr()));
     }
@@ -141,7 +141,8 @@ void IniFile::SectionDef::EraseItem(ItemIterator item)
     Items.erase(item);
 }
 
-IniFile::ItemIterator IniFile::InsertItem(SectionIterator sec, ItemIterator item, const String &key, const String &value)
+IniFile::ItemIterator IniFile::InsertItem(SectionIterator sec, ItemIterator item, const String &key,
+                                          const String &value)
 {
     ItemDef itemdef(key, value);
     return sec->InsertItem(item, itemdef);
@@ -174,7 +175,8 @@ void IniFile::RemoveSection(SectionIterator sec)
 // Moves string pointer forward to the first non-space character
 const char *SkipSpace(const char *line, const char *endl)
 {
-    for (; line != endl && isspace(*line); ++line);
+    for (; line != endl && isspace(*line); ++line)
+        ;
     return line;
 }
 
@@ -184,15 +186,16 @@ const char *SkipSpace(const char *line, const char *endl)
 // pointers of the string. Returns pointer to where parsing stopped.
 // The 'endl' must point beyond the last character of the string
 // (e.g. terminator).
-const char *ParsePaddedString(const char *line, const char *endl,
-                              const char *&str_at, const char *&str_end)
+const char *ParsePaddedString(const char *line, const char *endl, const char *&str_at, const char *&str_end)
 {
     // skip left padding
-    for (; line != endl && agsstd::isblank(*line); ++line);
+    for (; line != endl && agsstd::isblank(*line); ++line)
+        ;
     str_at = line;
     // skip right padding
     const char *p_value = line;
-    for (line = endl; line != p_value && agsstd::isblank(*(line - 1)); --line);
+    for (line = endl; line != p_value && agsstd::isblank(*(line - 1)); --line)
+        ;
     str_end = line;
     return line;
 }
@@ -206,7 +209,7 @@ IniFile::IniFile()
 void IniFile::Read(std::unique_ptr<Stream> &&in)
 {
     TextStreamReader reader(std::move(in));
-    
+
     _sections.clear();
     // Create a global section;
     // all the items we meet before explicit section declaration
@@ -280,8 +283,7 @@ void IniFile::Read(std::unique_ptr<Stream> &&in)
             }
             cur_section->InsertItem(cur_section->End(), ItemDef(line, keypos, valpos, sep_at));
         }
-    }
-    while (!reader.EOS());
+    } while (!reader.EOS());
 }
 
 void IniFile::Write(std::unique_ptr<Stream> &&out) const

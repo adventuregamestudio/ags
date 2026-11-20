@@ -19,8 +19,7 @@
 struct ScriptTouchPointer final : CCBasicObject
 {
 public:
-    ScriptTouchPointer(int pointer_id)
-        : _pointerID(pointer_id) {}
+    ScriptTouchPointer(int pointer_id) : _pointerID(pointer_id) {}
 
     int GetPointerID() const { return _pointerID; }
     void Invalidate() { _pointerID = -1; }

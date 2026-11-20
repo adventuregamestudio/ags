@@ -74,7 +74,8 @@ int ags_strncpy_s(char *dest, size_t dest_sz, const char *src, size_t count)
     // NOTE: implementation approximately mimics explanation for "strncpy_s":
     // https://en.cppreference.com/w/c/string/byte/strncpy
     assert(dest && dest_sz > 0 && ((dest + dest_sz - 1 < src) || (dest > src + count)));
-    if (!dest || dest_sz == 0 || ((dest <= src) && (dest + dest_sz - 1 >= src)) || ((src <= dest) && (src + count - 1 >= dest)))
+    if (!dest || dest_sz == 0 || ((dest <= src) && (dest + dest_sz - 1 >= src)) ||
+        ((src <= dest) && (src + count - 1 >= dest)))
         return EINVAL; // null buffer, or dest and src overlap
     if (!src)
     {
@@ -88,9 +89,9 @@ int ags_strncpy_s(char *dest, size_t dest_sz, const char *src, size_t count)
     char *pdst = dest;
     for (; *psrc && (psrc != src_end); ++psrc, ++pdst)
         *pdst = *psrc;
-    *pdst = 0; // ensure null terminator
+    *pdst = 0;                                       // ensure null terminator
     assert((*psrc == 0) || ((psrc - src) == count)); // assert that no *unintended* truncation occured
     if ((*psrc != 0) && ((size_t)(psrc - src) < count))
         return ERANGE; // not enough dest buffer - error
-    return 0; // success
+    return 0;          // success
 }

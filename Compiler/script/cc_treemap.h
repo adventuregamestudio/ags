@@ -22,7 +22,8 @@
 #include <string>
 
 // Mimics original interface but uses a std::map for storage
-struct ccTreeMap {
+struct ccTreeMap
+{
     int findValue(const char *key);
     void addEntry(const char *ntx, int p_value);
     void clear();

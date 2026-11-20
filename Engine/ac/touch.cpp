@@ -33,7 +33,8 @@ struct TouchPointer
     TouchPointer() = default;
     TouchPointer(int pointer_id, TouchPhase phase, const Point &pos, int script_handle = 0)
         : PointerID(pointer_id), Phase(phase), Position(pos), ScriptObjHandle(script_handle)
-    {}
+    {
+    }
 
     void SetUndefinedState()
     {
@@ -69,9 +70,7 @@ static void OnTouchPointer(int pointer_id, TouchPhase phase, const Point &positi
     // to a particular state (e.g. "up", or "inactive"), then here is the
     // place to do so. See DetachScriptTouchPointer().
     const int old_handle = g_TouchPointers[pointer_id].ScriptObjHandle;
-    g_TouchPointers[pointer_id] = TouchPointer(
-        pointer_id, phase, position, old_handle
-    );
+    g_TouchPointers[pointer_id] = TouchPointer(pointer_id, phase, position, old_handle);
 }
 
 void OnTouchPointerDown(int pointer_id, const Point &position)
@@ -118,7 +117,8 @@ ScriptTouchPointer *Touch_GetTouchPointers(int pointer_id)
 
     if (g_TouchPointers[pointer_id].ScriptObjHandle > 0)
     {
-        return static_cast<ScriptTouchPointer*>(ccGetObjectAddressFromHandle(g_TouchPointers[pointer_id].ScriptObjHandle));
+        return static_cast<ScriptTouchPointer *>(
+            ccGetObjectAddressFromHandle(g_TouchPointers[pointer_id].ScriptObjHandle));
     }
 
     auto *tpointer = new ScriptTouchPointer(pointer_id);
@@ -208,13 +208,13 @@ RuntimeScriptValue Sc_TouchPointer_GetY(void *self, const RuntimeScriptValue *pa
 void RegisterTouchAPI()
 {
     ScFnRegister touch_api[] = {
-            { "Touch::get_TouchPointerCount",   API_FN_PAIR(Touch_GetTouchPointerCount) },
-            { "Touch::geti_TouchPointers",      API_FN_PAIR(Touch_GetTouchPointers) },
+        {"Touch::get_TouchPointerCount", API_FN_PAIR(Touch_GetTouchPointerCount)},
+        {"Touch::geti_TouchPointers", API_FN_PAIR(Touch_GetTouchPointers)},
 
-            { "TouchPointer::get_ID",           API_FN_PAIR(TouchPointer_GetID) },
-            { "TouchPointer::get_IsDown",       API_FN_PAIR(TouchPointer_GetIsDown) },
-            { "TouchPointer::get_X",            API_FN_PAIR(TouchPointer_GetX) },
-            { "TouchPointer::get_Y",            API_FN_PAIR(TouchPointer_GetY) },
+        {"TouchPointer::get_ID", API_FN_PAIR(TouchPointer_GetID)},
+        {"TouchPointer::get_IsDown", API_FN_PAIR(TouchPointer_GetIsDown)},
+        {"TouchPointer::get_X", API_FN_PAIR(TouchPointer_GetX)},
+        {"TouchPointer::get_Y", API_FN_PAIR(TouchPointer_GetY)},
     };
 
     ccAddExternalFunctions(touch_api);

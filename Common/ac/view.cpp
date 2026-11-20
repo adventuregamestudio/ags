@@ -43,11 +43,7 @@ void ViewFrame::WriteToFile(Stream *out) const
     out->WriteInt32(0); // reserved 1
 }
 
-ViewLoopNew::ViewLoopNew()
-    : numFrames(0)
-    , flags(0)
-{
-}
+ViewLoopNew::ViewLoopNew() : numFrames(0), flags(0) {}
 
 bool ViewLoopNew::RunNextLoop() const
 {
@@ -98,10 +94,7 @@ void ViewLoopNew::ReadFrames(Stream *in)
     }
 }
 
-ViewStruct::ViewStruct()
-    : numLoops(0)
-{
-}
+ViewStruct::ViewStruct() : numLoops(0) {}
 
 void ViewStruct::Initialize(int loopCount)
 {

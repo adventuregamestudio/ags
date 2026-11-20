@@ -17,7 +17,7 @@
 //
 // TODO: replace nearest-neighbour software filter with SDL's own accelerated
 // scaling, maybe add more filter types if SDL renderer supports them.
-// Only keep Hqx filter as a software option (might need to change how the 
+// Only keep Hqx filter as a software option (might need to change how the
 // filter code works).
 //
 //=============================================================================
@@ -57,8 +57,8 @@ public:
     // Rotation is set in degrees clockwise
     void SetRotation(float rotation) override { _rotation = rotation; }
     // Software renderer expects DDBs to have tint already applied
-    void SetLightLevel(int /*lightLevel*/) override  { }
-    void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override { }
+    void SetLightLevel(int /*lightLevel*/) override {}
+    void SetTint(int /*red*/, int /*green*/, int /*blue*/, int /*tintSaturation*/) override {}
 
     ALSoftwareBitmap() = default;
 
@@ -81,10 +81,7 @@ public:
 
     ~ALSoftwareBitmap() override = default;
 
-    Bitmap *GetBitmap() const
-    {
-        return _bmp;
-    }
+    Bitmap *GetBitmap() const { return _bmp; }
 
     void SetBitmap(Bitmap *bmp)
     {
@@ -101,15 +98,9 @@ private:
 class SDLRendererGfxModeList : public IGfxModeList
 {
 public:
-    SDLRendererGfxModeList(const std::vector<DisplayMode> &modes)
-        : _modes(modes)
-    {
-    }
+    SDLRendererGfxModeList(const std::vector<DisplayMode> &modes) : _modes(modes) {}
 
-    int GetModeCount() const override
-    {
-        return _modes.size();
-    }
+    int GetModeCount() const override { return _modes.size(); }
 
     bool GetMode(int index, DisplayMode &mode) const override
     {
@@ -193,7 +184,7 @@ public:
     // Set game render frame and translation
     bool SetRenderFrame(const Rect &dst_rect) override;
     // Report which display's color depth option is best suited for the given native color depth
-    int  GetDisplayDepthForNativeDepth(int native_color_depth) const override;
+    int GetDisplayDepthForNativeDepth(int native_color_depth) const override;
     // Gets a list of supported fullscreen display modes
     IGfxModeList *GetSupportedModeList(int display_index, int color_depth) override;
     // Tells if the given display mode supported
@@ -213,9 +204,9 @@ public:
     // Enables or disables rendering mode that draws sprite list directly into
     // the final resolution, as opposed to drawing to native-resolution buffer
     // and scaling to final frame.
-    void RenderSpritesAtScreenResolution(bool /*enabled*/) override { }
+    void RenderSpritesAtScreenResolution(bool /*enabled*/) override {}
     // Enables or disables a smooth sprite scaling mode
-    void UseSmoothScaling(bool /*enabled*/) override { }
+    void UseSmoothScaling(bool /*enabled*/) override {}
     // Tells if driver supports gamma control
     bool SupportsGammaControl() override;
     // Sets gamma level
@@ -225,34 +216,36 @@ public:
     // Texture management
     //
     // Gets closest recommended bitmap format (currently - only color depth) for the given original format.
-    int  GetCompatibleBitmapFormat(int color_depth) override;
+    int GetCompatibleBitmapFormat(int color_depth) override;
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override { return 0; /* not using textures for sprites anyway */ }
     // Creates a "raw" DDB, without pixel initialization.
     IDriverDependantBitmap *CreateDDB() override;
     // Creates a "raw" DDB, without pixel initialization.
-    IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, int txflags) override;
+    IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, int txflags) override;
     // Create DDB using preexisting texture data
     IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, int txflags) override
-        { return nullptr; /* not supported */ }
+    {
+        return nullptr; /* not supported */
+    }
     // Creates DDB, initializes from the given bitmap.
-    IDriverDependantBitmap* CreateDDBFromBitmap(const Bitmap *bitmap, int txflags) override;
+    IDriverDependantBitmap *CreateDDBFromBitmap(const Bitmap *bitmap, int txflags) override;
     // Creates DDB intended to be used as a render target (allow render other DDBs on it).
-    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
+    IDriverDependantBitmap *CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
     // Updates DBB using the given bitmap
-    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, const Bitmap *bitmap) override;
     // Destroy the DDB; note that this does not dispose the texture unless there's no more refs to it
-    void DestroyDDB(IDriverDependantBitmap* ddb) override;
+    void DestroyDDB(IDriverDependantBitmap *ddb) override;
 
     // Create texture data with the given parameters
-    Texture *CreateTexture(int, int, int, int) override { return nullptr; /* not supported */}
+    Texture *CreateTexture(int, int, int, int) override { return nullptr; /* not supported */ }
     // Create texture and initialize its pixels from the given bitmap; optionally assigns a ID
-    Texture *CreateTexture(const Bitmap*, int) override { return nullptr; /* not supported */ }
+    Texture *CreateTexture(const Bitmap *, int) override { return nullptr; /* not supported */ }
     // Update texture data from the given bitmap
-    void UpdateTexture(Texture *txdata, const Bitmap*, bool) override { /* not supported */}
+    void UpdateTexture(Texture *txdata, const Bitmap *, bool) override { /* not supported */ }
     // Retrieve shared texture object from the given DDB
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override { return nullptr; /* not supported */ }
-    
+
     ///////////////////////////////////////////////////////
     // Shader management
     //
@@ -264,10 +257,18 @@ public:
     const char *GetShaderDefinitionExtension() override { return ""; }
     // Creates shader program from the source code, registers it under given name;
     // not supported in software driver, always fails.
-    IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def) override { return nullptr; }
+    IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src,
+                                        const ShaderDefinition *def) override
+    {
+        return nullptr;
+    }
     // Creates shader program from the compiled data, registers it under given name;
     // not supported in software driver, always fails.
-    IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override { return nullptr; }
+    IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data,
+                                        const ShaderDefinition *def) override
+    {
+        return nullptr;
+    }
     // Deletes particular shader program.
     void DeleteShaderProgram(IGraphicShader *shader) override { /* do nothing */ }
     // Creates shader instance for the given shader;
@@ -280,11 +281,10 @@ public:
     // Preparing a scene
     //
     // Adds sprite to the active batch, providing it's origin position
-    void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override
-         { DrawSprite(x, y, x, y, ddb); }
+    void DrawSprite(int x, int y, IDriverDependantBitmap *ddb) override { DrawSprite(x, y, x, y, ddb); }
     // Adds sprite to the active batch, providing it's origin position and auxiliary
     // position of the left-top image corner in the same coordinate space
-    void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* ddb) override;
+    void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap *ddb) override;
     // Adds a render event, which runs a callback with the given parameters, to the active batch
     void AddRenderEvent(int evt, int param) override;
     // Adds fade overlay fx to the active batch
@@ -304,7 +304,7 @@ public:
 
     ///////////////////////////////////////////////////////
     // Rendering and presenting
-    // 
+    //
     // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     // Renders draw lists and presents to screen.
@@ -323,7 +323,7 @@ public:
     void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter = 0u) override;
     // Copies contents of the last rendered game frame into bitmap using simple blit or pixel copy.
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
-        GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
+                                   GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
     // Returns the virtual screen. Will return NULL if renderer does not support memory backbuffer.
     Bitmap *GetMemoryBackBuffer() override;
     // Sets custom backbuffer bitmap to render to.
@@ -333,7 +333,7 @@ public:
     // Sets custom backbuffer bitmap to render current render stage to.
     void SetStageBackBuffer(Bitmap *backBuffer) override;
     // Retrieves 3 transform matrixes for the current rendering stage: world (model), view and projection.
-    bool GetStageMatrixes(RenderMatrixes &/*rm*/) override { return false; /* not supported */ }
+    bool GetStageMatrixes(RenderMatrixes & /*rm*/) override { return false; /* not supported */ }
 
 protected:
     bool SetVsyncImpl(bool vsync, bool &vsync_res) override;
@@ -359,7 +359,8 @@ private:
     // Rendering and presenting: implementation
     //
     // Renders single sprite batch on the precreated surface
-    size_t RenderSpriteBatch(const ALSpriteBatch &batch, size_t from, Common::Bitmap *surface, int surf_offx, int surf_offy);
+    size_t RenderSpriteBatch(const ALSpriteBatch &batch, size_t from, Common::Bitmap *surface, int surf_offx,
+                             int surf_offy);
     // Copy raw screen bitmap pixels to the SDL texture
     void BlitToTexture();
     // Render SDL texture on screen
@@ -376,7 +377,7 @@ private:
 
     SDL_Renderer *_renderer = nullptr;
     SDL_Texture *_screenTex = nullptr;
-    bool _isDirectX = false; // records if created DirectX based renderer
+    bool _isDirectX = false;     // records if created DirectX based renderer
     int _fullscreenDisplay = -1; // a display where exclusive fullscreen was created
     // BITMAP struct for wrapping screen texture locked pixels, so that we may use blit()
     BITMAP *_fakeTexBitmap = nullptr;
@@ -407,15 +408,15 @@ class SDLRendererGraphicsFactory : public GfxDriverFactoryBase<SDLRendererGraphi
 public:
     ~SDLRendererGraphicsFactory() override;
 
-    size_t               GetFilterCount() const override;
+    size_t GetFilterCount() const override;
     const GfxFilterInfo *GetFilterInfo(size_t index) const override;
-    String               GetDefaultFilterID() const override;
+    String GetDefaultFilterID() const override;
 
     static SDLRendererGraphicsFactory *GetFactory();
 
 private:
     SDLRendererGraphicsDriver *EnsureDriverCreated() override;
-    SDLRendererGfxFilter      *CreateFilter(const String &id) override;
+    SDLRendererGfxFilter *CreateFilter(const String &id) override;
 
     static SDLRendererGraphicsFactory *_factory;
 };

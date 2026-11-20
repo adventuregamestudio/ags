@@ -86,9 +86,7 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
 
     // Allow automatic-width text to shrink to fit.
     DisplayTextShrink allow_shrink =
-        (auto_width || over.IsAutoPosition())
-        ? kDisplayTextShrink_Left
-        : kDisplayTextShrink_None;
+        (auto_width || over.IsAutoPosition()) ? kDisplayTextShrink_Left : kDisplayTextShrink_None;
 
     // Calculate automatic width using the same limit as Display().
     if (auto_width)
@@ -102,7 +100,7 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     }
 
     if (text_color == 0)
-        text_color =  GUI::GetStandardColor(16);
+        text_color = GUI::GetStandardColor(16);
 
     const char *draw_text = get_translation(text);
     // Skip a voice-over token, if present
@@ -111,12 +109,12 @@ void Overlay_SetText(ScreenOverlay &over, int x, int y, int width, int fontid, i
     // Recreate overlay image
     int adj_x = x, adj_y = y;
     DisplayTextLooks look(kDisplayTextStyle_TextWindow, (DisplayTextPosition)text_pos, allow_shrink);
-    look.PreserveTextColor = (loaded_game_file_version >= kGameVersion_363_16 && loaded_game_file_version < kGameVersion_399)
-        || (loaded_game_file_version >= kGameVersion_400_33);
+    look.PreserveTextColor =
+        (loaded_game_file_version >= kGameVersion_363_16 && loaded_game_file_version < kGameVersion_399) ||
+        (loaded_game_file_version >= kGameVersion_400_33);
 
-    std::unique_ptr<Bitmap> image = create_textual_image(draw_text,
-        look, text_color, x, y, adj_x, adj_y,
-        width, fontid, nullptr);
+    std::unique_ptr<Bitmap> image =
+        create_textual_image(draw_text, look, text_color, x, y, adj_x, adj_y, width, fontid, nullptr);
 
     // Update overlay properties
     over.SetFixedPosition(x, y);
@@ -355,7 +353,8 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
     // We clone only dynamic sprites, because it makes no sense to clone normal ones
     if (clone && ((game.SpriteInfos[slot].Flags & SPF_DYNAMICALLOC) != 0))
     {
-        std::unique_ptr<Bitmap> screeno(new Bitmap(game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height, game.GetColorDepth()));
+        std::unique_ptr<Bitmap> screeno(
+            new Bitmap(game.SpriteInfos[slot].Width, game.SpriteInfos[slot].Height, game.GetColorDepth()));
         screeno->Blit(spriteset[slot]);
         overid = add_screen_overlay(room_layer, x, y, OVER_CUSTOM, std::move(screeno));
     }
@@ -367,30 +366,35 @@ ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot
 }
 
 ScreenOverlay *Overlay_CreateTextCore(bool room_layer, int x, int y, int width, int font, int text_color,
-    const char *text, int over_type, DisplayTextStyle style, DisplayTextShrink allow_shrink, int speech_for_char)
+                                      const char *text, int over_type, DisplayTextStyle style,
+                                      DisplayTextShrink allow_shrink, int speech_for_char)
 {
     // NOTE: this was not documented, but apparently passing x < 0 or y < 0
     // to Overlay.CreateTextual actually made it centered on screen
     DisplayTextPosition text_pos = get_textpos_from_scriptcoords(x, y, false);
-    if (width < 8) width = play.GetUIViewport().GetWidth() / 2;
-    if (text_color == 0) text_color = GUI::GetStandardColor(16);
+    if (width < 8)
+        width = play.GetUIViewport().GetWidth() / 2;
+    if (text_color == 0)
+        text_color = GUI::GetStandardColor(16);
     // Skip a voice-over token, if present
     const char *draw_text = skip_voiceover_token(text);
     DisplayTextLooks look(style, text_pos, allow_shrink);
-    look.PreserveTextColor = (loaded_game_file_version >= kGameVersion_363_16 && loaded_game_file_version < kGameVersion_399)
-        || (loaded_game_file_version >= kGameVersion_400_33);
+    look.PreserveTextColor =
+        (loaded_game_file_version >= kGameVersion_363_16 && loaded_game_file_version < kGameVersion_399) ||
+        (loaded_game_file_version >= kGameVersion_400_33);
 
-    return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type,
-        look, font, text_color, speech_for_char, room_layer);
+    return display_main(x, y, width, draw_text, nullptr, kDisplayText_NormalOverlay, over_type, look, font, text_color,
+                        speech_for_char, room_layer);
 }
 
-ScriptOverlay* Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool clone)
+ScriptOverlay *Overlay_CreateGraphicalImpl(bool room_layer, int x, int y, int slot, bool clone)
 {
     auto *over = Overlay_CreateGraphicCore(room_layer, x, y, slot, clone);
     return over ? over->CreateScriptObject() : nullptr;
 }
 
-ScriptOverlay* Overlay_CreateTextualImpl(bool room_layer, int x, int y, int width, int font, int colour, const char* text)
+ScriptOverlay *Overlay_CreateTextualImpl(bool room_layer, int x, int y, int width, int font, int colour,
+                                         const char *text)
 {
     const bool auto_width = (width < 0);
     if (auto_width)
@@ -399,41 +403,40 @@ ScriptOverlay* Overlay_CreateTextualImpl(bool room_layer, int x, int y, int widt
         width = play.GetUIViewport().GetWidth() * 3 / 4;
     }
 
-    auto *over = Overlay_CreateTextCore(
-        room_layer, x, y, width, font, colour, text,
-        OVER_CUSTOM, kDisplayTextStyle_TextWindow,
-        auto_width ? kDisplayTextShrink_Left : kDisplayTextShrink_None);
+    auto *over =
+        Overlay_CreateTextCore(room_layer, x, y, width, font, colour, text, OVER_CUSTOM, kDisplayTextStyle_TextWindow,
+                               auto_width ? kDisplayTextShrink_Left : kDisplayTextShrink_None);
     return over ? over->CreateScriptObject() : nullptr;
 }
 
-ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, bool clone)
+ScriptOverlay *Overlay_CreateGraphical(int x, int y, int slot, bool clone)
 {
     return Overlay_CreateGraphicalImpl(false, x, y, slot, clone);
 }
 
 // This is a fallback for running 3.6.0 games, strictly for regression testing convenience
-ScriptOverlay* Overlay_CreateGraphical5(int x, int y, int slot, bool /* dummy */, bool clone)
+ScriptOverlay *Overlay_CreateGraphical5(int x, int y, int slot, bool /* dummy */, bool clone)
 {
     return Overlay_CreateGraphical(x, y, slot, clone);
 }
 
-ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text)
+ScriptOverlay *Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char *text)
 {
     return Overlay_CreateTextualImpl(false, x, y, width, font, colour, text);
 }
 
-ScriptOverlay* Overlay_CreateRoomGraphical(int x, int y, int slot, bool clone)
+ScriptOverlay *Overlay_CreateRoomGraphical(int x, int y, int slot, bool clone)
 {
     return Overlay_CreateGraphicalImpl(true, x, y, slot, clone);
 }
 
 // This is a fallback for running 3.6.0 games, strictly for regression testing convenience
-ScriptOverlay* Overlay_CreateRoomGraphical5(int x, int y, int slot, bool /*dummy*/, bool clone)
+ScriptOverlay *Overlay_CreateRoomGraphical5(int x, int y, int slot, bool /*dummy*/, bool clone)
 {
     return Overlay_CreateRoomGraphical(x, y, slot, clone);
 }
 
-ScriptOverlay* Overlay_CreateRoomTextual(int x, int y, int width, int font, int colour, const char* text)
+ScriptOverlay *Overlay_CreateRoomTextual(int x, int y, int width, int font, int colour, const char *text)
 {
     return Overlay_CreateTextualImpl(true, x, y, width, font, colour, text);
 }
@@ -467,7 +470,7 @@ void Overlay_SetBlendMode(ScriptOverlay *scover, int blend_mode)
 ScriptShaderInstance *Overlay_GetShader(ScriptOverlay *scover)
 {
     auto *over = GetOverlayValidate("Overlay.Shader", scover);
-    return over ? static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(over->GetShaderHandle())) : nullptr;
+    return over ? static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(over->GetShaderHandle())) : nullptr;
 }
 
 void Overlay_SetShader(ScriptOverlay *scover, ScriptShaderInstance *shader_inst)
@@ -475,7 +478,7 @@ void Overlay_SetShader(ScriptOverlay *scover, ScriptShaderInstance *shader_inst)
     auto *over = GetOverlayValidate("Overlay.Shader", scover);
     if (over)
         over->SetShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
-                    ccReplaceObjectHandle(over->GetShaderHandle(), shader_inst));
+                        ccReplaceObjectHandle(over->GetShaderHandle(), shader_inst));
 }
 
 int Overlay_GetTransparency(ScriptOverlay *scover)
@@ -507,12 +510,14 @@ void Overlay_SetVisible(ScriptOverlay *scover, bool visible)
         over->SetVisible(visible);
 }
 
-float Overlay_GetRotation(ScriptOverlay *scover) {
+float Overlay_GetRotation(ScriptOverlay *scover)
+{
     auto *over = GetOverlayValidate("Overlay.Rotation", scover);
     return over ? over->GetRotation() : 0.f;
 }
 
-void Overlay_SetRotation(ScriptOverlay *scover, float degrees) {
+void Overlay_SetRotation(ScriptOverlay *scover, float degrees)
+{
     auto *over = GetOverlayValidate("Overlay.Rotation", scover);
     if (over)
         over->SetRotation(Math::ClampAngle360(degrees));
@@ -648,12 +653,11 @@ void Overlay_Tint(ScriptOverlay *scover, int red, int green, int blue, int opaci
 {
     auto *over = GetOverlayValidate("Overlay.Tint", scover);
 
-    if ((red < 0) || (green < 0) || (blue < 0) ||
-        (red > 255) || (green > 255) || (blue > 255) ||
-        (opacity < 0) || (opacity > 100) ||
-        (luminance < 0) || (luminance > 100))
+    if ((red < 0) || (green < 0) || (blue < 0) || (red > 255) || (green > 255) || (blue > 255) || (opacity < 0) ||
+        (opacity > 100) || (luminance < 0) || (luminance > 100))
     {
-        debug_script_warn("Overlay.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
+        debug_script_warn(
+            "Overlay.Tint: invalid parameter(s). R,G,B must be 0-255 (passed: %d,%d,%d), opacity & luminance 0-100 (passed: %d,%d)",
             red, green, blue, opacity, luminance);
         return;
     }
@@ -789,12 +793,13 @@ void remove_all_overlays()
 
 ScreenOverlay *get_overlay(int type)
 {
-    return (type >= 0 && static_cast<uint32_t>(type) < screenover.size() &&
-        screenover.IsInUse(type)) ? &screenover[type] : nullptr;
+    return (type >= 0 && static_cast<uint32_t>(type) < screenover.size() && screenover.IsInUse(type))
+               ? &screenover[type]
+               : nullptr;
 }
 
-static size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum,
-    std::unique_ptr<Bitmap> piccy, int pic_offx, int pic_offy)
+static size_t add_screen_overlay_impl(bool roomlayer, int x, int y, int type, int sprnum, std::unique_ptr<Bitmap> piccy,
+                                      int pic_offx, int pic_offy)
 {
     // If a custom overlay is requested, then allocate a free slot
     if (type == OVER_CUSTOM)
@@ -861,7 +866,8 @@ size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_pt
     return add_screen_overlay_impl(roomlayer, x, y, type, -1, std::move(piccy), 0, 0);
 }
 
-size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Bitmap> piccy, int pic_offx, int pic_offy)
+size_t add_screen_overlay(bool roomlayer, int x, int y, int type, std::unique_ptr<Bitmap> piccy, int pic_offx,
+                          int pic_offy)
 {
     return add_screen_overlay_impl(roomlayer, x, y, type, -1, std::move(piccy), pic_offx, pic_offy);
 }
@@ -881,9 +887,8 @@ void autoposition_overlay(ScreenOverlay &over)
     auto view = FindNearestViewport(charid);
     const int charpic = views[game.chars[charid].view].loops[game.chars[charid].loop].frames[0].pic;
     const int height = (charextra[charid].height < 1) ? game.SpriteInfos[charpic].Height : charextra[charid].height;
-    const Point screenpt = view->RoomToScreen(
-        game.chars[charid].x,
-        charextra[charid].GetEffectiveY(&game.chars[charid]) - height).first;
+    const Point screenpt =
+        view->RoomToScreen(game.chars[charid].x, charextra[charid].GetEffectiveY(&game.chars[charid]) - height).first;
     const Size pic_size = over.GetGraphicSize();
     int tdxp = std::max(0, screenpt.X - pic_size.Width / 2);
     int tdyp = screenpt.Y - 5;
@@ -892,9 +897,10 @@ void autoposition_overlay(ScreenOverlay &over)
 
     if ((tdxp + pic_size.Width) >= ui_view.GetWidth())
         tdxp = (ui_view.GetWidth() - pic_size.Width) - 1;
-    if (game.chars[charid].room != displayed_room) {
-        tdxp = ui_view.GetWidth()/2 - pic_size.Width / 2;
-        tdyp = ui_view.GetHeight()/2 - pic_size.Height / 2;
+    if (game.chars[charid].room != displayed_room)
+    {
+        tdxp = ui_view.GetWidth() / 2 - pic_size.Width / 2;
+        tdyp = ui_view.GetHeight() / 2 - pic_size.Height / 2;
     }
 
     over.SetAutoPosition(charid, tdxp, tdyp);
@@ -905,7 +911,8 @@ void restore_overlays()
     // TODO: an iterator that goes over only valid elements
     for (size_t i = 0; i < screenover.size(); ++i)
     {
-        if (screenover.IsFree(i)) continue; // empty slot
+        if (screenover.IsFree(i))
+            continue; // empty slot
         auto &over = screenover[i];
         if (over.GetID() >= 0)
         {
@@ -1083,8 +1090,8 @@ ScriptAnimatedOverlay *AnimatedOverlay_CreateRoomAnimated(int x, int y, int slot
     return AnimatedOverlay_CreateAnimatedImpl(true, x, y, slot, pause_with_game);
 }
 
-void AnimatedOverlay_Animate(ScriptAnimatedOverlay *scover, int view, int loop, int speed, int repeat,
-                             int blocking, int direction, int sframe, int volume)
+void AnimatedOverlay_Animate(ScriptAnimatedOverlay *scover, int view, int loop, int speed, int repeat, int blocking,
+                             int direction, int sframe, int volume)
 {
     auto *over = GetOverlayValidate("AnimatedOverlay.Animate", scover);
     if (!over)
@@ -1097,7 +1104,8 @@ void AnimatedOverlay_Animate(ScriptAnimatedOverlay *scover, int view, int loop, 
     volume = Math::Clamp(volume, 0, 100);
 
     BeginAnimateOverlay(over->GetID(), view, loop, sframe,
-                        ViewAnimateParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction), speed, volume));
+                        ViewAnimateParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction),
+                                          speed, volume));
 
     // Blocking animate
     if (blocking)
@@ -1180,7 +1188,7 @@ RuntimeScriptValue Sc_Overlay_CreateRoomTextual(const RuntimeScriptValue *params
 {
     API_SCALL_SCRIPT_SPRINTF(Overlay_CreateRoomTextual, 6);
     ScriptOverlay *overlay = Overlay_CreateRoomTextual(params[0].IValue, params[1].IValue, params[2].IValue,
-        params[3].IValue, params[4].IValue, scsf_buffer);
+                                                       params[3].IValue, params[4].IValue, scsf_buffer);
     return RuntimeScriptValue().SetScriptObject(overlay, overlay);
 }
 
@@ -1188,7 +1196,7 @@ RuntimeScriptValue Sc_Overlay_CreateRoomTextual(const RuntimeScriptValue *params
 RuntimeScriptValue Sc_Overlay_SetText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_SCRIPT_SPRINTF(Overlay_SetText, 4);
-    Overlay_SetText((ScriptOverlay*)self, params[0].IValue, params[1].IValue, params[2].IValue, scsf_buffer);
+    Overlay_SetText((ScriptOverlay *)self, params[0].IValue, params[1].IValue, params[2].IValue, scsf_buffer);
     return RuntimeScriptValue((int32_t)0);
 }
 
@@ -1578,7 +1586,8 @@ RuntimeScriptValue Sc_AnimatedOverlay_GetFrame(void *self, const RuntimeScriptVa
     API_OBJCALL_INT(ScriptAnimatedOverlay, AnimatedOverlay_GetFrame);
 }
 
-RuntimeScriptValue Sc_AnimatedOverlay_GetPauseWithGame(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_AnimatedOverlay_GetPauseWithGame(void *self, const RuntimeScriptValue *params,
+                                                       int32_t param_count)
 {
     API_OBJCALL_INT(ScriptAnimatedOverlay, AnimatedOverlay_GetPauseWithGame);
 }
@@ -1590,13 +1599,13 @@ RuntimeScriptValue Sc_AnimatedOverlay_GetPauseWithGame(void *self, const Runtime
 //=============================================================================
 
 // ScriptOverlay* (int x, int y, int width, int font, int colour, const char* text, ...)
-ScriptOverlay* ScPl_Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char *text, ...)
+ScriptOverlay *ScPl_Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char *text, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(text);
     return Overlay_CreateTextual(x, y, width, font, colour, scsf_buffer);
 }
 
-ScriptOverlay* ScPl_Overlay_CreateRoomTextual(int x, int y, int width, int font, int colour, const char *text, ...)
+ScriptOverlay *ScPl_Overlay_CreateRoomTextual(int x, int y, int width, int font, int colour, const char *text, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(text);
     return Overlay_CreateRoomTextual(x, y, width, font, colour, scsf_buffer);
@@ -1614,97 +1623,97 @@ void RegisterOverlayAPI()
 {
     // WARNING: Overlay.CreateGraphical and CreateRoomGraphical have 1 param REMOVED since ags4
     ScFnRegister overlay_api[] = {
-        { "Overlay::CreateGraphical^4",   API_FN_PAIR(Overlay_CreateGraphical) },
-        { "Overlay::CreateGraphical^5",   API_FN_PAIR(Overlay_CreateGraphical5) },
-        { "Overlay::CreateTextual^106",   Sc_Overlay_CreateTextual, ScPl_Overlay_CreateTextual },
-        { "Overlay::CreateRoomGraphical^4", API_FN_PAIR(Overlay_CreateRoomGraphical) },
-        { "Overlay::CreateRoomGraphical^5", API_FN_PAIR(Overlay_CreateRoomGraphical5) },
-        { "Overlay::CreateRoomTextual^106", Sc_Overlay_CreateRoomTextual, ScPl_Overlay_CreateRoomTextual },
-        { "Overlay::GetGraphicPosition^0", API_FN_PAIR(Overlay_GetGraphicPosition) },
-        { "Overlay::GetGraphicBoundBox^0", API_FN_PAIR(Overlay_GetGraphicBoundBox) },
-        { "Overlay::SetText^104",         Sc_Overlay_SetText, ScPl_Overlay_SetText },
-        { "Overlay::Remove^0",            API_FN_PAIR(Overlay_Remove) },
-        { "Overlay::SetPosition^4",       API_FN_PAIR(Overlay_SetPosition) },
-        { "Overlay::SetSize^2",           API_FN_PAIR(Overlay_SetSize) },
-        { "Overlay::SetScale^2",          API_FN_PAIR(Overlay_SetScale) },
-        { "Overlay::Tint^5",              API_FN_PAIR(Overlay_Tint) },
-        { "Overlay::SetLightLevel^1",     API_FN_PAIR(Overlay_SetLightLevel) },
-        { "Overlay::RemoveTint^0",        API_FN_PAIR(Overlay_RemoveTint) },
-        { "Overlay::get_Valid",           API_FN_PAIR(Overlay_GetValid) },
-        { "Overlay::get_X",               API_FN_PAIR(Overlay_GetX) },
-        { "Overlay::set_X",               API_FN_PAIR(Overlay_SetX) },
-        { "Overlay::get_Y",               API_FN_PAIR(Overlay_GetY) },
-        { "Overlay::set_Y",               API_FN_PAIR(Overlay_SetY) },
-        { "Overlay::get_AutoSize",        API_FN_PAIR(Overlay_GetAutoSize) },
-        { "Overlay::set_AutoSize",        API_FN_PAIR(Overlay_SetAutoSize) },
-        { "Overlay::get_Graphic",         API_FN_PAIR(Overlay_GetGraphic) },
-        { "Overlay::set_Graphic",         API_FN_PAIR(Overlay_SetGraphic) },
-        { "Overlay::get_InRoom",          API_FN_PAIR(Overlay_InRoom) },
-        { "Overlay::get_Width",           API_FN_PAIR(Overlay_GetWidth) },
-        { "Overlay::set_Width",           API_FN_PAIR(Overlay_SetWidth) },
-        { "Overlay::get_Height",          API_FN_PAIR(Overlay_GetHeight) },
-        { "Overlay::set_Height",          API_FN_PAIR(Overlay_SetHeight) },
-        { "Overlay::get_GraphicWidth",    API_FN_PAIR(Overlay_GetGraphicWidth) },
-        { "Overlay::get_GraphicHeight",   API_FN_PAIR(Overlay_GetGraphicHeight) },
-        { "Overlay::get_Text",            API_FN_PAIR(Overlay_GetTextProperty) },
-        { "Overlay::set_Text",            API_FN_PAIR(Overlay_SetTextProperty) },
-        { "Overlay::get_Transparency",    API_FN_PAIR(Overlay_GetTransparency) },
-        { "Overlay::set_Transparency",    API_FN_PAIR(Overlay_SetTransparency) },
-        { "Overlay::get_Visible",         API_FN_PAIR(Overlay_GetVisible) },
-        { "Overlay::set_Visible",         API_FN_PAIR(Overlay_SetVisible) },
-        { "Overlay::get_ZOrder",          API_FN_PAIR(Overlay_GetZOrder) },
-        { "Overlay::set_ZOrder",          API_FN_PAIR(Overlay_SetZOrder) },
-        { "Overlay::get_HasLightLevel",   API_FN_PAIR(Overlay_GetHasLight) },
-        { "Overlay::get_HasTint",         API_FN_PAIR(Overlay_GetHasTint) },
-        { "Overlay::get_LightLevel",      API_FN_PAIR(Overlay_GetLightLevel) },
-        { "Overlay::get_TintBlue",        API_FN_PAIR(Overlay_GetTintBlue) },
-        { "Overlay::get_TintGreen",       API_FN_PAIR(Overlay_GetTintGreen) },
-        { "Overlay::get_TintRed",         API_FN_PAIR(Overlay_GetTintRed) },
-        { "Overlay::get_TintSaturation",  API_FN_PAIR(Overlay_GetTintSaturation) },
-        { "Overlay::get_TintLuminance",   API_FN_PAIR(Overlay_GetTintLuminance) },
+        {"Overlay::CreateGraphical^4", API_FN_PAIR(Overlay_CreateGraphical)},
+        {"Overlay::CreateGraphical^5", API_FN_PAIR(Overlay_CreateGraphical5)},
+        {"Overlay::CreateTextual^106", Sc_Overlay_CreateTextual, ScPl_Overlay_CreateTextual},
+        {"Overlay::CreateRoomGraphical^4", API_FN_PAIR(Overlay_CreateRoomGraphical)},
+        {"Overlay::CreateRoomGraphical^5", API_FN_PAIR(Overlay_CreateRoomGraphical5)},
+        {"Overlay::CreateRoomTextual^106", Sc_Overlay_CreateRoomTextual, ScPl_Overlay_CreateRoomTextual},
+        {"Overlay::GetGraphicPosition^0", API_FN_PAIR(Overlay_GetGraphicPosition)},
+        {"Overlay::GetGraphicBoundBox^0", API_FN_PAIR(Overlay_GetGraphicBoundBox)},
+        {"Overlay::SetText^104", Sc_Overlay_SetText, ScPl_Overlay_SetText},
+        {"Overlay::Remove^0", API_FN_PAIR(Overlay_Remove)},
+        {"Overlay::SetPosition^4", API_FN_PAIR(Overlay_SetPosition)},
+        {"Overlay::SetSize^2", API_FN_PAIR(Overlay_SetSize)},
+        {"Overlay::SetScale^2", API_FN_PAIR(Overlay_SetScale)},
+        {"Overlay::Tint^5", API_FN_PAIR(Overlay_Tint)},
+        {"Overlay::SetLightLevel^1", API_FN_PAIR(Overlay_SetLightLevel)},
+        {"Overlay::RemoveTint^0", API_FN_PAIR(Overlay_RemoveTint)},
+        {"Overlay::get_Valid", API_FN_PAIR(Overlay_GetValid)},
+        {"Overlay::get_X", API_FN_PAIR(Overlay_GetX)},
+        {"Overlay::set_X", API_FN_PAIR(Overlay_SetX)},
+        {"Overlay::get_Y", API_FN_PAIR(Overlay_GetY)},
+        {"Overlay::set_Y", API_FN_PAIR(Overlay_SetY)},
+        {"Overlay::get_AutoSize", API_FN_PAIR(Overlay_GetAutoSize)},
+        {"Overlay::set_AutoSize", API_FN_PAIR(Overlay_SetAutoSize)},
+        {"Overlay::get_Graphic", API_FN_PAIR(Overlay_GetGraphic)},
+        {"Overlay::set_Graphic", API_FN_PAIR(Overlay_SetGraphic)},
+        {"Overlay::get_InRoom", API_FN_PAIR(Overlay_InRoom)},
+        {"Overlay::get_Width", API_FN_PAIR(Overlay_GetWidth)},
+        {"Overlay::set_Width", API_FN_PAIR(Overlay_SetWidth)},
+        {"Overlay::get_Height", API_FN_PAIR(Overlay_GetHeight)},
+        {"Overlay::set_Height", API_FN_PAIR(Overlay_SetHeight)},
+        {"Overlay::get_GraphicWidth", API_FN_PAIR(Overlay_GetGraphicWidth)},
+        {"Overlay::get_GraphicHeight", API_FN_PAIR(Overlay_GetGraphicHeight)},
+        {"Overlay::get_Text", API_FN_PAIR(Overlay_GetTextProperty)},
+        {"Overlay::set_Text", API_FN_PAIR(Overlay_SetTextProperty)},
+        {"Overlay::get_Transparency", API_FN_PAIR(Overlay_GetTransparency)},
+        {"Overlay::set_Transparency", API_FN_PAIR(Overlay_SetTransparency)},
+        {"Overlay::get_Visible", API_FN_PAIR(Overlay_GetVisible)},
+        {"Overlay::set_Visible", API_FN_PAIR(Overlay_SetVisible)},
+        {"Overlay::get_ZOrder", API_FN_PAIR(Overlay_GetZOrder)},
+        {"Overlay::set_ZOrder", API_FN_PAIR(Overlay_SetZOrder)},
+        {"Overlay::get_HasLightLevel", API_FN_PAIR(Overlay_GetHasLight)},
+        {"Overlay::get_HasTint", API_FN_PAIR(Overlay_GetHasTint)},
+        {"Overlay::get_LightLevel", API_FN_PAIR(Overlay_GetLightLevel)},
+        {"Overlay::get_TintBlue", API_FN_PAIR(Overlay_GetTintBlue)},
+        {"Overlay::get_TintGreen", API_FN_PAIR(Overlay_GetTintGreen)},
+        {"Overlay::get_TintRed", API_FN_PAIR(Overlay_GetTintRed)},
+        {"Overlay::get_TintSaturation", API_FN_PAIR(Overlay_GetTintSaturation)},
+        {"Overlay::get_TintLuminance", API_FN_PAIR(Overlay_GetTintLuminance)},
 
-        { "Overlay::get_BlendMode",       API_FN_PAIR(Overlay_GetBlendMode) },
-        { "Overlay::set_BlendMode",       API_FN_PAIR(Overlay_SetBlendMode) },
-        { "Overlay::get_Flip",            API_FN_PAIR(Overlay_GetFlip) },
-        { "Overlay::set_Flip",            API_FN_PAIR(Overlay_SetFlip) },
-        { "Overlay::get_GraphicAnchorX",  API_FN_PAIR(Overlay_GetGraphicAnchorX) },
-        { "Overlay::set_GraphicAnchorX",  API_FN_PAIR(Overlay_SetGraphicAnchorX) },
-        { "Overlay::get_GraphicAnchorY",  API_FN_PAIR(Overlay_GetGraphicAnchorY) },
-        { "Overlay::set_GraphicAnchorY",  API_FN_PAIR(Overlay_SetGraphicAnchorY) },
-        { "Overlay::get_GraphicOffsetX",  API_FN_PAIR(Overlay_GetGraphicOffsetX) },
-        { "Overlay::set_GraphicOffsetX",  API_FN_PAIR(Overlay_SetGraphicOffsetX) },
-        { "Overlay::get_GraphicOffsetY",  API_FN_PAIR(Overlay_GetGraphicOffsetY) },
-        { "Overlay::set_GraphicOffsetY",  API_FN_PAIR(Overlay_SetGraphicOffsetY) },
-        { "Overlay::get_Rotation",        API_FN_PAIR(Overlay_GetRotation) },
-        { "Overlay::set_Rotation",        API_FN_PAIR(Overlay_SetRotation) },
-        { "Overlay::get_GraphicPivotX",   API_FN_PAIR(Overlay_GetGraphicPivotX) },
-        { "Overlay::set_GraphicPivotX",   API_FN_PAIR(Overlay_SetGraphicPivotX) },
-        { "Overlay::get_GraphicPivotY",   API_FN_PAIR(Overlay_GetGraphicPivotY) },
-        { "Overlay::set_GraphicPivotY",   API_FN_PAIR(Overlay_SetGraphicPivotY) },
-        { "Overlay::get_GraphicPivotOffsetX", API_FN_PAIR(Overlay_GetGraphicPivotOffsetX) },
-        { "Overlay::set_GraphicPivotOffsetX", API_FN_PAIR(Overlay_SetGraphicPivotOffsetX) },
-        { "Overlay::get_GraphicPivotOffsetY", API_FN_PAIR(Overlay_GetGraphicPivotOffsetY) },
-        { "Overlay::set_GraphicPivotOffsetY", API_FN_PAIR(Overlay_SetGraphicPivotOffsetY) },
-        { "Overlay::get_ScaleX",          API_FN_PAIR(Overlay_GetScaleX) },
-        { "Overlay::set_ScaleX",          API_FN_PAIR(Overlay_SetScaleX) },
-        { "Overlay::get_ScaleY",          API_FN_PAIR(Overlay_GetScaleY) },
-        { "Overlay::set_ScaleY",          API_FN_PAIR(Overlay_SetScaleY) },
+        {"Overlay::get_BlendMode", API_FN_PAIR(Overlay_GetBlendMode)},
+        {"Overlay::set_BlendMode", API_FN_PAIR(Overlay_SetBlendMode)},
+        {"Overlay::get_Flip", API_FN_PAIR(Overlay_GetFlip)},
+        {"Overlay::set_Flip", API_FN_PAIR(Overlay_SetFlip)},
+        {"Overlay::get_GraphicAnchorX", API_FN_PAIR(Overlay_GetGraphicAnchorX)},
+        {"Overlay::set_GraphicAnchorX", API_FN_PAIR(Overlay_SetGraphicAnchorX)},
+        {"Overlay::get_GraphicAnchorY", API_FN_PAIR(Overlay_GetGraphicAnchorY)},
+        {"Overlay::set_GraphicAnchorY", API_FN_PAIR(Overlay_SetGraphicAnchorY)},
+        {"Overlay::get_GraphicOffsetX", API_FN_PAIR(Overlay_GetGraphicOffsetX)},
+        {"Overlay::set_GraphicOffsetX", API_FN_PAIR(Overlay_SetGraphicOffsetX)},
+        {"Overlay::get_GraphicOffsetY", API_FN_PAIR(Overlay_GetGraphicOffsetY)},
+        {"Overlay::set_GraphicOffsetY", API_FN_PAIR(Overlay_SetGraphicOffsetY)},
+        {"Overlay::get_Rotation", API_FN_PAIR(Overlay_GetRotation)},
+        {"Overlay::set_Rotation", API_FN_PAIR(Overlay_SetRotation)},
+        {"Overlay::get_GraphicPivotX", API_FN_PAIR(Overlay_GetGraphicPivotX)},
+        {"Overlay::set_GraphicPivotX", API_FN_PAIR(Overlay_SetGraphicPivotX)},
+        {"Overlay::get_GraphicPivotY", API_FN_PAIR(Overlay_GetGraphicPivotY)},
+        {"Overlay::set_GraphicPivotY", API_FN_PAIR(Overlay_SetGraphicPivotY)},
+        {"Overlay::get_GraphicPivotOffsetX", API_FN_PAIR(Overlay_GetGraphicPivotOffsetX)},
+        {"Overlay::set_GraphicPivotOffsetX", API_FN_PAIR(Overlay_SetGraphicPivotOffsetX)},
+        {"Overlay::get_GraphicPivotOffsetY", API_FN_PAIR(Overlay_GetGraphicPivotOffsetY)},
+        {"Overlay::set_GraphicPivotOffsetY", API_FN_PAIR(Overlay_SetGraphicPivotOffsetY)},
+        {"Overlay::get_ScaleX", API_FN_PAIR(Overlay_GetScaleX)},
+        {"Overlay::set_ScaleX", API_FN_PAIR(Overlay_SetScaleX)},
+        {"Overlay::get_ScaleY", API_FN_PAIR(Overlay_GetScaleY)},
+        {"Overlay::set_ScaleY", API_FN_PAIR(Overlay_SetScaleY)},
 
-        { "Overlay::get_Shader",          API_FN_PAIR(Overlay_GetShader) },
-        { "Overlay::set_Shader",          API_FN_PAIR(Overlay_SetShader) },
+        {"Overlay::get_Shader", API_FN_PAIR(Overlay_GetShader)},
+        {"Overlay::set_Shader", API_FN_PAIR(Overlay_SetShader)},
     };
 
     ccAddExternalFunctions(overlay_api);
 
     ScFnRegister animoverlay_api[] = {
-        { "AnimatedOverlay::CreateAnimated",        API_FN_PAIR(AnimatedOverlay_CreateAnimated) },
-        { "AnimatedOverlay::CreateRoomAnimated",    API_FN_PAIR(AnimatedOverlay_CreateRoomAnimated) },
-        { "AnimatedOverlay::Animate",               API_FN_PAIR(AnimatedOverlay_Animate) },
-        { "AnimatedOverlay::get_Animating",         API_FN_PAIR(AnimatedOverlay_GetAnimating) },
-        { "AnimatedOverlay::get_Frame",             API_FN_PAIR(AnimatedOverlay_GetFrame) },
-        { "AnimatedOverlay::get_Loop",              API_FN_PAIR(AnimatedOverlay_GetLoop) },
-        { "AnimatedOverlay::get_PauseWithGame",     API_FN_PAIR(AnimatedOverlay_GetPauseWithGame) },
-        { "AnimatedOverlay::get_View",              API_FN_PAIR(AnimatedOverlay_GetView) },
+        {"AnimatedOverlay::CreateAnimated", API_FN_PAIR(AnimatedOverlay_CreateAnimated)},
+        {"AnimatedOverlay::CreateRoomAnimated", API_FN_PAIR(AnimatedOverlay_CreateRoomAnimated)},
+        {"AnimatedOverlay::Animate", API_FN_PAIR(AnimatedOverlay_Animate)},
+        {"AnimatedOverlay::get_Animating", API_FN_PAIR(AnimatedOverlay_GetAnimating)},
+        {"AnimatedOverlay::get_Frame", API_FN_PAIR(AnimatedOverlay_GetFrame)},
+        {"AnimatedOverlay::get_Loop", API_FN_PAIR(AnimatedOverlay_GetLoop)},
+        {"AnimatedOverlay::get_PauseWithGame", API_FN_PAIR(AnimatedOverlay_GetPauseWithGame)},
+        {"AnimatedOverlay::get_View", API_FN_PAIR(AnimatedOverlay_GetView)},
     };
 
     ccAddExternalFunctions(animoverlay_api);

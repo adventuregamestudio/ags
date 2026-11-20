@@ -25,42 +25,43 @@
 #include "util/stream.h"
 #include "util/string.h"
 
-int		File_Exists(const char *fnmm);
-int		File_Delete(const char *fnmm);
+int File_Exists(const char *fnmm);
+int File_Delete(const char *fnmm);
 int32_t FileOpen(const char *fnmm, Common::FileOpenMode open_mode, Common::StreamMode work_mode);
-void    FileClose(int32_t handle);
-void	*sc_OpenFile(const char *fnmm, int mode);
+void FileClose(int32_t handle);
+void *sc_OpenFile(const char *fnmm, int mode);
 const char *File_ResolvePath(const char *fnmm);
-void	File_Close(sc_File *fil);
-void	File_WriteString(sc_File *fil, const char *towrite);
-void	File_WriteInt(sc_File *fil, int towrite);
-void	File_WriteRawChar(sc_File *fil, int towrite);
-void	File_WriteRawInt(sc_File *fil, int towrite);
-void	File_WriteRawLine(sc_File *fil, const char *towrite);
-void	File_ReadRawLine(sc_File *fil, char* buffer);
-const char* File_ReadRawLineBack(sc_File *fil);
-void	File_ReadString(sc_File *fil, char *toread);
-const char* File_ReadStringBack(sc_File *fil);
-int		File_ReadInt(sc_File *fil);
-int		File_ReadRawChar(sc_File *fil);
-int		File_ReadRawInt(sc_File *fil);
-int     File_Seek(sc_File *fil, int offset, int origin);
-int		File_GetEOF(sc_File *fil);
-int		File_GetError(sc_File *fil);
-int     File_GetPosition(sc_File *fil);
+void File_Close(sc_File *fil);
+void File_WriteString(sc_File *fil, const char *towrite);
+void File_WriteInt(sc_File *fil, int towrite);
+void File_WriteRawChar(sc_File *fil, int towrite);
+void File_WriteRawInt(sc_File *fil, int towrite);
+void File_WriteRawLine(sc_File *fil, const char *towrite);
+void File_ReadRawLine(sc_File *fil, char *buffer);
+const char *File_ReadRawLineBack(sc_File *fil);
+void File_ReadString(sc_File *fil, char *toread);
+const char *File_ReadStringBack(sc_File *fil);
+int File_ReadInt(sc_File *fil);
+int File_ReadRawChar(sc_File *fil);
+int File_ReadRawInt(sc_File *fil);
+int File_Seek(sc_File *fil, int offset, int origin);
+int File_GetEOF(sc_File *fil);
+int File_GetError(sc_File *fil);
+int File_GetPosition(sc_File *fil);
 // Fills a list of filenames found using given pattern; sorts the resulting list.
 // The filenames *do not* contain any parent paths, strictly names of files.
 // While this function supports parent path in pattern, but it does not support
 // wildcards in parent path, only wildcards in the file name.
-void    FillDirList(std::vector<AGS::Common::String> &files, const AGS::Common::String &pattern, ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir);
+void FillDirList(std::vector<AGS::Common::String> &files, const AGS::Common::String &pattern,
+                 ScriptFileSortStyle file_sort, ScriptSortDirection sort_dir);
 
 //=============================================================================
 
 // Managed file streams: for script and plugin use
 int32_t add_file_stream(std::unique_ptr<AGS::Common::Stream> &&stream, const char *operation_name);
-void    close_file_stream(int32_t fhandle, const char *operation_name);
+void close_file_stream(int32_t fhandle, const char *operation_name);
 AGS::Common::Stream *get_file_stream(int32_t fhandle, const char *operation_name);
 AGS::Common::IStreamBase *get_file_stream_iface(int32_t fhandle, const char *operation_name);
-void    close_all_file_streams();
+void close_all_file_streams();
 
 #endif // __AGS_EE_AC__FILE_H

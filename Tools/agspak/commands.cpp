@@ -66,9 +66,8 @@ static HError CopyAssetLibraryIntoFile(const String &pak_file, const String &dst
     const soff_t copy_count = CopyStream(pak_in.get(), pak_out.get());
     if (verbose)
     {
-        append ?
-            printf("Info: appended asset pack attachement:\n\t%" PRId64 " bytes copied over.\n", copy_count) :
-            printf("Info: written new asset pack:\n\t%" PRId64 " bytes copied over.\n", copy_count);
+        append ? printf("Info: appended asset pack attachement:\n\t%" PRId64 " bytes copied over.\n", copy_count)
+               : printf("Info: written new asset pack:\n\t%" PRId64 " bytes copied over.\n", copy_count);
     }
     if (has_ender)
         MFLUtil::OverwriteEnder(out_lib_offset, lib_version, pak_out.get());
@@ -107,14 +106,17 @@ static HError CutAssetLibrary(const String &pak_file, bool verbose)
         return new Error("Failed to cut existing asset pack attachement.");
     const soff_t new_size = File::GetFileSize(pak_file);
     if (verbose)
-        printf("Info: cut existing asset pack attachement:\n\ttruncated from %" PRId64 " to %" PRId64 ", %" PRId64 " bytes cut.\n", old_size, new_size, old_size - new_size);
+        printf("Info: cut existing asset pack attachement:\n\ttruncated from %" PRId64 " to %" PRId64 ", %" PRId64
+               " bytes cut.\n",
+               old_size, new_size, old_size - new_size);
     return HError::None();
 }
 
 // Makes the list of assets from a single input directory, applying pattern list and/or rules from pattern file.
 // Fills a map of asset-name -> filepath pairs.
 static HError MakeAssetMapFromADir(const String &asset_dir, StringIMap &asset_map,
-    const std::vector<String> &pattern_list, const String &pattern_file, bool do_subdirs, bool verbose)
+                                   const std::vector<String> &pattern_list, const String &pattern_file, bool do_subdirs,
+                                   bool verbose)
 {
     const bool has_pattern_file = !pattern_file.IsEmpty();
     std::vector<String> files;
@@ -163,12 +165,10 @@ static HError MakeAssetMapFromADir(const String &asset_dir, StringIMap &asset_ma
 // the provided input directories, and picking files according to the pattern
 // list and/or pattern file.
 // Fills a map of asset-name -> filepath pairs.
-static HError PrepareAssetLibrary(AssetLibInfo &lib,
-    const std::vector<std::pair<String, bool>> &src_dirs, const String &dst_pak,
-    StringIMap &asset_map,
-    const std::vector<String> &pattern_list, const String &pattern_file,
-    DuplicateAssetAction dup_action,
-    size_t part_size_mb, bool verbose)
+static HError PrepareAssetLibrary(AssetLibInfo &lib, const std::vector<std::pair<String, bool>> &src_dirs,
+                                  const String &dst_pak, StringIMap &asset_map, const std::vector<String> &pattern_list,
+                                  const String &pattern_file, DuplicateAssetAction dup_action, size_t part_size_mb,
+                                  bool verbose)
 {
     const String &lib_basefile = dst_pak;
     std::vector<AssetInfo> assets;
@@ -190,17 +190,18 @@ static HError PrepareAssetLibrary(AssetLibInfo &lib,
                 switch (dup_action)
                 {
                 case kAssetDup_Replace:
-                    printf("Warning: duplicate asset '%s' [replace]: first found: '%s', new found: '%s'\n", asset_entry.first.GetCStr(),
-                        it_exist->second.GetCStr(), asset_entry.second.GetCStr());
+                    printf("Warning: duplicate asset '%s' [replace]: first found: '%s', new found: '%s'\n",
+                           asset_entry.first.GetCStr(), it_exist->second.GetCStr(), asset_entry.second.GetCStr());
                     break;
                 case kAssetDup_Skip:
-                    printf("Warning: duplicate asset '%s' [skip]: first found: '%s', new found: '%s'\n", asset_entry.first.GetCStr(),
-                        it_exist->second.GetCStr(), asset_entry.second.GetCStr());
+                    printf("Warning: duplicate asset '%s' [skip]: first found: '%s', new found: '%s'\n",
+                           asset_entry.first.GetCStr(), it_exist->second.GetCStr(), asset_entry.second.GetCStr());
                     remove_keys.push_back(asset_entry.first);
                     break;
                 default:
-                    return new Error("Duplicate asset '%s': first found: '%s', new found: '%s'\n", asset_entry.first.GetCStr(),
-                        it_exist->second.GetCStr(), asset_entry.second.GetCStr());
+                    return new Error("Duplicate asset '%s': first found: '%s', new found: '%s'\n",
+                                     asset_entry.first.GetCStr(), it_exist->second.GetCStr(),
+                                     asset_entry.second.GetCStr());
                 }
             }
         }
@@ -317,7 +318,8 @@ int Command_Create(std::vector<std::pair<String, bool>> &src_dirs, const String 
     const String &lib_basefile = dst_pak;
     StringIMap asset_map;
     AssetLibInfo lib;
-    HError err = PrepareAssetLibrary(lib, src_dirs, lib_basefile, asset_map, pattern_list, pattern_file, dup_action, part_size_mb, verbose);
+    HError err = PrepareAssetLibrary(lib, src_dirs, lib_basefile, asset_map, pattern_list, pattern_file, dup_action,
+                                     part_size_mb, verbose);
     if (!err)
     {
         printf("Error: failed to prepare asset library:\n");

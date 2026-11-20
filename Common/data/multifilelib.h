@@ -36,45 +36,45 @@ namespace Common
 //
 namespace MFLUtil
 {
-    enum MFLError
-    {
-        kMFLNoError           =  0,
-        kMFLErrNoLibSig       = -1, // library signature does not match
-        kMFLErrLibVersion     = -2, // library version unsupported
-        kMFLErrNoLibBase      = -3, // file is not library base (head)
-        kMFLErrLibAssetCount  = -4, // too many assets in library (unused)
-        kMFLErrAssetNameLong  = -5, // asset name is too long (old formats only)
-    };
+enum MFLError
+{
+    kMFLNoError = 0,
+    kMFLErrNoLibSig = -1,      // library signature does not match
+    kMFLErrLibVersion = -2,    // library version unsupported
+    kMFLErrNoLibBase = -3,     // file is not library base (head)
+    kMFLErrLibAssetCount = -4, // too many assets in library (unused)
+    kMFLErrAssetNameLong = -5, // asset name is too long (old formats only)
+};
 
-    enum MFLVersion
-    {
-        kMFLVersion_Undefined   = 0,
-        kMFLVersion_SingleLib   = 6,
-        kMFLVersion_MultiV10    = 10,
-        kMFLVersion_MultiV11    = 11,
-        kMFLVersion_MultiV15    = 15, // unknown differences
-        kMFLVersion_MultiV20    = 20,
-        kMFLVersion_MultiV21    = 21,
-        kMFLVersion_MultiV30    = 30  // 64-bit file support, loose limits
-    };
+enum MFLVersion
+{
+    kMFLVersion_Undefined = 0,
+    kMFLVersion_SingleLib = 6,
+    kMFLVersion_MultiV10 = 10,
+    kMFLVersion_MultiV11 = 11,
+    kMFLVersion_MultiV15 = 15, // unknown differences
+    kMFLVersion_MultiV20 = 20,
+    kMFLVersion_MultiV21 = 21,
+    kMFLVersion_MultiV30 = 30 // 64-bit file support, loose limits
+};
 
-    // Maximal number of the data files in one library chain (1-byte index)
-    const size_t MaxMultiLibFiles = 256;
+// Maximal number of the data files in one library chain (1-byte index)
+const size_t MaxMultiLibFiles = 256;
 
-    String   GetMFLErrorText(MFLError err);
+String GetMFLErrorText(MFLError err);
 
-    MFLError TestIsMFL(Stream *in, bool test_is_main = false);
-    MFLError ReadOffset(Stream *in, soff_t &lib_offset);
-    MFLError ReadOffsetAndVersion(Stream *in, MFLVersion &lib_version, soff_t &lib_offset);
-    MFLError ReadHeader(AssetLibInfo &lib, Stream *in);
-    bool     HasEnderSig(Stream *in);
+MFLError TestIsMFL(Stream *in, bool test_is_main = false);
+MFLError ReadOffset(Stream *in, soff_t &lib_offset);
+MFLError ReadOffsetAndVersion(Stream *in, MFLVersion &lib_version, soff_t &lib_offset);
+MFLError ReadHeader(AssetLibInfo &lib, Stream *in);
+bool HasEnderSig(Stream *in);
 
-    void     WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, Stream *out);
-    void     WriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out);
-    // Overwrite a library ender, presumed to be already written at the end of the output stream.
-    // This helper function is used to rewrite ender sig after attaching data to another file.
-    void     OverwriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out);
-}
+void WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, Stream *out);
+void WriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out);
+// Overwrite a library ender, presumed to be already written at the end of the output stream.
+// This helper function is used to rewrite ender sig after attaching data to another file.
+void OverwriteEnder(soff_t lib_offset, MFLVersion lib_version, Stream *out);
+} // namespace MFLUtil
 
 } // namespace Common
 } // namespace AGS

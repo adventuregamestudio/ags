@@ -33,7 +33,13 @@ enum WalkBehindMethodEnum
     DrawOverCharSprite,
 };
 
-namespace AGS { namespace Common { class Bitmap; } }
+namespace AGS
+{
+namespace Common
+{
+class Bitmap;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // Recalculates walk-behind positions

@@ -18,71 +18,76 @@
 
 using namespace AGS::Common;
 
-namespace AGS {
-namespace Preprocessor {
+namespace AGS
+{
+namespace Preprocessor
+{
 
-    enum class ErrorCode {
-        None = 0,
-        MacroNameMissing = 1,
-        MacroDoesNotExist,
-        MacroAlreadyExists,
-        MacroNameInvalid,
-        UnknownPreprocessorDirective,
-        UserDefinedError,
-        EndIfWithoutIf,
-        IfWithoutEndIf,
-        ElseIfWithoutIf,
-        InvalidVersionNumber,
-        UnterminatedString,
-        InvalidCharacter
-    };
+enum class ErrorCode
+{
+    None = 0,
+    MacroNameMissing = 1,
+    MacroDoesNotExist,
+    MacroAlreadyExists,
+    MacroNameInvalid,
+    UnknownPreprocessorDirective,
+    UserDefinedError,
+    EndIfWithoutIf,
+    IfWithoutEndIf,
+    ElseIfWithoutIf,
+    InvalidVersionNumber,
+    UnterminatedString,
+    InvalidCharacter
+};
 
-    struct Error {
-        ErrorCode Type = ErrorCode::None;
-        String Message = nullptr;
-    };
+struct Error
+{
+    ErrorCode Type = ErrorCode::None;
+    String Message = nullptr;
+};
 
-    class Preprocessor {
-    private:
-        bool _inMultiLineComment = false;
-        MacroTable _macros = MacroTable();
-        int _lineNumber = 0;
-        String _scriptName;
-        // ModuleName is used when generating a script marker,
-        // as an optional definition of a "module", a group containing types and imports.
-        String _moduleName;
-        Version _applicationVersion;
-        // Conditional statement stack remembers the results of all the nested conditions
-        // that we have entered.
-        std::stack<bool> _conditionalStatements;
-        // Negative counter: it is incremented each time we enter a FALSE condition,
-        // and decremented each time we exit a previous FALSE condition.
-        uint32_t _negativeCounter = 0u;
-        std::vector<Error> _errors;
+class Preprocessor
+{
+private:
+    bool _inMultiLineComment = false;
+    MacroTable _macros = MacroTable();
+    int _lineNumber = 0;
+    String _scriptName;
+    // ModuleName is used when generating a script marker,
+    // as an optional definition of a "module", a group containing types and imports.
+    String _moduleName;
+    Version _applicationVersion;
+    // Conditional statement stack remembers the results of all the nested conditions
+    // that we have entered.
+    std::stack<bool> _conditionalStatements;
+    // Negative counter: it is incremented each time we enter a FALSE condition,
+    // and decremented each time we exit a previous FALSE condition.
+    uint32_t _negativeCounter = 0u;
+    std::vector<Error> _errors;
 
-        void LogError(ErrorCode error, const String &message = nullptr);
+    void LogError(ErrorCode error, const String &message = nullptr);
 
-        void ProcessConditionalDirective(const String &directive, String &line);
+    void ProcessConditionalDirective(const String &directive, String &line);
 
-        bool DeletingCurrentLine() const;
+    bool DeletingCurrentLine() const;
 
-        String GetNextWord(String &text, bool trimText = true, bool includeDots = false);
+    String GetNextWord(String &text, bool trimText = true, bool includeDots = false);
 
-        String RemoveComments(String text);
+    String RemoveComments(String text);
 
-        String PreProcessDirective(String &line);
+    String PreProcessDirective(String &line);
 
-        String PreProcessLine(const String& lineToProcess);
+    String PreProcessLine(const String &lineToProcess);
 
-    public:
-        static const Error NoError;
-        Error GetLastError() const;
-        void SetAppVersion(const String& version);
-        void MergeMacros(MacroTable &macros);
-        void DefineMacro(const String &name, const String &value);
+public:
+    static const Error NoError;
+    Error GetLastError() const;
+    void SetAppVersion(const String &version);
+    void MergeMacros(MacroTable &macros);
+    void DefineMacro(const String &name, const String &value);
 
-        String Preprocess(const String &script, const String &scriptName);
-    };
+    String Preprocess(const String &script, const String &scriptName);
+};
 
-} // Preprocessor
-} // AGS
+} // namespace Preprocessor
+} // namespace AGS

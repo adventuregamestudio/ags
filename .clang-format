@@ -1,0 +1,68 @@
+# C/C++ formatting rules for AGS, after the coding conventions in the wiki:
+# https://github.com/adventuregamestudio/ags/wiki/AGS-Coding-Conventions-(Cpp)
+# Written for clang-format 19 (pip install clang-format==19.1.7); other versions format differently.
+# Third-party directories carry their own .clang-format with "DisableFormat: true".
+---
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: c++11
+ColumnLimit: 120
+
+# Indentation: 4 spaces, no tabs; namespaces and case labels do not indent
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
+IndentCaseLabels: false
+NamespaceIndentation: None
+FixNamespaceComments: true
+CompactNamespaces: false
+
+# Braces on a line of their own; a statement after if/for/while goes on the next line
+BreakBeforeBraces: Allman
+AllowShortBlocksOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: false
+AllowShortLambdasOnASingleLine: All
+
+# template<typename T> on its own line
+AlwaysBreakTemplateDeclarations: Yes
+SpaceAfterTemplateKeyword: false
+
+# Constructor initializers: on one line if they fit there, otherwise one per line with a leading ':' or ','
+BreakConstructorInitializers: BeforeComma
+PackConstructorInitializers: NextLine
+ConstructorInitializerIndentWidth: 4
+
+# Bitmap *ds; const String &name
+PointerAlignment: Right
+ReferenceAlignment: Pointer
+DerivePointerAlignment: false
+SpaceAfterCStyleCast: false
+SpaceBeforeParens: ControlStatements
+Cpp11BracedListStyle: true
+
+# A broken expression ends its line with the operator; broken parameters align with the first one
+BreakBeforeBinaryOperators: None
+AlignAfterOpenBracket: Align
+AlignTrailingComments: true
+AlignConsecutiveMacros: Consecutive
+AlignEscapedNewlines: Left
+BinPackArguments: true
+BinPackParameters: true
+
+MaxEmptyLinesToKeep: 2
+KeepEmptyLinesAtTheStartOfBlocks: false
+InsertNewlineAtEOF: true
+
+# Only the layout changes: comments are not reflowed (that would mangle tables and diagrams),
+# string literals are not split, includes and using-declarations keep their order
+ReflowComments: false
+BreakStringLiterals: false
+SortIncludes: Never
+SortUsingDeclarations: false
+...

@@ -76,7 +76,7 @@ extern unsigned int load_new_game;
 extern int load_new_game_restore;
 extern GameSetupStruct game;
 extern std::vector<ViewStruct> views;
-extern RoomStatus*croom;
+extern RoomStatus *croom;
 extern RoomStruct thisroom;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
@@ -173,12 +173,15 @@ void UnPauseGame()
 }
 
 
-int IsGamePaused() {
-    if (game_paused>0) return 1;
+int IsGamePaused()
+{
+    if (game_paused > 0)
+        return 1;
     return 0;
 }
 
-bool GetSaveSlotDescription(int slnum, String &description) {
+bool GetSaveSlotDescription(int slnum, String &description)
+{
     if (read_savedgame_description(get_save_game_path(slnum), description))
         return true;
     description.Format("INVALID SLOT %d", slnum);
@@ -204,8 +207,8 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned
             slotname.ClipRight(svg_suff.GetLength());
         int saveGameSlot = Path::GetFileExtension(slotname).ToInt();
         // only list games between .XXX to .YYY (to allow hidden slots for special perposes)
-        if (saveGameSlot < 0 || static_cast<unsigned>(saveGameSlot) < bot_index
-            || static_cast<unsigned>(saveGameSlot) > top_index)
+        if (saveGameSlot < 0 || static_cast<unsigned>(saveGameSlot) < bot_index ||
+            static_cast<unsigned>(saveGameSlot) > top_index)
             continue;
         String description;
         if (get_description)
@@ -214,7 +217,8 @@ void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned
     }
 }
 
-static void SortSaveList(std::vector<SaveListItem> &saves, ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir)
+static void SortSaveList(std::vector<SaveListItem> &saves, ScriptSaveGameSortStyle save_sort,
+                         ScriptSortDirection sort_dir)
 {
     const bool ascending = (sort_dir != kScSortDescending) || (save_sort == kScSaveGameSort_None);
     switch (save_sort)
@@ -244,13 +248,15 @@ static void SortSaveList(std::vector<SaveListItem> &saves, ScriptSaveGameSortSty
     }
 }
 
-void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description, ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir)
+void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description,
+                  ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir)
 {
     FillSaveList(saves, bot_index, top_index, get_description);
     SortSaveList(saves, save_sort, sort_dir);
 }
 
-void FillSaveList(const std::vector<int> &slots, std::vector<SaveListItem> &saves, bool get_description, ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir)
+void FillSaveList(const std::vector<int> &slots, std::vector<SaveListItem> &saves, bool get_description,
+                  ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir)
 {
     for (const auto &slot : slots)
     {
@@ -279,8 +285,8 @@ int GetLastSaveSlot()
 }
 
 // TODO: refactor this method, and use same shared procedure at both normal stop/startup and in RunAGSGame
-int RunAGSGame(const String &newgame, unsigned int mode, int data) {
-
+int RunAGSGame(const String &newgame, unsigned int mode, int data)
+{
     can_run_delayed_command();
 
     int AllowedModes = RAGMODE_LOADNOW;
@@ -290,10 +296,12 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
 
     if (editor_debugging_initialized)
     {
-        quit("!RunAGSGame cannot be used while running the game from within the AGS Editor. You must build the game EXE and run it from there to use this function.");
+        quit(
+            "!RunAGSGame cannot be used while running the game from within the AGS Editor. You must build the game EXE and run it from there to use this function.");
     }
 
-    if ((mode & RAGMODE_LOADNOW) == 0) {
+    if ((mode & RAGMODE_LOADNOW) == 0)
+    {
         ResPaths.GamePak.Path = PathFromInstallDir(newgame);
         ResPaths.GamePak.Name = newgame;
         play.takeover_data = data;
@@ -315,9 +323,9 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     unload_old_room();
     displayed_room = -10;
 
-#if defined (AGS_AUTO_WRITE_USER_CONFIG)
+#if defined(AGS_AUTO_WRITE_USER_CONFIG)
     save_config_file(); // save current user config in case engine fails to run new game
-#endif // AGS_AUTO_WRITE_USER_CONFIG
+#endif                  // AGS_AUTO_WRITE_USER_CONFIG
     unload_game();
 
     // Adjust config (NOTE: normally, RunAGSGame would need a redesign to allow separate config etc per each game)
@@ -345,7 +353,8 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     engine_init_game_settings();
     play.screen_is_faded_out = true;
 
-    if (load_new_game_restore >= 0) {
+    if (load_new_game_restore >= 0)
+    {
         try_restore_save(load_new_game_restore, true);
         load_new_game_restore = -1;
     }
@@ -355,13 +364,16 @@ int RunAGSGame(const String &newgame, unsigned int mode, int data) {
     return 0;
 }
 
-void QuitGame(int dialog) {
-    if (dialog) {
+void QuitGame(int dialog)
+{
+    if (dialog)
+    {
         int rcode;
         setup_for_dialog(play.normal_font);
-        rcode=quitdialog();
+        rcode = quitdialog();
         restore_after_dialog();
-        if (rcode==0) return;
+        if (rcode == 0)
+            return;
     }
     quit("|You have exited.");
 }
@@ -385,7 +397,7 @@ int GetGameSpeed()
     return game.options[OPT_GAMEFPS];
 }
 
-int SetGameOption (int opt, int newval)
+int SetGameOption(int opt, int newval)
 {
     if (((opt < OPT_DEBUGMODE) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
     {
@@ -438,29 +450,19 @@ int SetGameOption (int opt, int newval)
             set_cursor_look(cur_cursor);
         }
         break;
-    case OPT_ANTIALIASFONTS:
-        adjust_fonts_for_render_mode(newval != 0);
-        break;
-    case OPT_RIGHTLEFTWRITE:
-        GUIE::MarkForTranslationUpdate();
-        break;
-    case OPT_DUPLICATEINV:
-        UpdateInventory();
-        break;
-    case OPT_PORTRAITSIDE:
-        play.swap_portrait_side = (newval == PORTRAIT_ALTERNATE);
-        break;
-    case OPT_DISPLAYSINGLEDIALOGOPTION:
-        play.show_single_dialog_option = newval;
-        break;
-    default:
-        break; // do nothing else
+    case OPT_ANTIALIASFONTS: adjust_fonts_for_render_mode(newval != 0); break;
+    case OPT_RIGHTLEFTWRITE: GUIE::MarkForTranslationUpdate(); break;
+    case OPT_DUPLICATEINV: UpdateInventory(); break;
+    case OPT_PORTRAITSIDE: play.swap_portrait_side = (newval == PORTRAIT_ALTERNATE); break;
+    case OPT_DISPLAYSINGLEDIALOGOPTION: play.show_single_dialog_option = newval; break;
+    default: break; // do nothing else
     }
 
     return oldval;
 }
 
-int GetGameOption (int opt) {
+int GetGameOption(int opt)
+{
     if (((opt < OPT_DEBUGMODE) || (opt > OPT_HIGHESTOPTION)) && (opt != OPT_LIPSYNCTEXT))
     {
         debug_script_warn("GetGameOption: invalid option specified: %d", opt);
@@ -470,12 +472,13 @@ int GetGameOption (int opt) {
     return game.options[opt];
 }
 
-void SkipUntilCharacterStops(int cc) {
+void SkipUntilCharacterStops(int cc)
+{
     if (!AssertCharacter("SkipUntilCharacterStops", cc))
         return;
-    if (game.chars[cc].room!=displayed_room)
+    if (game.chars[cc].room != displayed_room)
         quitprintf("!SkipUntilCharacterStops: character %s is not in current room %d (it is in room %d)",
-            game.chars[cc].scrname.GetCStr(), displayed_room, game.chars[cc].room);
+                   game.chars[cc].scrname.GetCStr(), displayed_room, game.chars[cc].room);
 
     // if they are not currently moving, do nothing
     if (!game.chars[cc].walking)
@@ -489,7 +492,8 @@ void SkipUntilCharacterStops(int cc) {
     play.skip_until_char_stops = cc;
 }
 
-void EndSkippingUntilCharStops() {
+void EndSkippingUntilCharStops()
+{
     // not currently skipping, so ignore
     if (play.skip_until_char_stops < 0)
         return;
@@ -498,12 +502,14 @@ void EndSkippingUntilCharStops() {
     play.skip_until_char_stops = -1;
 }
 
-void StartCutscene (int skipwith) {
+void StartCutscene(int skipwith)
+{
     static ScriptPosition last_cutscene_script_pos;
 
-    if (is_in_cutscene()) {
+    if (is_in_cutscene())
+    {
         quitprintf("!StartCutscene: already in a cutscene; previous started in \"%s\", line %d",
-            last_cutscene_script_pos.Section.GetCStr(), last_cutscene_script_pos.Line);
+                   last_cutscene_script_pos.Section.GetCStr(), last_cutscene_script_pos.Line);
     }
 
     if ((skipwith < 1) || (skipwith > 6))
@@ -524,7 +530,8 @@ void SkipCutscene()
         start_skipping_cutscene();
 }
 
-int EndCutscene () {
+int EndCutscene()
+{
     if (!is_in_cutscene())
         quit("!EndCutscene: not in a cutscene");
 
@@ -540,13 +547,15 @@ int EndCutscene () {
     return retval;
 }
 
-void ShowInputBox(const char*msg, char*bufr) {
+void ShowInputBox(const char *msg, char *bufr)
+{
     VALIDATE_STRING(bufr);
     String input = ShowInputBoxImpl(msg);
     snprintf(bufr, MAX_MAXSTRLEN, "%s", input.GetCStr());
 }
 
-String ShowInputBoxImpl(const char*msg) {
+String ShowInputBoxImpl(const char *msg)
+{
     setup_for_dialog(play.normal_font);
     String input = enterstringwindow(get_translation(msg));
     restore_after_dialog();
@@ -555,12 +564,14 @@ String ShowInputBoxImpl(const char*msg) {
 
 int GetLocationType(int x, int y, int hit_options)
 {
-    return GetLocationTypeImpl(nullptr, x, y, hit_options, false /* dont click-through gui */, false /* not allow hotspot0 */);
+    return GetLocationTypeImpl(nullptr, x, y, hit_options, false /* dont click-through gui */,
+                               false /* not allow hotspot0 */);
 }
 
 int GetLocationType2(int x, int y)
 {
-    return GetLocationTypeImpl(nullptr, x, y, kHit_Interactable, false /* dont click-through gui */, false /* not allow hotspot0 */);
+    return GetLocationTypeImpl(nullptr, x, y, kHit_Interactable, false /* dont click-through gui */,
+                               false /* not allow hotspot0 */);
 }
 
 // Finds out what is located under the cursor;
@@ -576,7 +587,8 @@ static const char *GetLocationNameAndRef(SceneLocationRef &loc_ref, int x, int y
 
     int getloctype_index = -1;
     // GetLocationType takes screen coords
-    const int loctype = GetLocationTypeImpl(&getloctype_index, x, y, hit_options, false /* dont ignore gui */, true /* allow hotspot0 */);
+    const int loctype = GetLocationTypeImpl(&getloctype_index, x, y, hit_options, false /* dont ignore gui */,
+                                            true /* allow hotspot0 */);
     loc_ref = SceneLocationRef(loctype, getloctype_index);
     if (loctype == LOCTYPE_NOTHING)
     {
@@ -647,8 +659,8 @@ void *GetPressedKeys()
     if (arr)
     {
         for (size_t i = 0; i < keys.size(); ++i)
-            *(static_cast<uint32_t*>(arr.Obj()) + i) = AGSKeyToScriptKey(
-                sdl_key_to_ags_key(keys[i].sym, keys[i].scancode, 0u /* ignore mod */));
+            *(static_cast<uint32_t *>(arr.Obj()) + i) =
+                AGSKeyToScriptKey(sdl_key_to_ags_key(keys[i].sym, keys[i].scancode, 0u /* ignore mod */));
     }
     return arr.Obj();
 }
@@ -677,11 +689,13 @@ int SaveScreenShot4(const char *namm, int width, int height, int layers)
     return BitmapHelper::SaveBitmap(shot.get(), true /* screenshots are opaque */, palette, out.get(), ext) ? 1 : 0;
 }
 
-int SaveScreenShot1(const char *namm) {
+int SaveScreenShot1(const char *namm)
+{
     return SaveScreenShot4(namm, 0, 0, RENDER_BATCH_ALL);
 }
 
-void SetMultitasking (int mode) {
+void SetMultitasking(int mode)
+{
     if ((mode < 0) | (mode > 1))
         quit("!SetMultitasking: invalid mode parameter");
     // Save requested setting
@@ -690,8 +704,7 @@ void SetMultitasking (int mode) {
     // Account for the override config option (must be checked first!)
     if ((usetup.Override.Multitasking >= 0) && (mode != usetup.Override.Multitasking))
     {
-        Debug::Printf("SetMultitasking: overridden by user config: %d -> %d",
-            mode, usetup.Override.Multitasking);
+        Debug::Printf("SetMultitasking: overridden by user config: %d -> %d", mode, usetup.Override.Multitasking);
         mode = usetup.Override.Multitasking;
     }
 
@@ -723,10 +736,11 @@ void SetMultitasking (int mode) {
     }
 }
 
-void RoomProcessClick(int xx, int yy,int mood)
+void RoomProcessClick(int xx, int yy, int mood)
 {
     int getloctype_index = -1;
-    int loctype = GetLocationTypeImpl(&getloctype_index, xx, yy, kHit_Interactable, true /* ignore gui */, false /* not allow hotspot0 */);
+    int loctype = GetLocationTypeImpl(&getloctype_index, xx, yy, kHit_Interactable, true /* ignore gui */,
+                                      false /* not allow hotspot0 */);
     VpPoint vpt = play.ScreenToRoom(xx, yy);
     if (vpt.second < 0)
         return;
@@ -739,7 +753,7 @@ void RoomProcessClick(int xx, int yy,int mood)
         walk_character(playerchar, xx, yy, false /* walk areas */);
         return;
     }
-    play.usedmode=mood;
+    play.usedmode = mood;
 
     if (loctype == 0)
     {
@@ -763,10 +777,11 @@ void RoomProcessClick(int xx, int yy,int mood)
     }
 }
 
-int IsInteractionAvailable (int xx, int yy, int mood)
+int IsInteractionAvailable(int xx, int yy, int mood)
 {
     int getloctype_index = -1;
-    int loctype = GetLocationTypeImpl(&getloctype_index, xx, yy, kHit_Interactable, true /* ignore gui */, false /* not allow hotspot0 */);
+    int loctype = GetLocationTypeImpl(&getloctype_index, xx, yy, kHit_Interactable, true /* ignore gui */,
+                                      false /* not allow hotspot0 */);
     VpPoint vpt = play.ScreenToRoom(xx, yy);
     if (vpt.second < 0)
         return 0;
@@ -774,25 +789,28 @@ int IsInteractionAvailable (int xx, int yy, int mood)
     yy = vpt.first.Y;
 
     // You can always walk places
-    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.options[OPT_NOWALKMODE]==0))
+    if (game.HasCursorRole(mood, kCursorRole_Walk) && (game.options[OPT_NOWALKMODE] == 0))
         return 1;
 
     play.check_interaction_only = 1;
 
-    if (loctype == 0) {
+    if (loctype == 0)
+    {
         // click on nothing -> hotspot 0
         getloctype_index = 0;
         loctype = LOCTYPE_HOTSPOT;
     }
 
-    if (loctype == LOCTYPE_CHAR) {
-        check_click_on_character(xx,yy,mood);
+    if (loctype == LOCTYPE_CHAR)
+    {
+        check_click_on_character(xx, yy, mood);
     }
-    else if (loctype == LOCTYPE_OBJ) {
-        check_click_on_object(xx,yy,mood);
+    else if (loctype == LOCTYPE_OBJ)
+    {
+        check_click_on_object(xx, yy, mood);
     }
     else if (loctype == LOCTYPE_HOTSPOT)
-        RunHotspotInteraction (getloctype_index, mood);
+        RunHotspotInteraction(getloctype_index, mood);
 
     int ciwas = play.check_interaction_only;
     play.check_interaction_only = 0;
@@ -803,7 +821,8 @@ int IsInteractionAvailable (int xx, int yy, int mood)
     return 0;
 }
 
-void _sc_AbortGame(const char* text) {
+void _sc_AbortGame(const char *text)
+{
     quit(String::FromFormat("!?%s", text));
 }
 
@@ -886,30 +905,37 @@ int WaitImpl(int skip_type, int nloops)
     return play.GetWaitSkipResult();
 }
 
-void scrWait(int nloops) {
+void scrWait(int nloops)
+{
     WaitImpl(SKIP_AUTOTIMER, nloops);
 }
 
-int WaitKey(int nloops) {
+int WaitKey(int nloops)
+{
     return WaitImpl(SKIP_KEYPRESS | SKIP_AUTOTIMER, nloops);
 }
 
-int WaitMouse(int nloops) {
+int WaitMouse(int nloops)
+{
     return WaitImpl(SKIP_MOUSECLICK | SKIP_AUTOTIMER, nloops);
 }
 
-int WaitMouseKey(int nloops) {
+int WaitMouseKey(int nloops)
+{
     return WaitImpl(SKIP_KEYPRESS | SKIP_MOUSECLICK | SKIP_AUTOTIMER, nloops);
 }
 
-int WaitInput(int input_flags, int nloops) {
+int WaitInput(int input_flags, int nloops)
+{
     return WaitImpl((input_flags >> SKIP_RESULT_TYPE_SHIFT) | SKIP_AUTOTIMER, nloops);
 }
 
-void SkipWait0() {
+void SkipWait0()
+{
     SkipWait(0);
 }
 
-void SkipWait(int result_value) {
+void SkipWait(int result_value)
+{
     play.SetWaitSkipResult(SKIP_NONE /* by script */, result_value);
 }

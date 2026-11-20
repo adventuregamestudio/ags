@@ -46,7 +46,7 @@ public:
 
     inline static const Header &GetHeader(const void *address)
     {
-        return reinterpret_cast<const Header&>(*(static_cast<const uint8_t*>(address) - MemHeaderSz));
+        return reinterpret_cast<const Header &>(*(static_cast<const uint8_t *>(address) - MemHeaderSz));
     }
 
     // Create managed struct object and return a pointer to the beginning of a buffer
@@ -60,8 +60,7 @@ public:
     // Return the object's type id
     uint32_t GetTypeID(const void *address) override { return GetHeader(address).TypeId; };
     // Remap typeid fields using the provided map
-    void RemapTypeids(void *address,
-        const std::unordered_map<uint32_t, uint32_t> &typeid_map) override;
+    void RemapTypeids(void *address, const std::unordered_map<uint32_t, uint32_t> &typeid_map) override;
     // Traverse all managed references in this object, and run callback for each of them
     void TraverseRefs(void *address, PfnTraverseRefOp traverse_op) override;
 
@@ -70,10 +69,10 @@ private:
     static const size_t MemHeaderSz = sizeof(Header);
     // The size of the serialized header
     static const size_t FileHeaderSz = sizeof(uint32_t) * 2; // hdr size + typeid
-    // Writeable GetHeader variant for internal purposes 
+    // Writeable GetHeader variant for internal purposes
     inline static Header &GetHeaderW(void *address)
     {
-        return reinterpret_cast<Header&>(*(static_cast<uint8_t*>(address) - MemHeaderSz));
+        return reinterpret_cast<Header &>(*(static_cast<uint8_t *>(address) - MemHeaderSz));
     }
 
     // Savegame serialization
@@ -90,15 +89,15 @@ extern ScriptUserObject globalDynamicStruct;
 // TODO: move to the separate source file and merge with dynamic array helpers?!
 namespace ScriptStructHelpers
 {
-    // Creates a managed Point object, represented as a pair of X and Y coordinates.
-    ScriptUserObject *CreatePoint(int x, int y);
-    DynObjectRef CreatePointRef(int x, int y);
-    // Resolves a managed Point struct object
-    Point ResolvePoint(void *managed_point);
-    // Resolves a dynamic array of managed Point objects
-    bool ResolveArrayOfPoints(const void *arrobj, std::vector<Point> &points);
-    // Creates a dynamic array of managed Point structs
-    DynObjectRef CreateArrayOfPoints(const std::vector<Point> &points);
-};
+// Creates a managed Point object, represented as a pair of X and Y coordinates.
+ScriptUserObject *CreatePoint(int x, int y);
+DynObjectRef CreatePointRef(int x, int y);
+// Resolves a managed Point struct object
+Point ResolvePoint(void *managed_point);
+// Resolves a dynamic array of managed Point objects
+bool ResolveArrayOfPoints(const void *arrobj, std::vector<Point> &points);
+// Creates a dynamic array of managed Point structs
+DynObjectRef CreateArrayOfPoints(const std::vector<Point> &points);
+}; // namespace ScriptStructHelpers
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H

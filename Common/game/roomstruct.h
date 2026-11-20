@@ -14,7 +14,7 @@
 //
 // RoomStruct, the Room data class prepared for use at runtime.
 // TODO: actually, should move this to the Engine side.
-// 
+//
 //=============================================================================
 #ifndef __AGS_CN_GAME__ROOMSTRUCT_H
 #define __AGS_CN_GAME__ROOMSTRUCT_H
@@ -41,34 +41,34 @@ public:
     ~RoomStruct();
 
     // Reinitialize RoomStruct by copying data from RoomData
-    RoomStruct &operator =(const RoomData &src);
+    RoomStruct &operator=(const RoomData &src);
     // Reinitialize RoomStruct by moving (owning) data from RoomData
-    RoomStruct &operator =(RoomData &&src);
+    RoomStruct &operator=(RoomData &&src);
 
     // Initializes bitmaps from RoomData's pixel buffers.
     // CHECKME: this should be a private method; currently only accessed by a
     // (possibly temporary) code in the Editor.
-    void    InitBitmaps();
+    void InitBitmaps();
     // Initializes RoomData's pixel buffers from bitmaps,
     // this lets to write this RoomStruct as RoomData back to the file.
     // CHECKME: idk if this should exist; currently only accessed by a
     // (possibly temporary) code in the Editor.
-    void    PrepareForWriteToFile();
+    void PrepareForWriteToFile();
     // Releases room resources
-    void    Free();
+    void Free();
 
     Bitmap *GetBackgroundImage(int index) const;
-    void    SetBackgroundImage(int index, std::unique_ptr<Bitmap> &&bmp, PALETTE *bgpal = nullptr);
-    void    DeleteBackground(int index);
+    void SetBackgroundImage(int index, std::unique_ptr<Bitmap> &&bmp, PALETTE *bgpal = nullptr);
+    void DeleteBackground(int index);
 
     // Gets bitmap of particular mask layer
     Bitmap *GetMask(RoomAreaMask mask) const;
     // Assigns bitmap for the particular mask layer
-    void    SetMask(RoomAreaMask mask, std::unique_ptr<Bitmap> &&bmp);
+    void SetMask(RoomAreaMask mask, std::unique_ptr<Bitmap> &&bmp);
     // Copies contents of a provided bitmap onto the particular mask layer;
     // this is done by blitting; if bitmap is of different size than the room's mask,
     // then it's either cropped or remaining unfilled parts are erased to zero.
-    void    CopyMask(RoomAreaMask mask, const Bitmap *bitmap);
+    void CopyMask(RoomAreaMask mask, const Bitmap *bitmap);
 
     // Background bitmaps
     std::vector<PBitmap> BgImages;

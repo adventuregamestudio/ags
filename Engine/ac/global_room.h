@@ -18,14 +18,14 @@
 #ifndef __AGS_EE_AC__GLOBALROOM_H
 #define __AGS_EE_AC__GLOBALROOM_H
 
-void SetAmbientTint (int red, int green, int blue, int opacity, int luminance);
+void SetAmbientTint(int red, int green, int blue, int opacity, int luminance);
 void SetAmbientLightLevel(int light_level);
-void NewRoom(int nrnum);// still widely used
+void NewRoom(int nrnum); // still widely used
 void ResetRoom(int nrnum);
-int  HasPlayerBeenInRoom(int roomnum);
-void CallRoomScript (int value);
+int HasPlayerBeenInRoom(int roomnum);
+void CallRoomScript(int value);
 
 void SetBackgroundFrame(int frnum);
-int GetBackgroundFrame() ;
+int GetBackgroundFrame();
 
 #endif // __AGS_EE_AC__GLOBALROOM_H

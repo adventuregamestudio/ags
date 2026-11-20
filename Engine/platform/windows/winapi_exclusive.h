@@ -23,20 +23,20 @@
 #ifndef _WINDOWS_ // do not include if windows.h was included first
 #define _WINDOWS_ // there can be only one
 
-typedef unsigned long       DWORD;
-typedef int                 BOOL;
-typedef unsigned char       BYTE;
-typedef unsigned short      WORD;
-typedef char                CHAR;
-#define CONST               const
+typedef unsigned long DWORD;
+typedef int BOOL;
+typedef unsigned char BYTE;
+typedef unsigned short WORD;
+typedef char CHAR;
+#define CONST const
 typedef CONST CHAR *LPCSTR, *PCSTR;
-typedef wchar_t             WCHAR;
-typedef WCHAR               *LPWSTR;
-typedef const WCHAR         *LPCWSTR;
+typedef wchar_t WCHAR;
+typedef WCHAR *LPWSTR;
+typedef const WCHAR *LPCWSTR;
 
 #define DECLSPEC_IMPORT __declspec(dllimport)
-#define WINBASEAPI DECLSPEC_IMPORT
-#define WINAPI __stdcall
+#define WINBASEAPI      DECLSPEC_IMPORT
+#define WINAPI          __stdcall
 
 typedef void *PVOID;
 typedef CONST void *LPCVOID;
@@ -48,7 +48,7 @@ typedef HANDLE HWND;
 #define FAR
 #define NEAR
 
-typedef int (FAR WINAPI *FARPROC)();
+typedef int(FAR WINAPI *FARPROC)();
 
 #endif // _WINDOWS_
 

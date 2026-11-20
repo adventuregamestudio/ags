@@ -150,70 +150,64 @@ TEST(AGFReader, EntityScriptNames)
 
 TEST(AGFReader, EnumReadSkipSpeech)
 {
-    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrKeyboardOrTimer,
-        AGF::ReadSkipSpeech("MouseOrKeyboardOrTimer"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_KeyboardOrTimer,
-        AGF::ReadSkipSpeech("KeyboardOnly"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_TimerOnly,
-        AGF::ReadSkipSpeech("TimerOnly"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrKeyboard,
-        AGF::ReadSkipSpeech("MouseOrKeyboard"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrTimer,
-        AGF::ReadSkipSpeech("MouseOnly"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_KeyboardOnly,
-        AGF::ReadSkipSpeech("KeyboardOnlyStrict"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOnly,
-        AGF::ReadSkipSpeech("MouseOnlyStrict"));
-    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrKeyboardOrTimer,
-        AGF::ReadSkipSpeech("NotARealValue"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrKeyboardOrTimer, AGF::ReadSkipSpeech("MouseOrKeyboardOrTimer"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_KeyboardOrTimer, AGF::ReadSkipSpeech("KeyboardOnly"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_TimerOnly, AGF::ReadSkipSpeech("TimerOnly"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrKeyboard, AGF::ReadSkipSpeech("MouseOrKeyboard"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrTimer, AGF::ReadSkipSpeech("MouseOnly"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_KeyboardOnly, AGF::ReadSkipSpeech("KeyboardOnlyStrict"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOnly, AGF::ReadSkipSpeech("MouseOnlyStrict"));
+    EXPECT_EQ(DataUtil::kSkipSpeech_MouseOrKeyboardOrTimer, AGF::ReadSkipSpeech("NotARealValue"));
 }
 
 TEST(AGFReader, EnumReadLipSyncType)
 {
     EXPECT_EQ(DataUtil::kLipSync_None, AGF::ReadLipSyncType("None"));
     EXPECT_EQ(DataUtil::kLipSync_Text, AGF::ReadLipSyncType("Text"));
-    EXPECT_EQ(DataUtil::kLipSync_PamelaVoiceFiles,
-        AGF::ReadLipSyncType("PamelaVoiceFiles"));
-    EXPECT_EQ(DataUtil::kLipSync_None,
-        AGF::ReadLipSyncType("NotARealValue"));
+    EXPECT_EQ(DataUtil::kLipSync_PamelaVoiceFiles, AGF::ReadLipSyncType("PamelaVoiceFiles"));
+    EXPECT_EQ(DataUtil::kLipSync_None, AGF::ReadLipSyncType("NotARealValue"));
 }
 
 TEST(AGFReader, GlobalVariablesMayBeArrays)
 {
     tinyxml2::XMLDocument doc;
-    ASSERT_EQ(tinyxml2::XML_SUCCESS, doc.Parse(
-        "<Game><GlobalVariables><Variables>"
-        "<GlobalVariable><ArraySize>0</ArraySize><ArrayType>None</ArrayType><DefaultValue>True</DefaultValue>"
-        "<Name>flag</Name><Type>bool</Type></GlobalVariable>"
-        "<GlobalVariable><ArraySize>5</ArraySize><ArrayType>Array</ArrayType><DefaultValue></DefaultValue>"
-        "<Name>list</Name><Type>int</Type></GlobalVariable>"
-        "<GlobalVariable><ArraySize>0</ArraySize><ArrayType>DynamicArray</ArrayType><DefaultValue>x</DefaultValue>"
-        "<Name>names</Name><Type>String</Type></GlobalVariable>"
-        "</Variables></GlobalVariables></Game>"));
+    ASSERT_EQ(
+        tinyxml2::XML_SUCCESS,
+        doc.Parse(
+            "<Game><GlobalVariables><Variables>"
+            "<GlobalVariable><ArraySize>0</ArraySize><ArrayType>None</ArrayType><DefaultValue>True</DefaultValue>"
+            "<Name>flag</Name><Type>bool</Type></GlobalVariable>"
+            "<GlobalVariable><ArraySize>5</ArraySize><ArrayType>Array</ArrayType><DefaultValue></DefaultValue>"
+            "<Name>list</Name><Type>int</Type></GlobalVariable>"
+            "<GlobalVariable><ArraySize>0</ArraySize><ArrayType>DynamicArray</ArrayType><DefaultValue>x</DefaultValue>"
+            "<Name>names</Name><Type>String</Type></GlobalVariable>"
+            "</Variables></GlobalVariables></Game>"));
     std::vector<DataUtil::Variable> vars;
     AGF::ReadGlobalVariables(vars, doc.RootElement());
     ASSERT_EQ(3u, vars.size());
 
     // as the editor's GlobalVariablesComponent writes them
     EXPECT_STREQ("import bool flag;\nimport int list[5];\nimport String names[];\n",
-        DataUtil::MakeVariablesScriptHeader(vars).GetCStr());
+                 DataUtil::MakeVariablesScriptHeader(vars).GetCStr());
     EXPECT_STREQ("bool flag = true;\nexport flag;\nint list[5];\nexport list;\nString names[];\nexport names;\n"
-        "function game_start() {\n}\n",
-        DataUtil::MakeVariablesScriptBody(vars).GetCStr());
+                 "function game_start() {\n}\n",
+                 DataUtil::MakeVariablesScriptBody(vars).GetCStr());
 }
 
 TEST(AGFReader, CharacterAGS4Properties)
 {
     tinyxml2::XMLDocument doc;
-    ASSERT_EQ(tinyxml2::XML_SUCCESS, doc.Parse(
-        "<Characters>"
-        "<Character><BlendMode>Add</BlendMode><DisplayName>Ego</DisplayName><Enabled>False</Enabled>"
-        "<GraphicAnchor>0.25, 2</GraphicAnchor><GraphicOffset>3, -4</GraphicOffset><ID>0</ID>"
-        "<Interactions><Event Index=\"0\">cEgo_Look</Event></Interactions><OnAnyClick>cEgo_AnyClick</OnAnyClick>"
-        "<ScriptModule>Ego.asc</ScriptModule><ScriptName>cEgo</ScriptName><SpeechColor>0xFFA8A8A8</SpeechColor>"
-        "<Visible>False</Visible></Character>"
-        "<Character><ID>1</ID><ScriptName>cOther</ScriptName></Character>"
-        "</Characters>"));
+    ASSERT_EQ(
+        tinyxml2::XML_SUCCESS,
+        doc.Parse(
+            "<Characters>"
+            "<Character><BlendMode>Add</BlendMode><DisplayName>Ego</DisplayName><Enabled>False</Enabled>"
+            "<GraphicAnchor>0.25, 2</GraphicAnchor><GraphicOffset>3, -4</GraphicOffset><ID>0</ID>"
+            "<Interactions><Event Index=\"0\">cEgo_Look</Event></Interactions><OnAnyClick>cEgo_AnyClick</OnAnyClick>"
+            "<ScriptModule>Ego.asc</ScriptModule><ScriptName>cEgo</ScriptName><SpeechColor>0xFFA8A8A8</SpeechColor>"
+            "<Visible>False</Visible></Character>"
+            "<Character><ID>1</ID><ScriptName>cOther</ScriptName></Character>"
+            "</Characters>"));
     AGF::Character parser;
     DataUtil::CharacterData ego;
     parser.ReadAllData(doc.RootElement()->FirstChildElement("Character"), ego);
@@ -246,22 +240,24 @@ TEST(AGFReader, CharacterAGS4Properties)
 TEST(AGFReader, OtherEntitiesAGS4Properties)
 {
     tinyxml2::XMLDocument doc;
-    ASSERT_EQ(tinyxml2::XML_SUCCESS, doc.Parse(
-        "<Game>"
-        "<MouseCursor><CreateEvent>True</CreateEvent><ID>4</ID><Name>Use</Name><StandardRole>UseInv</StandardRole>"
-        "</MouseCursor>"
-        "<InventoryItem><DisplayName>Key</DisplayName><HotspotAlignment>BottomRight</HotspotAlignment><ID>1</ID>"
-        "<OnAnyClick>iKey_AnyClick</OnAnyClick><ScriptName>iKey</ScriptName></InventoryItem>"
-        "<View><ID>1</ID><Loops><Loop><Frames>"
-        "<ViewFrame><Delay>2</Delay><EventName>step</EventName><Flip>Both</Flip><Image>-1</Image>"
-        "<XOffset>2</XOffset><YOffset>-3</YOffset></ViewFrame>"
-        "</Frames></Loop></Loops><ScriptName>VEGO</ScriptName></View>"
-        "<Sprites><Sprite Slot=\"1\"><Source><ImportColorDepth>Indexed8Bit</ImportColorDepth></Source></Sprite>"
-        "<Sprite Slot=\"2\"><Source><ImportColorDepth>GameDefault</ImportColorDepth></Source></Sprite></Sprites>"
-        "<Font><FontFileName>Fonts/Arial.ttf</FontFileName><ID>3</ID><Name>Arial</Name></Font>"
-        "<FontFiles><FontFile><FileName>Fonts/Arial.ttf</FileName><SourceFilename>C:/Arial.ttf</SourceFilename>"
-        "</FontFile><FontFile><FileName /></FontFile></FontFiles>"
-        "</Game>"));
+    ASSERT_EQ(
+        tinyxml2::XML_SUCCESS,
+        doc.Parse(
+            "<Game>"
+            "<MouseCursor><CreateEvent>True</CreateEvent><ID>4</ID><Name>Use</Name><StandardRole>UseInv</StandardRole>"
+            "</MouseCursor>"
+            "<InventoryItem><DisplayName>Key</DisplayName><HotspotAlignment>BottomRight</HotspotAlignment><ID>1</ID>"
+            "<OnAnyClick>iKey_AnyClick</OnAnyClick><ScriptName>iKey</ScriptName></InventoryItem>"
+            "<View><ID>1</ID><Loops><Loop><Frames>"
+            "<ViewFrame><Delay>2</Delay><EventName>step</EventName><Flip>Both</Flip><Image>-1</Image>"
+            "<XOffset>2</XOffset><YOffset>-3</YOffset></ViewFrame>"
+            "</Frames></Loop></Loops><ScriptName>VEGO</ScriptName></View>"
+            "<Sprites><Sprite Slot=\"1\"><Source><ImportColorDepth>Indexed8Bit</ImportColorDepth></Source></Sprite>"
+            "<Sprite Slot=\"2\"><Source><ImportColorDepth>GameDefault</ImportColorDepth></Source></Sprite></Sprites>"
+            "<Font><FontFileName>Fonts/Arial.ttf</FontFileName><ID>3</ID><Name>Arial</Name></Font>"
+            "<FontFiles><FontFile><FileName>Fonts/Arial.ttf</FileName><SourceFilename>C:/Arial.ttf</SourceFilename>"
+            "</FontFile><FontFile><FileName /></FontFile></FontFiles>"
+            "</Game>"));
     AGF::DocElem root = doc.RootElement();
 
     DataUtil::CursorData cursor;
@@ -339,7 +335,7 @@ private:
 
 // Reads the entity references of a list the way the tools do
 std::vector<DataUtil::EntityRef> ReadRefs(AGF::EntityListParser &list_parser, AGF::EntityParser &parser,
-    AGF::DocElem root)
+                                          AGF::DocElem root)
 {
     std::vector<DataUtil::EntityRef> refs;
     AGF::ReadAllEntityRefs(refs, list_parser, parser, root);
@@ -360,7 +356,7 @@ const char *kPropertiesAndInteractions = R"xml(
     </Interactions>
 )xml";
 
-template <typename TData>
+template<typename TData>
 void ExpectPropertiesAndInteractions(const TData &data)
 {
     ASSERT_EQ(2u, data.Properties.size());
@@ -699,7 +695,7 @@ TEST_F(AGFReaderBlocks, Character)
         <UniformMovementSpeed>False</UniformMovementSpeed>
         <UseRoomAreaLighting>False</UseRoomAreaLighting>
         <UseRoomAreaScaling>False</UseRoomAreaScaling>)xml") +
-        kPropertiesAndInteractions + "</Character>";
+                            kPropertiesAndInteractions + "</Character>";
     AGF::DocElem elem = Parse(xml.c_str());
     ASSERT_TRUE(elem != nullptr);
 
@@ -785,7 +781,7 @@ TEST_F(AGFReaderBlocks, InventoryItem)
         <PlayerStartsWithItem>True</PlayerStartsWithItem>
         <ScriptName>iKey</ScriptName>
         <Name>iKey</Name>)xml") +
-        kPropertiesAndInteractions + "</InventoryItem>";
+                            kPropertiesAndInteractions + "</InventoryItem>";
     AGF::DocElem elem = Parse(xml.c_str());
     ASSERT_TRUE(elem != nullptr);
 
@@ -1225,7 +1221,8 @@ std::string Control(const char *tag, const char *name, const char *specific)
         <Visible>False</Visible>
         <Width>30</Width>
         <ZOrder>3</ZOrder>
-        <ScriptName>)xml" + name + "</ScriptName><Name>" + name + "</Name>" + specific + "</" + tag + ">";
+        <ScriptName>)xml" +
+           name + "</ScriptName><Name>" + name + "</Name>" + specific + "</" + tag + ">";
 }
 
 void ExpectCommonControlData(const DataUtil::GUIControlData &data, const char *name)
@@ -1482,25 +1479,17 @@ TEST_F(AGFReaderBlocks, GUIControlTextAlignmentNames)
         FrameAlignment Expected;
     };
     const AlignmentCase cases[] = {
-        {"TopLeft", kAlignTopLeft},
-        {"TopCenter", kAlignTopCenter},
-        {"TopRight", kAlignTopRight},
-        {"MiddleLeft", kAlignMiddleLeft},
-        {"MiddleCenter", kAlignMiddleCenter},
-        {"MiddleRight", kAlignMiddleRight},
-        {"BottomLeft", kAlignBottomLeft},
-        {"BottomCenter", kAlignBottomCenter},
-        {"BottomRight", kAlignBottomRight},
-        {"Left", kAlignTopLeft},
-        {"Center", kAlignTopCenter},
-        {"Right", kAlignTopRight},
+        {"TopLeft", kAlignTopLeft},       {"TopCenter", kAlignTopCenter},       {"TopRight", kAlignTopRight},
+        {"MiddleLeft", kAlignMiddleLeft}, {"MiddleCenter", kAlignMiddleCenter}, {"MiddleRight", kAlignMiddleRight},
+        {"BottomLeft", kAlignBottomLeft}, {"BottomCenter", kAlignBottomCenter}, {"BottomRight", kAlignBottomRight},
+        {"Left", kAlignTopLeft},          {"Center", kAlignTopCenter},          {"Right", kAlignTopRight},
         {"Centre", kAlignMiddleCenter},
     };
     AGF::GUIControl parser;
     for (size_t i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i)
     {
-        const std::string xml = std::string("<GUILabel><TextAlignment>") + cases[i].Name +
-            "</TextAlignment></GUILabel>";
+        const std::string xml =
+            std::string("<GUILabel><TextAlignment>") + cases[i].Name + "</TextAlignment></GUILabel>";
         AGF::DocElem elem = Parse(xml.c_str());
         ASSERT_TRUE(elem != nullptr);
         DataUtil::GUILabelData label;
@@ -1801,7 +1790,7 @@ TEST_F(AGFReaderBlocks, Rooms)
       </UnloadedRoomFolder>
     </Rooms></Game>)xml");
     ASSERT_TRUE(game != nullptr);
-    std::vector<std::pair<int, AGS::Common::String> > rooms;
+    std::vector<std::pair<int, AGS::Common::String>> rooms;
     AGF::ReadRoomList(rooms, game);
     ASSERT_EQ(3u, rooms.size());
     EXPECT_EQ(1, rooms[0].first);
@@ -2102,7 +2091,7 @@ TEST_F(AGFReaderBlocks, MissingListsGiveNoEntities)
     AGF::Views views;
     AGF::View view;
     EXPECT_EQ(0u, ReadRefs(views, view, game).size());
-    std::vector<std::pair<int, AGS::Common::String> > rooms;
+    std::vector<std::pair<int, AGS::Common::String>> rooms;
     AGF::ReadRoomList(rooms, game);
     EXPECT_EQ(0u, rooms.size());
     std::vector<DataUtil::SpriteData> sprites;

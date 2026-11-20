@@ -21,24 +21,26 @@ using namespace AGS::Common;
 
 ScriptJoystick::ScriptJoystick(int id) : _id(id) {}
 
-const char *ScriptJoystick::GetType() {
+const char *ScriptJoystick::GetType()
+{
     return "Joystick";
 }
 
-int ScriptJoystick::Dispose(void *address, bool force) {
+int ScriptJoystick::Dispose(void *address, bool force)
+{
     delete this;
     return 1;
 }
 
-size_t ScriptJoystick::CalcSerializeSize(const void* /*address*/){
+size_t ScriptJoystick::CalcSerializeSize(const void * /*address*/)
+{
     return 0;
 }
 
-void ScriptJoystick::Serialize(const void *address, AGS::Common::Stream *out) {
+void ScriptJoystick::Serialize(const void *address, AGS::Common::Stream *out) {}
 
-}
-
-void ScriptJoystick::Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) {
+void ScriptJoystick::Unserialize(int index, AGS::Common::Stream *in, size_t data_sz)
+{
     this->Invalidate();
     ccRegisterUnserializedObject(index, this, this);
 }

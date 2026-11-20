@@ -35,7 +35,7 @@ FSLocation UserDataDirectory;
 static FSLocation BuildXDGPath()
 {
     // Check to see if XDG_DATA_HOME is set in the enviroment
-    const char* home_dir = getenv("XDG_DATA_HOME");
+    const char *home_dir = getenv("XDG_DATA_HOME");
     if (home_dir)
         return FSLocation(home_dir);
     // No evironment variable, so we fall back to home dir in /etc/passwd
@@ -90,12 +90,13 @@ bool AGSPlatformXDGUnix::IsLocalDirRestricted()
     return false;
 }
 
-uint64_t AGSPlatformXDGUnix::GetDiskFreeSpaceMB(const String &path) {
+uint64_t AGSPlatformXDGUnix::GetDiskFreeSpaceMB(const String &path)
+{
     // placeholder
     return 100;
 }
 
-const char* AGSPlatformXDGUnix::GetBackendFailUserHint()
+const char *AGSPlatformXDGUnix::GetBackendFailUserHint()
 {
     return "Make sure you have latest version of SDL2 libraries installed, and X server is running.";
 }

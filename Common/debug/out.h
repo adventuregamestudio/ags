@@ -76,32 +76,32 @@ namespace Common
 // Message types provide distinction for debug messages by their intent.
 enum MessageType
 {
-    kDbgMsg_None                = 0,
+    kDbgMsg_None = 0,
     // Alerts may be informative messages with topmost level of importance,
     // such as reporting engine startup and shutdown.
-    kDbgMsg_Alert               ,
+    kDbgMsg_Alert,
     // Fatal errors are ones that make program abort immediately.
-    kDbgMsg_Fatal               ,
+    kDbgMsg_Fatal,
     // Error messages are about engine not being able to perform requested
     // operation in a situation when that will affect game playability and
     // further execution.
-    kDbgMsg_Error               ,
+    kDbgMsg_Error,
     // Warnings are made when unexpected or non-standart behavior
     // is detected in program, which is not immediately critical,
     // but may be a symptom of a bigger problem.
-    kDbgMsg_Warn                ,
+    kDbgMsg_Warn,
     // General information messages.
-    kDbgMsg_Info                ,
+    kDbgMsg_Info,
     // Debug reason is for arbitrary information about events and current
     // game state.
-    kDbgMsg_Debug               ,
+    kDbgMsg_Debug,
     // Total number of message types (should be last)
-    kNumDbgMsg                  ,
+    kNumDbgMsg,
 
 
     // Convenient aliases
-    kDbgMsg_Default             = kDbgMsg_Debug,
-    kDbgMsg_All                 = kDbgMsg_Debug
+    kDbgMsg_Default = kDbgMsg_Debug,
+    kDbgMsg_All = kDbgMsg_Debug
 };
 
 // A log message group numeric ID;
@@ -132,26 +132,28 @@ enum CommonDebugGroup : MessageGroupHandle
 
 namespace Debug
 {
-    //
-    // Debug output
-    //
-    // Output a plain message of default group and default type
-    void Printf(const String &text);
-    // Output a plain message of default group and given type
-    void Printf(MessageType mt, const String &text);
-    // Output a plain message of given group and type
-    void Printf(MessageGroupHandle group_id, MessageType mt, const String &text);
-    // Output formatted message of default group and default type
-    void Printf(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(1);
-    // Output formatted message of default group and given type
-    void Printf(MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(2);
-    // Output formatted message of given group and type
-    void Printf(MessageGroupHandle group_id, MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(3);
-    void Printf(MessageGroupHandle group_id, MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, va_list argptr) AGS_FORMAT_STRING_V(3);
+//
+// Debug output
+//
+// Output a plain message of default group and default type
+void Printf(const String &text);
+// Output a plain message of default group and given type
+void Printf(MessageType mt, const String &text);
+// Output a plain message of given group and type
+void Printf(MessageGroupHandle group_id, MessageType mt, const String &text);
+// Output formatted message of default group and default type
+void Printf(AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(1);
+// Output formatted message of default group and given type
+void Printf(MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, ...) AGS_FORMAT_STRING(2);
+// Output formatted message of given group and type
+void Printf(MessageGroupHandle group_id, MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, ...)
+    AGS_FORMAT_STRING(3);
+void Printf(MessageGroupHandle group_id, MessageType mt, AGS_FORMAT_STRING_ARG const char *fmt, va_list argptr)
+    AGS_FORMAT_STRING_V(3);
 
-}   // namespace Debug
+} // namespace Debug
 
-}   // namespace Common
-}   // namespace AGS
+} // namespace Common
+} // namespace AGS
 
 #endif // __AGS_CN_DEBUG__OUT_H

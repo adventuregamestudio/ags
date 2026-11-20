@@ -35,30 +35,24 @@ class SectionList
 
 public:
     SectionList() = default;
-    SectionList(const std::vector<std::string> &sections,
+    SectionList(const std::vector<std::string> &sections, const std::map<size_t, size_t> &off2sec)
+        : _sections(sections), _off2sec(off2sec)
+    {
+    }
+    SectionList(const std::vector<std::string> &sections, const std::vector<std::string> &module_names,
                 const std::map<size_t, size_t> &off2sec)
-        : _sections(sections)
-        , _off2sec(off2sec)
-    {}
-    SectionList(const std::vector<std::string> &sections,
-                const std::vector<std::string> &module_names,
-                const std::map<size_t, size_t> &off2sec)
-        : _sections(sections)
-        , _moduleNames(module_names)
-        , _off2sec(off2sec)
-    {}
-    SectionList(std::vector<std::string> &&sections,
+        : _sections(sections), _moduleNames(module_names), _off2sec(off2sec)
+    {
+    }
+    SectionList(std::vector<std::string> &&sections, std::map<size_t, size_t> &&off2sec)
+        : _sections(std::move(sections)), _off2sec(std::move(off2sec))
+    {
+    }
+    SectionList(std::vector<std::string> &&sections, std::vector<std::string> &&module_names,
                 std::map<size_t, size_t> &&off2sec)
-        : _sections(std::move(sections))
-        , _off2sec(std::move(off2sec))
-    {}
-    SectionList(std::vector<std::string> &&sections,
-                std::vector<std::string> &&module_names,
-                std::map<size_t, size_t> &&off2sec)
-        : _sections(std::move(sections))
-        , _moduleNames(std::move(module_names))
-        , _off2sec(std::move(off2sec))
-    {}
+        : _sections(std::move(sections)), _moduleNames(std::move(module_names)), _off2sec(std::move(off2sec))
+    {
+    }
 
     // Returns a full list of sections
     inline const std::vector<std::string> &GetSections() const { return _sections; }
@@ -91,9 +85,8 @@ class LineHandler
     mutable SectionLine _cacheSectionLine;
 
     void UpdateCacheIfNecessary(size_t pos) const;
-    
-public:
 
+public:
     LineHandler();
 
     // Start a new section. From now on, all AddLineAt() will refer to that section.
@@ -111,16 +104,27 @@ public:
     }
 
     // Get the section id that corresponds to the offset
-    inline size_t GetSectionIdAt(size_t offset) const { UpdateCacheIfNecessary(offset); return _cacheSectionLine.SectionId; }
+    inline size_t GetSectionIdAt(size_t offset) const
+    {
+        UpdateCacheIfNecessary(offset);
+        return _cacheSectionLine.SectionId;
+    }
 
     // Convert section IDs to sections
-    std::string const &SectionId2Section(size_t id) const { return id >= _sections.size() ? _sections[0] : _sections[id]; }
+    std::string const &SectionId2Section(size_t id) const
+    {
+        return id >= _sections.size() ? _sections[0] : _sections[id];
+    }
 
     // Record that the code line lineno begins at this offset.
     void AddLineAt(size_t offset, size_t lineno);
-        
+
     // Get the code line that corresponds to the offset
-    inline size_t GetLinenoAt(size_t offset) const {  UpdateCacheIfNecessary(offset); return _cacheSectionLine.Lineno; }
+    inline size_t GetLinenoAt(size_t offset) const
+    {
+        UpdateCacheIfNecessary(offset);
+        return _cacheSectionLine.Lineno;
+    }
 
     // Generate a SectionList object, copying collected data
     SectionList CreateSectionList() const;
@@ -136,9 +140,9 @@ public:
 
 private:
     std::vector<Symbol> *_script; // NOT owned
-    LineHandler *_lineHandler; // NOT owned
-    size_t _begin; 
-    size_t _end;    // '[_end]' itself is not included
+    LineHandler *_lineHandler;    // NOT owned
+    size_t _begin;
+    size_t _end;     // '[_end]' itself is not included
     size_t *_cursor; // '*_cursor' is relative to '[0u]', not to '[_begin]'. NOT owned
 
 public:
@@ -157,8 +161,13 @@ public:
     SrcList &operator=(SrcList const &&other) noexcept;
 
     inline size_t GetCursor() const { return *_cursor - _begin; }
-    inline void SetCursor(size_t idx) { *_cursor = idx + _begin; if (*_cursor > _end) *_cursor = _end;  }
-    
+    inline void SetCursor(size_t idx)
+    {
+        *_cursor = idx + _begin;
+        if (*_cursor > _end)
+            *_cursor = _end;
+    }
+
     inline size_t Length() const { return (_begin < _end) ? _end - _begin : 0u; };
     inline bool ReachedEOF() const { return *_cursor >= _end; }
     inline bool ReachedStartOF() const { return *_cursor <= _begin; }
@@ -170,9 +179,16 @@ public:
     // Look at the symbol that will be read next, but don't read it yet
     inline Symbol PeekNext() const { return (*_cursor >= _begin && *_cursor < _end) ? (*_script)[*_cursor] : kEOF; }
     // Look at the symbol that comes next when going backwards when reading
-    inline Symbol PeekPrev() const { return (*_cursor >= _begin && *_cursor < _end) ? (*_script)[*_cursor - 1u] : kEOF; }
+    inline Symbol PeekPrev() const
+    {
+        return (*_cursor >= _begin && *_cursor < _end) ? (*_script)[*_cursor - 1u] : kEOF;
+    }
     // Move the cursor back by 1 space.
-    inline void BackUp() { if (*_cursor > _begin) --*_cursor; }
+    inline void BackUp()
+    {
+        if (*_cursor > _begin)
+            --*_cursor;
+    }
 
     // Skim through the list, ignoring delimited content completely. Stop in the following cases:
     // .  A symbol in 'stoplist' is encountered
@@ -183,15 +199,24 @@ public:
     // .  The symbol 'stopsym' is encountered.
     // .  A closing symbol is encountered that hasn't been opened.
     // Don't consume the symbol that stops the scan.
-    inline void SkipTo(Symbol stopsym) { SkipTo(SymbolList{ stopsym, }); }
-    // Skim through the list, ignoring delimited content completely. 
+    inline void SkipTo(Symbol stopsym)
+    {
+        SkipTo(SymbolList{
+            stopsym,
+        });
+    }
+    // Skim through the list, ignoring delimited content completely.
     // Stop whem a closing symbol is encountered that hasn't been opened.
     // Don't consume that symbol.
     inline void SkipToCloser(void) { SkipTo(SymbolList{}); }
 
     // Get symbol at idx. Moves the cursor, too.
     // Note: Can't assign through this operator, this is intentional.
-    Symbol operator[](size_t idx) { SetCursor(idx); return GetNext(); }
+    Symbol operator[](size_t idx)
+    {
+        SetCursor(idx);
+        return GetNext();
+    }
 
     // Whether the index is within the list
     inline bool InRange(size_t idx) const { return idx + _begin < _end; }
@@ -205,22 +230,29 @@ public:
     // (When the user gets an error, they want to know the "real" line where the error is,
     // not a line reference that is relative to an excerpt of their program.)
     inline size_t GetLinenoAt(size_t pos) const { return _lineHandler->GetLinenoAt(pos + _begin); }
-    inline size_t GetSectionIdAt (size_t pos) const { return _lineHandler->GetSectionIdAt(pos + _begin); }
+    inline size_t GetSectionIdAt(size_t pos) const { return _lineHandler->GetSectionIdAt(pos + _begin); }
     // Get the data for the symbol that has been read last.
     // Note: The cursor points at the symbol that will be read next, but we need the data
     // of the symbol that has just been read. That's the symbol in front of the cursor.
-    inline size_t GetLineno() const { return GetLinenoAt((*_cursor > _begin)? *_cursor - _begin - 1u : 0u); }
-    inline size_t GetSectionId() const { return GetSectionIdAt((*_cursor > 0u)? *_cursor - 1u : 0u); }
+    inline size_t GetLineno() const { return GetLinenoAt((*_cursor > _begin) ? *_cursor - _begin - 1u : 0u); }
+    inline size_t GetSectionId() const { return GetSectionIdAt((*_cursor > 0u) ? *_cursor - 1u : 0u); }
 
     inline std::string const &SectionId2Section(size_t id) const { return _lineHandler->SectionId2Section(id); }
 
     //
     // Used for building the srclist, not for processing the srclist
     //
-    inline void Append(Symbol symb) { _script->push_back(symb); _end++; }
+    inline void Append(Symbol symb)
+    {
+        _script->push_back(symb);
+        _end++;
+    }
     inline void NewLine(size_t lineno) { _lineHandler->AddLineAt(_script->size(), lineno); }
     inline void NewSection(std::string const &section) { _lineHandler->NewSection(section); }
-    inline void NewSection(std::string const &section, std::string const &module_name) { _lineHandler->NewSection(section, module_name); }
+    inline void NewSection(std::string const &section, std::string const &module_name)
+    {
+        _lineHandler->NewSection(section, module_name);
+    }
 };
 } // namespace AGS
 

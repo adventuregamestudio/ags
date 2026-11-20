@@ -78,7 +78,7 @@ HError ScriptEventsBase::Read(Stream *in)
     _handlers.resize(evt_count);
     for (size_t i = 0; i < evt_count; ++i)
     {
-        _handlers[i] = { StrUtil::ReadString(in) };
+        _handlers[i] = {StrUtil::ReadString(in)};
     }
     return HError::None();
 }
@@ -119,7 +119,7 @@ HError ScriptEventHandlers::Read_v361(Stream *in)
     _handlers.resize(evt_count);
     for (size_t i = 0; i < evt_count; ++i)
     {
-        _handlers[i] = { String::FromStream(in) };
+        _handlers[i] = {String::FromStream(in)};
     }
     return HError::None();
 }

@@ -36,24 +36,24 @@ namespace Common
 struct Font
 {
     // Classic font renderer interface
-    IAGSFontRenderer   *Renderer = nullptr;
+    IAGSFontRenderer *Renderer = nullptr;
     // Extended font renderer interface (optional)
-    IAGSFontRenderer2  *Renderer2 = nullptr;
+    IAGSFontRenderer2 *Renderer2 = nullptr;
     // Internal interface (only for built-in renderers)
     IAGSFontRendererInternal *RendererInt = nullptr;
     // A file this font's data was loaded from
-    String              Filename;
+    String Filename;
     // Font's general properties
-    FontInfo            Info;
+    FontInfo Info;
     // Values received from the renderer and saved for the reference
-    FontMetrics         Metrics;
+    FontMetrics Metrics;
     // Precalculated linespacing, based on font properties and compat settings
-    int                 LineSpacingCalc = 0;
+    int LineSpacingCalc = 0;
     // First and last character code supported in this font; -1 if not initialized
-    int                 FirstCharCode = -1;
-    int                 LastCharCode = -1;
+    int FirstCharCode = -1;
+    int LastCharCode = -1;
     // Cached list of valid character codes in this font
-    std::vector<int>    ValidCharCodes;
+    std::vector<int> ValidCharCodes;
 
     // Outline buffers
     Bitmap TextStencil, TextStencilSub;
@@ -62,12 +62,12 @@ struct Font
     Font() = default;
     Font(const Font &font) = default;
     Font(Font &&font) = default;
-    Font &operator =(const Font &font) = default;
-    Font &operator =(Font &&font) = default;
+    Font &operator=(const Font &font) = default;
+    Font &operator=(Font &&font) = default;
 };
 
-} // Common
-} // AGS
+} // namespace Common
+} // namespace AGS
 
 static std::vector<Font> fonts;
 static std::unique_ptr<TTFFontRenderer> ttfRenderer;
@@ -80,7 +80,7 @@ void init_font_renderer(AssetManager *amgr)
     wfnRenderer.reset(new WFNFontRenderer(amgr));
 }
 
-void set_wfn_palette_eligibility(const std::array<bool, 256>& palette_eligible)
+void set_wfn_palette_eligibility(const std::array<bool, 256> &palette_eligible)
 {
     if (wfnRenderer)
         wfnRenderer->SetPaletteEligibility(palette_eligible);
@@ -106,11 +106,11 @@ inline bool assert_font_number(int font_number)
 
 inline bool assert_font_renderer(int font_number)
 {
-    return (font_number >= 0) && (static_cast<uint32_t>(font_number) < fonts.size())
-        && (fonts[font_number].Renderer != nullptr);
+    return (font_number >= 0) && (static_cast<uint32_t>(font_number) < fonts.size()) &&
+           (fonts[font_number].Renderer != nullptr);
 }
 
-void adjust_y_coordinate_for_text(int* ypos, int font_number)
+void adjust_y_coordinate_for_text(int *ypos, int font_number)
 {
     if (!assert_font_renderer(font_number))
         return;
@@ -203,8 +203,7 @@ static void font_post_init(int font_number)
     }
 }
 
-static void font_replace_renderer(int font_number,
-    IAGSFontRenderer* renderer, IAGSFontRenderer2* renderer2)
+static void font_replace_renderer(int font_number, IAGSFontRenderer *renderer, IAGSFontRenderer2 *renderer2)
 {
     fonts[font_number].Renderer = renderer;
     fonts[font_number].Renderer2 = renderer2;
@@ -212,7 +211,7 @@ static void font_replace_renderer(int font_number,
     // reinitialize interfaces and font metrics
     if ((renderer == ttfRenderer.get()) || (renderer == wfnRenderer.get()))
     {
-        fonts[font_number].RendererInt = static_cast<IAGSFontRendererInternal*>(renderer);
+        fonts[font_number].RendererInt = static_cast<IAGSFontRendererInternal *>(renderer);
         fonts[font_number].RendererInt->GetFontMetrics(font_number, &fonts[font_number].Metrics);
     }
     // Otherwise, this is probably coming from plugin
@@ -224,20 +223,20 @@ static void font_replace_renderer(int font_number,
     font_post_init(font_number);
 }
 
-IAGSFontRenderer* font_replace_renderer(int font_number, IAGSFontRenderer* renderer)
+IAGSFontRenderer *font_replace_renderer(int font_number, IAGSFontRenderer *renderer)
 {
     if (!assert_font_number(font_number))
         return nullptr;
-    IAGSFontRenderer* old_render = fonts[font_number].Renderer;
+    IAGSFontRenderer *old_render = fonts[font_number].Renderer;
     font_replace_renderer(font_number, renderer, nullptr);
     return old_render;
 }
 
-IAGSFontRenderer* font_replace_renderer(int font_number, IAGSFontRenderer2* renderer)
+IAGSFontRenderer *font_replace_renderer(int font_number, IAGSFontRenderer2 *renderer)
 {
     if (!assert_font_number(font_number))
         return nullptr;
-    IAGSFontRenderer* old_render = fonts[font_number].Renderer;
+    IAGSFontRenderer *old_render = fonts[font_number].Renderer;
     font_replace_renderer(font_number, renderer, renderer);
     return old_render;
 }
@@ -268,8 +267,7 @@ bool set_font_stencil_mode(int font_number, bool enabled)
 
 int get_wfn_font_bits_per_pixel(int font_number)
 {
-    if (!assert_font_renderer(font_number) ||
-        fonts[font_number].Renderer != wfnRenderer.get())
+    if (!assert_font_renderer(font_number) || fonts[font_number].Renderer != wfnRenderer.get())
         return 0;
 
     return wfnRenderer->GetFontBitsPerPixel(font_number);
@@ -341,7 +339,7 @@ int get_text_width_outlined(const char *text, int font_number)
 {
     if (!assert_font_renderer(font_number))
         return 0;
-    if(text == nullptr || text[0] == 0) // we ignore outline width since the text is empty
+    if (text == nullptr || text[0] == 0) // we ignore outline width since the text is empty
         return 0;
 
     int self_width = fonts[font_number].Renderer->GetTextWidth(text, font_number);
@@ -375,8 +373,7 @@ int get_font_outline_thickness(int font_number)
     return fonts[font_number].Info.AutoOutlineThickness;
 }
 
-void set_font_outline(int font_number, int outline_type,
-    enum FontInfo::AutoOutlineStyle style, int thickness)
+void set_font_outline(int font_number, int outline_type, enum FontInfo::AutoOutlineStyle style, int thickness)
 {
     if (!assert_font_number(font_number))
         return;
@@ -403,17 +400,15 @@ int get_font_height(int font_number)
 // or a full graphical extent), and the font's outline height.
 static int get_font_height_with_outline(int font_number, bool surf_height = false)
 {
-    const int self_height = surf_height ?
-        fonts[font_number].Metrics.ExtentHeight() :
-        fonts[font_number].Metrics.LogicalHeight;
+    const int self_height =
+        surf_height ? fonts[font_number].Metrics.ExtentHeight() : fonts[font_number].Metrics.LogicalHeight;
     const int outline = fonts[font_number].Info.Outline;
     if (outline < 0 || static_cast<uint32_t>(outline) >= fonts.size())
     { // FONT_OUTLINE_AUTO or FONT_OUTLINE_NONE
         return self_height + 2 * fonts[font_number].Info.AutoOutlineThickness;
     }
-    const int outline_height = surf_height ?
-        fonts[outline].Metrics.ExtentHeight() :
-        fonts[outline].Metrics.LogicalHeight;
+    const int outline_height =
+        surf_height ? fonts[outline].Metrics.ExtentHeight() : fonts[outline].Metrics.LogicalHeight;
     return std::max(self_height, outline_height);
 }
 
@@ -487,8 +482,7 @@ int get_text_lines_height(int font_number, size_t numlines)
 {
     if (!assert_font_number(font_number) || numlines == 0)
         return 0;
-    return fonts[font_number].LineSpacingCalc * (numlines - 1) +
-        get_font_height_with_outline(font_number);
+    return fonts[font_number].LineSpacingCalc * (numlines - 1) + get_font_height_with_outline(font_number);
 }
 
 int get_text_lines_surf_height(size_t font_number, size_t numlines)
@@ -496,10 +490,16 @@ int get_text_lines_surf_height(size_t font_number, size_t numlines)
     if (!assert_font_number(font_number) || numlines == 0)
         return 0;
     return fonts[font_number].LineSpacingCalc * (numlines - 1) +
-        get_font_height_with_outline(font_number, true /* surf height */);
+           get_font_height_with_outline(font_number, true /* surf height */);
 }
 
-namespace AGS { namespace Common { SplitLines Lines; } }
+namespace AGS
+{
+namespace Common
+{
+SplitLines Lines;
+}
+} // namespace AGS
 
 // Break up the text into lines
 size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, size_t max_lines)
@@ -512,15 +512,18 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
     // in this case we perhaps could use custom ITERATOR types that read
     // and write utf8 chars in std::strings or similar containers.
     test_buf.clear();
-    const char *theline = todis; // sub-line ptr
-    const char *scan_ptr = theline; // a moving scan pos
-    const char *prev_ptr = scan_ptr; // previous scan pos
+    const char *theline = todis;           // sub-line ptr
+    const char *scan_ptr = theline;        // a moving scan pos
+    const char *prev_ptr = scan_ptr;       // previous scan pos
     const char *last_whitespace = nullptr; // last found whitespace
 
-    while (true) {
-        if (*scan_ptr == 0) {
+    while (true)
+    {
+        if (*scan_ptr == 0)
+        {
             // end of the text, add the last line if necessary
-            if (scan_ptr > theline) {
+            if (scan_ptr > theline)
+            {
                 lines.Add(test_buf.c_str());
             }
             break;
@@ -533,16 +536,20 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
 
         const char *split_at = nullptr;
         // force end of line with the \n character
-        if (*scan_ptr == '\n') {
+        if (*scan_ptr == '\n')
+        {
             split_at = scan_ptr;
             ugetxc(&scan_ptr); // advance by char
-        // otherwise, see if we are too wide
-        } else {
+            // otherwise, see if we are too wide
+        }
+        else
+        {
             // copy next character to the test buffer and calculate its width
             char uch[Utf8::UtfSz + 1]{};
             usetc(uch, ugetxc(&scan_ptr)); // this advances scan_ptr
             test_buf.append(uch);
-            if (get_text_width_outlined(test_buf.c_str(), fonnt) > wii) {
+            if (get_text_width_outlined(test_buf.c_str(), fonnt) > wii)
+            {
                 // line is too wide, order the split
                 if (last_whitespace)
                     // revert to the last whitespace
@@ -553,9 +560,11 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
             }
         }
 
-        if (split_at != nullptr) {
+        if (split_at != nullptr)
+        {
             // check if even one char cannot fit...
-            if (split_at == theline && !((*theline == ' ') || (*theline == '\n'))) {
+            if (split_at == theline && !((*theline == ' ') || (*theline == '\n')))
+            {
                 // cannot split with current width restriction
                 lines.Reset();
                 break;
@@ -565,7 +574,8 @@ size_t split_lines(const char *todis, SplitLines &lines, int wii, int fonnt, siz
             lines.Add(test_buf.c_str());
             test_buf.clear();
             // check if too many lines
-            if (lines.Count() >= max_lines) {
+            if (lines.Count() >= max_lines)
+            {
                 lines[lines.Count() - 1].Append("...");
                 break;
             }
@@ -620,7 +630,8 @@ bool load_font_size(int font_number, const String &filename, const FontInfo &fon
     freefont(font_number);
     if (font_info.Filename.IsEmpty())
     {
-        Debug::Printf(kDbgMsg_Error, "Font %d does not have any source filename assigned, can't be loaded.", font_number);
+        Debug::Printf(kDbgMsg_Error, "Font %d does not have any source filename assigned, can't be loaded.",
+                      font_number);
         return false;
     }
 
@@ -639,20 +650,22 @@ bool load_font_size(int font_number, const String &filename, const FontInfo &fon
     // trying them in a sequnce, prioritizing one that matches file extension.
     if (ttfRenderer->LoadFromDiskEx(font_number, font_info.Size, font_info.Filename, &params, &metrics))
     {
-        font.Renderer    = ttfRenderer.get();
-        font.Renderer2   = ttfRenderer.get();
+        font.Renderer = ttfRenderer.get();
+        font.Renderer2 = ttfRenderer.get();
         font.RendererInt = ttfRenderer.get();
     }
     else if (wfnRenderer->LoadFromDiskEx(font_number, font_info.Size, font_info.Filename, &params, &metrics))
     {
-        font.Renderer    = wfnRenderer.get();
-        font.Renderer2   = wfnRenderer.get();
+        font.Renderer = wfnRenderer.get();
+        font.Renderer2 = wfnRenderer.get();
         font.RendererInt = wfnRenderer.get();
     }
 
     if (!font.Renderer)
     {
-        Debug::Printf(kDbgMsg_Error, "Failed to load font %d with source filename %s: no font renderer was able to load or recognize font data.",
+        Debug::Printf(
+            kDbgMsg_Error,
+            "Failed to load font %d with source filename %s: no font renderer was able to load or recognize font data.",
             font_number, font_info.Filename.GetCStr());
         return false;
     }
@@ -663,9 +676,9 @@ bool load_font_size(int font_number, const String &filename, const FontInfo &fon
     font_post_init(font_number);
 
     Debug::Printf("Loaded font %d: %s, req size: %d; nominal h: %d, real h: %d, vextent: %d,%d, aabb: %d,%d - %d,%d",
-        font_number, font_info.Filename.GetCStr(), font_info.Size, font.Metrics.NominalHeight, font.Metrics.RealHeight,
-        font.Metrics.VExtent.first, font.Metrics.VExtent.second,
-        font.Metrics.BBox.Left, font.Metrics.BBox.Top, font.Metrics.BBox.Right, font.Metrics.BBox.Bottom);
+                  font_number, font_info.Filename.GetCStr(), font_info.Size, font.Metrics.NominalHeight,
+                  font.Metrics.RealHeight, font.Metrics.VExtent.first, font.Metrics.VExtent.second,
+                  font.Metrics.BBox.Left, font.Metrics.BBox.Top, font.Metrics.BBox.Right, font.Metrics.BBox.Bottom);
     return true;
 }
 
@@ -684,16 +697,16 @@ bool load_font_metrics(const String &filename, int pixel_size, FontMetrics &metr
     return false;
 }
 
-void alloc_font_outline_buffers(int font_number,
-    Bitmap **text_stencil, Bitmap **outline_stencil,
-    int text_width, int text_height, int color_depth)
+void alloc_font_outline_buffers(int font_number, Bitmap **text_stencil, Bitmap **outline_stencil, int text_width,
+                                int text_height, int color_depth)
 {
     if (!assert_font_number(font_number))
         return;
     Font &f = fonts[font_number];
     const int thick = 2 * f.Info.AutoOutlineThickness;
     BitmapHelper::AllocateBitmapAndSubBitmap(&f.TextStencil, &f.TextStencilSub, text_width, text_height, color_depth);
-    BitmapHelper::AllocateBitmapAndSubBitmap(&f.OutlineStencil, &f.OutlineStencilSub, text_width, text_height + thick, color_depth);
+    BitmapHelper::AllocateBitmapAndSubBitmap(&f.OutlineStencil, &f.OutlineStencilSub, text_width, text_height + thick,
+                                             color_depth);
     *text_stencil = &f.TextStencilSub;
     *outline_stencil = &f.OutlineStencilSub;
 }
@@ -768,7 +781,8 @@ void wouttextxy(Bitmap *ds, int x, int y, int font_number, color_t text_color, c
     wouttextxy(ds, x, y, font_number, text_color, kBlend_Normal, text);
 }
 
-void wouttextxy_stencil(Bitmap* ds, int x, int y, int font_number, color_t text_color, BlendMode blend_mode, const char* texx)
+void wouttextxy_stencil(Bitmap *ds, int x, int y, int font_number, color_t text_color, BlendMode blend_mode,
+                        const char *texx)
 {
     const bool stencil_mode = set_font_stencil_mode(font_number, true);
 

@@ -23,21 +23,24 @@ using namespace AGS::Common;
 extern ScriptWalkbehind scrWalkbehind[MAX_WALK_BEHINDS];
 
 // return the type name of the object
-const char *CCWalkbehind::GetType() {
+const char *CCWalkbehind::GetType()
+{
     return "Walkbehind";
 }
 
-size_t CCWalkbehind::CalcSerializeSize(const void* /*address*/)
+size_t CCWalkbehind::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCWalkbehind::Serialize(const void *address, Stream *out) {
-    const ScriptWalkbehind *shh = static_cast<const ScriptWalkbehind*>(address);
+void CCWalkbehind::Serialize(const void *address, Stream *out)
+{
+    const ScriptWalkbehind *shh = static_cast<const ScriptWalkbehind *>(address);
     out->WriteInt32(shh->id);
 }
 
-void CCWalkbehind::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void CCWalkbehind::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
     int num = in->ReadInt32();
     ccRegisterUnserializedPersistentObject(index, &scrWalkbehind[num], this);
 }

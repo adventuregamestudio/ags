@@ -18,13 +18,13 @@
 #include "ac/dialogtopic.h"
 #include "ac/dynobj/scriptobjects.h"
 
-int  Dialog_GetID(ScriptDialog *sd);
-int  Dialog_GetOptionCount(ScriptDialog *sd);
-int  Dialog_GetShowTextParser(ScriptDialog *sd);
-const char* Dialog_GetOptionText(ScriptDialog *sd, int option);
-int  Dialog_DisplayOptions(ScriptDialog *sd, int sayChosenOption);
-int  Dialog_GetOptionState(ScriptDialog *sd, int option);
-int  Dialog_HasOptionBeenChosen(ScriptDialog *sd, int option);
+int Dialog_GetID(ScriptDialog *sd);
+int Dialog_GetOptionCount(ScriptDialog *sd);
+int Dialog_GetShowTextParser(ScriptDialog *sd);
+const char *Dialog_GetOptionText(ScriptDialog *sd, int option);
+int Dialog_DisplayOptions(ScriptDialog *sd, int sayChosenOption);
+int Dialog_GetOptionState(ScriptDialog *sd, int option);
+int Dialog_HasOptionBeenChosen(ScriptDialog *sd, int option);
 void Dialog_SetOptionState(ScriptDialog *sd, int option, int newState);
 void Dialog_Start(ScriptDialog *sd);
 void StopDialog();

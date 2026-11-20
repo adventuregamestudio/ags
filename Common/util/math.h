@@ -38,69 +38,68 @@ namespace Common
 
 namespace Math
 {
-    inline bool IsFloatZero(float value)
+inline bool IsFloatZero(float value)
+{
+    return (value >= -std::numeric_limits<float>::epsilon()) && (value <= std::numeric_limits<float>::epsilon());
+}
+
+template<class T>
+inline const T &Clamp(const T &val, const T &floor, const T &ceil)
+{
+    return std::max<T>(floor, std::min<T>(val, ceil));
+}
+
+template<class T>
+inline void ClampLength(T &from, T &length, const T &floor, const T &height)
+{
+    if (from < floor)
     {
-        return (value >= -std::numeric_limits<float>::epsilon()) && (value <= std::numeric_limits<float>::epsilon());
+        length -= floor - from;
+        from = floor;
+    }
+    else if (from >= floor + height)
+    {
+        from = floor + height;
+        length = 0;
     }
 
-    template <class T>
-    inline const T &Clamp(const T &val, const T &floor, const T &ceil)
-    {
-        return std::max<T>(floor, std::min<T>(val, ceil));
-    }
+    length = std::max<T>(length, 0);
+    length = std::min<T>(length, height - from);
+}
 
-    template <class T>
-    inline void ClampLength(T &from, T &length, const T &floor, const T &height)
-    {
-        if (from < floor)
-        {
-            length -= floor - from;
-            from = floor;
-        }
-        else if (from >= floor + height)
-        {
-            from = floor + height;
-            length = 0;
-        }
+// Get a measure of how value A is greater than value B;
+// if A is smaller than or equal to B, returns 0.
+template<class T>
+inline T Surplus(const T &larger, const T &smaller)
+{
+    return larger > smaller ? larger - smaller : 0;
+}
 
-        length = std::max<T>(length, 0);
-        length = std::min<T>(length, height - from);
-    }
+// Tests if the big-type value is in range of the result type;
+// returns same value converted if it's in range, or provided replacement if it's not.
+template<typename T, typename TBig>
+inline T InRangeOrDef(const TBig &val, const T &def)
+{
+    return (val >= std::numeric_limits<T>::min() && val <= std::numeric_limits<T>::max()) ? static_cast<T>(val) : def;
+}
 
-    // Get a measure of how value A is greater than value B;
-    // if A is smaller than or equal to B, returns 0.
-    template <class T>
-    inline T Surplus(const T &larger, const T &smaller)
-    {
-        return larger > smaller ? larger - smaller : 0;
-    }
+inline double RadiansToDegrees(const double rads)
+{
+    return rads * (180.0 / M_PI);
+}
 
-    // Tests if the big-type value is in range of the result type;
-    // returns same value converted if it's in range, or provided replacement if it's not.
-    template <typename T, typename TBig>
-    inline T InRangeOrDef(const TBig &val, const T &def)
-    {
-        return (val >= std::numeric_limits<T>::min() && val <= std::numeric_limits<T>::max()) ?
-            static_cast<T>(val) : def;
-    }
+inline double DegreesToRadians(const double deg)
+{
+    return deg * (M_PI / 180.0);
+}
 
-    inline double RadiansToDegrees(const double rads)
-    {
-        return rads * (180.0 / M_PI);
-    }
-
-    inline double DegreesToRadians(const double deg)
-    {
-        return deg * (M_PI / 180.0);
-    }
-
-    // Wraps the angle in degrees into [0;360) range
-    inline double ClampAngle360(const double degrees)
-    {
-        if (degrees >= 0.0)
-            return std::fmod(degrees, 360.0);
-        return std::fmod(360.0 + degrees, 360.0);
-    }
+// Wraps the angle in degrees into [0;360) range
+inline double ClampAngle360(const double degrees)
+{
+    if (degrees >= 0.0)
+        return std::fmod(degrees, 360.0);
+    return std::fmod(360.0 + degrees, 360.0);
+}
 } // namespace Math
 
 } // namespace Common

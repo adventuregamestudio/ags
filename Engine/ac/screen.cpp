@@ -68,12 +68,11 @@ static std::unique_ptr<Bitmap> game_frame_to_bmp(bool for_fadein)
         construct_game_screen_overlay(false /* no cursor */);
         gfxDriver->RenderToBackBuffer();
     }
-    return std::unique_ptr<Bitmap>(
-        CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight(),
-        &view, true /* always in native res */, RENDER_SHOT_SKIP_ON_FADE));
+    return std::unique_ptr<Bitmap>(CopyScreenIntoBitmap(view.GetWidth(), view.GetHeight(), &view,
+                                                        true /* always in native res */, RENDER_SHOT_SKIP_ON_FADE));
 }
 
-static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
+static IDriverDependantBitmap *get_frame_for_transition_in(bool opaque)
 {
     assert(saved_viewport_bitmap);
     if (!saved_viewport_bitmap)
@@ -86,10 +85,11 @@ static IDriverDependantBitmap* get_frame_for_transition_in(bool opaque)
     const Rect &viewport = play.GetMainViewport();
     if (saved_viewport_bitmap->GetHeight() != viewport.GetHeight())
     {
-        Bitmap *fix_frame = BitmapHelper::CreateBitmap(saved_viewport_bitmap->GetWidth(), viewport.GetHeight(), saved_viewport_bitmap->GetColorDepth());
-        fix_frame->Blit(saved_viewport_bitmap.get(),
-            0, 0, 0, (viewport.GetHeight() - saved_viewport_bitmap->GetHeight()) / 2,
-            saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
+        Bitmap *fix_frame = BitmapHelper::CreateBitmap(saved_viewport_bitmap->GetWidth(), viewport.GetHeight(),
+                                                       saved_viewport_bitmap->GetColorDepth());
+        fix_frame->Blit(saved_viewport_bitmap.get(), 0, 0, 0,
+                        (viewport.GetHeight() - saved_viewport_bitmap->GetHeight()) / 2,
+                        saved_viewport_bitmap->GetWidth(), saved_viewport_bitmap->GetHeight());
         saved_viewport_bitmap.reset(fix_frame);
     }
     return gfxDriver->CreateDDBFromBitmap(saved_viewport_bitmap.get(), opaque ? kTxFlags_Opaque : kTxFlags_None);
@@ -108,10 +108,7 @@ public:
     {
     }
 
-    ~ScreenTransition() override
-    {
-        saved_viewport_bitmap.reset();
-    }
+    ~ScreenTransition() override { saved_viewport_bitmap.reset(); }
 
     // Update the state during a game tick
     bool Run() override
@@ -167,10 +164,7 @@ public:
         _alpha = 1;
     }
     // End the state, release all resources
-    void End() override
-    {
-        gfxDriver->DestroyDDB(_fade);
-    }
+    void End() override { gfxDriver->DestroyDDB(_fade); }
     // Draw the state
     void Draw() override
     {
@@ -211,8 +205,7 @@ class ScreenFadeSoftware : public ScreenTransition
 {
 public:
     ScreenFadeSoftware(PALETTE *fadein_pal, bool fade_in, int speed, int fader, int fadeg, int fadeb)
-        : ScreenTransition(kScrTran_Fade, fade_in, speed)
-        , _fadeInPal(fadein_pal)
+        : ScreenTransition(kScrTran_Fade, fade_in, speed), _fadeInPal(fadein_pal)
     {
         _fadeCol.r = fader;
         _fadeCol.g = fadeg;
@@ -417,7 +410,8 @@ public:
         else
         {
             _fade[0]->SetStretch(_boxWidth, _boxHeight, false);
-            gfxDriver->DrawSprite(_view.GetWidth() / 2 - _boxWidth / 2, _view.GetHeight() / 2 - _boxHeight / 2, _fade[0]);
+            gfxDriver->DrawSprite(_view.GetWidth() / 2 - _boxWidth / 2, _view.GetHeight() / 2 - _boxHeight / 2,
+                                  _fade[0]);
         }
         gfxDriver->EndSpriteBatch();
         render_to_screen();
@@ -463,7 +457,7 @@ public:
         // First of all we render the game once again and get the drawn frame as a bitmap.
         // Then we keep drawing saved image of the game, simulating "box-out".
         // TODO: maybe use screenshot_to_ddb instead?
-        play.screen_is_faded_out = false; // force all game elements to draw
+        play.screen_is_faded_out = false;      // force all game elements to draw
         set_palette_range(palette, 0, 255, 0); // TODO: investigate and comment the meaning of this
         _bmpFrame = game_frame_to_bmp(_fadein);
 
@@ -479,10 +473,7 @@ public:
         }
     }
     // End the state, release all resources
-    void End() override
-    {
-        invalidate_screen();
-    }
+    void End() override { invalidate_screen(); }
     // Draw the state
     void Draw() override
     {
@@ -499,8 +490,9 @@ public:
         {
             int hcentre = _view.GetWidth() / 2;
             int vcentre = _view.GetHeight() / 2;
-            _bmpFrame->FillRect(Rect(hcentre - _boxWidth / 2, vcentre - _boxHeight / 2,
-                hcentre + _boxWidth / 2, vcentre + _boxHeight / 2), _fadeColor);
+            _bmpFrame->FillRect(Rect(hcentre - _boxWidth / 2, vcentre - _boxHeight / 2, hcentre + _boxWidth / 2,
+                                     vcentre + _boxHeight / 2),
+                                _fadeColor);
             _bmpBuff->Fill(_fadeColor);
             _bmpBuff->Blit(_bmpFrame.get(), _view.Left, _view.Top);
             render_to_screen();
@@ -509,12 +501,8 @@ public:
     // Update the state during a game tick
     bool RunImpl() override
     {
-        const int target_width = _fadein ?
-            _bmpBuff->GetWidth() :
-            _view.GetWidth();
-        const int target_height = _fadein ?
-            _bmpBuff->GetHeight() :
-            _view.GetHeight();
+        const int target_width = _fadein ? _bmpBuff->GetWidth() : _view.GetWidth();
+        const int target_height = _fadein ? _bmpBuff->GetHeight() : _view.GetHeight();
         if (_boxWidth >= target_width)
             return false;
         _boxWidth = std::min(_boxWidth + _speed, target_width);
@@ -535,8 +523,7 @@ private:
 class ScreenCrossfade : public ScreenTransition
 {
 public:
-    ScreenCrossfade(bool fade_in, int speed)
-        : ScreenTransition(kScrTran_Crossfade, fade_in, speed) {}
+    ScreenCrossfade(bool fade_in, int speed) : ScreenTransition(kScrTran_Crossfade, fade_in, speed) {}
 
     // Begin the state, initialize and prepare any resources
     void Begin() override
@@ -598,8 +585,7 @@ private:
 class ScreenDissolve : public ScreenTransition
 {
 public:
-    ScreenDissolve(bool fade_in, int speed)
-        : ScreenTransition(kScrTran_Dissolve, fade_in, speed) {}
+    ScreenDissolve(bool fade_in, int speed) : ScreenTransition(kScrTran_Dissolve, fade_in, speed) {}
 
     // Begin the state, initialize and prepare any resources
     void Begin() override
@@ -635,7 +621,7 @@ public:
             return false;
 
         // merge the palette while dithering
-        if (game.color_depth == 1) 
+        if (game.color_depth == 1)
         {
             fade_interpolate(old_palette, palette, _interpal, _step * 4, 0, 255);
             set_palette_range(_interpal, 0, 255, 0);
@@ -659,7 +645,7 @@ public:
 private:
     IDriverDependantBitmap *_shot_ddb = nullptr;
     int _step = 0;
-    const int _pattern[16] = {0,4,14,9,5,11,2,8,10,3,12,7,15,6,13,1};
+    const int _pattern[16] = {0, 4, 14, 9, 5, 11, 2, 8, 10, 3, 12, 7, 15, 6, 13, 1};
     Rect _view;
     SpriteTransform _sprTrans;
     // For 8-bit palette mode, will interpolate between old and new room palettes
@@ -670,7 +656,7 @@ private:
 inline bool should_instant_transition(ScreenTransitionStyle style)
 {
     return (style == kScrTran_Instant) ||
-        play.screen_tint > 0; // for some reason we do not play fade if screen is tinted
+           play.screen_tint > 0; // for some reason we do not play fade if screen is tinted
 }
 
 // Tells if the screen blackouts on the given transition (may skip scene render)
@@ -679,8 +665,7 @@ inline bool should_blackout_on_transition(ScreenTransitionStyle style)
     // Do not blackout if it's an instant transition,
     // but also if it's crossfade or dissolve, since these don't have
     // any "blackout" frame and previous room instantly changes into new one
-    return !(should_instant_transition(style) ||
-        (style == kScrTran_Crossfade) || (style == kScrTran_Dissolve));
+    return !(should_instant_transition(style) || (style == kScrTran_Crossfade) || (style == kScrTran_Dissolve));
 }
 
 void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
@@ -693,37 +678,35 @@ void run_screen_transition(ScreenTransitionStyle style, bool fade_in, int speed)
     switch (style)
     {
     case kScrTran_Fade:
-        scrtr.reset(software_mode ?
-            (ScreenTransition*)new ScreenFadeSoftware(&palette, fade_in, speed, play.fade_to_red, play.fade_to_green, play.fade_to_blue) :
-            (ScreenTransition*)new ScreenFade(fade_in, speed, play.fade_to_red, play.fade_to_green, play.fade_to_blue));
+        scrtr.reset(software_mode
+                        ? (ScreenTransition *)new ScreenFadeSoftware(&palette, fade_in, speed, play.fade_to_red,
+                                                                     play.fade_to_green, play.fade_to_blue)
+                        : (ScreenTransition *)new ScreenFade(fade_in, speed, play.fade_to_red, play.fade_to_green,
+                                                             play.fade_to_blue));
         break;
     case kScrTran_Boxout:
         // Pre-3.6.2 games always used a fixed black color
         if (loaded_game_file_version >= kGameVersion_362)
         {
-            scrtr.reset(software_mode ?
-                (ScreenTransition *)new ScreenBoxOutSoftware(fade_in, speed, play.fade_to_red, play.fade_to_green, play.fade_to_blue) :
-                (ScreenTransition *)new ScreenBoxOut(fade_in, speed, play.fade_to_red, play.fade_to_green, play.fade_to_blue));
+            scrtr.reset(software_mode ? (ScreenTransition *)new ScreenBoxOutSoftware(
+                                            fade_in, speed, play.fade_to_red, play.fade_to_green, play.fade_to_blue)
+                                      : (ScreenTransition *)new ScreenBoxOut(fade_in, speed, play.fade_to_red,
+                                                                             play.fade_to_green, play.fade_to_blue));
         }
         else
         {
-            scrtr.reset(software_mode ?
-                (ScreenTransition *)new ScreenBoxOutSoftware(fade_in, speed) :
-                (ScreenTransition *)new ScreenBoxOut(fade_in, speed));
+            scrtr.reset(software_mode ? (ScreenTransition *)new ScreenBoxOutSoftware(fade_in, speed)
+                                      : (ScreenTransition *)new ScreenBoxOut(fade_in, speed));
         }
         break;
-    case kScrTran_Crossfade:
-        scrtr.reset(new ScreenCrossfade(fade_in, speed));
-        break;
-    case kScrTran_Dissolve:
-        scrtr.reset(new ScreenDissolve(fade_in, speed));
-        break;
-    default:
-        return;
+    case kScrTran_Crossfade: scrtr.reset(new ScreenCrossfade(fade_in, speed)); break;
+    case kScrTran_Dissolve: scrtr.reset(new ScreenDissolve(fade_in, speed)); break;
+    default: return;
     }
 
     scrtr->Begin();
-    while (scrtr->Run());
+    while (scrtr->Run())
+        ;
     scrtr->End();
 
     if (should_blackout_on_transition(style))
@@ -806,7 +789,7 @@ void current_fade_in_effect()
     {
         def_speed = 5;
     }
-    else if (trans_style == kScrTran_Boxout) 
+    else if (trans_style == kScrTran_Boxout)
     {
         def_speed = 16;
     }
@@ -824,11 +807,13 @@ void current_fade_out_effect()
         return;
 
     // get the screen transition type
-    ScreenTransitionStyle trans_style = (play.next_screen_transition >= 0) ?
-        // was a temporary transition selected? if so, use it
-        static_cast<ScreenTransitionStyle>(play.next_screen_transition) :
-        // else use default game setting
-        static_cast<ScreenTransitionStyle>(play.fade_effect);
+    ScreenTransitionStyle trans_style = (play.next_screen_transition >= 0)
+                                            ?
+                                            // was a temporary transition selected? if so, use it
+                                            static_cast<ScreenTransitionStyle>(play.next_screen_transition)
+                                            :
+                                            // else use default game setting
+                                            static_cast<ScreenTransitionStyle>(play.fade_effect);
 
     if (play.fast_forward)
     {
@@ -841,7 +826,7 @@ void current_fade_out_effect()
     {
         def_speed = 5;
     }
-    else if (trans_style == kScrTran_Boxout) 
+    else if (trans_style == kScrTran_Boxout)
     {
         def_speed = 16;
     }
@@ -875,7 +860,7 @@ void Screen_SetAutoSizeViewport(bool on)
     play.SetAutoRoomViewport(on);
 }
 
-ScriptViewport* Screen_GetViewport()
+ScriptViewport *Screen_GetViewport()
 {
     return play.GetScriptViewport(0);
 }
@@ -885,15 +870,14 @@ int Screen_GetViewportCount()
     return play.GetRoomViewportCount();
 }
 
-ScriptViewport* Screen_GetAnyViewport(int index)
+ScriptViewport *Screen_GetAnyViewport(int index)
 {
     return play.GetScriptViewport(index);
 }
 
 ScriptShaderInstance *Screen_GetShader()
 {
-    return static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(
-        play.GetScreenShaderHandle()));
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(play.GetScreenShaderHandle()));
 }
 
 void Screen_SetShader(ScriptShaderInstance *shader_inst)
@@ -902,7 +886,7 @@ void Screen_SetShader(ScriptShaderInstance *shader_inst)
                          ccReplaceObjectHandle(play.GetScreenShaderHandle(), shader_inst));
 }
 
-ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry, bool restrict)
+ScriptUserObject *Screen_ScreenToRoomPoint(int scrx, int scry, bool restrict)
 {
     VpPoint vpt = play.ScreenToRoom(scrx, scry, restrict);
     if (vpt.second < 0)
@@ -910,7 +894,7 @@ ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry, bool restrict)
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
-ScriptUserObject* Screen_ScreenToRoomPoint2(int scrx, int scry)
+ScriptUserObject *Screen_ScreenToRoomPoint2(int scrx, int scry)
 {
     return Screen_ScreenToRoomPoint(scrx, scry, true);
 }
@@ -984,18 +968,18 @@ RuntimeScriptValue Sc_Screen_RoomToScreenPoint(const RuntimeScriptValue *params,
 void RegisterScreenAPI()
 {
     ScFnRegister screen_api[] = {
-        { "Screen::get_Height",             API_FN_PAIR(Screen_GetScreenHeight) },
-        { "Screen::get_Width",              API_FN_PAIR(Screen_GetScreenWidth) },
-        { "Screen::get_AutoSizeViewportOnRoomLoad", API_FN_PAIR(Screen_GetAutoSizeViewport) },
-        { "Screen::set_AutoSizeViewportOnRoomLoad", API_FN_PAIR(Screen_SetAutoSizeViewport) },
-        { "Screen::get_Viewport",           API_FN_PAIR(Screen_GetViewport) },
-        { "Screen::get_ViewportCount",      API_FN_PAIR(Screen_GetViewportCount) },
-        { "Screen::geti_Viewports",         API_FN_PAIR(Screen_GetAnyViewport) },
-        { "Screen::get_Shader",             API_FN_PAIR(Screen_GetShader) },
-        { "Screen::set_Shader",             API_FN_PAIR(Screen_SetShader) },
-        { "Screen::ScreenToRoomPoint^2",    API_FN_PAIR(Screen_ScreenToRoomPoint2) },
-        { "Screen::ScreenToRoomPoint^3",    API_FN_PAIR(Screen_ScreenToRoomPoint) },
-        { "Screen::RoomToScreenPoint",      API_FN_PAIR(Screen_RoomToScreenPoint) },
+        {"Screen::get_Height", API_FN_PAIR(Screen_GetScreenHeight)},
+        {"Screen::get_Width", API_FN_PAIR(Screen_GetScreenWidth)},
+        {"Screen::get_AutoSizeViewportOnRoomLoad", API_FN_PAIR(Screen_GetAutoSizeViewport)},
+        {"Screen::set_AutoSizeViewportOnRoomLoad", API_FN_PAIR(Screen_SetAutoSizeViewport)},
+        {"Screen::get_Viewport", API_FN_PAIR(Screen_GetViewport)},
+        {"Screen::get_ViewportCount", API_FN_PAIR(Screen_GetViewportCount)},
+        {"Screen::geti_Viewports", API_FN_PAIR(Screen_GetAnyViewport)},
+        {"Screen::get_Shader", API_FN_PAIR(Screen_GetShader)},
+        {"Screen::set_Shader", API_FN_PAIR(Screen_SetShader)},
+        {"Screen::ScreenToRoomPoint^2", API_FN_PAIR(Screen_ScreenToRoomPoint2)},
+        {"Screen::ScreenToRoomPoint^3", API_FN_PAIR(Screen_ScreenToRoomPoint)},
+        {"Screen::RoomToScreenPoint", API_FN_PAIR(Screen_RoomToScreenPoint)},
     };
 
     ccAddExternalFunctions(screen_api);

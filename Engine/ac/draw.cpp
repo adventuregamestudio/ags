@@ -71,15 +71,15 @@ extern ScriptSystem scsystem;
 extern AGSPlatformDriver *platform;
 extern RoomStruct thisroom;
 extern SpriteCache spriteset;
-extern RoomStatus*croom;
+extern RoomStatus *croom;
 extern EnterNewRoomState in_new_room;
 extern bool in_room_transition;
-extern RoomObject*objs;
+extern RoomObject *objs;
 extern std::vector<ViewStruct> views;
 extern int displayed_room;
-extern CharacterInfo*playerchar;
+extern CharacterInfo *playerchar;
 extern int eip_guinum;
-extern int cur_mode,cur_cursor;
+extern int cur_mode, cur_cursor;
 extern int mouse_hotx, mouse_hoty;
 extern int bg_just_changed;
 
@@ -95,11 +95,9 @@ struct SpriteNotifyControl
     ObjectDelegate<ISpriteUser, sprkey_t> SpriteUpdated;
     std::shared_ptr<uint32_t> NotifyMark;
 
-    SpriteNotifyControl(uint32_t sprite_id)
-        : NotifyMark(new uint32_t(sprite_id)) { }
+    SpriteNotifyControl(uint32_t sprite_id) : NotifyMark(new uint32_t(sprite_id)) {}
 
-    SpriteNotifyControl(std::shared_ptr<uint32_t> notify_mark)
-        : NotifyMark(notify_mark) { }
+    SpriteNotifyControl(std::shared_ptr<uint32_t> notify_mark) : NotifyMark(notify_mark) {}
 };
 
 // TODO: refactor the draw unit into a virtual interface with
@@ -133,8 +131,7 @@ struct DrawState
     // "shared texture" with sprite ID ref in Software renderer too,
     // which would allow to use same method of testing DDB ID for both
     // kinds of renderers, thus saving on 1 extra notification mechanism.
-    std::unordered_map<sprkey_t, SpriteNotifyControl>
-        SpriteNotifyMap;
+    std::unordered_map<sprkey_t, SpriteNotifyControl> SpriteNotifyMap;
 };
 
 DrawState drawstate;
@@ -175,7 +172,9 @@ struct ObjTexture
 
     ObjTexture() = default;
     ObjTexture(uint32_t sprite_id, Bitmap *bmp, IDriverDependantBitmap *ddb, int x, int y, int xoff = 0, int yoff = 0)
-        : SpriteID(sprite_id), Bmp(bmp), Ddb(ddb), Pos(x, y), Off(xoff, yoff) {}
+        : SpriteID(sprite_id), Bmp(bmp), Ddb(ddb), Pos(x, y), Off(xoff, yoff)
+    {
+    }
     ObjTexture(ObjTexture &&o) { *this = std::move(o); }
     ~ObjTexture()
     {
@@ -188,12 +187,9 @@ struct ObjTexture
     }
 
     // Tests if the sprite change was notified
-    inline bool IsChangeNotified() const
-    {
-        return SpriteNotify && (*SpriteNotify != SpriteID);
-    }
+    inline bool IsChangeNotified() const { return SpriteNotify && (*SpriteNotify != SpriteID); }
 
-    ObjTexture &operator =(ObjTexture &&o)
+    ObjTexture &operator=(ObjTexture &&o)
     {
         SpriteID = o.SpriteID;
         DrawIndex = o.DrawIndex;
@@ -220,8 +216,8 @@ struct ObjectCache
 #endif
 
     std::unique_ptr<Bitmap> image;
-    bool  in_use = false; // CHECKME: possibly may be removed
-    int   sppic = 0;
+    bool in_use = false; // CHECKME: possibly may be removed
+    int sppic = 0;
     // TODO: pickout tint settings, maybe even share with Char/Obj structs,
     // if plugin API permits!
     short tintr = 0, tintg = 0, tintb = 0, tintamnt = 0, tintlight = 0;
@@ -229,14 +225,25 @@ struct ObjectCache
     float rotation = 0.f;
     float pivotx = 0.f, pivoty = 0.f;
     GraphicFlip flip = kFlip_None;
-    int   x = 0, y = 0;
+    int x = 0, y = 0;
 
     ObjectCache() = default;
-    ObjectCache(int pic_, int tintr_, int tintg_, int tintb_, int tint_amnt_, int tint_light_,
-                int light_, int zoom_, float rotation_, GraphicFlip flip_, int posx_, int posy_)
-        : sppic(pic_), tintr(tintr_), tintg(tintg_), tintb(tintb_)
-        , tintamnt(tint_amnt_), tintlight(tint_light_), lightlev(light_)
-        , zoom(zoom_), rotation(rotation_), flip(flip_), x(posx_), y(posy_) { }
+    ObjectCache(int pic_, int tintr_, int tintg_, int tintb_, int tint_amnt_, int tint_light_, int light_, int zoom_,
+                float rotation_, GraphicFlip flip_, int posx_, int posy_)
+        : sppic(pic_)
+        , tintr(tintr_)
+        , tintg(tintg_)
+        , tintb(tintb_)
+        , tintamnt(tint_amnt_)
+        , tintlight(tint_light_)
+        , lightlev(light_)
+        , zoom(zoom_)
+        , rotation(rotation_)
+        , flip(flip_)
+        , x(posx_)
+        , y(posy_)
+    {
+    }
 };
 
 //
@@ -249,12 +256,10 @@ struct ObjectCache
 //   so long as there's at least one object on screen that uses it.
 // NOTE: because of this two-component structure, TextureCache has to override
 // number of ResourceCache's parent methods. This design may probably be improved.
-class TextureCache :
-    public ResourceCache<uint32_t, std::shared_ptr<Texture>>
+class TextureCache : public ResourceCache<uint32_t, std::shared_ptr<Texture>>
 {
 public:
-    TextureCache(SpriteCache &spriteset)
-        : _spriteset(spriteset) {}
+    TextureCache(SpriteCache &spriteset) : _spriteset(spriteset) {}
     virtual ~TextureCache() = default;
 
     // Gets existing texture from either MRU cache, or short-term cache
@@ -309,8 +314,7 @@ public:
             // - if texture cache's capacity is > 3/4 of raw sprite cache,
             //   then there's little to no practical reason to keep a raw image.
             // This may be adjusted, or added more rules, as seems necessary.
-            bool skip_rawcache =
-                GetMaxCacheSize() > (3 * (_spriteset.GetMaxCacheSize() / 4));
+            bool skip_rawcache = GetMaxCacheSize() > (3 * (_spriteset.GetMaxCacheSize() / 4));
 
             if (_spriteset.IsSpriteLoaded(sprite_id) || !skip_rawcache)
             { // if it's already there, or we are not allowed to skip, then cache normally
@@ -325,8 +329,7 @@ public:
                 return nullptr;
         }
 
-        txdata.reset(gfxDriver->CreateTexture(bitmap,
-              kTxFlags_Opaque * opaque));
+        txdata.reset(gfxDriver->CreateTexture(bitmap, kTxFlags_Opaque * opaque));
         if (!txdata)
             return nullptr;
 
@@ -397,7 +400,7 @@ std::vector<ObjTexture> guibg;
 // Temp GUI surfaces, in case GUI have to be transformed in software drawing mode
 std::vector<std::unique_ptr<Bitmap>> guihelpbg;
 // GUI render targets, for rendering all controls on same texture buffer
-std::vector<IDriverDependantBitmap*> gui_render_tex;
+std::vector<IDriverDependantBitmap *> gui_render_tex;
 // GUI control surfaces
 std::vector<ObjTexture> guiobjbg;
 // first control texture index of each GUI
@@ -415,8 +418,8 @@ ObjTexture cursor_tx;
 // Custom Shaders collection
 // TODO: RAII wrapper around IGraphicShader and IShaderInstance,
 // should dispose using gfxDriver->DeleteShaderProgram etc.
-std::vector<IGraphicShader*> customShaders;
-std::vector<IShaderInstance*> shaderInstances;
+std::vector<IGraphicShader *> customShaders;
+std::vector<IShaderInstance *> shaderInstances;
 
 // Draw cache: keep record of all kinds of things related to the previous drawing state
 //
@@ -427,7 +430,7 @@ ObjectCache objcache[MAX_ROOM_OBJECTS];
 std::vector<Point> overcache;
 
 // Room background sprite
-IDriverDependantBitmap* roomBackgroundBmp = nullptr;
+IDriverDependantBitmap *roomBackgroundBmp = nullptr;
 // Whether room bg was modified
 bool current_background_is_dirty = false;
 
@@ -445,10 +448,10 @@ struct RoomCameraDrawData
     // and then pass to software renderer which draws sprite on top and then either blits or stretch-blits
     // to the virtual screen.
     // For more details see comment in ALSoftwareGraphicsDriver::RenderToBackBuffer().
-    PBitmap Buffer;      // this is the actual bitmap
-    PBitmap Frame;       // this is either same bitmap reference or sub-bitmap of virtual screen
-    bool    IsOffscreen = false; // whether room viewport was offscreen (cannot use sub-bitmap)
-    bool    IsOverlap = false; // whether room viewport overlaps any others (marking dirty rects is complicated)
+    PBitmap Buffer;           // this is the actual bitmap
+    PBitmap Frame;            // this is either same bitmap reference or sub-bitmap of virtual screen
+    bool IsOffscreen = false; // whether room viewport was offscreen (cannot use sub-bitmap)
+    bool IsOverlap = false;   // whether room viewport overlaps any others (marking dirty rects is complicated)
 
     ~RoomCameraDrawData();
 };
@@ -478,9 +481,14 @@ struct SpriteListEntry
     uint32_t DrawIndex = 0u;
 
     SpriteListEntry(IDriverDependantBitmap *ddb, int x, int y, const Rect &aabb)
-        : DDB(ddb), X(x), Y(y), Z(0), AABB(aabb), RenderStage(-1), DrawIndex(0u) { }
-    SpriteListEntry(IDriverDependantBitmap *ddb, int x, int y, int z, const Rect &aabb, int render_stage, uint32_t draw_index = 0u)
-        : DDB(ddb), X(x), Y(y), Z(z), AABB(aabb), RenderStage(render_stage), DrawIndex(draw_index) { }
+        : DDB(ddb), X(x), Y(y), Z(0), AABB(aabb), RenderStage(-1), DrawIndex(0u)
+    {
+    }
+    SpriteListEntry(IDriverDependantBitmap *ddb, int x, int y, int z, const Rect &aabb, int render_stage,
+                    uint32_t draw_index = 0u)
+        : DDB(ddb), X(x), Y(y), Z(z), AABB(aabb), RenderStage(render_stage), DrawIndex(draw_index)
+    {
+    }
 };
 
 // Two lists of sprites to push into renderer during next render pass
@@ -495,14 +503,15 @@ std::unique_ptr<Bitmap> raw_saved_screen;
 std::unique_ptr<Bitmap> dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
 
 
-void setpal() {
+void setpal()
+{
     set_palette_range(palette, 0, 255, 0);
 }
 
 Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 {
     return new Bitmap(width, height,
-        gfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? game.GetColorDepth() : col_depth));
+                      gfxDriver->GetCompatibleBitmapFormat(col_depth == 0 ? game.GetColorDepth() : col_depth));
 }
 
 // PrepareSpriteForUseImpl converts input bitmap to format which may be used
@@ -516,7 +525,8 @@ Bitmap *CreateCompatBitmap(int width, int height, int col_depth)
 // * keep_mask - tells whether to keep mask pixels when converting from another
 //   color depth. May be useful to disable mask when the source is a 8-bit
 //   palette-based image and the opaque sprite is intended.
-static Bitmap *PrepareSpriteForUseImpl(Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask, const RGB *bm_palette)
+static Bitmap *PrepareSpriteForUseImpl(Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask,
+                                       const RGB *bm_palette)
 {
     // sprite must be converted to game's color depth;
     // this behavior is hardcoded in the current engine version
@@ -562,10 +572,11 @@ static Bitmap *PrepareSpriteForUseImpl(Bitmap *bitmap, bool conv_to_gamedepth, b
         else
             BitmapHelper::ReplaceZeroAlphaWithRGBMask(new_bitmap);
     }
-    
+
     // Finally, if we did not create a new copy already, - ensure gfxdriver compatible format
     if (new_bitmap == bitmap)
-        new_bitmap = GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()), keep_mask);
+        new_bitmap =
+            GfxUtil::ConvertBitmap(bitmap, gfxDriver->GetCompatibleBitmapFormat(bitmap->GetColorDepth()), keep_mask);
 
     if (must_switch_palette)
         unselect_palette();
@@ -573,7 +584,8 @@ static Bitmap *PrepareSpriteForUseImpl(Bitmap *bitmap, bool conv_to_gamedepth, b
     return new_bitmap;
 }
 
-Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask, const RGB *bm_palette)
+Bitmap *PrepareSpriteForUse(Bitmap *bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask,
+                            const RGB *bm_palette)
 {
     Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap, conv_to_gamedepth, make_opaque, keep_mask, bm_palette);
     if (new_bitmap != bitmap)
@@ -581,14 +593,15 @@ Bitmap *PrepareSpriteForUse(Bitmap* bitmap, bool conv_to_gamedepth, bool make_op
     return new_bitmap;
 }
 
-PBitmap PrepareSpriteForUse(PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask, const RGB *bm_palette)
+PBitmap PrepareSpriteForUse(PBitmap bitmap, bool conv_to_gamedepth, bool make_opaque, bool keep_mask,
+                            const RGB *bm_palette)
 {
     Bitmap *new_bitmap = PrepareSpriteForUseImpl(bitmap.get(), conv_to_gamedepth, make_opaque, keep_mask, bm_palette);
     return new_bitmap == bitmap.get() ? bitmap : PBitmap(new_bitmap); // if bitmap is same, don't create new smart ptr!
 }
 
-Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect,
-    bool at_native_res, uint32_t batch_skip_filter)
+Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect, bool at_native_res,
+                             uint32_t batch_skip_filter)
 {
     Bitmap *dst = new Bitmap(width, height, game.GetColorDepth());
     GraphicResolution want_fmt;
@@ -604,8 +617,7 @@ Bitmap *CopyScreenIntoBitmap(int width, int height, const Rect *src_rect,
     // because Allegro does not support stretching with mismatching color depths
     std::unique_ptr<Bitmap> buf_fixdepth;
     Bitmap *blit_from = buf_screenfmt.get();
-    if ((dst->GetSize() != blit_from->GetSize())
-        && (want_fmt.ColorDepth != game.GetColorDepth()))
+    if ((dst->GetSize() != blit_from->GetSize()) && (want_fmt.ColorDepth != game.GetColorDepth()))
     {
         buf_fixdepth.reset(new Bitmap(want_fmt.Width, want_fmt.Height, game.GetColorDepth()));
         buf_fixdepth->Blit(buf_screenfmt.get());
@@ -718,7 +730,7 @@ void init_game_drawdata()
 
     size_t actsps_num = game.numcharacters + MAX_ROOM_OBJECTS;
     actsps.resize(actsps_num);
-    
+
     guihelpbg.resize(game.numgui);
     guibg.resize(game.numgui);
     gui_render_tex.resize(game.numgui);
@@ -781,18 +793,23 @@ void clear_drawobj_cache(bool keep_sprite_callbacks)
     overcache.clear();
 
     // cleanup Character + Room object textures
-    for (auto &o : actsps) o = ObjTexture();
-    for (auto &o : walkbehindobj) o = ObjTexture();
+    for (auto &o : actsps)
+        o = ObjTexture();
+    for (auto &o : walkbehindobj)
+        o = ObjTexture();
     // cleanup GUI and controls textures
-    for (auto &o : guibg) o = ObjTexture();
+    for (auto &o : guibg)
+        o = ObjTexture();
     for (auto &tex : gui_render_tex)
     {
         if (tex)
             gfxDriver->DestroyDDB(tex);
         tex = nullptr;
     }
-    for (auto &o : guiobjbg) o = ObjTexture();
-    for (auto &hbg : guihelpbg) hbg.reset();
+    for (auto &o : guiobjbg)
+        o = ObjTexture();
+    for (auto &hbg : guihelpbg)
+        hbg.reset();
     overtxs.clear();
     // Mouse cursor texture
     cursor_tx = ObjTexture();
@@ -855,7 +872,8 @@ void on_mainviewport_changed()
 // Allocates a bitmap for rendering camera/viewport pair (software render mode)
 void prepare_roomview_frame(Viewport *view)
 {
-    if (!view->GetCamera()) return; // no camera link
+    if (!view->GetCamera())
+        return; // no camera link
     const int view_index = view->GetID();
     const Size view_sz = view->GetRect().GetSize();
     const Size cam_sz = view->GetCamera()->GetRect().GetSize();
@@ -879,7 +897,8 @@ void prepare_roomview_frame(Viewport *view)
         {
             // Allocate new buffer bitmap with an extra size in case they will want to zoom out
             Size alloc_sz = Size::Clamp(cam_sz * 2, Size(1, 1), Size(thisroom.Width, thisroom.Height));
-            camera_buffer.reset(new Bitmap(alloc_sz.Width, alloc_sz.Height, gfxDriver->GetMemoryBackBuffer()->GetColorDepth()));
+            camera_buffer.reset(
+                new Bitmap(alloc_sz.Width, alloc_sz.Height, gfxDriver->GetMemoryBackBuffer()->GetColorDepth()));
         }
 
         if (!camera_frame || camera_frame->GetSize() != cam_sz)
@@ -895,9 +914,7 @@ void sync_roomview(Viewport *view)
     if (view->GetCamera() == nullptr)
         return;
     // Note the dirty regions' viewport is found using absolute offset on game screen
-    init_invalid_regions(view->GetID(),
-        view->GetCamera()->GetRect().GetSize(),
-        play.GetRoomViewportAbs(view->GetID()));
+    init_invalid_regions(view->GetID(), view->GetCamera()->GetRect().GetSize(), play.GetRoomViewportAbs(view->GetID()));
     prepare_roomview_frame(view);
 }
 
@@ -927,8 +944,8 @@ void init_room_drawdata()
             sync_roomview(play.GetRoomViewport(i).get());
 
 #if (AGS_PLATFORM_DEBUG)
-    for (size_t i = 0; i < (size_t)thisroom.Objects.size(); ++i)
-        objcache[i].tag.Format("OBJ%d:%s", (int)i, thisroom.Objects[i].ScriptName.GetCStr());
+        for (size_t i = 0; i < (size_t)thisroom.Objects.size(); ++i)
+            objcache[i].tag.Format("OBJ%d:%s", (int)i, thisroom.Objects[i].ScriptName.GetCStr());
 #endif
     }
 }
@@ -982,10 +999,12 @@ void detect_roomviewport_overlaps(size_t z_index)
         auto this_view = viewports[z_index];
         const int this_id = this_view->GetID();
         bool is_overlap = false;
-        if (!this_view->IsVisible()) continue;
+        if (!this_view->IsVisible())
+            continue;
         for (size_t z_index2 = 0; z_index2 < z_index; ++z_index2)
         {
-            if (!viewports[z_index2]->IsVisible()) continue;
+            if (!viewports[z_index2]->IsVisible())
+                continue;
             if (AreRectsIntersecting(this_view->GetRect(), viewports[z_index2]->GetRect()))
             {
                 is_overlap = true;
@@ -1041,7 +1060,8 @@ void add_drawobj_for_overlay(int objnum)
         }
 
         overtxs[objnum].DrawIndex = drawstate.NextDrawIndex;
-        drawstate.NextDrawIndex = (drawstate.NextDrawIndex == UINT32_MAX) ? drawstate.FixedDrawIndexBase : drawstate.NextDrawIndex + 1;
+        drawstate.NextDrawIndex =
+            (drawstate.NextDrawIndex == UINT32_MAX) ? drawstate.FixedDrawIndexBase : drawstate.NextDrawIndex + 1;
     }
 }
 
@@ -1131,8 +1151,8 @@ void notify_sprite_changed(int sprnum, bool deleted)
         {
             if (it_notify->second.NotifyMark)
                 *it_notify->second.NotifyMark = UINT32_MAX; // set notification mark
-            it_notify->second.NotifyMark.reset(); // detach the notification mark
-            it_notify->second.SpriteUpdated(sprnum); // run callback
+            it_notify->second.NotifyMark.reset();           // detach the notification mark
+            it_notify->second.SpriteUpdated(sprnum);        // run callback
 
             // NOTE: only erase the notification object here if there are no registered
             // callbacks left. Unfortunately, the mechanics of dynamic sprites in the
@@ -1171,8 +1191,7 @@ void update_shared_texture(uint32_t sprite_id)
         return;
 
     const auto &res = txdata->Res;
-    if (res.Width == game.SpriteInfos[sprite_id].Width &&
-        res.Height == game.SpriteInfos[sprite_id].Height)
+    if (res.Width == game.SpriteInfos[sprite_id].Width && res.Height == game.SpriteInfos[sprite_id].Height)
     {
         gfxDriver->UpdateTexture(txdata.get(), spriteset[sprite_id], false);
     }
@@ -1324,8 +1343,7 @@ void mark_current_background_dirty()
 void draw_and_invalidate_text(Bitmap *ds, int x1, int y1, int font, color_t text_color, const char *text)
 {
     wouttext_outline(ds, x1, y1, font, text_color, text);
-    invalidate_rect(x1, y1, x1 + get_text_width_outlined(text, font),
-        y1 + get_font_height_outlined(font) + 1, false);
+    invalidate_rect(x1, y1, x1 + get_text_width_outlined(text, font), y1 + get_font_height_outlined(font) + 1, false);
 }
 
 // Renders black borders for the legacy boxed game mode,
@@ -1358,8 +1376,8 @@ void render_to_screen()
     // Stage: final plugin callback (still drawn on game screen)
     if (pl_any_want_hook(kPluginEvt_FinalScreenDraw))
     {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
-            play.GetGlobalTransform(drawstate.FullFrameRedraw), (GraphicFlip)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
+                                    (GraphicFlip)play.screen_flipped);
         gfxDriver->AddRenderEvent(kPluginEvt_FinalScreenDraw, 0);
         gfxDriver->EndSpriteBatch();
     }
@@ -1400,13 +1418,14 @@ void render_to_screen()
                 if (play.shake_screen_yoff > 0)
                 {
                     const Rect &viewport = play.GetMainViewport();
-                    gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1, play.shake_screen_yoff, nullptr);
+                    gfxDriver->ClearRectangle(viewport.Left, viewport.Top, viewport.GetWidth() - 1,
+                                              play.shake_screen_yoff, nullptr);
                 }
                 gfxDriver->Render(0, play.shake_screen_yoff, (GraphicFlip)play.screen_flipped);
             }
             succeeded = true;
         }
-        catch (Ali3DFullscreenLostException& e) 
+        catch (Ali3DFullscreenLostException &e)
         {
             Debug::Printf("Renderer exception: %s", e.Message.GetCStr());
             do
@@ -1423,11 +1442,11 @@ void clear_letterbox_borders()
 {
     const Rect &viewport = play.GetMainViewport();
     gfxDriver->ClearRectangle(0, 0, game.GetGameRes().Width - 1, viewport.Top - 1, nullptr);
-    gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1, nullptr);
+    gfxDriver->ClearRectangle(0, viewport.Bottom + 1, game.GetGameRes().Width - 1, game.GetGameRes().Height - 1,
+                              nullptr);
 }
 
-void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image,
-                               BlendMode blend_mode, int alpha)
+void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image, BlendMode blend_mode, int alpha)
 {
     if (alpha <= 0)
         return;
@@ -1435,22 +1454,20 @@ void draw_sprite_support_alpha(Bitmap *ds, int xpos, int ypos, Bitmap *image,
     GfxUtil::DrawSpriteBlend(ds, Point(xpos, ypos), image, blend_mode, alpha);
 }
 
-void draw_sprite_slot_support_alpha(Bitmap *ds, int xpos, int ypos, int src_slot,
-                                    BlendMode blend_mode, int alpha)
+void draw_sprite_slot_support_alpha(Bitmap *ds, int xpos, int ypos, int src_slot, BlendMode blend_mode, int alpha)
 {
     draw_sprite_support_alpha(ds, xpos, ypos, spriteset[src_slot], blend_mode, alpha);
 }
 
-IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
-    Common::Bitmap *source, bool opaque)
+IDriverDependantBitmap *recycle_ddb_bitmap(IDriverDependantBitmap *ddb, Common::Bitmap *source, bool opaque)
 {
     const int txflags = opaque * kTxFlags_Opaque;
 
     assert(source);
-    if (ddb && // already has an allocated DDB,
-        (drawstate.SoftwareRender || // is software renderer, or...
-        ((ddb->GetRefID() == UINT32_MAX) && // the texture is *not identified*, and...
-            (ddb->MatchesFormat(source))))) // existing DDB format matches
+    if (ddb &&                               // already has an allocated DDB,
+        (drawstate.SoftwareRender ||         // is software renderer, or...
+         ((ddb->GetRefID() == UINT32_MAX) && // the texture is *not identified*, and...
+          (ddb->MatchesFormat(source)))))    // existing DDB format matches
         gfxDriver->UpdateDDBFromBitmap(ddb, source);
     else if (ddb) // if existing texture format does not match, then create a new texture
         ddb->AttachData(std::shared_ptr<Texture>(gfxDriver->CreateTexture(source, txflags)), txflags);
@@ -1459,8 +1476,8 @@ IDriverDependantBitmap* recycle_ddb_bitmap(IDriverDependantBitmap *ddb,
     return ddb;
 }
 
-IDriverDependantBitmap* recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t sprite_id,
-    Common::Bitmap *source, bool opaque)
+IDriverDependantBitmap *recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t sprite_id, Common::Bitmap *source,
+                                           bool opaque)
 {
     // If sprite_id is not cachable, then fallback to a simpler variant
     if (drawstate.SoftwareRender || sprite_id == UINT32_MAX)
@@ -1493,7 +1510,8 @@ IDriverDependantBitmap* recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t
     return ddb;
 }
 
-IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int width, int height, int col_depth, bool opaque)
+IDriverDependantBitmap *recycle_render_target(IDriverDependantBitmap *ddb, int width, int height, int col_depth,
+                                              bool opaque)
 {
     if (ddb && (ddb->GetWidth() == width) && (ddb->GetHeight() == height))
         return ddb;
@@ -1543,7 +1561,7 @@ static void clear_draw_list()
     thingsToDrawList.clear();
 }
 
-static void add_thing_to_draw(IDriverDependantBitmap* ddb, int x, int y)
+static void add_thing_to_draw(IDriverDependantBitmap *ddb, int x, int y)
 {
     assert(ddb);
     thingsToDrawList.push_back(SpriteListEntry(ddb, x, y, RectWH(x, y, ddb->GetWidth(), ddb->GetHeight())));
@@ -1562,8 +1580,8 @@ static void clear_sprite_list()
 // Adds DDB to the sprlist, accepts origin's position x,y (sprite's alignment
 // may be found by reading DDB's GetOrigin()), and final AABB in absolute coordinates
 // (latter is required for the software renderer).
-static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y,
-    const Rect &aabb, int zorder, uint32_t id = 0u)
+static void add_to_sprite_list(IDriverDependantBitmap *ddb, int x, int y, const Rect &aabb, int zorder,
+                               uint32_t id = 0u)
 {
     assert(ddb);
     // completely invisible, so don't draw it at all
@@ -1573,7 +1591,7 @@ static void add_to_sprite_list(IDriverDependantBitmap* ddb, int x, int y,
     sprlist.push_back(SpriteListEntry(ddb, x, y, zorder, aabb, -1, id));
 }
 
-static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int zorder, int id = -1)
+static void add_to_sprite_list(IDriverDependantBitmap *spp, int xx, int yy, int zorder, int id = -1)
 {
     add_to_sprite_list(spp, xx, yy, RectWH(xx, yy, spp->GetWidth(), spp->GetHeight()), zorder);
 }
@@ -1582,8 +1600,7 @@ static void add_to_sprite_list(IDriverDependantBitmap* spp, int xx, int yy, int 
 // where equal zorder is resolved by comparing optional IDs too.
 static bool spritelistentry_less(const SpriteListEntry &e1, const SpriteListEntry &e2)
 {
-    return (e1.Z < e2.Z) ||
-        ((e1.Z == e2.Z) && (e1.DrawIndex < e2.DrawIndex));
+    return (e1.Z < e2.Z) || ((e1.Z == e2.Z) && (e1.DrawIndex < e2.DrawIndex));
 }
 
 // copy the sorted sprites into the Things To Draw list
@@ -1604,11 +1621,11 @@ void repair_alpha_channel(Bitmap *dest, Bitmap *bgpic)
     // over it by the buttons, etc
     int theWid = (dest->GetWidth() < bgpic->GetWidth()) ? dest->GetWidth() : bgpic->GetWidth();
     int theHit = (dest->GetHeight() < bgpic->GetHeight()) ? dest->GetHeight() : bgpic->GetHeight();
-    for (int y = 0; y < theHit; y++) 
+    for (int y = 0; y < theHit; y++)
     {
-        unsigned int *destination = ((unsigned int*)dest->GetScanLineForWriting(y));
-        unsigned int *source = ((unsigned int*)bgpic->GetScanLineForWriting(y));
-        for (int x = 0; x < theWid; x++) 
+        unsigned int *destination = ((unsigned int *)dest->GetScanLineForWriting(y));
+        unsigned int *source = ((unsigned int *)bgpic->GetScanLineForWriting(y));
+        for (int x = 0; x < theWid; x++)
         {
             destination[x] |= (source[x] & 0xff000000);
         }
@@ -1641,12 +1658,11 @@ void draw_gui_sprite(Bitmap *ds, int x, int y, Bitmap *sprite, BlendMode blend_m
 
 void draw_gui_sprite_flipped(Bitmap *ds, int pic, int x, int y, BlendMode blend_mode, GraphicFlip flip)
 {
-    draw_gui_sprite_flipped(ds, x, y, spriteset[pic],
-        blend_mode, 0xFF, flip);
+    draw_gui_sprite_flipped(ds, x, y, spriteset[pic], blend_mode, 0xFF, flip);
 }
 
-void draw_gui_sprite_flipped(Bitmap *ds, int x, int y, Bitmap *sprite,
-    BlendMode blend_mode, int alpha, GraphicFlip flip)
+void draw_gui_sprite_flipped(Bitmap *ds, int x, int y, Bitmap *sprite, BlendMode blend_mode, int alpha,
+                             GraphicFlip flip)
 {
     if (alpha <= 0)
         return;
@@ -1678,8 +1694,7 @@ Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_tra
     if (bimp != nullptr)
     {
         // same colour depth, width and height -> reuse
-        if ((bimp->GetColorDepth() == coldep) && (bimp->GetWidth() == wid)
-                && (bimp->GetHeight() == hit))
+        if ((bimp->GetColorDepth() == coldep) && (bimp->GetWidth() == wid) && (bimp->GetHeight() == hit))
         {
             bimp->ResetClip();
             if (make_transparent)
@@ -1691,8 +1706,8 @@ Bitmap *recycle_bitmap(Bitmap *bimp, int coldep, int wid, int hit, bool make_tra
 
         delete bimp;
     }
-    bimp = make_transparent ? BitmapHelper::CreateTransparentBitmap(wid, hit,coldep) :
-        BitmapHelper::CreateBitmap(wid, hit,coldep);
+    bimp = make_transparent ? BitmapHelper::CreateTransparentBitmap(wid, hit, coldep)
+                            : BitmapHelper::CreateBitmap(wid, hit, coldep);
     return bimp;
 }
 
@@ -1705,9 +1720,7 @@ void recycle_bitmap(std::unique_ptr<Common::Bitmap> &bimp, int coldep, int wid, 
 void recreate_drawobj_bitmap(Bitmap *&raw, IDriverDependantBitmap *&ddb, int width, int height, int rot_degrees)
 {
     // Calculate all supported GUI transforms
-    Size final_sz = drawstate.SoftwareRender ?
-        RotateSize(Size(width, height), rot_degrees) :
-        Size(width, height);
+    Size final_sz = drawstate.SoftwareRender ? RotateSize(Size(width, height), rot_degrees) : Size(width, height);
 
     if (raw && raw->GetSize() == final_sz)
         return; // all is fine
@@ -1724,11 +1737,9 @@ void recreate_drawobj_bitmap(Bitmap *&raw, IDriverDependantBitmap *&ddb, int wid
 // room regions and SetAmbientTint
 // tint_amnt will be set to 0 if there is no tint enabled
 // if this is the case, then light_lev holds the light level (0=none)
-void get_local_tint(int xpp, int ypp, bool use_region_tint,
-                    int *tint_amnt, int *tint_r, int *tint_g,
-                    int *tint_b, int *tint_lit,
-                    int *light_lev) {
-
+void get_local_tint(int xpp, int ypp, bool use_region_tint, int *tint_amnt, int *tint_r, int *tint_g, int *tint_b,
+                    int *tint_lit, int *light_lev)
+{
     int tint_level = 0, light_level = 0;
     int tint_amount = 0;
     int tint_red = 0;
@@ -1736,14 +1747,17 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint,
     int tint_blue = 0;
     int tint_light = 255;
 
-    if (use_region_tint) {
+    if (use_region_tint)
+    {
         int onRegion = 0;
 
-        if ((play.ground_level_areas_disabled & GLED_EFFECTS) == 0) {
+        if ((play.ground_level_areas_disabled & GLED_EFFECTS) == 0)
+        {
             // check if the player is on a region, to find its
             // light/tint level
             onRegion = GetRegionIDAtRoom(xpp, ypp, kHit_Interactable);
-            if (onRegion == 0) {
+            if (onRegion == 0)
+            {
                 // when walking, he might just be off a walkable area
                 onRegion = GetRegionIDAtRoom(xpp - 3, ypp, kHit_Interactable);
                 if (onRegion == 0)
@@ -1755,11 +1769,13 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint,
             }
         }
 
-        if ((onRegion > 0) && (onRegion < MAX_ROOM_REGIONS)) {
+        if ((onRegion > 0) && (onRegion < MAX_ROOM_REGIONS))
+        {
             light_level = thisroom.Regions[onRegion].Light;
             tint_level = thisroom.Regions[onRegion].Tint;
         }
-        else if (onRegion <= 0) {
+        else if (onRegion <= 0)
+        {
             light_level = thisroom.Regions[0].Light;
             tint_level = thisroom.Regions[0].Tint;
         }
@@ -1768,7 +1784,8 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint,
         if ((game.color_depth == 1) || (tint_sat == 0))
             tint_level = 0;
 
-        if (tint_level) {
+        if (tint_level)
+        {
             tint_red = (unsigned char)(tint_level & 0x000ff);
             tint_green = (unsigned char)((tint_level >> 8) & 0x000ff);
             tint_blue = (unsigned char)((tint_level >> 16) & 0x000ff);
@@ -1807,18 +1824,16 @@ void get_local_tint(int xpp, int ypp, bool use_region_tint,
 }
 
 
-
 // Applies the specified RGB Tint or Light Level to the ObjTexture
 // for hardware-accelerated renderer
-static void apply_tint_or_light_ddb(ObjTexture &objtx, int light_level,
-                         int tint_amount, int tint_red, int tint_green,
-                         int tint_blue, int tint_light)
+static void apply_tint_or_light_ddb(ObjTexture &objtx, int light_level, int tint_amount, int tint_red, int tint_green,
+                                    int tint_blue, int tint_light)
 {
     objtx.Ddb->SetTint(tint_red, tint_green, tint_blue, (tint_amount * 256) / 100);
 
     if (tint_amount > 0)
     {
-        if (tint_light == 0)  // luminance of 0 -- pass 1 to enable
+        if (tint_light == 0) // luminance of 0 -- pass 1 to enable
             objtx.Ddb->SetLightLevel(1);
         else if (tint_light < 250)
             objtx.Ddb->SetLightLevel(tint_light);
@@ -1837,88 +1852,91 @@ static void apply_tint_or_light_ddb(ObjTexture &objtx, int light_level,
 
 // Applies the specified RGB Tint or Light Level to the ObjTexture 'actsp'.
 // Used for software render mode only.
-static void apply_tint_or_light(ObjTexture &actsp, int light_level,
-                         int tint_amount, int tint_red, int tint_green,
-                         int tint_blue, int tint_light, int coldept,
-                         Bitmap *blitFrom) {
+static void apply_tint_or_light(ObjTexture &actsp, int light_level, int tint_amount, int tint_red, int tint_green,
+                                int tint_blue, int tint_light, int coldept, Bitmap *blitFrom)
+{
+    // In a 256-colour game, we cannot do tinting or lightening
+    // (but we can do darkening, if light_level < 0)
+    if (game.color_depth == 1)
+    {
+        if ((light_level > 0) || (tint_amount != 0))
+            return;
+    }
 
- // In a 256-colour game, we cannot do tinting or lightening
- // (but we can do darkening, if light_level < 0)
- if (game.color_depth == 1) {
-     if ((light_level > 0) || (tint_amount != 0))
-         return;
- }
+    // we can only do tint/light if the colour depths match
+    if (game.GetColorDepth() == actsp.Bmp->GetColorDepth())
+    {
+        std::unique_ptr<Bitmap> oldwas;
+        // if the caller supplied a source bitmap, ->Blit from it
+        // (used as a speed optimisation where possible)
+        if (blitFrom)
+            oldwas.reset(blitFrom);
+        // otherwise, make a new target bmp
+        else
+        {
+            oldwas = std::move(actsp.Bmp);
+            actsp.Bmp.reset(BitmapHelper::CreateBitmap(oldwas->GetWidth(), oldwas->GetHeight(), coldept));
+        }
+        Bitmap *active_spr = actsp.Bmp.get();
 
- // we can only do tint/light if the colour depths match
- if (game.GetColorDepth() == actsp.Bmp->GetColorDepth()) {
-     std::unique_ptr<Bitmap> oldwas;
-     // if the caller supplied a source bitmap, ->Blit from it
-     // (used as a speed optimisation where possible)
-     if (blitFrom) 
-         oldwas.reset(blitFrom);
-     // otherwise, make a new target bmp
-     else {
-         oldwas = std::move(actsp.Bmp);
-         actsp.Bmp.reset(BitmapHelper::CreateBitmap(oldwas->GetWidth(), oldwas->GetHeight(), coldept));
-     }
-     Bitmap *active_spr = actsp.Bmp.get();
+        if (tint_amount)
+        {
+            // It is an RGB tint
+            tint_image(active_spr, oldwas.get(), tint_red, tint_green, tint_blue, tint_amount, tint_light);
+        }
+        else
+        {
+            // the RGB values passed to set_trans_blender decide whether it will darken
+            // or lighten sprites ( <128=darken, >128=lighten). The parameter passed
+            // to LitBlendBlt defines how much it will be darkened/lightened by.
 
-     if (tint_amount) {
-         // It is an RGB tint
-         tint_image(active_spr, oldwas.get(), tint_red, tint_green, tint_blue, tint_amount, tint_light);
-     }
-     else {
-         // the RGB values passed to set_trans_blender decide whether it will darken
-         // or lighten sprites ( <128=darken, >128=lighten). The parameter passed
-         // to LitBlendBlt defines how much it will be darkened/lightened by.
-         
-         int lit_amnt;
-         active_spr->FillTransparent();
-         // It's a light level, not a tint
-         if (game.color_depth == 1) {
-             // 256-col
-             lit_amnt = (250 - ((-light_level) * 5)/2);
-         }
-         else {
-             // true-color
-             if (light_level < 0)
-                 set_my_trans_blender(8,8,8,0);
-             else
-                 set_my_trans_blender(248,248,248,0);
-             lit_amnt = abs(light_level) * 2;
-         }
+            int lit_amnt;
+            active_spr->FillTransparent();
+            // It's a light level, not a tint
+            if (game.color_depth == 1)
+            {
+                // 256-col
+                lit_amnt = (250 - ((-light_level) * 5) / 2);
+            }
+            else
+            {
+                // true-color
+                if (light_level < 0)
+                    set_my_trans_blender(8, 8, 8, 0);
+                else
+                    set_my_trans_blender(248, 248, 248, 0);
+                lit_amnt = abs(light_level) * 2;
+            }
 
-         active_spr->LitBlendBlt(oldwas.get(), 0, 0, lit_amnt);
-     }
+            active_spr->LitBlendBlt(oldwas.get(), 0, 0, lit_amnt);
+        }
 
-     if (oldwas.get() == blitFrom)
-         oldwas.release();
-
- }
- else if (blitFrom) {
-     // sprite colour depth != game colour depth, so don't try and tint
-     // but we do need to do something, so copy the source
-     Bitmap *active_spr = actsp.Bmp.get();
-     active_spr->Blit(blitFrom, 0, 0, 0, 0, active_spr->GetWidth(), active_spr->GetHeight());
- }
-
+        if (oldwas.get() == blitFrom)
+            oldwas.release();
+    }
+    else if (blitFrom)
+    {
+        // sprite colour depth != game colour depth, so don't try and tint
+        // but we do need to do something, so copy the source
+        Bitmap *active_spr = actsp.Bmp.get();
+        active_spr->Blit(blitFrom, 0, 0, 0, 0, active_spr->GetWidth(), active_spr->GetHeight());
+    }
 }
 
 // Generates a transformed sprite, using src image and parameters;
 // * if transformation is necessary - writes into dst and returns dst;
 // * if no transformation is necessary - simply returns src;
 // Used for software render mode only.
-static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
-    std::unique_ptr<Bitmap> (&transform_bmp)[2],
-    const Size &scale_sz, float rotation = 0.f, GraphicFlip flip = Common::kFlip_None)
+static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst, std::unique_ptr<Bitmap> (&transform_bmp)[2],
+                                const Size &scale_sz, float rotation = 0.f, GraphicFlip flip = Common::kFlip_None)
 {
     assert(!scale_sz.IsNull());
 
-    if ((src->GetSize() == scale_sz) && (rotation == 0.f) && (flip == kFlip_None) )
+    if ((src->GetSize() == scale_sz) && (rotation == 0.f) && (flip == kFlip_None))
         return src; // No transform: return source image
 
-    std::unique_ptr<Bitmap> &scale_bmp  = transform_bmp[0];
-    std::unique_ptr<Bitmap> &rot_bmp    = transform_bmp[1];
+    std::unique_ptr<Bitmap> &scale_bmp = transform_bmp[0];
+    std::unique_ptr<Bitmap> &rot_bmp = transform_bmp[1];
 
     Bitmap *use_src = src;
     Size dst_sz = scale_sz;
@@ -1934,8 +1952,8 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
         if (flip == kFlip_Horizontal || flip == kFlip_Vertical)
             rotation = -rotation;
         // ( + width%2 fixes one pixel offset problem )
-        rot_bmp->RotateBlt(use_src, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2,
-            src_sz.Width / 2, src_sz.Height / 2, rotation); // clockwise
+        rot_bmp->RotateBlt(use_src, rot_sz.Width / 2 + rot_sz.Width % 2, rot_sz.Height / 2, src_sz.Width / 2,
+                           src_sz.Height / 2, rotation); // clockwise
         use_src = rot_bmp.get();
     }
 
@@ -1946,8 +1964,8 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
         // 8-bit support: ensure that anti-aliasing routines have a palette
         // to use for mapping while faded out.
         // FIXME: investigate if this may be moved out and not repeated, or at least passed as a parameter!
-        const bool do_select_palette = (in_new_room != kEnterRoom_None)
-            && play.ShouldAASprites() && (src->GetColorDepth() == 1);
+        const bool do_select_palette =
+            (in_new_room != kEnterRoom_None) && play.ShouldAASprites() && (src->GetColorDepth() == 1);
         if (do_select_palette)
             select_palette(palette);
 
@@ -1985,8 +2003,7 @@ static Bitmap *transform_sprite(Bitmap *src, std::unique_ptr<Bitmap> &dst,
 // If any transformation was necessary, then writes the result into ObjTexture.
 // Returns if any transformation was done.
 // Used for software render mode only.
-static bool transform_sprite(ObjTexture &actsp, int sppic, const Size &scale_sz, 
-                          float rotation, GraphicFlip flip)
+static bool transform_sprite(ObjTexture &actsp, int sppic, const Size &scale_sz, float rotation, GraphicFlip flip)
 {
     Bitmap *src = spriteset[sppic];
     Bitmap *result = transform_sprite(src, actsp.Bmp, actsp.TempBmp, scale_sz, rotation, flip);
@@ -2002,14 +2019,13 @@ static bool transform_sprite(ObjTexture &actsp, int sppic, const Size &scale_sz,
 // require preparing the raw bitmap.
 // Except if alwaysUseSoftware is set, in which case even HW renderers
 // construct the image in software mode as well.
-static bool construct_object_gfx(const ViewFrame *vf, int pic,
-    const Size &scale_size,
-    int tint_flags, // OBJF_* flags related to using tint and light fx
-    const ObjectCache &objsrc, // source item to acquire values from
-    ObjectCache &objsav, // cache item to use
-    ObjTexture &actsp, // object texture to draw upon
-    bool optimize_by_position, // allow to optimize walk-behind merging using object's pos
-    bool force_software)
+static bool construct_object_gfx(const ViewFrame *vf, int pic, const Size &scale_size,
+                                 int tint_flags,            // OBJF_* flags related to using tint and light fx
+                                 const ObjectCache &objsrc, // source item to acquire values from
+                                 ObjectCache &objsav,       // cache item to use
+                                 ObjTexture &actsp,         // object texture to draw upon
+                                 bool optimize_by_position, // allow to optimize walk-behind merging using object's pos
+                                 bool force_software)
 {
     const bool use_hw_transform = !force_software && !drawstate.SoftwareRender;
 
@@ -2034,9 +2050,8 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     else
     {
         // get the ambient or region tint
-        get_local_tint(objsrc.x, objsrc.y, (tint_flags & OBJF_USEREGIONTINTS) != 0,
-            &tint_level, &tint_red, &tint_green, &tint_blue,
-            &tint_light, &light_level);
+        get_local_tint(objsrc.x, objsrc.y, (tint_flags & OBJF_USEREGIONTINTS) != 0, &tint_level, &tint_red, &tint_green,
+                       &tint_blue, &tint_light, &light_level);
     }
 
     // check whether the image should be flipped
@@ -2054,8 +2069,7 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     if (use_hw_transform)
     {
         // HW acceleration
-        const bool is_texture_intact =
-            (objsav.sppic == specialpic) && !actsp.IsChangeNotified();
+        const bool is_texture_intact = (objsav.sppic == specialpic) && !actsp.IsChangeNotified();
         objsav.sppic = specialpic;
         objsav.tintamnt = tint_level;
         objsav.tintr = tint_red;
@@ -2081,34 +2095,21 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     }
 
     // If we have the image cached, use it
-    if ((objsav.image != nullptr) &&
-        (objsav.sppic == specialpic) &&
+    if ((objsav.image != nullptr) && (objsav.sppic == specialpic) &&
         // not a dynamic sprite, or not sprite modified lately
-        (!actsp.IsChangeNotified()) &&
-        (objsav.tintamnt == tint_level) &&
-        (objsav.tintlight == tint_light) &&
-        (objsav.tintr == tint_red) &&
-        (objsav.tintg == tint_green) &&
-        (objsav.tintb == tint_blue) &&
-        (objsav.lightlev == light_level) &&
-        (objsav.zoom == objsrc.zoom) &&
-        (objsav.rotation == objsrc.rotation) &&
-        (objsav.pivotx == objsrc.pivotx) &&
-        (objsav.pivoty == objsrc.pivoty) &&
-        (objsav.flip == use_flip))
+        (!actsp.IsChangeNotified()) && (objsav.tintamnt == tint_level) && (objsav.tintlight == tint_light) &&
+        (objsav.tintr == tint_red) && (objsav.tintg == tint_green) && (objsav.tintb == tint_blue) &&
+        (objsav.lightlev == light_level) && (objsav.zoom == objsrc.zoom) && (objsav.rotation == objsrc.rotation) &&
+        (objsav.pivotx == objsrc.pivotx) && (objsav.pivoty == objsrc.pivoty) && (objsav.flip == use_flip))
     {
         // If the image is the same, we can use it cached
-        if ((drawstate.WalkBehindMethod != DrawOverCharSprite) &&
-            (actsp.Bmp != nullptr))
+        if ((drawstate.WalkBehindMethod != DrawOverCharSprite) && (actsp.Bmp != nullptr))
         {
             return true;
         }
         // Check if the X & Y co-ords are the same, too -- if so, there
         // is scope for further optimisations
-        if (optimize_by_position &&
-            (objsav.x == objsrc.x) &&
-            (objsav.y == objsrc.y) &&
-            (actsp.Bmp != nullptr) &&
+        if (optimize_by_position && (objsav.x == objsrc.x) && (objsav.y == objsrc.y) && (actsp.Bmp != nullptr) &&
             (walk_behind_baselines_changed == 0))
         {
             return true;
@@ -2139,9 +2140,8 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
         if (!actsps_used)
             blit_from = sprite;
 
-        apply_tint_or_light(actsp, light_level, tint_level, tint_red,
-            tint_green, tint_blue, tint_light, coldept,
-            blit_from);
+        apply_tint_or_light(actsp, light_level, tint_level, tint_red, tint_green, tint_blue, tint_light, coldept,
+                            blit_from);
     }
     else if (!actsps_used)
     {
@@ -2177,12 +2177,9 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
 // - atx and aty are coordinates of the top-left object's corner in the room;
 // - usebasel is object's z-order, it may be modified within the function;
 // TODO: possibly makes sense to split this function into parts later.
-void prepare_and_add_object_gfx(
-    const ObjectCache &objsav,
-    ObjTexture &actsp, bool actsp_modified,
-    const Size &scale_size,
-    int atx, int aty, int &usebasel, bool use_walkbehinds,
-    Pointf origin, int transparency, BlendMode blend_mode, int shader_id, bool hw_accel)
+void prepare_and_add_object_gfx(const ObjectCache &objsav, ObjTexture &actsp, bool actsp_modified,
+                                const Size &scale_size, int atx, int aty, int &usebasel, bool use_walkbehinds,
+                                Pointf origin, int transparency, BlendMode blend_mode, int shader_id, bool hw_accel)
 {
     // Handle the walk-behinds, according to the WalkBehindMethod.
     // This potentially may edit actsp's raw bitmap if actsp_modified is set.
@@ -2223,7 +2220,8 @@ void prepare_and_add_object_gfx(
         actsp.Ddb->SetRotation(objsav.rotation);
         actsp.Ddb->SetPivot(objsav.pivotx, objsav.pivoty);
         actsp.Ddb->SetFlip(objsav.flip);
-        apply_tint_or_light_ddb(actsp, objsav.lightlev, objsav.tintamnt, objsav.tintr, objsav.tintg, objsav.tintb, objsav.tintlight);
+        apply_tint_or_light_ddb(actsp, objsav.lightlev, objsav.tintamnt, objsav.tintr, objsav.tintg, objsav.tintb,
+                                objsav.tintlight);
     }
 
     actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(transparency));
@@ -2239,22 +2237,14 @@ bool construct_object_gfx(int objid, bool force_software)
     const RoomObject &obj = objs[objid];
     const int sprite_id = spriteset.DoesSpriteExist(obj.num) ? obj.num : 0;
 
-    ObjectCache objsrc(sprite_id, obj.tint_r, obj.tint_g, obj.tint_b,
-        obj.tint_level, obj.tint_light, 0 /* skip */, obj.zoom, obj.rotation,
-        kFlip_None /* skip */, obj.x, obj.y);
+    ObjectCache objsrc(sprite_id, obj.tint_r, obj.tint_g, obj.tint_b, obj.tint_level, obj.tint_light, 0 /* skip */,
+                       obj.zoom, obj.rotation, kFlip_None /* skip */, obj.x, obj.y);
     objsrc.pivotx = obj.pivot.X + (static_cast<float>(obj.pivot_offset.X) / obj.width);
     objsrc.pivoty = obj.pivot.Y + (static_cast<float>(obj.pivot_offset.Y) / obj.height);
 
-    return construct_object_gfx(
-        (obj.view != UINT16_MAX) ? &views[obj.view].loops[obj.loop].frames[obj.frame] : nullptr,
-        sprite_id,
-        Size(obj.width, obj.height),
-        obj.flags & OBJF_TINTLIGHTMASK,
-        objsrc,
-        objcache[objid],
-        actsps[objid],
-        true,
-        force_software);
+    return construct_object_gfx((obj.view != UINT16_MAX) ? &views[obj.view].loops[obj.loop].frames[obj.frame] : nullptr,
+                                sprite_id, Size(obj.width, obj.height), obj.flags & OBJF_TINTLIGHTMASK, objsrc,
+                                objcache[objid], actsps[objid], true, force_software);
 }
 
 void prepare_objects_for_drawing()
@@ -2283,10 +2273,9 @@ void prepare_objects_for_drawing()
         // Generate raw bitmap in ObjTexture and store parameters in ObjectCache.
         const bool actsp_modified = !construct_object_gfx(objid, false);
         // Prepare the object texture
-        prepare_and_add_object_gfx(objsav, actsp, actsp_modified,
-            Size(obj.width, obj.height), imgx, imgy, usebasel,
-            (obj.flags & OBJF_NOWALKBEHINDS) == 0,
-            obj.spr_anchor, obj.transparent, obj.blend_mode, obj.shader_id, hw_accel);
+        prepare_and_add_object_gfx(objsav, actsp, actsp_modified, Size(obj.width, obj.height), imgx, imgy, usebasel,
+                                   (obj.flags & OBJF_NOWALKBEHINDS) == 0, obj.spr_anchor, obj.transparent,
+                                   obj.blend_mode, obj.shader_id, hw_accel);
         // Finally, add the texture to the draw list
         // FIXME: find a way to achieve this without manually coding scaling of the offset here;
         // also see fixme comment to GraphicSpace struct.
@@ -2299,17 +2288,16 @@ void prepare_objects_for_drawing()
 }
 
 
-
 // Draws srcimg onto destimg, tinting to the specified level
 // Totally overwrites the contents of the destination image
-void tint_image (Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int light_level, int luminance) {
-
-    if ((srcimg->GetColorDepth() != ds->GetColorDepth()) ||
-        (srcimg->GetColorDepth() <= 8)) {
-            debug_script_warn("Image tint failed - images must both be same color depth and not 8-bit");
-            // the caller expects something to have been copied
-            ds->Blit(srcimg, 0, 0, 0, 0, srcimg->GetWidth(), srcimg->GetHeight());
-            return;
+void tint_image(Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int light_level, int luminance)
+{
+    if ((srcimg->GetColorDepth() != ds->GetColorDepth()) || (srcimg->GetColorDepth() <= 8))
+    {
+        debug_script_warn("Image tint failed - images must both be same color depth and not 8-bit");
+        // the caller expects something to have been copied
+        ds->Blit(srcimg, 0, 0, 0, 0, srcimg->GetWidth(), srcimg->GetHeight());
+        return;
     }
 
     // For performance reasons, we have a seperate blender for
@@ -2320,12 +2308,14 @@ void tint_image (Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int ligh
     else
         set_blender_mode(nullptr, nullptr, _myblender_color32_light, red, grn, blu, 0);
 
-    if (light_level >= 100) {
+    if (light_level >= 100)
+    {
         // fully colourised
         ds->FillTransparent();
         ds->LitBlendBlt(srcimg, 0, 0, luminance);
     }
-    else {
+    else
+    {
         // light_level is between -100 and 100 normally; 0-100 in
         // this case when it's a RGB tint
         light_level = GfxDef::Value100ToValue250(light_level);
@@ -2334,12 +2324,13 @@ void tint_image (Bitmap *ds, Bitmap *srcimg, int red, int grn, int blu, int ligh
         ds->Blit(srcimg, 0, 0, 0, 0, srcimg->GetWidth(), srcimg->GetHeight());
         // Render the colourised image to a temporary bitmap,
         // then transparently draw it over the original image
-        Bitmap *finaltarget = BitmapHelper::CreateTransparentBitmap(srcimg->GetWidth(), srcimg->GetHeight(), srcimg->GetColorDepth());
+        Bitmap *finaltarget =
+            BitmapHelper::CreateTransparentBitmap(srcimg->GetWidth(), srcimg->GetHeight(), srcimg->GetColorDepth());
         finaltarget->LitBlendBlt(srcimg, 0, 0, luminance);
 
         // customized trans blender to preserve alpha channel
-        set_my_trans_blender (0, 0, 0, light_level);
-        ds->TransBlendBlt (finaltarget, 0, 0);
+        set_my_trans_blender(0, 0, 0, light_level);
+        ds->TransBlendBlt(finaltarget, 0, 0);
         delete finaltarget;
     }
 }
@@ -2355,20 +2346,14 @@ bool construct_char_gfx(int charid, bool force_software)
     const ViewFrame *vf = &views[chin.view].loops[chin.loop].frames[chin.frame];
     const int pic = spriteset.DoesSpriteExist(vf->pic) ? vf->pic : 0;
 
-    ObjectCache chsrc(pic, chex.tint_r, chex.tint_g, chex.tint_b,
-        chex.tint_level, chex.tint_light, 0 /* skip */, chex.zoom, chex.rotation,
-        kFlip_None /* skip */, chin.x, chin.y);
+    ObjectCache chsrc(pic, chex.tint_r, chex.tint_g, chex.tint_b, chex.tint_level, chex.tint_light, 0 /* skip */,
+                      chex.zoom, chex.rotation, kFlip_None /* skip */, chin.x, chin.y);
     chsrc.pivotx = chex.pivot.X + (static_cast<float>(chex.pivot_offset.X) / chex.width);
     chsrc.pivoty = chex.pivot.Y + (static_cast<float>(chex.pivot_offset.Y) / chex.height);
 
     return construct_object_gfx(
-        vf,
-        pic,
-        Size(chex.width, chex.height),
-        CharFlagsToObjFlags(chin.flags) & OBJF_TINTLIGHTMASK,
-        chsrc,
-        charcache[charid],
-        actsps[charid + ACTSP_OBJSOFF],
+        vf, pic, Size(chex.width, chex.height), CharFlagsToObjFlags(chin.flags) & OBJF_TINTLIGHTMASK, chsrc,
+        charcache[charid], actsps[charid + ACTSP_OBJSOFF],
         false, // characters cannot optimize by pos, probably because of z coord and view offsets (?)
         force_software);
 }
@@ -2401,10 +2386,9 @@ void prepare_characters_for_drawing()
         // Generate raw bitmap in ObjTexture and store parameters in ObjectCache.
         const bool actsp_modified = !construct_char_gfx(charid, false);
         // Prepare the object texture
-        prepare_and_add_object_gfx(chsav, actsp, actsp_modified,
-            Size(chex.width, chex.height), imgx, imgy, usebasel,
-            (chin.flags & CHF_NOWALKBEHINDS) == 0,
-            chex.eff_anchor, chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
+        prepare_and_add_object_gfx(chsav, actsp, actsp_modified, Size(chex.width, chex.height), imgx, imgy, usebasel,
+                                   (chin.flags & CHF_NOWALKBEHINDS) == 0, chex.eff_anchor, chin.transparency,
+                                   chex.blend_mode, chex.shader_id, hw_accel);
 #if (AGS_PLATFORM_DEBUG)
         actsp.Ddb->SetTag(String::FromFormat("CHAR%d:%s", chin.index_id, chin.scrname.GetCStr()));
 #endif
@@ -2445,13 +2429,17 @@ static void add_roomovers_for_drawing()
     auto &overs = get_overlays();
     for (auto &over : overs)
     {
-        if (over.GetID() < 0) continue; // empty slot
-        if (!over.IsRoomLayer()) continue; // not a room layer
-        if (!over.IsVisible()) continue; // not visible
-        if (over.GetTransparency() == 255) continue; // skip fully transparent
+        if (over.GetID() < 0)
+            continue; // empty slot
+        if (!over.IsRoomLayer())
+            continue; // not a room layer
+        if (!over.IsVisible())
+            continue; // not visible
+        if (over.GetTransparency() == 255)
+            continue; // skip fully transparent
         const Point draw_pos = over.GetDrawPos();
-        add_to_sprite_list(overtxs[over.GetID()].Ddb, draw_pos.X, draw_pos.Y,
-            over.GetGraphicSpace().AABB(), over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
+        add_to_sprite_list(overtxs[over.GetID()].Ddb, draw_pos.X, draw_pos.Y, over.GetGraphicSpace().AABB(),
+                           over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
     }
 }
 
@@ -2494,14 +2482,12 @@ void prepare_room_sprites()
 
             if (drawstate.WalkBehindMethod == DrawAsSeparateSprite)
             {
-                for (size_t wb = 1 /* 0 is "no area" */;
-                    (wb < MAX_WALK_BEHINDS) && (wb < walkbehindobj.size()); ++wb)
+                for (size_t wb = 1 /* 0 is "no area" */; (wb < MAX_WALK_BEHINDS) && (wb < walkbehindobj.size()); ++wb)
                 {
                     const auto &wbobj = walkbehindobj[wb];
                     if (wbobj.Ddb)
                     {
-                        add_to_sprite_list(wbobj.Ddb, wbobj.Pos.X, wbobj.Pos.Y,
-                            croom->walkbehind_base[wb], 0u);
+                        add_to_sprite_list(wbobj.Ddb, wbobj.Pos.X, wbobj.Pos.Y, croom->walkbehind_base[wb], 0u);
                         // when baselines are equal, walk-behinds must be sorted back, so draw index = 0
                     }
                 }
@@ -2568,7 +2554,8 @@ static PBitmap draw_room_background(const Viewport *view)
         // the following line takes up to 50% of the game CPU time at
         // high resolutions and colour depths - if we can optimise it
         // somehow, significant performance gains to be had
-        update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgImages[play.bg_frame].get(), draw_to_camsurf);
+        update_room_invreg_and_reset(view_index, roomcam_surface, thisroom.BgImages[play.bg_frame].get(),
+                                     draw_to_camsurf);
     }
 
     return CameraDrawData[view_index].Frame;
@@ -2577,7 +2564,7 @@ static PBitmap draw_room_background(const Viewport *view)
 
 struct DrawFPS
 {
-    IDriverDependantBitmap* ddb = nullptr;
+    IDriverDependantBitmap *ddb = nullptr;
     std::unique_ptr<Bitmap> bmp;
     int font = -1; // in case normal font changes at runtime
 } gl_DrawFPS;
@@ -2601,7 +2588,8 @@ void draw_fps(const Rect &viewport)
     auto &fpsDisplay = gl_DrawFPS.bmp;
     if (fpsDisplay == nullptr || gl_DrawFPS.font != font)
     {
-        recycle_bitmap(fpsDisplay, game.GetColorDepth(), viewport.GetWidth(), (get_font_surface_height_outlined(font) + 5));
+        recycle_bitmap(fpsDisplay, game.GetColorDepth(), viewport.GetWidth(),
+                       (get_font_surface_height_outlined(font) + 5));
         gl_DrawFPS.font = font;
     }
 
@@ -2673,13 +2661,13 @@ static void construct_guictrl_tex(GUIMain &gui)
 // Push gui bg & controls textures for the render to the corresponding render target
 static void draw_gui_controls_batch(int gui_id)
 {
-    auto *gui_rtex =  gui_render_tex[gui_id];
+    auto *gui_rtex = gui_render_tex[gui_id];
     assert(gui_rtex);
     const auto &gui = guis[gui_id];
     auto *gui_bg = guibg[gui_id].Ddb;
     // Create a sub-batch
-    gfxDriver->BeginSpriteBatch(gui_rtex, RectWH(0, 0, gui_bg->GetWidth(), gui_bg->GetHeight()),
-        SpriteTransform(), kFlip_None);
+    gfxDriver->BeginSpriteBatch(gui_rtex, RectWH(0, 0, gui_bg->GetWidth(), gui_bg->GetHeight()), SpriteTransform(),
+                                kFlip_None);
     // Add GUI itself
     gfxDriver->DrawSprite(0, 0, gui_bg);
 
@@ -2702,7 +2690,8 @@ static void draw_gui_controls_batch(int gui_id)
         const auto &obj_tx = guiobjbg[draw_index + obj_id];
         auto *obj_ddb = obj_tx.Ddb;
         assert(obj_ddb); // Test for missing texture, might happen if not marked for update
-        if (!obj_ddb) continue;
+        if (!obj_ddb)
+            continue;
         obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
         obj_ddb->SetBlendMode(obj->GetBlendMode());
         obj_ddb->SetOrigin(0.f, 0.f);
@@ -2721,7 +2710,7 @@ static void draw_gui_controls_batch(int gui_id)
 // Draw GUI and overlays of all kinds, anything outside the room space
 void draw_gui_and_overlays()
 {
-    if(pl_any_want_hook(kPluginEvt_PreGUIDraw))
+    if (pl_any_want_hook(kPluginEvt_PreGUIDraw))
         gfxDriver->AddRenderEvent(kPluginEvt_PreGUIDraw, 0); // render stage
 
     clear_sprite_list();
@@ -2733,18 +2722,23 @@ void draw_gui_and_overlays()
     auto &overs = get_overlays();
     for (auto &over : overs)
     {
-        if (over.GetID() < 0) continue; // empty slot
-        if (over.IsRoomLayer()) continue; // not a ui layer
-        if (!over.IsVisible()) continue; // not visible
-        if (over.GetTransparency() == 255) continue; // skip fully transparent
+        if (over.GetID() < 0)
+            continue; // empty slot
+        if (over.IsRoomLayer())
+            continue; // not a ui layer
+        if (!over.IsVisible())
+            continue; // not visible
+        if (over.GetTransparency() == 255)
+            continue; // skip fully transparent
         const Point draw_pos = over.GetDrawPos();
-        add_to_sprite_list(overtxs[over.GetID()].Ddb, draw_pos.X, draw_pos.Y,
-            over.GetGraphicSpace().AABB(), over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
+        add_to_sprite_list(overtxs[over.GetID()].Ddb, draw_pos.X, draw_pos.Y, over.GetGraphicSpace().AABB(),
+                           over.GetZOrder(), overtxs[over.GetID()].DrawIndex);
     }
 
     // Add GUIs
     set_our_eip(35);
-    if (((debug_flags & DBG_NOIFACE)==0) && (displayed_room >= 0)) {
+    if (((debug_flags & DBG_NOIFACE) == 0) && (displayed_room >= 0))
+    {
         GUI::Options.GreyOutInvWindow = play.inventory_greys_out;
 
         set_our_eip(37);
@@ -2753,9 +2747,12 @@ void draw_gui_and_overlays()
             for (int index = 0; index < game.numgui; ++index)
             {
                 auto &gui = guis[index];
-                if (!gui.IsDisplayed()) continue; // not on screen
-                if (!gui.HasChanged() && !gui.HasControlsChanged()) continue; // no changes: no need to update image
-                if (gui.GetTransparency() == 255) continue; // 100% transparent
+                if (!gui.IsDisplayed())
+                    continue; // not on screen
+                if (!gui.HasChanged() && !gui.HasControlsChanged())
+                    continue; // no changes: no need to update image
+                if (gui.GetTransparency() == 255)
+                    continue; // 100% transparent
 
                 eip_guinum = index;
                 set_our_eip(372);
@@ -2774,8 +2771,8 @@ void draw_gui_and_overlays()
                     // that surface to the final bitmap
                     if (!is_3d_render && gui.GetRotation() != 0.f)
                     {
-                        guihelpbg[index].reset(
-                            recycle_bitmap(guihelpbg[index].release(), game.GetColorDepth(), gui.GetWidth(), gui.GetHeight()));
+                        guihelpbg[index].reset(recycle_bitmap(guihelpbg[index].release(), game.GetColorDepth(),
+                                                              gui.GetWidth(), gui.GetHeight()));
                         draw_at = guihelpbg[index].get();
                     }
 
@@ -2794,8 +2791,8 @@ void draw_gui_and_overlays()
                             const int dst_w = guibg_final->GetWidth();
                             const int dst_h = guibg_final->GetHeight();
                             // (+ width%2 fixes one pixel offset problem)
-                            guibg_final->RotateBlt(draw_at, dst_w / 2 + dst_w % 2, dst_h / 2,
-                                gui.GetWidth() / 2, gui.GetHeight() / 2, gui.GetRotation()); // clockwise
+                            guibg_final->RotateBlt(draw_at, dst_w / 2 + dst_w % 2, dst_h / 2, gui.GetWidth() / 2,
+                                                   gui.GetHeight() / 2, gui.GetRotation()); // clockwise
                         }
                         else
                         {
@@ -2808,7 +2805,7 @@ void draw_gui_and_overlays()
                     gbg.Ddb->SetTag(String::FromFormat("GUI%d:%s", gui.GetID(), gui.GetName().GetCStr()));
 #endif
                 }
-                
+
                 set_our_eip(373);
                 // Update control textures, if they have changed themselves
                 if (draw_controls_as_textures && gui.HasControlsChanged())
@@ -2833,11 +2830,12 @@ void draw_gui_and_overlays()
 
             auto *gui_ddb = guibg[index].Ddb;
             assert(gui_ddb); // Test for missing texture, might happen if not marked for update
-            if (!gui_ddb) continue;
+            if (!gui_ddb)
+                continue;
             if (draw_controls_as_textures)
             {
-                gui_render_tex[index] = recycle_render_target(gui_render_tex[index],
-                    gui_ddb->GetWidth(), gui_ddb->GetHeight(), gui_ddb->GetColorDepth(), false);
+                gui_render_tex[index] = recycle_render_target(gui_render_tex[index], gui_ddb->GetWidth(),
+                                                              gui_ddb->GetHeight(), gui_ddb->GetColorDepth(), false);
                 // Render control textures onto the GUI texture
                 draw_gui_controls_batch(index);
                 // Replace gui bg ddb with a render target texture,
@@ -2850,8 +2848,8 @@ void draw_gui_and_overlays()
             gui_ddb->SetOrigin(0.f, 0.f);
             gui_ddb->SetStretch(gui.GetWidth() * gui.GetScale().X, gui.GetHeight() * gui.GetScale().Y);
             gui_ddb->SetRotation(gui.GetRotation());
-            add_to_sprite_list(gui_ddb, gui.GetX(), gui.GetY(),
-                gui.GetGraphicSpace().AABB(), gui.GetZOrder(), guibg[index].DrawIndex);
+            add_to_sprite_list(gui_ddb, gui.GetX(), gui.GetY(), gui.GetGraphicSpace().AABB(), gui.GetZOrder(),
+                               guibg[index].DrawIndex);
         }
     }
 
@@ -2915,17 +2913,16 @@ static void construct_roomview_hw(const Viewport *viewport)
     const Rect &cam_rc = camera->GetRect();
 
     // TODO: streamline this render switch, will need some modification in gfx drivers
-    const bool render_room_as_texture =
-        viewport->GetShaderID() > 0 || camera->GetShaderID() > 0;
+    const bool render_room_as_texture = viewport->GetShaderID() > 0 || camera->GetShaderID() > 0;
 
     if (render_room_as_texture)
     {
-        const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
-            camera->GetRotation(), camera->GetEffectivePivot());
+        const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f, camera->GetRotation(),
+                                        camera->GetEffectivePivot());
 
         auto &cam_data = CameraDrawData[viewport->GetID()];
-        cam_data.CamRenderTarget = recycle_render_target(cam_data.CamRenderTarget,
-            cam_rc.GetWidth(), cam_rc.GetHeight(), game.GetColorDepth());
+        cam_data.CamRenderTarget = recycle_render_target(cam_data.CamRenderTarget, cam_rc.GetWidth(),
+                                                         cam_rc.GetHeight(), game.GetColorDepth());
         gfxDriver->BeginSpriteBatch(cam_data.CamRenderTarget, Rect(), cam_trans, kFlip_None, RENDER_BATCH_ROOM_LAYER);
         gfxDriver->SetStageScreen(cam_rc.GetSize(), cam_rc.Left, cam_rc.Top);
         // Put all the accumulated room sprites onto the viewport texture
@@ -2938,9 +2935,10 @@ static void construct_roomview_hw(const Viewport *viewport)
         // Optional camera post-fx, done if both viewport's and camera's shaders are set
         if (viewport->GetShaderID() > 0 && camera->GetShaderID() > 0)
         {
-            cam_data.ViewRenderTarget = recycle_render_target(cam_data.ViewRenderTarget,
-                cam_rc.GetWidth(), cam_rc.GetHeight(), game.GetColorDepth());
-            gfxDriver->BeginSpriteBatch(cam_data.ViewRenderTarget, Rect(), SpriteTransform(), kFlip_None, RENDER_BATCH_ROOM_LAYER);
+            cam_data.ViewRenderTarget = recycle_render_target(cam_data.ViewRenderTarget, cam_rc.GetWidth(),
+                                                              cam_rc.GetHeight(), game.GetColorDepth());
+            gfxDriver->BeginSpriteBatch(cam_data.ViewRenderTarget, Rect(), SpriteTransform(), kFlip_None,
+                                        RENDER_BATCH_ROOM_LAYER);
             cam_data.CamRenderTarget->SetStretch(cam_rc.GetWidth(), cam_rc.GetHeight());
             cam_data.CamRenderTarget->SetShader(shaderInstances[camera->GetShaderID()]);
             gfxDriver->DrawSprite(0, 0, cam_data.CamRenderTarget);
@@ -2960,8 +2958,8 @@ static void construct_roomview_hw(const Viewport *viewport)
         const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
         const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
         const SpriteTransform view_trans(view_rc.Left, view_rc.Top, 1.f, 1.f);
-        const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, view_sx, view_sy,
-            camera->GetRotation(), camera->GetEffectivePivot());
+        const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, view_sx, view_sy, camera->GetRotation(),
+                                        camera->GetEffectivePivot());
 
         gfxDriver->BeginSpriteBatch(view_rc, view_trans, RENDER_BATCH_ROOM_LAYER);
         gfxDriver->BeginSpriteBatch(Rect(), cam_trans, cam_rc.GetSize());
@@ -2984,8 +2982,8 @@ static void construct_roomview_sw(const Viewport *viewport)
     const float view_sx = (float)view_rc.GetWidth() / (float)cam_rc.GetWidth();
     const float view_sy = (float)view_rc.GetHeight() / (float)cam_rc.GetHeight();
     const SpriteTransform view_trans(view_rc.Left, view_rc.Top, view_sx, view_sy);
-    const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f,
-                                    camera->GetRotation(), Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
+    const SpriteTransform cam_trans(-cam_rc.Left, -cam_rc.Top, 1.f, 1.f, camera->GetRotation(),
+                                    Point(cam_rc.GetWidth() / 2, cam_rc.GetHeight() / 2));
 
     // For software renderer - combine viewport and camera in one batch,
     // due to how the room drawing is implemented currently in the software mode.
@@ -2994,14 +2992,14 @@ static void construct_roomview_sw(const Viewport *viewport)
 
     if (CameraDrawData[viewport->GetID()].Frame == nullptr && CameraDrawData[viewport->GetID()].IsOverlap)
     { // room background is prepended to the sprite stack
-      // TODO: here's why we have blit whole piece of background now:
-      // if we draw directly to the virtual screen overlapping another
-      // viewport, then we'd have to also mark and repaint every our
-      // region located directly over their dirty regions. That would
-      // require to update regions up the stack, converting their
-      // coordinates (cam1 -> screen -> cam2).
-      // It's not clear whether this is worth the effort, but if it is,
-      // then we'd need to optimise view/cam data first.
+        // TODO: here's why we have blit whole piece of background now:
+        // if we draw directly to the virtual screen overlapping another
+        // viewport, then we'd have to also mark and repaint every our
+        // region located directly over their dirty regions. That would
+        // require to update regions up the stack, converting their
+        // coordinates (cam1 -> screen -> cam2).
+        // It's not clear whether this is worth the effort, but if it is,
+        // then we'd need to optimise view/cam data first.
         gfxDriver->BeginSpriteBatch(Rect(), cam_trans);
         gfxDriver->DrawSprite(0, 0, roomBackgroundBmp);
     }
@@ -3070,10 +3068,13 @@ static void construct_overlays()
     // TODO: an iterator that goes over only valid elements
     for (size_t i = 0; i < overs.size(); ++i)
     {
-        if (overs.IsFree(i)) continue; // empty slot
+        if (overs.IsFree(i))
+            continue; // empty slot
         auto &over = overs[i];
-        if (!over.IsVisible()) continue; // not visible
-        if (over.GetTransparency() == 255) continue; // skip fully transparent
+        if (!over.IsVisible())
+            continue; // not visible
+        if (over.GetTransparency() == 255)
+            continue; // skip fully transparent
 
         auto &overtx = overtxs[i];
         bool has_changed = over.HasChanged();
@@ -3083,7 +3084,8 @@ static void construct_overlays()
         {
             const Point draw_pos = over.GetGraphicSpace().TopLeft();
             has_changed |= (draw_pos.X != overcache[i].X || draw_pos.Y != overcache[i].Y);
-            overcache[i].X = draw_pos.X; overcache[i].Y = draw_pos.Y;
+            overcache[i].X = draw_pos.X;
+            overcache[i].Y = draw_pos.Y;
         }
 
         // Test if must recache the unloaded sprite in software mode
@@ -3099,13 +3101,15 @@ static void construct_overlays()
             Bitmap *use_bmp = nullptr;
             if (is_software_mode)
             {
-                use_bmp = transform_sprite(over.GetImage(), overtx.Bmp, overtx.TempBmp, over.GetScaledSize(), over.GetRotation(), over.GetFlip());
+                use_bmp = transform_sprite(over.GetImage(), overtx.Bmp, overtx.TempBmp, over.GetScaledSize(),
+                                           over.GetRotation(), over.GetFlip());
                 if (crop_walkbehinds && over.IsRoomLayer())
                 {
                     auto &use_cache = overtx.Bmp;
                     if (use_bmp != use_cache.get())
                     {
-                        recycle_bitmap(use_cache, use_bmp->GetColorDepth(), use_bmp->GetWidth(), use_bmp->GetHeight(), true);
+                        recycle_bitmap(use_cache, use_bmp->GetColorDepth(), use_bmp->GetWidth(), use_bmp->GetHeight(),
+                                       true);
                         use_cache->Blit(use_bmp);
                     }
                     const Point draw_pos = over.GetGraphicSpace().TopLeft();
@@ -3114,8 +3118,9 @@ static void construct_overlays()
                 }
                 if (over.HasLightLevel() || over.HasTint())
                 {
-                    apply_tint_or_light(overtx, over.GetTintLight() * over.HasLightLevel(), over.GetTintLevel(), over.GetTintR(), over.GetTintG(), over.GetTintB(), over.GetTintLight(),
-                        use_bmp->GetColorDepth(), use_bmp);
+                    apply_tint_or_light(overtx, over.GetTintLight() * over.HasLightLevel(), over.GetTintLevel(),
+                                        over.GetTintR(), over.GetTintG(), over.GetTintB(), over.GetTintLight(),
+                                        use_bmp->GetColorDepth(), use_bmp);
                 }
             }
 
@@ -3127,7 +3132,8 @@ static void construct_overlays()
         }
 
         assert(overtx.Ddb); // Test for missing texture, might happen if not marked for update
-        if (!overtx.Ddb) continue;
+        if (!overtx.Ddb)
+            continue;
         overtx.Ddb->SetOrigin(over.GetSpriteAnchor().X, over.GetSpriteAnchor().Y);
         overtx.Ddb->SetStretch(over.GetScaledWidth(), over.GetScaledHeight());
         overtx.Ddb->SetFlip(over.GetFlip());
@@ -3137,7 +3143,8 @@ static void construct_overlays()
         overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.GetTransparency()));
         overtx.Ddb->SetBlendMode(over.GetBlendMode());
         overtx.Ddb->SetShader(shaderInstances[over.GetShaderID()]);
-        apply_tint_or_light_ddb(overtx, over.GetTintLight() * over.HasLightLevel(), over.GetTintLevel(), over.GetTintR(), over.GetTintG(), over.GetTintB(), over.GetTintLight());
+        apply_tint_or_light_ddb(overtx, over.GetTintLight() * over.HasLightLevel(), over.GetTintLevel(),
+                                over.GetTintR(), over.GetTintG(), over.GetTintB(), over.GetTintLight());
     }
 }
 
@@ -3160,9 +3167,8 @@ void construct_game_scene(bool full_redraw)
     construct_overlays();
 
     // Begin with the parent scene node, defining global offset and flip
-    gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
-        play.GetGlobalTransform(drawstate.FullFrameRedraw),
-        (GraphicFlip)play.screen_flipped);
+    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
+                                (GraphicFlip)play.screen_flipped);
 
     // Stage: room viewports
     if (!play.screen_is_faded_out && play.complete_overlay_on == 0)
@@ -3195,9 +3201,8 @@ void construct_game_scene(bool full_redraw)
 
 void construct_game_screen_overlay(bool draw_cursor)
 {
-    gfxDriver->BeginSpriteBatch(play.GetMainViewport(),
-            play.GetGlobalTransform(drawstate.FullFrameRedraw),
-            (GraphicFlip)play.screen_flipped);
+    gfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
+                                (GraphicFlip)play.screen_flipped);
     if (pl_any_want_hook(kPluginEvt_PostScreenDraw))
     {
         gfxDriver->AddRenderEvent(kPluginEvt_PostScreenDraw, 0);
@@ -3208,7 +3213,8 @@ void construct_game_screen_overlay(bool draw_cursor)
     {
         if (cursor_gstate.HasChanged() || cursor_tx.IsChangeNotified() ||
             // Test if must recache the unloaded sprite in software mode
-            (drawstate.SoftwareRender && (cursor_gstate.GetSpriteNum() >= 0) && spriteset.IsAssetUnloaded(cursor_gstate.GetSpriteNum())))
+            (drawstate.SoftwareRender && (cursor_gstate.GetSpriteNum() >= 0) &&
+             spriteset.IsAssetUnloaded(cursor_gstate.GetSpriteNum())))
         {
             cursor_tx.SpriteID = cursor_gstate.GetSpriteNum();
             if (cursor_tx.SpriteID != UINT32_MAX)
@@ -3233,7 +3239,8 @@ void construct_game_screen_overlay(bool draw_cursor)
 
     // Full screen tint fx, covers everything except for fade fx(?) and engine overlay
     if ((play.screen_tint >= 1) && (!play.screen_is_faded_out))
-        gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff, (play.screen_tint >> 16) & 0xff);
+        gfxDriver->SetScreenTint(play.screen_tint & 0xff, (play.screen_tint >> 8) & 0xff,
+                                 (play.screen_tint >> 16) & 0xff);
     gfxDriver->EndSpriteBatch();
 
     // For hardware-accelerated renderers: legacy letterbox and global screen fade effect
@@ -3297,9 +3304,7 @@ void debug_draw_room_mask(RoomAreaMask mask)
     const int fin_height = thisroom.Height;
     // Software mode scaling
     // note we don't use transparency in software mode - may be slow in hi-res games
-    if (drawstate.SoftwareRender &&
-        (mask != kRoomAreaWalkBehind) &&
-        (bmp->GetSize() != Size(fin_width, fin_height)))
+    if (drawstate.SoftwareRender && (mask != kRoomAreaWalkBehind) && (bmp->GetSize() != Size(fin_width, fin_height)))
     {
         recycle_bitmap(debugRoomMaskObj.Bmp, bmp->GetColorDepth(), fin_width, fin_height);
         debugRoomMaskObj.Bmp->StretchBlt(bmp, RectWH(debugRoomMaskObj.Bmp->GetSize()));
@@ -3328,23 +3333,23 @@ void update_room_debug()
         const int fin_width = thisroom.Width;
         const int fin_height = thisroom.Height;
         if (drawstate.SoftwareRender)
-            recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
-                fin_width, fin_height, true);
+            recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(), fin_width, fin_height, true);
         else
-            recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(),
-                thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), true);
+            recycle_bitmap(debugMoveListObj.Bmp, game.GetColorDepth(), thisroom.WalkAreaMask->GetWidth(),
+                           thisroom.WalkAreaMask->GetHeight(), true);
 
         if (game.chars[debugMoveListChar].is_moving())
         {
             int mlsnum = game.chars[debugMoveListChar].get_movelist_id();
             const MoveList &cmls = *get_movelist(mlsnum);
-            for (uint32_t i = 0; i < cmls.GetNumStages() - 1; i++) {
+            for (uint32_t i = 0; i < cmls.GetNumStages() - 1; i++)
+            {
                 int srcx = cmls.GetStagePos(i).X;
                 int srcy = cmls.GetStagePos(i).Y;
                 int targetx = cmls.GetStagePos(i + 1).X;
                 int targety = cmls.GetStagePos(i + 1).Y;
                 debugMoveListObj.Bmp->DrawLine(Line(srcx / mult, srcy / mult, targetx / mult, targety / mult),
-                    GUI::GetStandardColorForBitmap(i + 1));
+                                               GUI::GetStandardColorForBitmap(i + 1));
             }
         }
         sync_object_texture(debugMoveListObj);
@@ -3353,7 +3358,7 @@ void update_room_debug()
     }
 }
 
-// Draw everything 
+// Draw everything
 void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY)
 {
     // Don't render if skipping cutscene
@@ -3377,7 +3382,8 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
     // on top of the screen. Normally this should be a part of the game UI stage.
     if (extraBitmap != nullptr)
     {
-        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw), (GraphicFlip)play.screen_flipped);
+        gfxDriver->BeginSpriteBatch(play.GetMainViewport(), play.GetGlobalTransform(drawstate.FullFrameRedraw),
+                                    (GraphicFlip)play.screen_flipped);
         invalidate_sprite(extraX, extraY, extraBitmap, false);
         gfxDriver->DrawSprite(extraX, extraY, extraBitmap);
         gfxDriver->EndSpriteBatch();
@@ -3387,10 +3393,12 @@ void render_graphics(IDriverDependantBitmap *extraBitmap, int extraX, int extraY
 
     spriteset.EnableAutoFreeMem(true);
 
-    if (!play.screen_is_faded_out) {
+    if (!play.screen_is_faded_out)
+    {
         // always update the palette, regardless of whether the plugin
         // vetos the screen update
-        if (bg_just_changed) {
+        if (bg_just_changed)
+        {
             setpal();
             bg_just_changed = 0;
         }

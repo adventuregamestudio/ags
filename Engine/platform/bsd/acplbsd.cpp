@@ -21,28 +21,33 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/agsplatform_xdg_unix.h"
 
-struct AGSFreeBSD : AGSPlatformXDGUnix {
+struct AGSFreeBSD : AGSPlatformXDGUnix
+{
     eScriptSystemOSID GetSystemOSID() override;
-    int  CDPlayerCommand(int cmdd, int datt) override;
-    int  InitializeCDPlayer() override;
+    int CDPlayerCommand(int cmdd, int datt) override;
+    int InitializeCDPlayer() override;
     void ShutdownCDPlayer() override;
 };
 
-int AGSFreeBSD::CDPlayerCommand(int cmdd, int datt) {
+int AGSFreeBSD::CDPlayerCommand(int cmdd, int datt)
+{
     return 0;
 }
 
-int AGSFreeBSD::InitializeCDPlayer() {
+int AGSFreeBSD::InitializeCDPlayer()
+{
     return 0;
 }
 
-void AGSFreeBSD::ShutdownCDPlayer() { }
+void AGSFreeBSD::ShutdownCDPlayer() {}
 
-eScriptSystemOSID AGSFreeBSD::GetSystemOSID() {
-  return eOS_FreeBSD;
+eScriptSystemOSID AGSFreeBSD::GetSystemOSID()
+{
+    return eOS_FreeBSD;
 }
 
-AGSPlatformDriver* AGSPlatformDriver::CreateDriver() {
+AGSPlatformDriver *AGSPlatformDriver::CreateDriver()
+{
     return new AGSFreeBSD();
 }
 

@@ -59,13 +59,13 @@ namespace Common
 enum DataExtFlags
 {
     // Size of a numeric ID in bytes
-    kDataExt_NumID8  = 0x0000, // default
+    kDataExt_NumID8 = 0x0000, // default
     kDataExt_NumID32 = 0x0001,
     // 32-bit or 64-bit file offset support
     // NOTE: for historical reasons this refers to blocks with numeric ID ONLY;
     // new-style blocks with a 16-char ID always write 64-bit offset
-    kDataExt_File32  = 0x0000, // default
-    kDataExt_File64  = 0x0002,
+    kDataExt_File32 = 0x0000, // default
+    kDataExt_File64 = 0x0002,
     // Ignore block being not read to the end (dont emit warning)
     kDataExt_IgnoreUnread = 0x0004
 };
@@ -104,13 +104,11 @@ struct DataExtBlockInfo
 class DataExtParser
 {
 public:
-    DataExtParser(std::unique_ptr<Stream> &&in, int flags)
-        : _in(std::move(in)), _flags(flags) {}
+    DataExtParser(std::unique_ptr<Stream> &&in, int flags) : _in(std::move(in)), _flags(flags) {}
     virtual ~DataExtParser() = default;
 
     // Returns the conventional string ID for an old-style block with numeric ID
-    virtual String GetOldBlockName(int block_id) const
-    { return String::FromFormat("id:%d", block_id); }
+    virtual String GetOldBlockName(int block_id) const { return String::FromFormat("id:%d", block_id); }
     // Provides a leeway for over-reading (reading past the reported block length):
     // the parser will not error if the mistake is in this range of bytes
     virtual soff_t GetOverLeeway(int /*block_id*/) const { return 0; }
@@ -128,7 +126,7 @@ public:
     // fills in identifier and length on success
     HError OpenBlock();
     // Skips current block
-    void   SkipBlock();
+    void SkipBlock();
     // Asserts current stream position after a block was read
     HError PostAssert();
     // Parses a block list in search for a particular block,
@@ -137,7 +135,7 @@ public:
 
 protected:
     std::unique_ptr<Stream> _in;
-    int _flags {};
+    int _flags{};
 
     DataExtBlockInfo _block;
 };
@@ -157,12 +155,10 @@ public:
     HError Read();
 
 protected:
-    DataExtReader(std::unique_ptr<Stream> &&in, int flags)
-        : DataExtParser(std::move(in), flags) {}
+    DataExtReader(std::unique_ptr<Stream> &&in, int flags) : DataExtParser(std::move(in), flags) {}
     // Reads a single data block and tell whether to continue reading;
     // default implementation skips the block
-    virtual HError ReadBlock(Stream *in, int block_id, const String &ext_id,
-        soff_t block_len, bool &read_next) = 0;
+    virtual HError ReadBlock(Stream *in, int block_id, const String &ext_id, soff_t block_len, bool &read_next) = 0;
 };
 
 
@@ -173,13 +169,13 @@ HError ReadExtBlockList(std::vector<DataExtBlockInfo> &blk_infos, DataExtParser 
 
 
 // TODO: DataExtWriter, to pair the DataExtReader
-// 
+//
 // Type of function that writes a single data block.
 typedef std::function<void(Stream *out)> PfnWriteExtBlock;
 // Write a single data block, using a callback to write its contents
-void WriteExtBlock(int block, const String &ext_id, const PfnWriteExtBlock& writer, int flags, Stream *out);
+void WriteExtBlock(int block, const String &ext_id, const PfnWriteExtBlock &writer, int flags, Stream *out);
 // Write a single data block with the provided contents
-void WriteExtBlock(int block, const String &ext_id, const std::vector<uint8_t>& data, int flags, Stream *out);
+void WriteExtBlock(int block, const String &ext_id, const std::vector<uint8_t> &data, int flags, Stream *out);
 // Writes a block with a new-style string id, using a callback
 inline void WriteExtBlock(const String &ext_id, PfnWriteExtBlock writer, int flags, Stream *out)
 {
@@ -191,12 +187,12 @@ inline void WriteExtBlock(int block, PfnWriteExtBlock writer, int flags, Stream 
     WriteExtBlock(block, String(), writer, flags, out);
 }
 // Writes a block with a new-style string id, using provided data
-inline void WriteExtBlock(const String &ext_id, const std::vector<uint8_t>& data, int flags, Stream *out)
+inline void WriteExtBlock(const String &ext_id, const std::vector<uint8_t> &data, int flags, Stream *out)
 {
     WriteExtBlock(0, ext_id, data, flags, out);
 }
 // Writes a block with a old-style numeric id, using provided data
-inline void WriteExtBlock(int block, const std::vector<uint8_t>& data, int flags, Stream *out)
+inline void WriteExtBlock(int block, const std::vector<uint8_t> &data, int flags, Stream *out)
 {
     WriteExtBlock(block, String(), data, flags, out);
 }

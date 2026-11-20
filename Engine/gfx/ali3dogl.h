@@ -65,10 +65,8 @@ struct OGLTexture : Texture
     OGLTextureTile *_tiles = nullptr;
     size_t _numTiles = 0;
 
-    OGLTexture(const GraphicResolution &res, bool rt)
-        : Texture(res, rt) {}
-    OGLTexture(uint32_t id, const GraphicResolution &res, bool rt)
-        : Texture(id, res, rt) {}
+    OGLTexture(const GraphicResolution &res, bool rt) : Texture(res, rt) {}
+    OGLTexture(uint32_t id, const GraphicResolution &res, bool rt) : Texture(id, res, rt) {}
     ~OGLTexture();
     size_t GetMemSize() const override;
 };
@@ -89,10 +87,7 @@ public:
         _txFlags = txflags;
     }
     // Detach any internal texture data from this DDB, make this an empty object
-    void DetachData() override
-    {
-        _data = nullptr;
-    }
+    void DetachData() override { _data = nullptr; }
 
     bool GetUseResampler() const override { return _useResampler; }
     void SetStretch(int width, int height, bool useResampler) override
@@ -177,12 +172,12 @@ public:
         //---------------------------------------
         // Fragment shader:
         // Standard uniforms
-        GLuint Time = 0;        // real time
-        GLuint GameFrame = 0;   // game (?) frame
-        GLuint Texture[4] = { 0 }; // texture 0..3 (sprite or render target)
-        GLuint TextureDim[4] = { 0 }; // textures 0..3 dimensions
-        GLuint Alpha = 0;       // requested global alpha
-        GLuint OutputDim = 0;   // output dimensions
+        GLuint Time = 0;            // real time
+        GLuint GameFrame = 0;       // game (?) frame
+        GLuint Texture[4] = {0};    // texture 0..3 (sprite or render target)
+        GLuint TextureDim[4] = {0}; // textures 0..3 dimensions
+        GLuint Alpha = 0;           // requested global alpha
+        GLuint OutputDim = 0;       // output dimensions
 
         // Specialized uniforms for built-in shaders
         GLuint TintHSV = 0;
@@ -246,7 +241,10 @@ public:
         ConstantValue(uint32_t loc, uint32_t size, float x = 0.f, float y = 0.f, float z = 0.f, float w = 0.f)
             : Loc(loc), Size(size)
         {
-            Val[0] = x; Val[1] = y; Val[2] = z; Val[3] = w;
+            Val[0] = x;
+            Val[1] = y;
+            Val[2] = z;
+            Val[3] = w;
         }
     };
 
@@ -255,7 +253,7 @@ public:
         std::shared_ptr<OGLTexture> Tex;
         // Cached data for quicker access without extra null checks
         GLuint TexID = 0u;
-        Size   TexSize;
+        Size TexSize;
 
         Sampler() = default;
         Sampler(std::shared_ptr<OGLTexture> tex);
@@ -282,31 +280,29 @@ struct OGLSpriteBatch : VMSpriteBatch
     uint32_t Fbo = 0u;
 
     OGLSpriteBatch() = default;
-    OGLSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix,
+    OGLSpriteBatch(uint32_t id, const Rect &view, const glm::mat4 &matrix, const glm::mat4 &vp_matrix,
+                   const SpriteColorTransform &color)
+        : VMSpriteBatch(id, view, matrix, vp_matrix, color)
+    {
+    }
+    OGLSpriteBatch(uint32_t id, OGLBitmap *render_target, const Rect view, const glm::mat4 &matrix,
                    const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
-        : VMSpriteBatch(id, view, matrix, vp_matrix, color) {}
-    OGLSpriteBatch(uint32_t id, OGLBitmap *render_target, const Rect view,
-        const glm::mat4 &matrix, const glm::mat4 &vp_matrix, const SpriteColorTransform &color)
         : VMSpriteBatch(id, render_target, view, matrix, vp_matrix, color)
-        , Fbo(render_target ? render_target->GetFbo() : 0u) {}
+        , Fbo(render_target ? render_target->GetFbo() : 0u)
+    {
+    }
 };
 
 typedef SpriteDrawListEntry<OGLBitmap> OGLDrawListEntry;
-typedef std::vector<OGLSpriteBatch>    OGLSpriteBatches;
+typedef std::vector<OGLSpriteBatch> OGLSpriteBatches;
 
 
 class OGLDisplayModeList : public IGfxModeList
 {
 public:
-    OGLDisplayModeList(const std::vector<DisplayMode> &modes)
-        : _modes(modes)
-    {
-    }
+    OGLDisplayModeList(const std::vector<DisplayMode> &modes) : _modes(modes) {}
 
-    int GetModeCount() const override
-    {
-        return _modes.size();
-    }
+    int GetModeCount() const override { return _modes.size(); }
 
     bool GetMode(int index, DisplayMode &mode) const override
     {
@@ -382,19 +378,19 @@ public:
     // Texture management
     //
     // Gets closest recommended bitmap format (currently - only color depth) for the given original format.
-    int  GetCompatibleBitmapFormat(int color_depth) override;
+    int GetCompatibleBitmapFormat(int color_depth) override;
     // Returns available texture memory in bytes, or 0 if this query is not supported
     uint64_t GetAvailableTextureMemory() override;
     // Creates a "raw" DDB, without pixel initialization.
     IDriverDependantBitmap *CreateDDB() override;
     // Creates a "raw" DDB, without pixel initialization.
-    IDriverDependantBitmap* CreateDDB(int width, int height, int color_depth, int txflags) override;
+    IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, int txflags) override;
     // Creates DDB intended to be used as a render target (allow render other DDBs on it).
-    IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
+    IDriverDependantBitmap *CreateRenderTargetDDB(int width, int height, int color_depth, int txflags) override;
     // Updates DBB using the given bitmap
-    void UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap) override;
+    void UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, const Bitmap *bitmap) override;
     // Destroy the DDB; note that this does not dispose the texture unless there's no more refs to it
-    void DestroyDDB(IDriverDependantBitmap* ddb) override;
+    void DestroyDDB(IDriverDependantBitmap *ddb) override;
 
     // Create texture data with the given parameters
     Texture *CreateTexture(int width, int height, int color_depth, int txflags) override;
@@ -414,10 +410,12 @@ public:
     const char *GetShaderDefinitionExtension() override { return ""; }
     // Creates shader program from the source code, registers it under given name,
     // returns IGraphicShader, or null on failure.
-    IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def) override;
+    IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src,
+                                        const ShaderDefinition *def) override;
     // Creates shader program from the compiled data, registers it under given name,
     // returns IGraphicShader, or null on failure.
-    IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def) override;
+    IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data,
+                                        const ShaderDefinition *def) override;
     // Deletes particular shader program.
     void DeleteShaderProgram(IGraphicShader *shader) override;
     // Creates shader instance for the given shader.
@@ -429,11 +427,10 @@ public:
     // Preparing a scene
     //
     // Adds sprite to the active batch, providing it's origin position
-    void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override
-         { DrawSprite(x, y, x, y, ddb); }
+    void DrawSprite(int x, int y, IDriverDependantBitmap *ddb) override { DrawSprite(x, y, x, y, ddb); }
     // Adds sprite to the active batch, providing it's origin position and auxiliary
     // position of the left-top image corner in the same coordinate space
-    void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* ddb) override;
+    void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap *ddb) override;
     // Adds a render event, which runs a callback with the given parameters, to the active batch
     void AddRenderEvent(int evt, int param) override;
     // Adds fade overlay fx to the active batch
@@ -447,7 +444,7 @@ public:
 
     ///////////////////////////////////////////////////////
     // Rendering and presenting
-    // 
+    //
     // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) override;
     // Renders draw lists and presents to screen.
@@ -466,7 +463,7 @@ public:
     void GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter = 0u) override;
     // Copies contents of the last rendered game frame into bitmap using simple blit or pixel copy.
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
-        GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
+                                   GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
 
 protected:
     bool SetVsyncImpl(bool vsync, bool &vsync_res) override;
@@ -512,10 +509,12 @@ private:
     // Shader management: implementation
     //
     // Compiles and links shader program, using provided vertex and fragment shaders
-    bool CreateShaderProgram(OGLShader::ProgramData &prg, const String &name, const char *vertex_shader_src, const char *fragment_shader_src);
+    bool CreateShaderProgram(OGLShader::ProgramData &prg, const String &name, const char *vertex_shader_src,
+                             const char *fragment_shader_src);
     void AssignBaseShaderArgs(OGLShader::ProgramData &prg);
     void UpdateGlobalShaderArgValues();
-    void OutputShaderLog(GLuint obj_id, const String &shader_name, const char *step_name, bool is_shader, bool as_error);
+    void OutputShaderLog(GLuint obj_id, const String &shader_name, const char *step_name, bool is_shader,
+                         bool as_error);
 
     //
     // Specialized shaders
@@ -558,12 +557,18 @@ private:
         int TxClamp = 0;
 
         BackbufferState() = default;
-        BackbufferState(GLuint fbo, const Size &surf_size, const Size &rend_size,
-                        const Rect &view, const glm::mat4 &proj,
-                        const PlaneScaling &scale, int filter, int txclamp)
-            : Fbo(fbo), SurfSize(surf_size), RendSize(rend_size)
-            , Viewport(view), Projection(proj)
-            , Scaling(scale), Filter(filter), TxClamp(txclamp) {}
+        BackbufferState(GLuint fbo, const Size &surf_size, const Size &rend_size, const Rect &view,
+                        const glm::mat4 &proj, const PlaneScaling &scale, int filter, int txclamp)
+            : Fbo(fbo)
+            , SurfSize(surf_size)
+            , RendSize(rend_size)
+            , Viewport(view)
+            , Projection(proj)
+            , Scaling(scale)
+            , Filter(filter)
+            , TxClamp(txclamp)
+        {
+        }
         ~BackbufferState() = default;
     };
 
@@ -578,7 +583,8 @@ private:
     // otherwise we assume it is set on a whole screen, scaled to the screen coords.
     void SetScissor(const Rect &clip, bool render_on_texture, const Size &surface_size);
     // Configures rendering mode for the render target, depending on its properties
-    void SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, Size &rend_sz, glm::mat4 &projection, bool clear);
+    void SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, Size &rend_sz, glm::mat4 &projection,
+                         bool clear);
     // Assigns shader constants for post fx (rendering final game image)
     void SetupPostFx(OGLBitmap *surface, const BackbufferState &bufferstate);
     void RenderSpriteBatches();
@@ -587,9 +593,8 @@ private:
     void RenderSprite(const OGLDrawListEntry *entry, const glm::mat4 &projection, const glm::mat4 &matGlobal,
                       const SpriteColorTransform &color, const Size &rend_sz);
     // Renders given texture onto the current render target
-    void RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw_y,
-                       const glm::mat4 &projection, const glm::mat4 &matGlobal,
-                       const SpriteColorTransform &color, const Size &rend_sz);
+    void RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw_y, const glm::mat4 &projection,
+                       const glm::mat4 &matGlobal, const SpriteColorTransform &color, const Size &rend_sz);
     // Cleans up render state after rendering a scene
     void PostRenderCleanup();
 
@@ -598,8 +603,8 @@ private:
     // Sets blend settings for RGB only, and keeps previously set alpha blend settings
     void SetBlendOpRGB(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor);
     // Sets blend settings with separate op for alpha, and saves used alpha params
-    void SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor,
-                            GLenum alpha_op, GLenum sa_factor, GLenum da_factor);
+    void SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor, GLenum alpha_op, GLenum sa_factor,
+                            GLenum da_factor);
 
 
     bool _firstTimeInit = false;
@@ -617,7 +622,7 @@ private:
     std::unique_ptr<OGLShader> _darkenbyAlphaShader;
     std::unique_ptr<OGLShader> _lightenByAlphaShader;
     // Custom shader references: these are currently required for updating global constants
-    std::vector<OGLShader*> _customShaders;
+    std::vector<OGLShader *> _customShaders;
 
     int device_screen_physical_width;
     int device_screen_physical_height;
@@ -629,8 +634,8 @@ private:
     // These two flags define whether driver can, and should (respectively)
     // render sprites to texture, and then texture to screen, as opposed to
     // rendering to screen directly. This is known as supersampling mode
-    bool _canRenderToTexture {};
-    bool _doRenderToTexture {};
+    bool _canRenderToTexture{};
+    bool _doRenderToTexture{};
     // Texture for rendering in native resolution
     OGLBitmap *_nativeSurface = nullptr;
 
@@ -655,8 +660,7 @@ private:
     {
         GLenum Op{}, Src{}, Dst{};
         BlendOpState() = default;
-        BlendOpState(GLenum op, GLenum src, GLenum dst)
-            : Op(op), Src(src), Dst(dst) {}
+        BlendOpState(GLenum op, GLenum src, GLenum dst) : Op(op), Src(src), Dst(dst) {}
     };
 
     // Saved alpha channel blend settings for the current render target
@@ -672,15 +676,15 @@ class OGLGraphicsFactory : public GfxDriverFactoryBase<OGLGraphicsDriver, OGLGfx
 public:
     ~OGLGraphicsFactory() override;
 
-    size_t               GetFilterCount() const override;
+    size_t GetFilterCount() const override;
     const GfxFilterInfo *GetFilterInfo(size_t index) const override;
-    String               GetDefaultFilterID() const override;
+    String GetDefaultFilterID() const override;
 
-    static OGLGraphicsFactory   *GetFactory();
+    static OGLGraphicsFactory *GetFactory();
 
 private:
-    OGLGraphicsDriver   *EnsureDriverCreated() override;
-    OGLGfxFilter        *CreateFilter(const String &id) override;
+    OGLGraphicsDriver *EnsureDriverCreated() override;
+    OGLGfxFilter *CreateFilter(const String &id) override;
 
     static OGLGraphicsFactory *_factory;
 };

@@ -36,11 +36,11 @@ struct FontMetrics;
 void init_font_renderer(AGS::Common::AssetManager *amgr);
 void set_gamedata_version(GameDataVersion data_ver);
 // Supply palette usage flags for 8-bit WFN grayscale rendering.
-void set_wfn_palette_eligibility(const std::array<bool, 256>& palette_eligible);
+void set_wfn_palette_eligibility(const std::array<bool, 256> &palette_eligible);
 void shutdown_font_renderer();
-void adjust_y_coordinate_for_text(int* ypos, int font_number);
-IAGSFontRenderer* font_replace_renderer(int font_number, IAGSFontRenderer* renderer);
-IAGSFontRenderer* font_replace_renderer(int font_number, IAGSFontRenderer2* renderer);
+void adjust_y_coordinate_for_text(int *ypos, int font_number);
+IAGSFontRenderer *font_replace_renderer(int font_number, IAGSFontRenderer *renderer);
+IAGSFontRenderer *font_replace_renderer(int font_number, IAGSFontRenderer2 *renderer);
 void font_recalc_metrics(int font_number);
 bool is_any_font_loaded();
 bool is_font_loaded(int font_number);
@@ -98,9 +98,9 @@ int get_font_linespacing(int font_number);
 // Set font's line spacing
 void set_font_linespacing(int font_number, int spacing);
 // Get font's outline type
-int  get_font_outline(int font_number);
+int get_font_outline(int font_number);
 // Get font's *automatic* outline thickness setting (if set)
-int  get_font_outline_thickness(int font_number);
+int get_font_outline_thickness(int font_number);
 // Gets the total maximal height of the given number of lines printed with the given font;
 // note this accounts for the font's setting which may either tell to use nominal
 // or real graphical height of a font.
@@ -109,8 +109,8 @@ int get_text_lines_height(int font_number, size_t numlines);
 // note this accounts always for the real pixel font height
 int get_text_lines_surf_height(size_t font_number, size_t numlines);
 // Set font's outline type
-void set_font_outline(int font_number, int outline_type,
-    enum FontInfo::AutoOutlineStyle style = FontInfo::kSquared, int thickness = 1);
+void set_font_outline(int font_number, int outline_type, enum FontInfo::AutoOutlineStyle style = FontInfo::kSquared,
+                      int thickness = 1);
 bool is_font_antialiased(int font_number);
 // Assigns FontInfo to the font
 void set_fontinfo(int font_number, const FontInfo &finfo);
@@ -126,9 +126,9 @@ bool load_font_size(int font_number, const AGS::Common::String &filename, const 
 bool load_font_metrics(const AGS::Common::String &filename, int pixel_size, FontMetrics &metrics);
 // Allocates two outline stencil buffers, or returns previously creates ones;
 // these buffers are owned by the font, they should not be deleted by the caller.
-void alloc_font_outline_buffers(int font_number,
-    AGS::Common::Bitmap **text_stencil, AGS::Common::Bitmap **outline_stencil,
-    int text_width, int text_height, int color_depth);
+void alloc_font_outline_buffers(int font_number, AGS::Common::Bitmap **text_stencil,
+                                AGS::Common::Bitmap **outline_stencil, int text_width, int text_height,
+                                int color_depth);
 // Perform necessary adjustments on all fonts in case the text render mode changed (anti-aliasing etc)
 void adjust_fonts_for_render_mode(bool aa_mode);
 // Set current blend mode, it will be applied for all the following text render
@@ -143,11 +143,11 @@ void free_all_fonts();
 // Outputs a single line of text on the defined position on bitmap, using defined font, color and parameters
 void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color, const char *texx);
 // Outputs a single line of text, using blend mode
-void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number,
-                color_t text_color, AGS::Common::BlendMode blend_mode, const char *text);
+void wouttextxy(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color,
+                AGS::Common::BlendMode blend_mode, const char *text);
 // Renders text as a solid-color stencil when supported by the font renderer.
-void wouttextxy_stencil(AGS::Common::Bitmap* ds, int x, int y, int font_number,
-                color_t text_color, AGS::Common::BlendMode blend_mode, const char* texx);
+void wouttextxy_stencil(AGS::Common::Bitmap *ds, int x, int y, int font_number, color_t text_color,
+                        AGS::Common::BlendMode blend_mode, const char *texx);
 
 // Tells if the text should be antialiased when possible
 bool ShouldAntiAliasText();
@@ -164,11 +164,16 @@ public:
     inline size_t Count() const { return _count; }
     inline const AGS::Common::String &operator[](size_t i) const { return _pool[i]; }
     inline AGS::Common::String &operator[](size_t i) { return _pool[i]; }
-    inline void Clear() { _pool.clear(); _count = 0; }
+    inline void Clear()
+    {
+        _pool.clear();
+        _count = 0;
+    }
     inline void Reset() { _count = 0; }
     inline void Add(const char *cstr)
     {
-        if (_pool.size() == _count) _pool.resize(_count + 1);
+        if (_pool.size() == _count)
+            _pool.resize(_count + 1);
         _pool[_count++].SetString(cstr);
     }
     inline const std::vector<AGS::Common::String> &GetVector() const { return _pool; }
@@ -185,6 +190,12 @@ private:
 // returns number of lines, or 0 if text cannot be split well to fit in this width
 size_t split_lines(const char *texx, SplitLines &lines, int width, int font_number, size_t max_lines = -1);
 
-namespace AGS { namespace Common { extern SplitLines Lines; } }
+namespace AGS
+{
+namespace Common
+{
+extern SplitLines Lines;
+}
+} // namespace AGS
 
 #endif // __AGS_CN_FONT__FONTS_H

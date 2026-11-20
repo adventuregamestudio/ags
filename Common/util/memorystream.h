@@ -19,7 +19,7 @@
 //
 // VectorStream is a specialized implementation that works with std::vector.
 // Unlike base MemoryStream provides continiously resizing buffer for writing.
-// 
+//
 // TODO: expansion/wrapper of VectorStream that holds vector container itself?
 // TODO: separate StringStream for reading & writing String object?
 //
@@ -49,34 +49,34 @@ public:
     MemoryStream(uint8_t *buf, size_t buf_sz, StreamMode mode);
     ~MemoryStream() override = default;
 
-    void    Close() override;
-    bool    Flush() override;
+    void Close() override;
+    bool Flush() override;
 
     StreamMode GetMode() const override { return _mode; }
-    bool    GetError() const override { return false; }
+    bool GetError() const override { return false; }
     // Is end of stream
-    bool    EOS() const override;
+    bool EOS() const override;
     // Total length of stream (if known)
-    soff_t  GetLength() const override;
+    soff_t GetLength() const override;
     // Current position (if known)
-    soff_t  GetPosition() const override;
+    soff_t GetPosition() const override;
 
-    size_t  Read(void *buffer, size_t size) override;
+    size_t Read(void *buffer, size_t size) override;
     int32_t ReadByte() override;
-    size_t  Write(const void *buffer, size_t size) override;
+    size_t Write(const void *buffer, size_t size) override;
     int32_t WriteByte(uint8_t b) override;
 
-    soff_t  Seek(soff_t offset, StreamSeek origin) override;
+    soff_t Seek(soff_t offset, StreamSeek origin) override;
 
 protected:
-    const uint8_t           *_cbuf = nullptr; // readonly buffer ptr
-    size_t                   _buf_sz = 0u; // hard buffer limit
-    size_t                   _len = 0u; // calculated length of stream
-    StreamMode               _mode = kStream_None;
-    size_t                   _pos = 0u; // current stream pos
+    const uint8_t *_cbuf = nullptr; // readonly buffer ptr
+    size_t _buf_sz = 0u;            // hard buffer limit
+    size_t _len = 0u;               // calculated length of stream
+    StreamMode _mode = kStream_None;
+    size_t _pos = 0u; // current stream pos
 
 private:
-    uint8_t                 *_buf = nullptr; // writeable buffer ptr
+    uint8_t *_buf = nullptr; // writeable buffer ptr
 };
 
 
@@ -91,9 +91,9 @@ public:
     VectorStream(std::vector<uint8_t> &buf, StreamMode mode);
     ~VectorStream() override = default;
 
-    void    Close() override;
+    void Close() override;
 
-    size_t  Write(const void *buffer, size_t size) override;
+    size_t Write(const void *buffer, size_t size) override;
     int32_t WriteByte(uint8_t b) override;
 
 private:

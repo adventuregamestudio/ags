@@ -58,8 +58,7 @@ namespace Engine
 class BlockingVideoPlayer : public GameState
 {
 public:
-    BlockingVideoPlayer(int player_id,
-        int video_flags, int state_flags, VideoSkipType skip);
+    BlockingVideoPlayer(int player_id, int video_flags, int state_flags, VideoSkipType skip);
     ~BlockingVideoPlayer();
 
     PlaybackState GetPlayState() const { return _playbackState; }
@@ -107,12 +106,8 @@ private:
     bool _statsReady = false;
 };
 
-BlockingVideoPlayer::BlockingVideoPlayer(int player_id,
-    int video_flags, int state_flags, VideoSkipType skip)
-    : _playerID(player_id)
-    , _videoFlags(video_flags)
-    , _stateFlags(state_flags)
-    , _skip(skip)
+BlockingVideoPlayer::BlockingVideoPlayer(int player_id, int video_flags, int state_flags, VideoSkipType skip)
+    : _playerID(player_id), _videoFlags(video_flags), _stateFlags(state_flags), _skip(skip)
 {
     assert(_playerID >= 0);
     auto player = video_core_get_player(_playerID);
@@ -154,8 +149,7 @@ void BlockingVideoPlayer::Begin()
     auto video_fps = player->GetFramerate();
     auto game_fps = get_game_speed();
     _oldFps = game_fps;
-    if (((_stateFlags & kVideoState_SetGameFps) != 0) &&
-        (game_fps < video_fps))
+    if (((_stateFlags & kVideoState_SetGameFps) != 0) && (game_fps < video_fps))
     {
         set_game_speed(video_fps);
     }
@@ -166,7 +160,7 @@ void BlockingVideoPlayer::Begin()
         _isSoftwareRender = !gfxDriver->HasAcceleratedTransform();
         Size frame_sz = player->GetFrameSize();
         Rect dest = PlaceInRect(play.GetMainViewport(), RectWH(frame_sz),
-            ((_stateFlags & kVideoState_Stretch) == 0) ? kPlaceCenter : kPlaceStretchProportional);
+                                ((_stateFlags & kVideoState_Stretch) == 0) ? kPlaceCenter : kPlaceStretchProportional);
         // override the stretch option if necessary
         if (frame_sz == dest.GetSize())
             _stateFlags &= ~kVideoState_Stretch;
@@ -296,7 +290,8 @@ bool BlockingVideoPlayer::Run()
             _stats.PrepareFrame.Count++;
             _stats.PrepareFrame.TotalTime += static_cast<uint64_t>(dur_ms);
             _stats.PrepareFrame.MaxTime = std::max(_stats.PrepareFrame.MaxTime, dur_ms);
-            _stats.PrepareFrame.AvgTime = static_cast<double>(_stats.PrepareFrame.TotalTime) / _stats.PrepareFrame.Count;
+            _stats.PrepareFrame.AvgTime =
+                static_cast<double>(_stats.PrepareFrame.TotalTime) / _stats.PrepareFrame.Count;
         }
     }
 
@@ -350,24 +345,15 @@ void BlockingVideoPlayer::PrintStats()
         return;
 
     Debug::Printf("BlockingVideoPlayer stats: \"%s\""
-                  "\n\ttotal frames on input: %" PRIu64
-                  "\n\tmax time per preparing a video frame: %.2f ms"
+                  "\n\ttotal frames on input: %" PRIu64 "\n\tmax time per preparing a video frame: %.2f ms"
                   "\n\tavg time per preparing a video frame: %.2f ms"
                   "\n\ttotal time on preparing video frames: %" PRIu64 " ms"
-                  "\n\ttotal render passes (depends on game fps): %" PRIu64
-                  "\n\tmax time per render: %.2f ms"
+                  "\n\ttotal render passes (depends on game fps): %" PRIu64 "\n\tmax time per render: %.2f ms"
                   "\n\tavg time per render: %.2f ms"
                   "\n\ttotal time on render: %" PRIu64 " ms",
-                  _assetName.GetCStr(),
-                  _stats.PrepareFrame.Count,
-                  _stats.PrepareFrame.MaxTime,
-                  _stats.PrepareFrame.AvgTime,
-                  _stats.PrepareFrame.TotalTime,
-                  _stats.DisplayFrame.Count,
-                  _stats.DisplayFrame.MaxTime,
-                  _stats.DisplayFrame.AvgTime,
-                  _stats.DisplayFrame.TotalTime
-    );
+                  _assetName.GetCStr(), _stats.PrepareFrame.Count, _stats.PrepareFrame.MaxTime,
+                  _stats.PrepareFrame.AvgTime, _stats.PrepareFrame.TotalTime, _stats.DisplayFrame.Count,
+                  _stats.DisplayFrame.MaxTime, _stats.DisplayFrame.AvgTime, _stats.DisplayFrame.TotalTime);
 }
 
 std::unique_ptr<BlockingVideoPlayer> gl_Video;
@@ -394,7 +380,7 @@ static bool video_check_user_input(VideoSkipType skip)
                 if ((ki.Key == eAGSKeyCodeEscape) && (skip == VideoSkipEscape))
                     return true; // skip on Escape key
                 if (skip >= VideoSkipAnyKey)
-                    return true;  // skip on any key
+                    return true; // skip on any key
             }
         }
         else if (type == kInputMouse)
@@ -414,8 +400,7 @@ static bool video_check_user_input(VideoSkipType skip)
     return false;
 }
 
-static HError video_single_run(const String &asset_name,
-    int video_flags, int state_flags, VideoSkipType skip)
+static HError video_single_run(const String &asset_name, int video_flags, int state_flags, VideoSkipType skip)
 {
     auto video_stream = AssetMgr->OpenAsset(asset_name);
     if (!video_stream)
@@ -436,10 +421,11 @@ static HError video_single_run(const String &asset_name,
 
     gl_Video.reset(new BlockingVideoPlayer(slot, video_flags, state_flags, skip));
     gl_Video->Begin();
-    while (gl_Video->Run());
+    while (gl_Video->Run())
+        ;
     gl_Video->End();
     gl_Video = {};
-    
+
     return HError::None();
 }
 
@@ -483,9 +469,7 @@ void video_single_stop()
 // Non-blocking video API
 //-----------------------------------------------------------------------------
 
-VideoControl::VideoControl(int video_id, int sprite_id)
-    : _videoID(video_id)
-    , _spriteID(sprite_id)
+VideoControl::VideoControl(int video_id, int sprite_id) : _videoID(video_id), _spriteID(sprite_id)
 {
     auto player = video_core_get_player(video_id);
     _frameRes = player->GetFrameSize();
@@ -498,7 +482,7 @@ VideoControl::~VideoControl()
 {
     if (_scriptHandle >= 0)
     {
-        ScriptVideoPlayer *sc_video = (ScriptVideoPlayer*)ccGetObjectAddressFromHandle(_scriptHandle);
+        ScriptVideoPlayer *sc_video = (ScriptVideoPlayer *)ccGetObjectAddressFromHandle(_scriptHandle);
         if (sc_video)
         {
             sc_video->Invalidate();
@@ -621,11 +605,20 @@ bool VideoControl::Update()
         if (_paramsChanged)
         {
             auto vol_f = static_cast<float>(_volume) / 255.0f;
-            if (vol_f < 0.0f) { vol_f = 0.0f; }
-            if (vol_f > 1.0f) { vol_f = 1.0f; }
+            if (vol_f < 0.0f)
+            {
+                vol_f = 0.0f;
+            }
+            if (vol_f > 1.0f)
+            {
+                vol_f = 1.0f;
+            }
 
             auto speed_f = _speed;
-            if (speed_f <= 0.0) { speed_f = 1.0f; }
+            if (speed_f <= 0.0)
+            {
+                speed_f = 1.0f;
+            }
 
             player->SetVolume(vol_f);
             player->SetSpeed(speed_f);
@@ -642,8 +635,7 @@ bool VideoControl::Update()
                 player->Play();
                 _state = player->GetPlayState();
                 break;
-            default: /* do nothing */
-                break;
+            default: /* do nothing */ break;
             }
         }
 
@@ -778,17 +770,32 @@ HError open_video(const char *, int, int &)
 {
     return new Error("Video playback is not supported in this engine build.");
 }
-VideoControl *get_video_control(int) { return nullptr; }
-void video_stop(int) { }
-void sync_video_playback() { }
-void update_video_system_on_game_loop() { }
-void video_shutdown() { }
+VideoControl *get_video_control(int)
+{
+    return nullptr;
+}
+void video_stop(int) {}
+void sync_video_playback() {}
+void update_video_system_on_game_loop() {}
+void video_shutdown() {}
 
 void VideoControl::SetScriptHandle(int) {}
-bool VideoControl::Play() { return false; }
+bool VideoControl::Play()
+{
+    return false;
+}
 void VideoControl::Pause() {}
-bool VideoControl::NextFrame() { return false; }
-uint32_t VideoControl::SeekFrame(uint32_t) { return -1; }
-float VideoControl::SeekMs(float) { return -1.f; }
+bool VideoControl::NextFrame()
+{
+    return false;
+}
+uint32_t VideoControl::SeekFrame(uint32_t)
+{
+    return -1;
+}
+float VideoControl::SeekMs(float)
+{
+    return -1.f;
+}
 
 #endif // AGS_NO_VIDEO_PLAYER

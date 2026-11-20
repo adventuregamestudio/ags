@@ -20,8 +20,20 @@
 
 #include "gamestate.h"
 
-namespace AGS { namespace Common { class Bitmap; } }
-namespace AGS { namespace Engine { class IDriverDependantBitmap; } }
+namespace AGS
+{
+namespace Common
+{
+class Bitmap;
+}
+} // namespace AGS
+namespace AGS
+{
+namespace Engine
+{
+class IDriverDependantBitmap;
+}
+} // namespace AGS
 
 // Runs fade-in effect using explicit settings
 void run_fade_in_effect(ScreenTransitionStyle style, int speed);

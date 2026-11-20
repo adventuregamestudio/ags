@@ -32,8 +32,8 @@ class BaseLibrary
 {
 public:
     BaseLibrary() = default;
-    BaseLibrary(const BaseLibrary&) = delete;
-    BaseLibrary(BaseLibrary&&) = default;
+    BaseLibrary(const BaseLibrary &) = delete;
+    BaseLibrary(BaseLibrary &&) = default;
     virtual ~BaseLibrary() = default;
 
     // Get library name; returns empty string if not loaded
@@ -48,8 +48,7 @@ public:
     virtual String GetFilenameForLib(const String &libname) = 0;
 
     // Try load a library of a given name, optionally looking it up in the list of paths
-    virtual bool Load(const String &libname,
-        const std::vector<String> &lookup = std::vector<String>()) = 0;
+    virtual bool Load(const String &libname, const std::vector<String> &lookup = std::vector<String>()) = 0;
     // Unload a library; does nothing if was not loaded
     virtual void Unload() = 0;
     // Tells if library is loaded
@@ -70,10 +69,7 @@ protected:
 #if AGS_PLATFORM_OS_WINDOWS
 #include "library_windows.h"
 
-#elif AGS_PLATFORM_OS_LINUX \
-   || AGS_PLATFORM_OS_MACOS \
-   || AGS_PLATFORM_OS_ANDROID \
-   || AGS_PLATFORM_OS_FREEBSD
+#elif AGS_PLATFORM_OS_LINUX || AGS_PLATFORM_OS_MACOS || AGS_PLATFORM_OS_ANDROID || AGS_PLATFORM_OS_FREEBSD
 #include "library_posix.h"
 
 #else

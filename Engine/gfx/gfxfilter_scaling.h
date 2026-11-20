@@ -37,8 +37,8 @@ public:
     Rect GetDestination() const override;
 
 protected:
-    Rect            _dstRect;
-    PlaneScaling    _scaling;
+    Rect _dstRect;
+    PlaneScaling _scaling;
 };
 
 } // namespace Engine

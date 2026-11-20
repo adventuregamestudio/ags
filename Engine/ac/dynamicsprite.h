@@ -20,54 +20,55 @@
 enum ScriptColorFormat
 {
     kScColorFmt_Default = 0,
-    kScColorFmt_8bit    = 8
+    kScColorFmt_8bit = 8
 };
 
 // Validates color format requested by user script, and returns a compatible color depth value
-int     ValidateColorFormat(const char *api_name, ScriptColorFormat color_format);
+int ValidateColorFormat(const char *api_name, ScriptColorFormat color_format);
 
-void	DynamicSprite_Delete(ScriptDynamicSprite *sds);
-ScriptDrawingSurface* DynamicSprite_GetDrawingSurface(ScriptDynamicSprite *dss);
-int		DynamicSprite_GetGraphic(ScriptDynamicSprite *sds);
-int		DynamicSprite_GetWidth(ScriptDynamicSprite *sds);
-int		DynamicSprite_GetHeight(ScriptDynamicSprite *sds);
-int		DynamicSprite_GetColorDepth(ScriptDynamicSprite *sds);
-void	DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height);
-void	DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction);
-void	DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSprite);
-void	DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int height, int x, int y);
-void	DynamicSprite_Crop(ScriptDynamicSprite *sds, int x1, int y1, int width, int height);
-void	DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int height);
-void	DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, int saturation, int luminance);
-int		DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char* namm);
-ScriptDynamicSprite* DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height);
-ScriptDynamicSprite* DynamicSprite_CreateFromFile(const char *filename, int color_fmt);
-ScriptDynamicSprite* DynamicSprite_CreateFromScreenShot(int width, int height, int layers);
-ScriptDynamicSprite* DynamicSprite_CreateFromExistingSprite(int slot, int color_fmt);
-ScriptDynamicSprite* DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width, int height, int color_fmt);
-ScriptDynamicSprite* DynamicSprite_Create(int width, int height, int color_fmt);
-ScriptDynamicSprite* DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height);
+void DynamicSprite_Delete(ScriptDynamicSprite *sds);
+ScriptDrawingSurface *DynamicSprite_GetDrawingSurface(ScriptDynamicSprite *dss);
+int DynamicSprite_GetGraphic(ScriptDynamicSprite *sds);
+int DynamicSprite_GetWidth(ScriptDynamicSprite *sds);
+int DynamicSprite_GetHeight(ScriptDynamicSprite *sds);
+int DynamicSprite_GetColorDepth(ScriptDynamicSprite *sds);
+void DynamicSprite_Resize(ScriptDynamicSprite *sds, int width, int height);
+void DynamicSprite_Flip(ScriptDynamicSprite *sds, int direction);
+void DynamicSprite_CopyTransparencyMask(ScriptDynamicSprite *sds, int sourceSprite);
+void DynamicSprite_ChangeCanvasSize(ScriptDynamicSprite *sds, int width, int height, int x, int y);
+void DynamicSprite_Crop(ScriptDynamicSprite *sds, int x1, int y1, int width, int height);
+void DynamicSprite_Rotate(ScriptDynamicSprite *sds, int angle, int width, int height);
+void DynamicSprite_Tint(ScriptDynamicSprite *sds, int red, int green, int blue, int saturation, int luminance);
+int DynamicSprite_SaveToFile(ScriptDynamicSprite *sds, const char *namm);
+ScriptDynamicSprite *DynamicSprite_CreateFromSaveGame(int sgslot, int width, int height);
+ScriptDynamicSprite *DynamicSprite_CreateFromFile(const char *filename, int color_fmt);
+ScriptDynamicSprite *DynamicSprite_CreateFromScreenShot(int width, int height, int layers);
+ScriptDynamicSprite *DynamicSprite_CreateFromExistingSprite(int slot, int color_fmt);
+ScriptDynamicSprite *DynamicSprite_CreateFromDrawingSurface(ScriptDrawingSurface *sds, int x, int y, int width,
+                                                            int height, int color_fmt);
+ScriptDynamicSprite *DynamicSprite_Create(int width, int height, int color_fmt);
+ScriptDynamicSprite *DynamicSprite_CreateFromBackground(int frame, int x1, int y1, int width, int height);
 
 // Registers a new dynamic sprite, and returns a slot number;
 // returns 0 if no free slot could be found or allocated.
 // Updates game.SpriteInfos[].
-int     add_dynamic_sprite(std::unique_ptr<AGS::Common::Bitmap> image, uint32_t extra_flags = 0u);
+int add_dynamic_sprite(std::unique_ptr<AGS::Common::Bitmap> image, uint32_t extra_flags = 0u);
 // Registers a new dynamic sprite in the given slot number,
 // previous bitmap on this slot (if any) will be deleted.
 // Returns same slot number on success, or 0 if there was an error.
 // Updates game.SpriteInfos[].
-int     add_dynamic_sprite(int slot, std::unique_ptr<AGS::Common::Bitmap> image, uint32_t extra_flags = 0u);
+int add_dynamic_sprite(int slot, std::unique_ptr<AGS::Common::Bitmap> image, uint32_t extra_flags = 0u);
 // Disposes a dynamic sprite, and frees the slot
-void    free_dynamic_sprite(int slot, bool notify_all = true);
+void free_dynamic_sprite(int slot, bool notify_all = true);
 // Retrieves a DrawingSurface object, connected to the given dynamic sprite.
 ScriptDrawingSurface *get_dynsprite_surface(int slot);
 // Attaches drawing surface handle to the dynamic sprite.
 // This method is used when unserializing drawing surfaces from the game save.
-void    attach_dynsprite_surface(int slot, int surface_handle);
+void attach_dynsprite_surface(int slot, int surface_handle);
 // Detaches all drawing surfaces related to the given dynamic sprite.
 // This invalidates DrawingSurface script object(s), and erases a sprite-surface reference.
-void    detach_dynsprite_surface(int slot);
+void detach_dynsprite_surface(int slot);
 // Notifies dynamic sprite that its drawing surface was released
-void    on_dynsprite_surface_release(int slot, bool modified);
+void on_dynsprite_surface_release(int slot, bool modified);
 
 #endif // __AGS_EE_AC__DYNAMICSPRITE_H

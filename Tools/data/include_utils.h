@@ -39,7 +39,7 @@ struct Pattern
     PatternType Type;
     std::regex Regex;
     String OriginalPattern; // for debug purposes
-    String RegexPattern; // for debug purposes
+    String RegexPattern;    // for debug purposes
 };
 
 // Creates match pattern list based on textual descriptions
@@ -47,25 +47,24 @@ HError CreatePatternList(const std::vector<String> pattern_desc, std::vector<Pat
 
 // Pass a list of files that is filtered in place by include-like patterns in a file
 HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> &output_files,
-    const String &include_pattern_file, bool verbose);
+                    const String &include_pattern_file, bool verbose);
 // Pass a list of files that is filtered in place by provided patterns
 HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> &output_files,
-    const std::vector<Pattern> &patterns, bool verbose);
+                    const std::vector<Pattern> &patterns, bool verbose);
 
 // Pass a list of files that is filtered by array of include-like patterns
 // All operations are done without file reading (so it's easier to test)
 HError MatchPatternPaths(const std::vector<String> &input_files, std::vector<String> &output_matches,
-    const std::vector<String> &pattern_desc);
+                         const std::vector<String> &pattern_desc);
 // Pass a list of files that is filtered by provided patterns
 HError MatchPatternPaths(const std::vector<String> &input_files, std::vector<String> &output_matches,
-    const std::vector<Pattern> &patterns);
+                         const std::vector<Pattern> &patterns);
 
 // A predicate functor that can be used to filter items, using provided patterns list
 class PatternMatch
 {
 public:
-    PatternMatch(const std::vector<Pattern> &patterns)
-        : _patterns(patterns) {}
+    PatternMatch(const std::vector<Pattern> &patterns) : _patterns(patterns) {}
 
     bool operator()(const String &item);
 

@@ -24,21 +24,24 @@ extern std::vector<int> StaticObjectArray;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 
 // return the type name of the object
-const char *CCObject::GetType() {
+const char *CCObject::GetType()
+{
     return "Object";
 }
 
-size_t CCObject::CalcSerializeSize(const void* /*address*/)
+size_t CCObject::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCObject::Serialize(const void *address, Stream *out) {
-    const ScriptObject *shh = static_cast<const ScriptObject*>(address);
+void CCObject::Serialize(const void *address, Stream *out)
+{
+    const ScriptObject *shh = static_cast<const ScriptObject *>(address);
     out->WriteInt32(shh->id);
 }
 
-void CCObject::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void CCObject::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
     int num = in->ReadInt32();
     StaticObjectArray[num] = ccRegisterUnserializedPersistentObject(index, &scrObj[num], this);
 }

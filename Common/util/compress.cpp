@@ -42,9 +42,10 @@ namespace Common
 
 static void cpackbitl(const uint8_t *line, size_t size, Stream *out)
 {
-    size_t cnt = 0;               // bytes encoded
+    size_t cnt = 0; // bytes encoded
 
-    while (cnt < size) {
+    while (cnt < size)
+    {
         // IMPORTANT: the algorithm below requires signed operations
         int i = static_cast<int32_t>(cnt);
         int j = i + 1;
@@ -52,36 +53,39 @@ static void cpackbitl(const uint8_t *line, size_t size, Stream *out)
         if (static_cast<uint32_t>(jmax) >= size)
             jmax = size - 1;
 
-        if (static_cast<uint32_t>(i) == size - 1) { //......last byte alone
+        if (static_cast<uint32_t>(i) == size - 1)
+        { //......last byte alone
             out->WriteInt8(0);
             out->WriteInt8(line[i]);
             cnt++;
-
-        } else if (line[i] == line[j]) {    //....run
+        }
+        else if (line[i] == line[j])
+        { //....run
             while ((j < jmax) && (line[j] == line[j + 1]))
-            j++;
-     
+                j++;
+
             out->WriteInt8(i - j);
             out->WriteInt8(line[i]);
             cnt += j - i + 1;
-
-        } else {                    //.............................sequence
+        }
+        else
+        { //.............................sequence
             while ((j < jmax) && (line[j] != line[j + 1]))
-            j++;
+                j++;
 
             out->WriteInt8(j - i);
             out->Write(line + i, j - i + 1);
             cnt += j - i + 1;
-
         }
     } // end while
 }
 
 static void cpackbitl16(const uint16_t *line, size_t size, Stream *out)
 {
-    size_t cnt = 0;               // bytes encoded
+    size_t cnt = 0; // bytes encoded
 
-    while (cnt < size) {
+    while (cnt < size)
+    {
         // IMPORTANT: the algorithm below requires signed operations
         int i = cnt;
         int j = i + 1;
@@ -89,36 +93,39 @@ static void cpackbitl16(const uint16_t *line, size_t size, Stream *out)
         if (static_cast<uint32_t>(jmax) >= size)
             jmax = size - 1;
 
-        if (static_cast<uint32_t>(i) == size - 1) { //......last byte alone
+        if (static_cast<uint32_t>(i) == size - 1)
+        { //......last byte alone
             out->WriteInt8(0);
             out->WriteInt16(line[i]);
             cnt++;
-
-        } else if (line[i] == line[j]) {    //....run
+        }
+        else if (line[i] == line[j])
+        { //....run
             while ((j < jmax) && (line[j] == line[j + 1]))
-            j++;
-     
+                j++;
+
             out->WriteInt8(i - j);
             out->WriteInt16(line[i]);
             cnt += j - i + 1;
-
-        } else {                    //.............................sequence
+        }
+        else
+        { //.............................sequence
             while ((j < jmax) && (line[j] != line[j + 1]))
-            j++;
+                j++;
 
             out->WriteInt8(j - i);
             out->WriteArray(line + i, j - i + 1, 2);
             cnt += j - i + 1;
-
         }
     } // end while
 }
 
 static void cpackbitl32(const uint32_t *line, size_t size, Stream *out)
 {
-    size_t cnt = 0;               // bytes encoded
+    size_t cnt = 0; // bytes encoded
 
-    while (cnt < size) {
+    while (cnt < size)
+    {
         // IMPORTANT: the algorithm below requires signed operations
         int i = cnt;
         int j = i + 1;
@@ -126,60 +133,68 @@ static void cpackbitl32(const uint32_t *line, size_t size, Stream *out)
         if (static_cast<uint32_t>(jmax) >= size)
             jmax = size - 1;
 
-        if (static_cast<uint32_t>(i) == size - 1) { //......last byte alone
+        if (static_cast<uint32_t>(i) == size - 1)
+        { //......last byte alone
             out->WriteInt8(0);
             out->WriteInt32(line[i]);
             cnt++;
-
-        } else if (line[i] == line[j]) {    //....run
+        }
+        else if (line[i] == line[j])
+        { //....run
             while ((j < jmax) && (line[j] == line[j + 1]))
-            j++;
-     
+                j++;
+
             out->WriteInt8(i - j);
             out->WriteInt32(line[i]);
             cnt += j - i + 1;
-
-        } else {                    //.............................sequence
+        }
+        else
+        { //.............................sequence
             while ((j < jmax) && (line[j] != line[j + 1]))
-            j++;
+                j++;
 
             out->WriteInt8(j - i);
             out->WriteArray(line + i, j - i + 1, 4);
             cnt += j - i + 1;
-
         }
     } // end while
 }
 
 static int cunpackbitl(uint8_t *line, size_t size, Stream *in)
 {
-    size_t n = 0;                  // number of bytes decoded
+    size_t n = 0; // number of bytes decoded
 
-    while (n < size) {
-        int ix = in->ReadByte();     // get index byte
+    while (n < size)
+    {
+        int ix = in->ReadByte(); // get index byte
 
         signed char cx = ix;
         if (cx == -128)
             cx = 0;
 
-        if (cx < 0) {                //.............run
+        if (cx < 0)
+        { //.............run
             int i = 1 - cx;
             char ch = in->ReadInt8();
-            while (i--) {
-            // test for buffer overflow
-            if (n >= size)
-                return -1;
+            while (i--)
+            {
+                // test for buffer overflow
+                if (n >= size)
+                    return -1;
 
-            line[n++] = ch;
+                line[n++] = ch;
             }
-        } else {                     //.....................seq
+        }
+        else
+        { //.....................seq
             int i = cx + 1;
-            while (i--) {
-            // test for buffer overflow
-            if (n >= size)
-                return -1;
+            while (i--)
+            {
+                // test for buffer overflow
+                if (n >= size)
+                    return -1;
 
-            line[n++] = in->ReadByte();
+                line[n++] = in->ReadByte();
             }
         }
     }
@@ -189,33 +204,39 @@ static int cunpackbitl(uint8_t *line, size_t size, Stream *in)
 
 static int cunpackbitl16(uint16_t *line, size_t size, Stream *in)
 {
-    size_t n = 0;                  // number of bytes decoded
+    size_t n = 0; // number of bytes decoded
 
-    while (n < size) {
-        int ix = in->ReadByte();     // get index byte
+    while (n < size)
+    {
+        int ix = in->ReadByte(); // get index byte
 
         signed char cx = ix;
         if (cx == -128)
             cx = 0;
 
-        if (cx < 0) {                //.............run
+        if (cx < 0)
+        { //.............run
             int i = 1 - cx;
             unsigned short ch = in->ReadInt16();
-            while (i--) {
-            // test for buffer overflow
-            if (n >= size)
-                return -1;
+            while (i--)
+            {
+                // test for buffer overflow
+                if (n >= size)
+                    return -1;
 
-            line[n++] = ch;
+                line[n++] = ch;
             }
-        } else {                     //.....................seq
+        }
+        else
+        { //.....................seq
             int i = cx + 1;
-            while (i--) {
-            // test for buffer overflow
-            if (n >= size)
-                return -1;
+            while (i--)
+            {
+                // test for buffer overflow
+                if (n >= size)
+                    return -1;
 
-            line[n++] = in->ReadInt16();
+                line[n++] = in->ReadInt16();
             }
         }
     }
@@ -225,33 +246,39 @@ static int cunpackbitl16(uint16_t *line, size_t size, Stream *in)
 
 static int cunpackbitl32(uint32_t *line, size_t size, Stream *in)
 {
-    size_t n = 0;                  // number of bytes decoded
+    size_t n = 0; // number of bytes decoded
 
-    while (n < size) {
-        int ix = in->ReadByte();     // get index byte
+    while (n < size)
+    {
+        int ix = in->ReadByte(); // get index byte
 
         signed char cx = ix;
         if (cx == -128)
             cx = 0;
 
-        if (cx < 0) {                //.............run
+        if (cx < 0)
+        { //.............run
             int i = 1 - cx;
             unsigned int ch = in->ReadInt32();
-            while (i--) {
-            // test for buffer overflow
-            if (n >= size)
-                return -1;
+            while (i--)
+            {
+                // test for buffer overflow
+                if (n >= size)
+                    return -1;
 
-            line[n++] = ch;
+                line[n++] = ch;
             }
-        } else {                     //.....................seq
+        }
+        else
+        { //.....................seq
             int i = cx + 1;
-            while (i--) {
-            // test for buffer overflow
-            if (n >= size)
-                return -1;
+            while (i--)
+            {
+                // test for buffer overflow
+                if (n >= size)
+                    return -1;
 
-            line[n++] = (unsigned int)in->ReadInt32();
+                line[n++] = (unsigned int)in->ReadInt32();
             }
         }
     }
@@ -264,8 +291,8 @@ bool rle_compress(const uint8_t *data, size_t data_sz, int image_bpp, Stream *ou
     switch (image_bpp)
     {
     case 1: cpackbitl(data, data_sz, out); break;
-    case 2: cpackbitl16(reinterpret_cast<const uint16_t*>(data), data_sz / sizeof(uint16_t), out); break;
-    case 4: cpackbitl32(reinterpret_cast<const uint32_t*>(data), data_sz / sizeof(uint32_t), out); break;
+    case 2: cpackbitl16(reinterpret_cast<const uint16_t *>(data), data_sz / sizeof(uint16_t), out); break;
+    case 4: cpackbitl32(reinterpret_cast<const uint32_t *>(data), data_sz / sizeof(uint32_t), out); break;
     default: assert(0); break;
     }
     return true;
@@ -276,8 +303,8 @@ bool rle_decompress(uint8_t *data, size_t data_sz, int image_bpp, Stream *in)
     switch (image_bpp)
     {
     case 1: cunpackbitl(data, data_sz, in); break;
-    case 2: cunpackbitl16(reinterpret_cast<uint16_t*>(data), data_sz / sizeof(uint16_t), in); break;
-    case 4: cunpackbitl32(reinterpret_cast<uint32_t*>(data), data_sz / sizeof(uint32_t), in); break;
+    case 2: cunpackbitl16(reinterpret_cast<uint16_t *>(data), data_sz / sizeof(uint16_t), in); break;
+    case 4: cunpackbitl32(reinterpret_cast<uint32_t *>(data), data_sz / sizeof(uint32_t), in); break;
     default: assert(0); break;
     }
     return true;
@@ -460,13 +487,14 @@ void skip_lzw(Stream *in)
 // Deflate
 //-----------------------------------------------------------------------------
 
-bool z_deflate(Stream* input, Stream* output)
+bool z_deflate(Stream *input, Stream *output)
 {
     z_stream stream;
     memset(&stream, 0, sizeof(stream));
 
     int ret = deflateInit(&stream, Z_DEFAULT_COMPRESSION);
-    if (ret != Z_OK) {
+    if (ret != Z_OK)
+    {
         return false;
     }
 
@@ -474,12 +502,14 @@ bool z_deflate(Stream* input, Stream* output)
     uint8_t outbuf[1024];
 
     stream.avail_in = input->Read(inbuf, sizeof(inbuf));
-    while (stream.avail_in > 0) {
-        stream.next_in = (Bytef*)inbuf;
+    while (stream.avail_in > 0)
+    {
+        stream.next_in = (Bytef *)inbuf;
         int flush = input->EOS() ? Z_FINISH : Z_NO_FLUSH;
 
-        do {
-            stream.next_out = (Bytef*)outbuf;
+        do
+        {
+            stream.next_out = (Bytef *)outbuf;
             stream.avail_out = sizeof(outbuf);
             ret = deflate(&stream, flush);
             assert(ret != Z_STREAM_ERROR);
@@ -494,33 +524,32 @@ bool z_deflate(Stream* input, Stream* output)
     return true;
 }
 
-bool z_inflate(const uint8_t* src, size_t src_sz, uint8_t* dst, size_t dst_sz)
+bool z_inflate(const uint8_t *src, size_t src_sz, uint8_t *dst, size_t dst_sz)
 {
     z_stream stream;
     memset(&stream, 0, sizeof(stream));
 
     int ret = inflateInit(&stream);
-    if (ret != Z_OK) {
+    if (ret != Z_OK)
+    {
         return false;
     }
 
-    stream.next_in = (Bytef*)src;
+    stream.next_in = (Bytef *)src;
     stream.avail_in = src_sz;
     stream.next_out = dst;
     stream.avail_out = dst_sz;
 
-    do {
+    do
+    {
         ret = inflate(&stream, Z_FINISH);
-        switch (ret) {
-            case Z_NEED_DICT:
-            case Z_DATA_ERROR:
-            case Z_MEM_ERROR:
-            case Z_BUF_ERROR:
-                (void)inflateEnd(&stream);
-                return false;
-            default:
-                stream.next_out = dst + (dst_sz - stream.avail_out);
-                break;
+        switch (ret)
+        {
+        case Z_NEED_DICT:
+        case Z_DATA_ERROR:
+        case Z_MEM_ERROR:
+        case Z_BUF_ERROR: (void)inflateEnd(&stream); return false;
+        default: stream.next_out = dst + (dst_sz - stream.avail_out); break;
         }
     } while (stream.avail_out > 0);
 
@@ -528,13 +557,13 @@ bool z_inflate(const uint8_t* src, size_t src_sz, uint8_t* dst, size_t dst_sz)
     return true;
 }
 
-bool deflate_compress(const uint8_t* data, size_t data_sz, int /*image_bpp*/, Stream* out)
+bool deflate_compress(const uint8_t *data, size_t data_sz, int /*image_bpp*/, Stream *out)
 {
     Stream mem_in(std::make_unique<MemoryStream>(data, data_sz));
     return z_deflate(&mem_in, out);
 }
 
-bool inflate_decompress(uint8_t* data, size_t data_sz, int /*image_bpp*/, Stream* in, size_t in_sz)
+bool inflate_decompress(uint8_t *data, size_t data_sz, int /*image_bpp*/, Stream *in, size_t in_sz)
 {
     std::vector<uint8_t> in_buf(in_sz);
     in->Read(in_buf.data(), in_sz);
@@ -548,7 +577,7 @@ static const char *Base64Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq
 
 String base64_encode(const void *addr, size_t input_size)
 {
-    const uint8_t *bytes = static_cast<const uint8_t*>(addr);
+    const uint8_t *bytes = static_cast<const uint8_t *>(addr);
     String out;
     int val = 0, valb = -6;
     for (size_t i = 0; i < input_size; ++i)
@@ -571,7 +600,7 @@ String base64_encode(const void *addr, size_t input_size)
 
 String base64_encode(const String &input)
 {
-    return base64_encode(reinterpret_cast<const uint8_t*>(input.GetCStr()), input.GetLength());
+    return base64_encode(reinterpret_cast<const uint8_t *>(input.GetCStr()), input.GetLength());
 }
 
 static bool Base64DecodeInit = false;

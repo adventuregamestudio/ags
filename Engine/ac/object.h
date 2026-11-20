@@ -25,83 +25,89 @@
 #include "ac/roomobject.h"
 #include "gfx/gfx_def.h"
 
-namespace AGS { namespace Common { class Bitmap; } }
+namespace AGS
+{
+namespace Common
+{
+class Bitmap;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // Tells if the object ID is valid (in the current room)
-bool    IsValidObject(int obj_id);
+bool IsValidObject(int obj_id);
 // Asserts the object ID is valid in the current room,
 // if not then prints a warning to the log; returns assertion result
-bool    AssertObject(const char *apiname, int obj_id);
+bool AssertObject(const char *apiname, int obj_id);
 // Get object at the given room coordinates
-int     GetObjectIDAtRoom(int roomx, int roomy, int hit_options);
+int GetObjectIDAtRoom(int roomx, int roomy, int hit_options);
 // Gets last cached object's image; this may be a source image if there was no transformation
 AGS::Common::Bitmap *GetObjectImage(int obj, bool always_original = true, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the room object
 AGS::Common::Bitmap *GetObjectSourceImage(int obj);
-int     Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2);
-void    Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance);
-void    Object_RemoveTint(ScriptObject *objj);
-void    Object_SetView(ScriptObject *objj, int view, int loop, int frame);
-void    Object_SetTransparency(ScriptObject *objj, int trans);
-int     Object_GetTransparency(ScriptObject *objj);
-void    Object_SetBaseline(ScriptObject *objj, int basel);
-int     Object_GetBaseline(ScriptObject *objj);
-void    Object_Animate(ScriptObject *objj, int loop, int delay, int repeat,
-                       int blocking, int direction, int sframe = 0, int volume = 100);
-void    Object_StopAnimating(ScriptObject *objj);
-void    Object_StopMoving(ScriptObject *objj);
-void    Object_SetVisible(ScriptObject *objj, bool onoroff);
-int     Object_GetView(ScriptObject *objj);
-int     Object_GetLoop(ScriptObject *objj);
-int     Object_GetFrame(ScriptObject *objj);
-bool    Object_GetVisible(ScriptObject *objj);
-void    Object_SetGraphic(ScriptObject *objj, int slott);
-int     Object_GetGraphic(ScriptObject *objj);
-int     Object_GetX(ScriptObject *objj);
-int     Object_GetY(ScriptObject *objj);
-int     Object_GetAnimating(ScriptObject *objj);
-int     Object_GetMoving(ScriptObject *objj);
-void    Object_SetPosition(ScriptObject *objj, int xx, int yy);
-void    Object_SetX(ScriptObject *objj, int xx);
-void    Object_SetY(ScriptObject *objj, int yy);
-const char* Object_GetName_New(ScriptObject *objj);
-bool    Object_IsInteractionAvailable(ScriptObject *oobj, int mood);
-void    Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int ignwal);
-void    Object_SetClickable(ScriptObject *objj, int clik);
-int     Object_GetClickable(ScriptObject *objj);
-void    Object_SetSolid(ScriptObject *objj, int solid);
-int     Object_GetSolid(ScriptObject *objj);
-void    Object_SetBlockingWidth(ScriptObject *objj, int bwid);
-int     Object_GetBlockingWidth(ScriptObject *objj);
-void    Object_SetBlockingHeight(ScriptObject *objj, int bhit);
-int     Object_GetBlockingHeight(ScriptObject *objj);
-int     Object_GetID(ScriptObject *objj);
-void    Object_RunInteraction(ScriptObject *objj, int mode);
+int Object_IsCollidingWithObject(ScriptObject *objj, ScriptObject *obj2);
+void Object_Tint(ScriptObject *objj, int red, int green, int blue, int saturation, int luminance);
+void Object_RemoveTint(ScriptObject *objj);
+void Object_SetView(ScriptObject *objj, int view, int loop, int frame);
+void Object_SetTransparency(ScriptObject *objj, int trans);
+int Object_GetTransparency(ScriptObject *objj);
+void Object_SetBaseline(ScriptObject *objj, int basel);
+int Object_GetBaseline(ScriptObject *objj);
+void Object_Animate(ScriptObject *objj, int loop, int delay, int repeat, int blocking, int direction, int sframe = 0,
+                    int volume = 100);
+void Object_StopAnimating(ScriptObject *objj);
+void Object_StopMoving(ScriptObject *objj);
+void Object_SetVisible(ScriptObject *objj, bool onoroff);
+int Object_GetView(ScriptObject *objj);
+int Object_GetLoop(ScriptObject *objj);
+int Object_GetFrame(ScriptObject *objj);
+bool Object_GetVisible(ScriptObject *objj);
+void Object_SetGraphic(ScriptObject *objj, int slott);
+int Object_GetGraphic(ScriptObject *objj);
+int Object_GetX(ScriptObject *objj);
+int Object_GetY(ScriptObject *objj);
+int Object_GetAnimating(ScriptObject *objj);
+int Object_GetMoving(ScriptObject *objj);
+void Object_SetPosition(ScriptObject *objj, int xx, int yy);
+void Object_SetX(ScriptObject *objj, int xx);
+void Object_SetY(ScriptObject *objj, int yy);
+const char *Object_GetName_New(ScriptObject *objj);
+bool Object_IsInteractionAvailable(ScriptObject *oobj, int mood);
+void Object_Move(ScriptObject *objj, int x, int y, int speed, int blocking, int ignwal);
+void Object_SetClickable(ScriptObject *objj, int clik);
+int Object_GetClickable(ScriptObject *objj);
+void Object_SetSolid(ScriptObject *objj, int solid);
+int Object_GetSolid(ScriptObject *objj);
+void Object_SetBlockingWidth(ScriptObject *objj, int bwid);
+int Object_GetBlockingWidth(ScriptObject *objj);
+void Object_SetBlockingHeight(ScriptObject *objj, int bhit);
+int Object_GetBlockingHeight(ScriptObject *objj);
+int Object_GetID(ScriptObject *objj);
+void Object_RunInteraction(ScriptObject *objj, int mode);
 
-int     Object_GetProperty (ScriptObject *objj, const char *property);
-void    Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufer);
-const char* Object_GetTextProperty(ScriptObject *objj, const char *property);
+int Object_GetProperty(ScriptObject *objj, const char *property);
+void Object_GetPropertyText(ScriptObject *objj, const char *property, char *bufer);
+const char *Object_GetTextProperty(ScriptObject *objj, const char *property);
 
-int     AreThingsOverlapping(int thing1, int thing2);
+int AreThingsOverlapping(int thing1, int thing2);
 
 // Deduces room object's scale, accounting for both manual scaling and the room region effects;
 // calculates resulting sprite size.
-void    update_object_scale(int objid);
+void update_object_scale(int objid);
 // Deduces arbitrary object's scale, accounting for both manual scaling and the room region effects
-void    update_object_scale(int &res_zoom, int &res_width, int &res_height,
-            int objx, int objy, int sprnum, int own_zoom, bool use_region_scaling);
+void update_object_scale(int &res_zoom, int &res_width, int &res_height, int objx, int objy, int sprnum, int own_zoom,
+                         bool use_region_scaling);
 // Start moving object to the given destination, calculate path using destination and optionally "ignore walls" flag
-void    move_object(int objj, int tox, int toy, int speed, bool ignwal);
-Rect    get_object_blocking_rect(int objid);
+void move_object(int objj, int tox, int toy, int speed, bool ignwal);
+Rect get_object_blocking_rect(int objid);
 // xx,yy is the position in room co-ordinates that we are checking
 // arx,ary,spww,sphh are the sprite's bounding box (including sprite scaling);
 // bitmap_original tells whether bitmap is an original sprite, or transformed version
-int     is_pos_in_sprite(int xx, int yy, int arx, int ary,
-                         Common::Bitmap *sprit, int spww, int sphh, Common::SpriteTransformFlags sprite_flags);
+int is_pos_in_sprite(int xx, int yy, int arx, int ary, Common::Bitmap *sprit, int spww, int sphh,
+                     Common::SpriteTransformFlags sprite_flags);
 // X and Y co-ordinates must be in native format
 // X and Y are ROOM coordinates
-int     check_click_on_object(int roomx, int roomy, int mood);
+int check_click_on_object(int roomx, int roomy, int mood);
 
 // Tests if the blend mode is in valid range, post a warning and fixes to default if not
 AGS::Common::BlendMode ValidateBlendMode(const char *apiname, const char *objname, int blend_mode);
@@ -110,22 +116,22 @@ AGS::Common::BlendMode ValidateBlendMode(const char *apiname, const char *objnam
 // TODO: pick out some kind of "animation" struct
 // Tests if the standard animate parameters are in valid range, if not then clamps them and
 // reports a script warning.
-void    ValidateAnimParams(const char *apiname, const char *objname, int &repeat, int &direction);
-void    ValidateViewAnimParams(const char *apiname, const char *objname, int &blocking, int &repeat, int &direction);
+void ValidateAnimParams(const char *apiname, const char *objname, int &repeat, int &direction);
+void ValidateViewAnimParams(const char *apiname, const char *objname, int &blocking, int &repeat, int &direction);
 // Tests if the view, loop, frame animate params are in valid range,
 // errors in case of out-of-range view or loop, but clamps a frame to a range.
 // NOTE: assumes view is already in an internal 0-based range.
-void    ValidateViewAnimVLF(const char *apiname, const char *objname, int view, int loop, int &sframe);
+void ValidateViewAnimVLF(const char *apiname, const char *objname, int view, int loop, int &sframe);
 // Calculates the first shown frame for a view animation, depending on parameters.
-int     SetFirstAnimFrame(int view, int loop, int sframe, AnimFlowDirection dir);
+int SetFirstAnimFrame(int view, int loop, int sframe, AnimFlowDirection dir);
 // General view animation algorithm: find next loop and frame, depending on anim settings;
 // loop and frame values are passed by reference and will be updated;
 // AnimationFlowParams may be modified if direction changes, according to flow style;
 // returns whether the animation should continue.
-bool    CycleViewAnim(int view, uint16_t &loop, uint16_t &frame, AnimFlowParams &anim_params);
+bool CycleViewAnim(int view, uint16_t &loop, uint16_t &frame, AnimFlowParams &anim_params);
 
 // Tests if the standard move/walk parameters are in valid range, if not then clamps them and
 // reports a script warning.
-void    ValidateMoveParams(const char *apiname, const char *objname, int &blocking, int &ignwal);
+void ValidateMoveParams(const char *apiname, const char *objname, int &blocking, int &ignwal);
 
 #endif // __AGS_EE_AC__OBJECT_H

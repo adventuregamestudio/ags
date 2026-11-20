@@ -32,9 +32,9 @@ namespace AGS
 
 namespace Common
 {
-    class Bitmap;
-    typedef std::shared_ptr<Bitmap> PBitmap;
-}
+class Bitmap;
+typedef std::shared_ptr<Bitmap> PBitmap;
+} // namespace Common
 
 namespace Engine
 {
@@ -60,17 +60,16 @@ struct SpriteTransform
     // Translate
     int X = 0, Y = 0;
     float ScaleX = 1.f, ScaleY = 1.f;
-    float Rotate = 0.f; // angle, in degrees, clockwise
+    float Rotate = 0.f;      // angle, in degrees, clockwise
     Pointf Pivot = Pointf(); // rotation pivot
     SpriteColorTransform Color;
 
     SpriteTransform() = default;
-    SpriteTransform(int x, int y, float scalex = 1.0f, float scaley = 1.0f,
-        float rotate = 0.0f, const Pointf &pivot = Point(),
-        SpriteColorTransform color = SpriteColorTransform())
-        : X(x), Y(y), ScaleX(scalex), ScaleY(scaley),
-          Rotate(rotate), Pivot(pivot),
-          Color(color) {}
+    SpriteTransform(int x, int y, float scalex = 1.0f, float scaley = 1.0f, float rotate = 0.0f,
+                    const Pointf &pivot = Point(), SpriteColorTransform color = SpriteColorTransform())
+        : X(x), Y(y), ScaleX(scalex), ScaleY(scaley), Rotate(rotate), Pivot(pivot), Color(color)
+    {
+    }
 };
 
 // Describes 3 render matrixes: world, view and projection
@@ -99,8 +98,7 @@ struct ShaderDefinition
 
     // Constants table: maps constant name to the index/register
     // in the compiled shader
-    std::unordered_map<AGS::Common::String, uint32_t>
-                        Constants;
+    std::unordered_map<AGS::Common::String, uint32_t> Constants;
 };
 
 // IGraphicShader interface provides an access to a shader program,
@@ -109,6 +107,7 @@ class IGraphicShader
 {
 public:
     using String = AGS::Common::String;
+
 public:
     virtual ~IGraphicShader() = default;
 
@@ -138,6 +137,7 @@ class IShaderInstance
 {
 public:
     using String = AGS::Common::String;
+
 public:
     virtual ~IShaderInstance() = default;
 
@@ -171,12 +171,13 @@ class IGraphicsDriver
 {
 public:
     using String = AGS::Common::String;
+
 public:
     virtual ~IGraphicsDriver() = default;
 
     ///////////////////////////////////////////////////////
     // Identification
-    // 
+    //
     // Gets graphic driver's identifier
     virtual const char *GetDriverID() = 0;
     // Gets graphic driver's "friendly name"
@@ -184,7 +185,7 @@ public:
 
     ///////////////////////////////////////////////////////
     // Attributes
-    // 
+    //
     // Tells if this gfx driver has to redraw whole scene each time
     virtual bool RequiresFullRedrawEachFrame() = 0;
     // Tells if this gfx driver uses GPU to transform sprites
@@ -197,7 +198,7 @@ public:
 
     ///////////////////////////////////////////////////////
     // Mode initialization
-    // 
+    //
     // Initialize given display mode
     virtual bool SetDisplayMode(const DisplayMode &mode) = 0;
     // Gets if a graphics mode was initialized
@@ -219,7 +220,7 @@ public:
     // Gets currently set render frame
     virtual Rect GetRenderDestination() const = 0;
     // Report which display's color depth option is best suited for the given native color depth
-    virtual int  GetDisplayDepthForNativeDepth(int native_color_depth) const = 0;
+    virtual int GetDisplayDepthForNativeDepth(int native_color_depth) const = 0;
     // Gets a list of supported fullscreen display modes
     virtual IGfxModeList *GetSupportedModeList(int display_index, int color_depth) = 0;
     // Tells if the given display mode supported
@@ -230,7 +231,7 @@ public:
 
     ///////////////////////////////////////////////////////
     // Miscelaneous setup
-    // 
+    //
     // Set the display mode initialization callback. It will be called
     // whenever graphics driver sets or changes a display mode.
     virtual void SetCallbackOnInit(GFXDRV_CLIENTCALLBACKINITGFX callback) = 0;
@@ -264,10 +265,10 @@ public:
 
     ///////////////////////////////////////////////////////
     // Texture management
-    // 
+    //
     // Gets closest recommended bitmap format (currently - only color depth) for the given original format.
     // Engine needs to have game bitmaps brought to the certain range of formats, easing conversion into the video bitmaps.
-    virtual int  GetCompatibleBitmapFormat(int color_depth) = 0;
+    virtual int GetCompatibleBitmapFormat(int color_depth) = 0;
     // Returns available texture memory in bytes, or 0 if this query is not supported
     virtual uint64_t GetAvailableTextureMemory() = 0;
     // Creates a uninitialized DDB, which may have a texture data attached later
@@ -277,14 +278,15 @@ public:
     // Create DDB using preexisting texture data
     virtual IDriverDependantBitmap *CreateDDB(std::shared_ptr<Texture> txdata, int txflags = kTxFlags_None) = 0;
     // Creates DDB, initializes from the given bitmap.
-    virtual IDriverDependantBitmap* CreateDDBFromBitmap(const Bitmap *bitmap, int txflags = kTxFlags_None) = 0;
+    virtual IDriverDependantBitmap *CreateDDBFromBitmap(const Bitmap *bitmap, int txflags = kTxFlags_None) = 0;
     // Creates DDB intended to be used as a render target (allow render other DDBs on it).
-    virtual IDriverDependantBitmap* CreateRenderTargetDDB(int width, int height, int color_depth, int txflags = kTxFlags_RenderTarget) = 0;
+    virtual IDriverDependantBitmap *CreateRenderTargetDDB(int width, int height, int color_depth,
+                                                          int txflags = kTxFlags_RenderTarget) = 0;
     // Updates DBB using the given bitmap; if bitmap has a different resolution,
     // then creates a new texture data and attaches to DDB
-    virtual void UpdateDDBFromBitmap(IDriverDependantBitmap* bitmapToUpdate, const Bitmap *bitmap) = 0;
+    virtual void UpdateDDBFromBitmap(IDriverDependantBitmap *bitmapToUpdate, const Bitmap *bitmap) = 0;
     // Destroy the DDB; note that this does not dispose the texture unless there's no more refs to it
-    virtual void DestroyDDB(IDriverDependantBitmap* bitmap) = 0;
+    virtual void DestroyDDB(IDriverDependantBitmap *bitmap) = 0;
 
     // Create texture data with the given parameters
     virtual Texture *CreateTexture(int width, int height, int color_depth, int txflags = kTxFlags_None) = 0;
@@ -306,10 +308,12 @@ public:
     virtual const char *GetShaderDefinitionExtension() = 0;
     // Creates shader program from the source code, registers it under given name,
     // returns IGraphicShader, or null on failure.
-    virtual IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition *def = nullptr) = 0;
+    virtual IGraphicShader *CreateShaderProgram(const String &name, const char *fragment_shader_src,
+                                                const ShaderDefinition *def = nullptr) = 0;
     // Creates shader program from the compiled data, registers it under given name,
     // returns IGraphicShader, or null on failure.
-    virtual IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition *def = nullptr) = 0;
+    virtual IGraphicShader *CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data,
+                                                const ShaderDefinition *def = nullptr) = 0;
     // Deletes particular shader program.
     virtual void DeleteShaderProgram(IGraphicShader *shader) = 0;
     // Creates shader instance for the given shader.
@@ -320,7 +324,7 @@ public:
 
     ///////////////////////////////////////////////////////
     // Preparing a scene
-    // 
+    //
     // Prepares next sprite batch, a list of sprites with defined viewport and optional
     // global model transformation; all subsequent calls to DrawSprite will be adding
     // sprites to this batch's list.
@@ -328,30 +332,33 @@ public:
     // (think of it as of a child scene node).
     // Optionally you can assign "filter flags" to this batch; this lets to filter certain
     // batches out during some operations, such as fading effects or making screenshots.
-    virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, uint32_t filter_flags = 0) = 0;
-    virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref, uint32_t filter_flags = 0) = 0;
+    virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
+                                  uint32_t filter_flags = 0) = 0;
+    virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref,
+                                  uint32_t filter_flags = 0) = 0;
     // Begins a sprite batch with defined viewport and a global model transformation
     // and a global flip setting. Optionally provides a surface which should be rendered
     // underneath the rest of the sprites.
     // TODO: merge GraphicFlip with SpriteTransform.
     // TODO: can we merge PBitmap surface and render_target from overriden method?
-    virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
-        Common::GraphicFlip flip, PBitmap surface = nullptr, uint32_t filter_flags = 0) = 0;
+    virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, Common::GraphicFlip flip,
+                                  PBitmap surface = nullptr, uint32_t filter_flags = 0) = 0;
     virtual void BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, const Size &size_ref,
-        Common::GraphicFlip flip, PBitmap surface = nullptr, uint32_t filter_flags = 0) = 0;
+                                  Common::GraphicFlip flip, PBitmap surface = nullptr, uint32_t filter_flags = 0) = 0;
     // Begins a sprite batch which will be rendered on a target texture.
     // This batch will ignore any parent transforms, regardless whether it's nested
     // or not. Its common child batches will also be rendered on the same texture.
-    virtual void BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport, const SpriteTransform &transform,
-        Common::GraphicFlip flip = Common::kFlip_None, uint32_t filter_flags = 0) = 0;
+    virtual void BeginSpriteBatch(IDriverDependantBitmap *render_target, const Rect &viewport,
+                                  const SpriteTransform &transform, Common::GraphicFlip flip = Common::kFlip_None,
+                                  uint32_t filter_flags = 0) = 0;
     // Ends current sprite batch
     virtual void EndSpriteBatch() = 0;
     // Adds sprite to the active batch, providing it's origin position
-    virtual void DrawSprite(int x, int y, IDriverDependantBitmap* bitmap) = 0;
+    virtual void DrawSprite(int x, int y, IDriverDependantBitmap *bitmap) = 0;
     // Adds sprite to the active batch, providing it's origin position and auxiliary
     // position of the left-top image corner in the same coordinate space
     // (latter is used by the software renderer, in order to avoid recalculations)
-    virtual void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* bitmap) = 0;
+    virtual void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap *bitmap) = 0;
     // Adds a render event, which runs a callback with the given parameters, to the active batch
     virtual void AddRenderEvent(int evt, int param) = 0;
     // Adds fade overlay fx to the active batch
@@ -374,7 +381,7 @@ public:
 
     ///////////////////////////////////////////////////////
     // Rendering and presenting
-    // 
+    //
     // Clears the screen rectangle. The coordinates are expected in the **native game resolution**.
     virtual void ClearRectangle(int x1, int y1, int x2, int y2, RGB *colorToUse) = 0;
     // Renders draw lists and presents to screen.
@@ -401,19 +408,19 @@ public:
     // Optionally a "src_rect" may be provided for a partial copy; this rectangle
     // must be given in *native* coordinates.
     virtual bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
-        GraphicResolution *want_fmt = nullptr, uint32_t batch_skip_filter = 0u) = 0;
+                                           GraphicResolution *want_fmt = nullptr, uint32_t batch_skip_filter = 0u) = 0;
     // Returns the virtual screen. Will return NULL if renderer does not support memory backbuffer.
     // In normal case you should use GetStageBackBuffer() instead.
-    virtual Bitmap* GetMemoryBackBuffer() = 0;
+    virtual Bitmap *GetMemoryBackBuffer() = 0;
     // Sets custom backbuffer bitmap to render to.
     // Passing NULL pointer will tell renderer to switch back to its original virtual screen.
     // Note that only software renderer supports this.
     virtual void SetMemoryBackBuffer(Bitmap *backBuffer) = 0;
     // Returns memory backbuffer for the current rendering stage (or base virtual screen if called outside of render pass).
     // All renderers should support this.
-    virtual Bitmap* GetStageBackBuffer(bool mark_dirty = false) = 0;
+    virtual Bitmap *GetStageBackBuffer(bool mark_dirty = false) = 0;
     // Sets custom backbuffer bitmap to render current render stage to.
-    // Passing NULL pointer will tell renderer to switch back to its original stage buffer. 
+    // Passing NULL pointer will tell renderer to switch back to its original stage buffer.
     // Note that only software renderer supports this.
     virtual void SetStageBackBuffer(Bitmap *backBuffer) = 0;
     // Retrieves 3 transform matrixes for the current rendering stage: world (model), view and projection.

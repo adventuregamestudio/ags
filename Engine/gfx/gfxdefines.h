@@ -24,18 +24,18 @@ namespace Engine
 
 enum WindowMode
 {
-    kWnd_Windowed,      // regular resizable window with a border and a caption
-    kWnd_Fullscreen,    // real (aka exclusive) fullscreen mode
-    kWnd_FullDesktop    // borderless window filling whole desktop
+    kWnd_Windowed,   // regular resizable window with a border and a caption
+    kWnd_Fullscreen, // real (aka exclusive) fullscreen mode
+    kWnd_FullDesktop // borderless window filling whole desktop
 };
 
 // DisplayMode struct provides extended description of display mode
 struct DisplayMode : public AGS::Common::GraphicResolution
 {
     WindowMode Mode = kWnd_Windowed;
-    int     DisplayIndex = 0; // 0-based display index
-    int     RefreshRate = 0;
-    bool    Vsync = false;
+    int DisplayIndex = 0; // 0-based display index
+    int RefreshRate = 0;
+    bool Vsync = false;
 
     // Tells if this is logically a normal windowed mode
     inline bool IsWindowed() const { return Mode == kWnd_Windowed; }
@@ -43,14 +43,11 @@ struct DisplayMode : public AGS::Common::GraphicResolution
     inline bool IsRealFullscreen() const { return Mode == kWnd_Fullscreen; }
 
     DisplayMode() = default;
-    DisplayMode(const GraphicResolution &res, WindowMode mode = kWnd_Windowed,
-                int display_index = 0, int32_t refresh = 0, bool vsync = false)
-        : GraphicResolution(res)
-        , Mode(mode)
-        , DisplayIndex(display_index)
-        , RefreshRate(refresh)
-        , Vsync(vsync)
-    {}
+    DisplayMode(const GraphicResolution &res, WindowMode mode = kWnd_Windowed, int display_index = 0,
+                int32_t refresh = 0, bool vsync = false)
+        : GraphicResolution(res), Mode(mode), DisplayIndex(display_index), RefreshRate(refresh), Vsync(vsync)
+    {
+    }
 };
 
 } // namespace Engine

@@ -16,8 +16,7 @@
 eAGSKeyCode AGSKeyToScriptKey(eAGSKeyCode keycode)
 {
     // Script API requires strictly capital letters, if this is a small letter - capitalize it
-    return (keycode >= 'a' && keycode <= 'z') ?
-        static_cast<eAGSKeyCode>(keycode - 'a' + 'A') : keycode;
+    return (keycode >= 'a' && keycode <= 'z') ? static_cast<eAGSKeyCode>(keycode - 'a' + 'A') : keycode;
 }
 
 char AGSKeyToText(eAGSKeyCode keycode)

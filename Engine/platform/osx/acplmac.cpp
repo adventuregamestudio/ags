@@ -36,74 +36,76 @@ static FSLocation commonDataPath;
 
 struct AGSMac : AGSPlatformDriver
 {
-  AGSMac();
-  void PreBackendInit() override;
+    AGSMac();
+    void PreBackendInit() override;
 
-  uint64_t GetDiskFreeSpaceMB(const String &path) override;
-  eScriptSystemOSID GetSystemOSID() override;
-  
-  FSLocation GetUserSavedgamesDirectory() override;
-  FSLocation GetAllUsersDataDirectory() override;
-  FSLocation GetUserConfigDirectory() override;
-  FSLocation GetUserGlobalConfigDirectory() override;
-  FSLocation GetAppOutputDirectory() override;
-  const char *GetIllegalFileChars() override;
+    uint64_t GetDiskFreeSpaceMB(const String &path) override;
+    eScriptSystemOSID GetSystemOSID() override;
+
+    FSLocation GetUserSavedgamesDirectory() override;
+    FSLocation GetAllUsersDataDirectory() override;
+    FSLocation GetUserConfigDirectory() override;
+    FSLocation GetUserGlobalConfigDirectory() override;
+    FSLocation GetAppOutputDirectory() override;
+    const char *GetIllegalFileChars() override;
 };
 
 AGSMac::AGSMac()
 {
-  AGSMacInitPaths(libraryApplicationSupport);
-  
-  commonDataPath = FSLocation(libraryApplicationSupport).Concat("uk.co.adventuregamestudio");
+    AGSMacInitPaths(libraryApplicationSupport);
+
+    commonDataPath = FSLocation(libraryApplicationSupport).Concat("uk.co.adventuregamestudio");
 }
 
 void AGSMac::PreBackendInit()
 {
-  // Simulate right click with Ctrl + LMB
-  // TODO: consider reading this option from user config in the future?
-  SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
+    // Simulate right click with Ctrl + LMB
+    // TODO: consider reading this option from user config in the future?
+    SDL_SetHint(SDL_HINT_MAC_CTRL_CLICK_EMULATE_RIGHT_CLICK, "1");
 }
 
-uint64_t AGSMac::GetDiskFreeSpaceMB(const String &path) {
-  return AGSMacGetFreeSpaceInMB(path.GetCStr());
+uint64_t AGSMac::GetDiskFreeSpaceMB(const String &path)
+{
+    return AGSMacGetFreeSpaceInMB(path.GetCStr());
 }
 
-eScriptSystemOSID AGSMac::GetSystemOSID() {
-  // override performed if `override.os` is set in config.
-  return eOS_Mac;
+eScriptSystemOSID AGSMac::GetSystemOSID()
+{
+    // override performed if `override.os` is set in config.
+    return eOS_Mac;
 }
 
 FSLocation AGSMac::GetAllUsersDataDirectory()
 {
-  return commonDataPath;
+    return commonDataPath;
 }
 
 FSLocation AGSMac::GetUserSavedgamesDirectory()
 {
-  return FSLocation(libraryApplicationSupport);
+    return FSLocation(libraryApplicationSupport);
 }
 
 FSLocation AGSMac::GetUserConfigDirectory()
 {
-  return FSLocation(libraryApplicationSupport);
+    return FSLocation(libraryApplicationSupport);
 }
 
 FSLocation AGSMac::GetUserGlobalConfigDirectory()
 {
-  return commonDataPath;
+    return commonDataPath;
 }
 
 FSLocation AGSMac::GetAppOutputDirectory()
 {
-  return commonDataPath;
+    return commonDataPath;
 }
 
 const char *AGSMac::GetIllegalFileChars()
 {
-  return "\\/:?\"<>|*"; // keep same as Windows so we can sync.
+    return "\\/:?\"<>|*"; // keep same as Windows so we can sync.
 }
 
-AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
+AGSPlatformDriver *AGSPlatformDriver::CreateDriver()
 {
     return new AGSMac();
 }

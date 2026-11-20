@@ -30,7 +30,8 @@ static void AxScale(int src, int dst)
     ASSERT_TRUE(x == src);
 }
 
-TEST(Math, AxisScaling) {
+TEST(Math, AxisScaling)
+{
     AxScale(100, 100);
 
     AxScale(100, 1000);

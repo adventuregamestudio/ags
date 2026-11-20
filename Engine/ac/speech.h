@@ -18,33 +18,33 @@
 
 enum SkipSpeechStyle
 {
-    kSkipSpeechNone         = -1,
-    kSkipSpeechKeyMouseTime =  0,
-    kSkipSpeechKeyTime      =  1,
-    kSkipSpeechTime         =  2,
-    kSkipSpeechKeyMouse     =  3,
-    kSkipSpeechMouseTime    =  4,
-    kSkipSpeechKey          =  5,
-    kSkipSpeechMouse        =  6,
+    kSkipSpeechNone = -1,
+    kSkipSpeechKeyMouseTime = 0,
+    kSkipSpeechKeyTime = 1,
+    kSkipSpeechTime = 2,
+    kSkipSpeechKeyMouse = 3,
+    kSkipSpeechMouseTime = 4,
+    kSkipSpeechKey = 5,
+    kSkipSpeechMouse = 6,
 
     // Aliases for the most useful styles (used in accessibility options)
-    kSkipSpeech_AnyInput    = kSkipSpeechKeyMouse,
+    kSkipSpeech_AnyInput = kSkipSpeechKeyMouse,
     kSkipSpeech_AnyInputOrTime = kSkipSpeechKeyMouseTime,
 
-    kSkipSpeechFirst        = kSkipSpeechNone,
-    kSkipSpeechLast         = kSkipSpeechMouse,
-    kNumSpeechSkipOptions   = kSkipSpeechLast - kSkipSpeechFirst
+    kSkipSpeechFirst = kSkipSpeechNone,
+    kSkipSpeechLast = kSkipSpeechMouse,
+    kNumSpeechSkipOptions = kSkipSpeechLast - kSkipSpeechFirst
 };
 
 enum SpeechMode
 {
-    kSpeech_None            = -1,
-    kSpeech_TextOnly        = 0,
-    kSpeech_VoiceText       = 1,
-    kSpeech_VoiceOnly       = 2,
+    kSpeech_None = -1,
+    kSpeech_TextOnly = 0,
+    kSpeech_VoiceText = 1,
+    kSpeech_VoiceOnly = 2,
 
-    kSpeech_First           = kSpeech_TextOnly,
-    kSpeech_Last            = kSpeech_VoiceOnly
+    kSpeech_First = kSpeech_TextOnly,
+    kSpeech_Last = kSpeech_VoiceOnly
 };
 
 int user_to_internal_skip_speech(SkipSpeechStyle userval);

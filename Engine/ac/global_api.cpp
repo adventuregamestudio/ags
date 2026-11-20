@@ -81,7 +81,7 @@ const char *Anything_GetTypeName(void *obj)
 RuntimeScriptValue Sc_Anything_GetTypeName(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     ASSERT_SELF(Anything_GetTypeName);
-    return RuntimeScriptValue().SetScriptObject((void*)Anything_GetTypeName(self), &myScriptStringImpl);
+    return RuntimeScriptValue().SetScriptObject((void *)Anything_GetTypeName(self), &myScriptStringImpl);
 }
 
 // void (char*texx, ...)
@@ -353,7 +353,7 @@ RuntimeScriptValue Sc_InterfaceOn(const RuntimeScriptValue *params, int32_t para
     API_SCALL_VOID_PINT(InterfaceOn);
 }
 
-// FLOAT_RETURN_TYPE (int value) 
+// FLOAT_RETURN_TYPE (int value)
 RuntimeScriptValue Sc_IntToFloat(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_FLOAT_PINT(IntToFloat);
@@ -529,8 +529,9 @@ RuntimeScriptValue Sc_SaveScreenShot4(const RuntimeScriptValue *params, int32_t 
 
 RuntimeScriptValue Sc_SendEvent(const RuntimeScriptValue *params, int32_t param_count)
 {
-    ASSERT_PARAM_COUNT(run_on_event, 5); \
-    run_on_event(static_cast<AGSScriptEventType>(params[0].IValue), params[1].IValue, params[2].IValue, params[3].IValue, params[4].IValue);
+    ASSERT_PARAM_COUNT(run_on_event, 5);
+    run_on_event(static_cast<AGSScriptEventType>(params[0].IValue), params[1].IValue, params[2].IValue,
+                 params[3].IValue, params[4].IValue);
     return RuntimeScriptValue(0);
 }
 
@@ -554,7 +555,7 @@ RuntimeScriptValue Sc_SetAreaScaling(const RuntimeScriptValue *params, int32_t p
 // void (int frnum)
 RuntimeScriptValue Sc_SetBackgroundFrame(const RuntimeScriptValue *params, int32_t param_count)
 {
-     API_SCALL_VOID_PINT(SetBackgroundFrame);
+    API_SCALL_VOID_PINT(SetBackgroundFrame);
 }
 
 // void (int red, int green, int blue)
@@ -771,116 +772,116 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
     // to the global functions, for unknown reasons. If we add such appendix now,
     // we still have to keep an old registry entry for old games to link properly.
     ScFnRegister global_api[] = {
-        { "AbortGame",                Sc_sc_AbortGame, ScPl_sc_AbortGame },
-        { "AreThingsOverlapping",     API_FN_PAIR(AreThingsOverlapping) },
-        { "CallRoomScript",           API_FN_PAIR(CallRoomScript) },
-        { "ClaimEvent",               API_FN_PAIR(ClaimEvent) },
-        { "CopySaveSlot",             API_FN_PAIR(CopySaveSlot) },
-        { "CyclePalette",             API_FN_PAIR(CyclePalette) },
-        { "Debug",                    API_FN_PAIR(script_debug) },
-        { "DeleteSaveSlot",           API_FN_PAIR(DeleteSaveSlot) },
-        { "DisableGroundLevelAreas",  API_FN_PAIR(DisableGroundLevelAreas) },
-        { "DisableInterface",         API_FN_PAIR(DisableInterface) },
-        { "Display",                  Sc_Display, ScPl_Display },
-        { "DisplayAt",                Sc_DisplayAt, ScPl_DisplayAt },
+        {"AbortGame", Sc_sc_AbortGame, ScPl_sc_AbortGame},
+        {"AreThingsOverlapping", API_FN_PAIR(AreThingsOverlapping)},
+        {"CallRoomScript", API_FN_PAIR(CallRoomScript)},
+        {"ClaimEvent", API_FN_PAIR(ClaimEvent)},
+        {"CopySaveSlot", API_FN_PAIR(CopySaveSlot)},
+        {"CyclePalette", API_FN_PAIR(CyclePalette)},
+        {"Debug", API_FN_PAIR(script_debug)},
+        {"DeleteSaveSlot", API_FN_PAIR(DeleteSaveSlot)},
+        {"DisableGroundLevelAreas", API_FN_PAIR(DisableGroundLevelAreas)},
+        {"DisableInterface", API_FN_PAIR(DisableInterface)},
+        {"Display", Sc_Display, ScPl_Display},
+        {"DisplayAt", Sc_DisplayAt, ScPl_DisplayAt},
         // CHECKME: this function was non-variadic prior to 3.6.1, but AGS compiler does
         // not produce "name^argnum" symbol id for non-member functions for some reason :/
         // do we have to do anything about this here? like, test vs script API version...
-        { "DisplayAtY",               Sc_DisplayAtY, ScPl_DisplayAtY },
-        { "DisplayTopBar",            Sc_DisplayTopBar, ScPl_DisplayTopBar },
-        { "EnableGroundLevelAreas",   API_FN_PAIR(EnableGroundLevelAreas) },
-        { "EnableInterface",          API_FN_PAIR(EnableInterface) },
-        { "EndCutscene",              API_FN_PAIR(EndCutscene) },
-        { "FadeIn",                   API_FN_PAIR(FadeIn) },
-        { "FadeOut",                  API_FN_PAIR(FadeOut) },
-        { "FindGUIID",                API_FN_PAIR(FindGUIID) },
-        { "FlipScreen",               API_FN_PAIR(FlipScreen) },
-        { "FloatToInt",               API_FN_PAIR(FloatToInt) },
-        { "GetBackgroundFrame",       API_FN_PAIR(GetBackgroundFrame) },
-        { "GetGameOption",            API_FN_PAIR(GetGameOption) },
-        { "GetGameSpeed",             API_FN_PAIR(GetGameSpeed) },
-        { "GetLocationType^3",        API_FN_PAIR(GetLocationType) },
-        { "GetLocationType^2",        API_FN_PAIR(GetLocationType2) },
-        { "GetLocationType",          API_FN_PAIR(GetLocationType2) },
-        { "GetScalingAt",             API_FN_PAIR(GetScalingAt) },
-        { "GetTextHeight",            API_FN_PAIR(GetTextHeight) },
-        { "GetTextWidth",             API_FN_PAIR(GetTextWidth) },
-        { "GetFontHeight",            API_FN_PAIR(GetFontHeight) },
-        { "GetFontLineSpacing",       API_FN_PAIR(GetFontLineSpacing) },
-        { "GetPressedKeys",           API_FN_PAIR(GetPressedKeys) },
-        { "GetTimerPos",              API_FN_PAIR(GetTimerPos) },
-        { "GetTranslation",           API_FN_PAIR(get_translation) },
-        { "GetWalkableAreaAtRoom",    API_FN_PAIR(GetWalkableAreaAtRoom) },
-        { "GetWalkableAreaAt",        API_FN_PAIR(GetWalkableAreaAtScreen) },
-        { "GetWalkableAreaAtScreen",  API_FN_PAIR(GetWalkableAreaAtScreen) },
-        { "GetWalkBehindBase",        API_FN_PAIR(GetWalkBehindBase) },
-        { "GetDrawingSurfaceForWalkableArea", API_FN_PAIR(GetDrawingSurfaceForWalkableArea) },
-        { "GetDrawingSurfaceForWalkbehind", API_FN_PAIR(GetDrawingSurfaceForWalkbehind) },
-        { "HasPlayerBeenInRoom",      API_FN_PAIR(HasPlayerBeenInRoom) },
-        { "InputBox",                 API_FN_PAIR(ShowInputBox) },
-        { "InterfaceOff",             API_FN_PAIR(InterfaceOff) },
-        { "InterfaceOn",              API_FN_PAIR(InterfaceOn) },
-        { "IntToFloat",               API_FN_PAIR(IntToFloat) },
-        { "IsGamePaused",             API_FN_PAIR(IsGamePaused) },
-        { "IsInteractionAvailable",   API_FN_PAIR(IsInteractionAvailable) },
-        { "IsInterfaceEnabled",       API_FN_PAIR(IsInterfaceEnabled) },
-        { "IsKeyPressed",             API_FN_PAIR(IsKeyPressed) },
-        { "IsAnyKeyPressed",          API_FN_PAIR(IsAnyKeyPressed) },
-        { "IsMusicVoxAvailable",      API_FN_PAIR(IsMusicVoxAvailable) },
-        { "IsSpeechVoxAvailable",     API_FN_PAIR(IsSpeechVoxAvailable) },
-        { "IsTimerExpired",           API_FN_PAIR(IsTimerExpired) },
-        { "IsTranslationAvailable",   API_FN_PAIR(IsTranslationAvailable) },
-        { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },
-        { "MoveSaveSlot",             API_FN_PAIR(MoveSaveSlot) },
-        { "PauseGame",                API_FN_PAIR(PauseGame) },
-        { "PlayFlic",                 API_FN_PAIR(PlayFlic) },
-        { "PlayVideo",                API_FN_PAIR(PlayVideo) },
-        { "QuitGame",                 API_FN_PAIR(QuitGame) },
-        { "Random",                   API_FN_PAIR(Random) },
-        { "RemoveWalkableArea",       API_FN_PAIR(RemoveWalkableArea) },
-        { "ResetRoom",                API_FN_PAIR(ResetRoom) },
-        { "RestartGame",              API_FN_PAIR(restart_game) },
-        { "RestoreGameSlot",          API_FN_PAIR(RestoreGameSlot) },
-        { "RestoreWalkableArea",      API_FN_PAIR(RestoreWalkableArea) },
-        { "RunAGSGame",               API_FN_PAIR(RunAGSGame) },
-        { "SaveScreenShot",           API_FN_PAIR(SaveScreenShot1) },
-        { "SaveScreenShot^1",         API_FN_PAIR(SaveScreenShot1) },
-        { "SaveScreenShot^4",         API_FN_PAIR(SaveScreenShot4) },
-        { "SendEvent",                Sc_SendEvent, run_on_event },
-        { "SetAmbientTint",           API_FN_PAIR(SetAmbientTint) },
-        { "SetAmbientLightLevel",     API_FN_PAIR(SetAmbientLightLevel) },
-        { "SetAreaScaling",           API_FN_PAIR(SetAreaScaling) },
-        { "SetBackgroundFrame",       API_FN_PAIR(SetBackgroundFrame) },
-        { "SetFadeColor",             API_FN_PAIR(SetFadeColor) },
-        { "SetGameOption",            API_FN_PAIR(SetGameOption) },
-        { "SetGameSpeed",             API_FN_PAIR(SetGameSpeed) },
-        { "SetMultitaskingMode",      API_FN_PAIR(SetMultitasking) },
-        { "SetNextScreenTransition",  API_FN_PAIR(SetNextScreenTransition) },
-        { "SetPalRGB",                API_FN_PAIR(SetPalRGB) },
-        { "SetRestartPoint",          API_FN_PAIR(SetRestartPoint) },
-        { "SetScreenTransition",      API_FN_PAIR(SetScreenTransition) },
-        { "SetSpeechVolume",          API_FN_PAIR(SetSpeechVolume) },
-        { "SetTextWindowGUI",         API_FN_PAIR(SetTextWindowGUI) },
-        { "SetTimer",                 API_FN_PAIR(SetTimer) },
-        { "SetWalkBehindBase",        API_FN_PAIR(SetWalkBehindBase) },
-        { "ShakeScreen",              API_FN_PAIR(ShakeScreen) },
-        { "ShakeScreenBackground",    API_FN_PAIR(ShakeScreenBackground) },
-        { "SkipCutscene",             API_FN_PAIR(SkipCutscene) },
-        { "SkipUntilCharacterStops",  API_FN_PAIR(SkipUntilCharacterStops) },
-        { "StartCutscene",            API_FN_PAIR(StartCutscene) },
-        { "StopDialog",               API_FN_PAIR(StopDialog) },
-        { "TintScreen",               API_FN_PAIR(TintScreen) },
-        { "UnPauseGame",              API_FN_PAIR(UnPauseGame) },
-        { "UpdateInventory",          API_FN_PAIR(UpdateInventory) },
-        { "UpdatePalette",            API_FN_PAIR(UpdatePalette) },
-        { "Wait",                     API_FN_PAIR(scrWait) },
-        { "WaitKey",                  API_FN_PAIR(WaitKey) },
-        { "WaitMouse",                API_FN_PAIR(WaitMouse) },
-        { "WaitMouseKey",             API_FN_PAIR(WaitMouseKey) },
-        { "WaitInput",                API_FN_PAIR(WaitInput) },
-        { "SkipWait",                 API_FN_PAIR(SkipWait0) },
-        { "SkipWait^0",               API_FN_PAIR(SkipWait0) },
-        { "SkipWait^1",               API_FN_PAIR(SkipWait) },
+        {"DisplayAtY", Sc_DisplayAtY, ScPl_DisplayAtY},
+        {"DisplayTopBar", Sc_DisplayTopBar, ScPl_DisplayTopBar},
+        {"EnableGroundLevelAreas", API_FN_PAIR(EnableGroundLevelAreas)},
+        {"EnableInterface", API_FN_PAIR(EnableInterface)},
+        {"EndCutscene", API_FN_PAIR(EndCutscene)},
+        {"FadeIn", API_FN_PAIR(FadeIn)},
+        {"FadeOut", API_FN_PAIR(FadeOut)},
+        {"FindGUIID", API_FN_PAIR(FindGUIID)},
+        {"FlipScreen", API_FN_PAIR(FlipScreen)},
+        {"FloatToInt", API_FN_PAIR(FloatToInt)},
+        {"GetBackgroundFrame", API_FN_PAIR(GetBackgroundFrame)},
+        {"GetGameOption", API_FN_PAIR(GetGameOption)},
+        {"GetGameSpeed", API_FN_PAIR(GetGameSpeed)},
+        {"GetLocationType^3", API_FN_PAIR(GetLocationType)},
+        {"GetLocationType^2", API_FN_PAIR(GetLocationType2)},
+        {"GetLocationType", API_FN_PAIR(GetLocationType2)},
+        {"GetScalingAt", API_FN_PAIR(GetScalingAt)},
+        {"GetTextHeight", API_FN_PAIR(GetTextHeight)},
+        {"GetTextWidth", API_FN_PAIR(GetTextWidth)},
+        {"GetFontHeight", API_FN_PAIR(GetFontHeight)},
+        {"GetFontLineSpacing", API_FN_PAIR(GetFontLineSpacing)},
+        {"GetPressedKeys", API_FN_PAIR(GetPressedKeys)},
+        {"GetTimerPos", API_FN_PAIR(GetTimerPos)},
+        {"GetTranslation", API_FN_PAIR(get_translation)},
+        {"GetWalkableAreaAtRoom", API_FN_PAIR(GetWalkableAreaAtRoom)},
+        {"GetWalkableAreaAt", API_FN_PAIR(GetWalkableAreaAtScreen)},
+        {"GetWalkableAreaAtScreen", API_FN_PAIR(GetWalkableAreaAtScreen)},
+        {"GetWalkBehindBase", API_FN_PAIR(GetWalkBehindBase)},
+        {"GetDrawingSurfaceForWalkableArea", API_FN_PAIR(GetDrawingSurfaceForWalkableArea)},
+        {"GetDrawingSurfaceForWalkbehind", API_FN_PAIR(GetDrawingSurfaceForWalkbehind)},
+        {"HasPlayerBeenInRoom", API_FN_PAIR(HasPlayerBeenInRoom)},
+        {"InputBox", API_FN_PAIR(ShowInputBox)},
+        {"InterfaceOff", API_FN_PAIR(InterfaceOff)},
+        {"InterfaceOn", API_FN_PAIR(InterfaceOn)},
+        {"IntToFloat", API_FN_PAIR(IntToFloat)},
+        {"IsGamePaused", API_FN_PAIR(IsGamePaused)},
+        {"IsInteractionAvailable", API_FN_PAIR(IsInteractionAvailable)},
+        {"IsInterfaceEnabled", API_FN_PAIR(IsInterfaceEnabled)},
+        {"IsKeyPressed", API_FN_PAIR(IsKeyPressed)},
+        {"IsAnyKeyPressed", API_FN_PAIR(IsAnyKeyPressed)},
+        {"IsMusicVoxAvailable", API_FN_PAIR(IsMusicVoxAvailable)},
+        {"IsSpeechVoxAvailable", API_FN_PAIR(IsSpeechVoxAvailable)},
+        {"IsTimerExpired", API_FN_PAIR(IsTimerExpired)},
+        {"IsTranslationAvailable", API_FN_PAIR(IsTranslationAvailable)},
+        {"MoveSaveSlot", API_FN_PAIR(MoveSaveSlot)},
+        {"MoveSaveSlot", API_FN_PAIR(MoveSaveSlot)},
+        {"PauseGame", API_FN_PAIR(PauseGame)},
+        {"PlayFlic", API_FN_PAIR(PlayFlic)},
+        {"PlayVideo", API_FN_PAIR(PlayVideo)},
+        {"QuitGame", API_FN_PAIR(QuitGame)},
+        {"Random", API_FN_PAIR(Random)},
+        {"RemoveWalkableArea", API_FN_PAIR(RemoveWalkableArea)},
+        {"ResetRoom", API_FN_PAIR(ResetRoom)},
+        {"RestartGame", API_FN_PAIR(restart_game)},
+        {"RestoreGameSlot", API_FN_PAIR(RestoreGameSlot)},
+        {"RestoreWalkableArea", API_FN_PAIR(RestoreWalkableArea)},
+        {"RunAGSGame", API_FN_PAIR(RunAGSGame)},
+        {"SaveScreenShot", API_FN_PAIR(SaveScreenShot1)},
+        {"SaveScreenShot^1", API_FN_PAIR(SaveScreenShot1)},
+        {"SaveScreenShot^4", API_FN_PAIR(SaveScreenShot4)},
+        {"SendEvent", Sc_SendEvent, run_on_event},
+        {"SetAmbientTint", API_FN_PAIR(SetAmbientTint)},
+        {"SetAmbientLightLevel", API_FN_PAIR(SetAmbientLightLevel)},
+        {"SetAreaScaling", API_FN_PAIR(SetAreaScaling)},
+        {"SetBackgroundFrame", API_FN_PAIR(SetBackgroundFrame)},
+        {"SetFadeColor", API_FN_PAIR(SetFadeColor)},
+        {"SetGameOption", API_FN_PAIR(SetGameOption)},
+        {"SetGameSpeed", API_FN_PAIR(SetGameSpeed)},
+        {"SetMultitaskingMode", API_FN_PAIR(SetMultitasking)},
+        {"SetNextScreenTransition", API_FN_PAIR(SetNextScreenTransition)},
+        {"SetPalRGB", API_FN_PAIR(SetPalRGB)},
+        {"SetRestartPoint", API_FN_PAIR(SetRestartPoint)},
+        {"SetScreenTransition", API_FN_PAIR(SetScreenTransition)},
+        {"SetSpeechVolume", API_FN_PAIR(SetSpeechVolume)},
+        {"SetTextWindowGUI", API_FN_PAIR(SetTextWindowGUI)},
+        {"SetTimer", API_FN_PAIR(SetTimer)},
+        {"SetWalkBehindBase", API_FN_PAIR(SetWalkBehindBase)},
+        {"ShakeScreen", API_FN_PAIR(ShakeScreen)},
+        {"ShakeScreenBackground", API_FN_PAIR(ShakeScreenBackground)},
+        {"SkipCutscene", API_FN_PAIR(SkipCutscene)},
+        {"SkipUntilCharacterStops", API_FN_PAIR(SkipUntilCharacterStops)},
+        {"StartCutscene", API_FN_PAIR(StartCutscene)},
+        {"StopDialog", API_FN_PAIR(StopDialog)},
+        {"TintScreen", API_FN_PAIR(TintScreen)},
+        {"UnPauseGame", API_FN_PAIR(UnPauseGame)},
+        {"UpdateInventory", API_FN_PAIR(UpdateInventory)},
+        {"UpdatePalette", API_FN_PAIR(UpdatePalette)},
+        {"Wait", API_FN_PAIR(scrWait)},
+        {"WaitKey", API_FN_PAIR(WaitKey)},
+        {"WaitMouse", API_FN_PAIR(WaitMouse)},
+        {"WaitMouseKey", API_FN_PAIR(WaitMouseKey)},
+        {"WaitInput", API_FN_PAIR(WaitInput)},
+        {"SkipWait", API_FN_PAIR(SkipWait0)},
+        {"SkipWait^0", API_FN_PAIR(SkipWait0)},
+        {"SkipWait^1", API_FN_PAIR(SkipWait)},
     };
 
     ccAddExternalFunctions(global_api);
@@ -891,18 +892,18 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
     if (base_api < kScriptAPI_v362)
     {
         ScFnRegister global_api_dlgs[] = {
-            { "SaveGameSlot",           API_FN_PAIR(SaveGameSlot2) },
-            { "RestoreGameDialog",      API_FN_PAIR(restore_game_dialog) },
-            { "SaveGameDialog",         API_FN_PAIR(save_game_dialog) },
+            {"SaveGameSlot", API_FN_PAIR(SaveGameSlot2)},
+            {"RestoreGameDialog", API_FN_PAIR(restore_game_dialog)},
+            {"SaveGameDialog", API_FN_PAIR(save_game_dialog)},
         };
         ccAddExternalFunctions(global_api_dlgs);
     }
     else
     {
         ScFnRegister global_api_dlgs[] = {
-            { "SaveGameSlot",           API_FN_PAIR(SaveGameSlot) },
-            { "RestoreGameDialog",      API_FN_PAIR(restore_game_dialog2) },
-            { "SaveGameDialog",         API_FN_PAIR(save_game_dialog2) },
+            {"SaveGameSlot", API_FN_PAIR(SaveGameSlot)},
+            {"RestoreGameDialog", API_FN_PAIR(restore_game_dialog2)},
+            {"SaveGameDialog", API_FN_PAIR(save_game_dialog2)},
         };
         ccAddExternalFunctions(global_api_dlgs);
     }
@@ -911,7 +912,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
     // NOTE: put it here so that i wont have to make a separate cpp just for
     // this small section. Move it elsewhere later if a better place is found.
     ScFnRegister anything_api[] = {
-        { "Anything::get_TypeName",     API_FN_PAIR(Anything_GetTypeName) },
+        {"Anything::get_TypeName", API_FN_PAIR(Anything_GetTypeName)},
     };
 
     ccAddExternalFunctions(anything_api);

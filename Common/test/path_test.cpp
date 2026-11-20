@@ -16,7 +16,8 @@
 
 using namespace AGS::Common;
 
-TEST(Path, IsSameOrSubDir) {
+TEST(Path, IsSameOrSubDir)
+{
     ASSERT_TRUE(Path::IsSameOrSubDir(".", "dir1/") == true);
     ASSERT_TRUE(Path::IsSameOrSubDir(".", "dir1/dir2/dir3/") == true);
     ASSERT_TRUE(Path::IsSameOrSubDir(".", "dir1/../") == true);

@@ -41,27 +41,19 @@ int user_to_internal_skip_speech(SkipSpeechStyle userval)
     // and "Skip by mouse" as "by mouse or touch".
     switch (userval)
     {
-    case kSkipSpeechNone:
-        return SKIP_NONE;
+    case kSkipSpeechNone: return SKIP_NONE;
     case kSkipSpeechKeyMouseTime:
         // TODO: remake this as "kSkipAny"?
         return SKIP_AUTOTIMER | SKIP_KEYPRESS | SKIP_MOUSECLICK | SKIP_GAMEPAD | SKIP_TOUCH;
-    case kSkipSpeechKeyTime:
-        return SKIP_AUTOTIMER | SKIP_KEYPRESS | SKIP_GAMEPAD;
-    case kSkipSpeechTime:
-        return SKIP_AUTOTIMER;
+    case kSkipSpeechKeyTime: return SKIP_AUTOTIMER | SKIP_KEYPRESS | SKIP_GAMEPAD;
+    case kSkipSpeechTime: return SKIP_AUTOTIMER;
     case kSkipSpeechKeyMouse:
         // TODO: remake this as "kSkipAnyInput"?
         return SKIP_KEYPRESS | SKIP_MOUSECLICK | SKIP_GAMEPAD | SKIP_TOUCH;
-    case kSkipSpeechMouseTime:
-        return SKIP_AUTOTIMER | SKIP_MOUSECLICK | SKIP_TOUCH;
-    case kSkipSpeechKey:
-        return SKIP_KEYPRESS | SKIP_GAMEPAD;
-    case kSkipSpeechMouse:
-        return SKIP_MOUSECLICK | SKIP_TOUCH;
-    default:
-        debug_script_warn("user_to_internal_skip_speech: unknown userval");
-        return SKIP_NONE;
+    case kSkipSpeechMouseTime: return SKIP_AUTOTIMER | SKIP_MOUSECLICK | SKIP_TOUCH;
+    case kSkipSpeechKey: return SKIP_KEYPRESS | SKIP_GAMEPAD;
+    case kSkipSpeechMouse: return SKIP_MOUSECLICK | SKIP_TOUCH;
+    default: debug_script_warn("user_to_internal_skip_speech: unknown userval"); return SKIP_NONE;
     }
 }
 
@@ -104,7 +96,8 @@ SkipSpeechStyle internal_skip_speech_to_user(int internal_val)
 
 bool init_voicepak(const String &name)
 {
-    if (!usetup.UseVoicePack) return false; // voice-over disabled
+    if (!usetup.UseVoicePack)
+        return false; // voice-over disabled
 
     String speech_file = name.IsEmpty() ? "speech.vox" : String::FromFormat("sp_%s.vox", name.GetCStr());
     if (ResPaths.SpeechPak.Name.CompareNoCase(speech_file) == 0)
@@ -125,7 +118,7 @@ bool init_voicepak(const String &name)
     else
     {
         Debug::Printf(kDbgMsg_Info, "Was not able to init voice pack '%s': file not found or of unknown format.",
-            speech_file.GetCStr());
+                      speech_file.GetCStr());
     }
 
     String speech_subdir = "";
@@ -186,17 +179,17 @@ extern GameSetupStruct game;
 extern CCCharacter ccDynamicCharacter;
 extern int char_speaking;
 
-ScriptOverlay* Speech_GetTextOverlay()
+ScriptOverlay *Speech_GetTextOverlay()
 {
-    return (ScriptOverlay*)ccGetObjectAddressFromHandle(play.speech_text_schandle);
+    return (ScriptOverlay *)ccGetObjectAddressFromHandle(play.speech_text_schandle);
 }
 
-ScriptOverlay* Speech_GetPortraitOverlay()
+ScriptOverlay *Speech_GetPortraitOverlay()
 {
-    return (ScriptOverlay*)ccGetObjectAddressFromHandle(play.speech_face_schandle);
+    return (ScriptOverlay *)ccGetObjectAddressFromHandle(play.speech_face_schandle);
 }
 
-CharacterInfo* Speech_GetSpeakingCharacter()
+CharacterInfo *Speech_GetSpeakingCharacter()
 {
     return char_speaking >= 0 ? &game.chars[char_speaking] : nullptr;
 }
@@ -254,14 +247,15 @@ void Speech_SetDisplayPostTimeMs(int time_ms)
 
 int Speech_GetGlobalSpeechAnimationDelay()
 {
-	return play.talkanim_speed;
+    return play.talkanim_speed;
 }
 
 void Speech_SetGlobalSpeechAnimationDelay(int delay)
 {
     if (game.options[OPT_GLOBALTALKANIMSPD] == 0)
     {
-        debug_script_warn("Speech.GlobalSpeechAnimationDelay cannot be set when global speech animation speed is not enabled; set Speech.UseGlobalSpeechAnimationDelay first!");
+        debug_script_warn(
+            "Speech.GlobalSpeechAnimationDelay cannot be set when global speech animation speed is not enabled; set Speech.UseGlobalSpeechAnimationDelay first!");
         return;
     }
     play.talkanim_speed = delay;
@@ -292,7 +286,7 @@ int Speech_GetStyle()
     return game.options[OPT_SPEECHTYPE];
 }
 
-void Speech_SetStyle (int newstyle)
+void Speech_SetStyle(int newstyle)
 {
     if ((newstyle < 0) || (newstyle > 3))
         quit("!SetSpeechStyle: must use a SPEECH_* constant as parameter");
@@ -338,12 +332,12 @@ void Speech_SetTextAlignment(int alignment)
 
 int Speech_GetUseGlobalSpeechAnimationDelay()
 {
-	return game.options[OPT_GLOBALTALKANIMSPD];
+    return game.options[OPT_GLOBALTALKANIMSPD];
 }
 
 void Speech_SetUseGlobalSpeechAnimationDelay(int delay)
 {
-	game.options[OPT_GLOBALTALKANIMSPD] = delay;
+    game.options[OPT_GLOBALTALKANIMSPD] = delay;
 }
 
 void Speech_SetVoiceMode(int newmod)
@@ -522,37 +516,37 @@ RuntimeScriptValue Sc_Speech_SetOverlayZOrder(const RuntimeScriptValue *params, 
 void RegisterSpeechAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
     ScFnRegister speech_api[] = {
-        { "Speech::get_AlwaysWaitForText",      API_FN_PAIR(Speech_GetAlwaysWaitForText) },
-        { "Speech::set_AlwaysWaitForText",      API_FN_PAIR(Speech_SetAlwaysWaitForText) },
-        { "Speech::get_AnimationStopTimeMargin", API_FN_PAIR(Speech_GetAnimationStopTimeMargin) },
-        { "Speech::set_AnimationStopTimeMargin", API_FN_PAIR(Speech_SetAnimationStopTimeMargin) },
-        { "Speech::get_CustomPortraitPlacement", API_FN_PAIR(Speech_GetCustomPortraitPlacement) },
-        { "Speech::set_CustomPortraitPlacement", API_FN_PAIR(Speech_SetCustomPortraitPlacement) },
-        { "Speech::get_DisplayPostTimeMs",      API_FN_PAIR(Speech_GetDisplayPostTimeMs) },
-        { "Speech::set_DisplayPostTimeMs",      API_FN_PAIR(Speech_SetDisplayPostTimeMs) },
-        { "Speech::get_GlobalSpeechAnimationDelay", API_FN_PAIR(Speech_GetGlobalSpeechAnimationDelay) },
-        { "Speech::set_GlobalSpeechAnimationDelay", API_FN_PAIR(Speech_SetGlobalSpeechAnimationDelay) },
-        { "Speech::get_PortraitOverlay",        API_FN_PAIR(Speech_GetPortraitOverlay) },
-        { "Speech::get_PortraitXOffset",        API_FN_PAIR(Speech_GetPortraitXOffset) },
-        { "Speech::set_PortraitXOffset",        API_FN_PAIR(Speech_SetPortraitXOffset) },
-        { "Speech::get_PortraitY",              API_FN_PAIR(Speech_GetPortraitY) },
-        { "Speech::set_PortraitY",              API_FN_PAIR(Speech_SetPortraitY) },
-        { "Speech::get_SkipKey",                API_FN_PAIR(Speech_GetSkipKey) },
-        { "Speech::set_SkipKey",                API_FN_PAIR(Speech_SetSkipKey) },
-        { "Speech::get_SkipStyle",              API_FN_PAIR(Speech_GetSkipStyle) },
-        { "Speech::set_SkipStyle",              API_FN_PAIR(Speech_SetSkipStyle) },
-        { "Speech::get_SpeakingCharacter",      API_FN_PAIR(Speech_GetSpeakingCharacter) },
-        { "Speech::get_OverlayZOrder",          API_FN_PAIR(Speech_GetOverlayZOrder) },
-        { "Speech::set_OverlayZOrder",          API_FN_PAIR(Speech_SetOverlayZOrder) },
-        { "Speech::get_Style",                  API_FN_PAIR(Speech_GetStyle) },
-        { "Speech::set_Style",                  API_FN_PAIR(Speech_SetStyle) },
-        { "Speech::get_TextAlignment",          API_FN_PAIR(Speech_GetTextAlignment) },
-        { "Speech::set_TextAlignment",          API_FN_PAIR(Speech_SetTextAlignment) },
-        { "Speech::get_TextOverlay",            API_FN_PAIR(Speech_GetTextOverlay) },
-        { "Speech::get_UseGlobalSpeechAnimationDelay", API_FN_PAIR(Speech_GetUseGlobalSpeechAnimationDelay) },
-        { "Speech::set_UseGlobalSpeechAnimationDelay", API_FN_PAIR(Speech_SetUseGlobalSpeechAnimationDelay) },
-        { "Speech::get_VoiceMode",              API_FN_PAIR(Speech_GetVoiceMode) },
-        { "Speech::set_VoiceMode",              API_FN_PAIR(Speech_SetVoiceMode) },
+        {"Speech::get_AlwaysWaitForText", API_FN_PAIR(Speech_GetAlwaysWaitForText)},
+        {"Speech::set_AlwaysWaitForText", API_FN_PAIR(Speech_SetAlwaysWaitForText)},
+        {"Speech::get_AnimationStopTimeMargin", API_FN_PAIR(Speech_GetAnimationStopTimeMargin)},
+        {"Speech::set_AnimationStopTimeMargin", API_FN_PAIR(Speech_SetAnimationStopTimeMargin)},
+        {"Speech::get_CustomPortraitPlacement", API_FN_PAIR(Speech_GetCustomPortraitPlacement)},
+        {"Speech::set_CustomPortraitPlacement", API_FN_PAIR(Speech_SetCustomPortraitPlacement)},
+        {"Speech::get_DisplayPostTimeMs", API_FN_PAIR(Speech_GetDisplayPostTimeMs)},
+        {"Speech::set_DisplayPostTimeMs", API_FN_PAIR(Speech_SetDisplayPostTimeMs)},
+        {"Speech::get_GlobalSpeechAnimationDelay", API_FN_PAIR(Speech_GetGlobalSpeechAnimationDelay)},
+        {"Speech::set_GlobalSpeechAnimationDelay", API_FN_PAIR(Speech_SetGlobalSpeechAnimationDelay)},
+        {"Speech::get_PortraitOverlay", API_FN_PAIR(Speech_GetPortraitOverlay)},
+        {"Speech::get_PortraitXOffset", API_FN_PAIR(Speech_GetPortraitXOffset)},
+        {"Speech::set_PortraitXOffset", API_FN_PAIR(Speech_SetPortraitXOffset)},
+        {"Speech::get_PortraitY", API_FN_PAIR(Speech_GetPortraitY)},
+        {"Speech::set_PortraitY", API_FN_PAIR(Speech_SetPortraitY)},
+        {"Speech::get_SkipKey", API_FN_PAIR(Speech_GetSkipKey)},
+        {"Speech::set_SkipKey", API_FN_PAIR(Speech_SetSkipKey)},
+        {"Speech::get_SkipStyle", API_FN_PAIR(Speech_GetSkipStyle)},
+        {"Speech::set_SkipStyle", API_FN_PAIR(Speech_SetSkipStyle)},
+        {"Speech::get_SpeakingCharacter", API_FN_PAIR(Speech_GetSpeakingCharacter)},
+        {"Speech::get_OverlayZOrder", API_FN_PAIR(Speech_GetOverlayZOrder)},
+        {"Speech::set_OverlayZOrder", API_FN_PAIR(Speech_SetOverlayZOrder)},
+        {"Speech::get_Style", API_FN_PAIR(Speech_GetStyle)},
+        {"Speech::set_Style", API_FN_PAIR(Speech_SetStyle)},
+        {"Speech::get_TextAlignment", API_FN_PAIR(Speech_GetTextAlignment)},
+        {"Speech::set_TextAlignment", API_FN_PAIR(Speech_SetTextAlignment)},
+        {"Speech::get_TextOverlay", API_FN_PAIR(Speech_GetTextOverlay)},
+        {"Speech::get_UseGlobalSpeechAnimationDelay", API_FN_PAIR(Speech_GetUseGlobalSpeechAnimationDelay)},
+        {"Speech::set_UseGlobalSpeechAnimationDelay", API_FN_PAIR(Speech_SetUseGlobalSpeechAnimationDelay)},
+        {"Speech::get_VoiceMode", API_FN_PAIR(Speech_GetVoiceMode)},
+        {"Speech::set_VoiceMode", API_FN_PAIR(Speech_SetVoiceMode)},
     };
 
     ccAddExternalFunctions(speech_api);

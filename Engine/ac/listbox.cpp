@@ -37,20 +37,23 @@ extern GameSetupStruct game;
 
 // *** LIST BOX FUNCTIONS
 
-int ListBox_AddItem(GUIListBox *lbb, const char *text) {
-  if (lbb->AddItem(text) < 0)
-    return 0;
-  return 1;
+int ListBox_AddItem(GUIListBox *lbb, const char *text)
+{
+    if (lbb->AddItem(text) < 0)
+        return 0;
+    return 1;
 }
 
-int ListBox_InsertItemAt(GUIListBox *lbb, int index, const char *text) {
-  if (lbb->InsertItem(index, text) < 0)
-    return 0;
-  return 1;
+int ListBox_InsertItemAt(GUIListBox *lbb, int index, const char *text)
+{
+    if (lbb->InsertItem(index, text) < 0)
+        return 0;
+    return 1;
 }
 
-void ListBox_Clear(GUIListBox *listbox) {
-  listbox->Clear();
+void ListBox_Clear(GUIListBox *listbox)
+{
+    listbox->Clear();
 }
 
 void ListBox_FillDirList3(GUIListBox *listbox, const char *filemask, int file_sort, int sort_dir)
@@ -74,11 +77,12 @@ void ListBox_FillDirList(GUIListBox *listbox, const char *filemask)
     ListBox_FillDirList3(listbox, filemask, kScFileSort_Name, kScSortAscending);
 }
 
-int ListBox_GetSaveGameSlots(GUIListBox *listbox, int index) {
-  if ((index < 0) || (static_cast<uint32_t>(index) >= listbox->GetItemCount()))
-    quit("!ListBox.SaveGameSlot: index out of range");
+int ListBox_GetSaveGameSlots(GUIListBox *listbox, int index)
+{
+    if ((index < 0) || (static_cast<uint32_t>(index) >= listbox->GetItemCount()))
+        quit("!ListBox.SaveGameSlot: index out of range");
 
-  return listbox->GetSavedGameIndex(index);
+    return listbox->GetSavedGameIndex(index);
 }
 
 // Fills ListBox with save game slots, inserts descriptions as textual items,
@@ -92,7 +96,6 @@ static void ListBox_FillSaveItems(GUIListBox *listbox, const std::vector<SaveLis
     {
         listbox->AddItem(item.Description, item.Slot);
     }
-
 }
 
 int ListBox_FillSaveGameList4(GUIListBox *listbox, int min_slot, int max_slot, int save_sort, int sort_dir)
@@ -139,7 +142,7 @@ void ListBox_FillSaveGameSlots(GUIListBox *listbox, void *src_arr, int save_sort
     }
 
     std::vector<int> slots;
-    const int *slots_arr = static_cast<const int*>(src_arr);
+    const int *slots_arr = static_cast<const int *>(src_arr);
     slots.insert(slots.end(), slots_arr, slots_arr + hdr.GetElemCount());
 
     std::vector<SaveListItem> saves;
@@ -147,41 +150,45 @@ void ListBox_FillSaveGameSlots(GUIListBox *listbox, void *src_arr, int save_sort
     ListBox_FillSaveItems(listbox, saves);
 }
 
-int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y) {
+int ListBox_GetItemAtLocation(GUIListBox *listbox, int x, int y)
+{
+    if (!guis[listbox->GetParentID()].IsDisplayed())
+        return -1;
 
-  if (!guis[listbox->GetParentID()].IsDisplayed())
-    return -1;
+    x = (x - listbox->GetX()) - guis[listbox->GetParentID()].GetX();
+    y = (y - listbox->GetY()) - guis[listbox->GetParentID()].GetY();
 
-  x = (x - listbox->GetX()) - guis[listbox->GetParentID()].GetX();
-  y = (y - listbox->GetY()) - guis[listbox->GetParentID()].GetY();
+    if ((x < 0) || (y < 0) || (x >= listbox->GetWidth()) || (y >= listbox->GetHeight()))
+        return -1;
 
-  if ((x < 0) || (y < 0) || (x >= listbox->GetWidth()) || (y >= listbox->GetHeight()))
-    return -1;
-  
-  return listbox->GetItemAt(x, y);
+    return listbox->GetItemAt(x, y);
 }
 
-char *ListBox_GetItemText(GUIListBox *listbox, int index, char *buffer) {
-  if ((index < 0) || (static_cast<uint32_t>(index) >= listbox->GetItemCount()))
-    quit("!ListBoxGetItemText: invalid item specified");
-  snprintf(buffer, MAX_MAXSTRLEN, "%s", listbox->GetItem(index).GetCStr());
-  return buffer;
+char *ListBox_GetItemText(GUIListBox *listbox, int index, char *buffer)
+{
+    if ((index < 0) || (static_cast<uint32_t>(index) >= listbox->GetItemCount()))
+        quit("!ListBoxGetItemText: invalid item specified");
+    snprintf(buffer, MAX_MAXSTRLEN, "%s", listbox->GetItem(index).GetCStr());
+    return buffer;
 }
 
-const char* ListBox_GetItems(GUIListBox *listbox, int index) {
-  if ((index < 0) || (static_cast<uint32_t>(index) >= listbox->GetItemCount()))
-    quit("!ListBox.Items: invalid index specified");
+const char *ListBox_GetItems(GUIListBox *listbox, int index)
+{
+    if ((index < 0) || (static_cast<uint32_t>(index) >= listbox->GetItemCount()))
+        quit("!ListBox.Items: invalid index specified");
 
-  return CreateNewScriptString(listbox->GetItem(index));
+    return CreateNewScriptString(listbox->GetItem(index));
 }
 
-void ListBox_SetItemText(GUIListBox *listbox, int index, const char *newtext) {
-  if ((index < 0) || (static_cast<uint32_t>(index) >= listbox->GetItemCount()))
-    quit("!ListBoxSetItemText: invalid item specified");
+void ListBox_SetItemText(GUIListBox *listbox, int index, const char *newtext)
+{
+    if ((index < 0) || (static_cast<uint32_t>(index) >= listbox->GetItemCount()))
+        quit("!ListBoxSetItemText: invalid item specified");
 
-  if (listbox->GetItem(index) != newtext) {
-    listbox->SetItemText(index, newtext);
-  }
+    if (listbox->GetItem(index) != newtext)
+    {
+        listbox->SetItemText(index, newtext);
+    }
 }
 
 void ListBox_SortItems(GUIListBox *listbox, int compare_style, int sort_dir)
@@ -190,94 +197,113 @@ void ListBox_SortItems(GUIListBox *listbox, int compare_style, int sort_dir)
     sort_dir = ValidateSortDirection("ListBox.SortItems", sort_dir);
     if (sort_dir != kScSortNone)
     {
-        listbox->SortItems((compare_style & kScCaseSensitiveFlag) == 0, (compare_style & kScLocaleAwareFlag) != 0, (sort_dir != kScSortDescending));
+        listbox->SortItems((compare_style & kScCaseSensitiveFlag) == 0, (compare_style & kScLocaleAwareFlag) != 0,
+                           (sort_dir != kScSortDescending));
     }
 }
 
-void ListBox_RemoveItem(GUIListBox *listbox, int index) {
-  
-  if ((index < 0) || (static_cast<uint32_t>(index) >= listbox->GetItemCount()))
-    quit("!ListBoxRemove: invalid listindex specified");
+void ListBox_RemoveItem(GUIListBox *listbox, int index)
+{
+    if ((index < 0) || (static_cast<uint32_t>(index) >= listbox->GetItemCount()))
+        quit("!ListBoxRemove: invalid listindex specified");
 
-  listbox->RemoveItem(index);
+    listbox->RemoveItem(index);
 }
 
-int ListBox_GetItemCount(GUIListBox *listbox) {
-  return listbox->GetItemCount();
+int ListBox_GetItemCount(GUIListBox *listbox)
+{
+    return listbox->GetItemCount();
 }
 
-int ListBox_GetFont(GUIListBox *listbox) {
-  return listbox->GetFont();
+int ListBox_GetFont(GUIListBox *listbox)
+{
+    return listbox->GetFont();
 }
 
-void ListBox_SetFont(GUIListBox *listbox, int newfont) {
-  newfont = ValidateFontNumber("ListBox.Font", newfont);
-  listbox->SetFont(newfont);
+void ListBox_SetFont(GUIListBox *listbox, int newfont)
+{
+    newfont = ValidateFontNumber("ListBox.Font", newfont);
+    listbox->SetFont(newfont);
 }
 
-bool ListBox_GetShowBorder(GUIListBox *listbox) {
+bool ListBox_GetShowBorder(GUIListBox *listbox)
+{
     return listbox->IsShowBorder();
 }
 
-void ListBox_SetShowBorder(GUIListBox *listbox, bool newValue) {
+void ListBox_SetShowBorder(GUIListBox *listbox, bool newValue)
+{
     if (listbox->IsShowBorder() != newValue)
     {
         listbox->SetShowBorder(newValue);
     }
 }
 
-bool ListBox_GetShowScrollArrows(GUIListBox *listbox) {
+bool ListBox_GetShowScrollArrows(GUIListBox *listbox)
+{
     return listbox->AreArrowsShown();
 }
 
-void ListBox_SetShowScrollArrows(GUIListBox *listbox, bool newValue) {
+void ListBox_SetShowScrollArrows(GUIListBox *listbox, bool newValue)
+{
     if (listbox->AreArrowsShown() != newValue)
     {
         listbox->SetShowArrows(newValue);
     }
 }
 
-int ListBox_GetHideBorder(GUIListBox *listbox) {
+int ListBox_GetHideBorder(GUIListBox *listbox)
+{
     return !ListBox_GetShowBorder(listbox);
 }
 
-void ListBox_SetHideBorder(GUIListBox *listbox, int newValue) {
+void ListBox_SetHideBorder(GUIListBox *listbox, int newValue)
+{
     ListBox_SetShowBorder(listbox, !newValue);
 }
 
-int ListBox_GetHideScrollArrows(GUIListBox *listbox) {
+int ListBox_GetHideScrollArrows(GUIListBox *listbox)
+{
     return !ListBox_GetShowScrollArrows(listbox);
 }
 
-void ListBox_SetHideScrollArrows(GUIListBox *listbox, int newValue) {
+void ListBox_SetHideScrollArrows(GUIListBox *listbox, int newValue)
+{
     ListBox_SetShowScrollArrows(listbox, !newValue);
 }
 
-int ListBox_GetSelectedBackColor(GUIListBox *listbox) {
+int ListBox_GetSelectedBackColor(GUIListBox *listbox)
+{
     return listbox->GetSelectedBgColor();
 }
 
-void ListBox_SetSelectedBackColor(GUIListBox *listbox, int colr) {
+void ListBox_SetSelectedBackColor(GUIListBox *listbox, int colr)
+{
     listbox->SetSelectedBgColor(colr);
 }
 
-int ListBox_GetSelectedTextColor(GUIListBox *listbox) {
+int ListBox_GetSelectedTextColor(GUIListBox *listbox)
+{
     return listbox->GetSelectedTextColor();
 }
 
-void ListBox_SetSelectedTextColor(GUIListBox *listbox, int colr) {
+void ListBox_SetSelectedTextColor(GUIListBox *listbox, int colr)
+{
     listbox->SetSelectedTextColor(colr);
 }
 
-int ListBox_GetTextAlignment(GUIListBox *listbox) {
+int ListBox_GetTextAlignment(GUIListBox *listbox)
+{
     return listbox->GetTextAlignment();
 }
 
-void ListBox_SetTextAlignment(GUIListBox *listbox, int align) {
+void ListBox_SetTextAlignment(GUIListBox *listbox, int align)
+{
     listbox->SetTextAlignment(static_cast<FrameAlignment>(align));
 }
 
-int ListBox_GetTextColor(GUIListBox *listbox) {
+int ListBox_GetTextColor(GUIListBox *listbox)
+{
     return listbox->GetTextColor();
 }
 
@@ -299,29 +325,34 @@ void ListBox_SetTextOutlineColor(GUIListBox *listbox, int color)
     listbox->SetTextOutlineColor(color);
 }
 
-int ListBox_GetSelectedIndex(GUIListBox *listbox) {
+int ListBox_GetSelectedIndex(GUIListBox *listbox)
+{
     return listbox->GetSelectedItem();
 }
 
-void ListBox_SetSelectedIndex(GUIListBox *guisl, int newsel) {
-  guisl->SetSelectedItem(newsel);
+void ListBox_SetSelectedIndex(GUIListBox *guisl, int newsel)
+{
+    guisl->SetSelectedItem(newsel);
 }
 
-int ListBox_GetTopItem(GUIListBox *listbox) {
-  return listbox->GetTopItem();
+int ListBox_GetTopItem(GUIListBox *listbox)
+{
+    return listbox->GetTopItem();
 }
 
-void ListBox_SetTopItem(GUIListBox *guisl, int item) {
-  if ((item >= guisl->GetItemCount()) || (item < 0))
-  {
-    item = Math::Clamp<uint32_t>(item, 0u, guisl->GetItemCount());
-    debug_script_warn("ListBoxSetTopItem: tried to set top to beyond top or bottom of list");
-  }
-  guisl->SetTopItem(item);
+void ListBox_SetTopItem(GUIListBox *guisl, int item)
+{
+    if ((item >= guisl->GetItemCount()) || (item < 0))
+    {
+        item = Math::Clamp<uint32_t>(item, 0u, guisl->GetItemCount());
+        debug_script_warn("ListBoxSetTopItem: tried to set top to beyond top or bottom of list");
+    }
+    guisl->SetTopItem(item);
 }
 
-int ListBox_GetRowCount(GUIListBox *listbox) {
-  return listbox->GetVisibleItemCount();
+int ListBox_GetRowCount(GUIListBox *listbox)
+{
+    return listbox->GetVisibleItemCount();
 }
 
 int ListBox_GetRowHeight(GUIListBox *listbox)
@@ -329,25 +360,32 @@ int ListBox_GetRowHeight(GUIListBox *listbox)
     return listbox->GetRowHeight();
 }
 
-void ListBox_ScrollDown(GUIListBox *listbox) {
-  if (listbox->GetTopItem() + listbox->GetVisibleItemCount() < listbox->GetItemCount()) {
-    listbox->SetTopItem(listbox->GetTopItem() + 1);
-  }
+void ListBox_ScrollDown(GUIListBox *listbox)
+{
+    if (listbox->GetTopItem() + listbox->GetVisibleItemCount() < listbox->GetItemCount())
+    {
+        listbox->SetTopItem(listbox->GetTopItem() + 1);
+    }
 }
 
-void ListBox_ScrollUp(GUIListBox *listbox) {
-  if (listbox->GetTopItem() > 0) {
-    listbox->SetTopItem(listbox->GetTopItem() - 1);
-  }
+void ListBox_ScrollUp(GUIListBox *listbox)
+{
+    if (listbox->GetTopItem() > 0)
+    {
+        listbox->SetTopItem(listbox->GetTopItem() - 1);
+    }
 }
 
 
-GUIListBox* is_valid_listbox (int guin, int objn) {
-  if ((guin<0) | (guin>=game.numgui)) quit("!ListBox: invalid GUI number");
-  if ((objn<0) | (objn>=guis[guin].GetControlCount())) quit("!ListBox: invalid object number");
-  if (guis[guin].GetControlType(objn)!=kGUIListBox)
-    quit("!ListBox: specified control is not a list box");
-  return (GUIListBox*)guis[guin].GetControl(objn);
+GUIListBox *is_valid_listbox(int guin, int objn)
+{
+    if ((guin < 0) | (guin >= game.numgui))
+        quit("!ListBox: invalid GUI number");
+    if ((objn < 0) | (objn >= guis[guin].GetControlCount()))
+        quit("!ListBox: invalid object number");
+    if (guis[guin].GetControlType(objn) != kGUIListBox)
+        quit("!ListBox: specified control is not a list box");
+    return (GUIListBox *)guis[guin].GetControl(objn);
 }
 
 //=============================================================================
@@ -590,52 +628,51 @@ RuntimeScriptValue Sc_ListBox_SetTopItem(void *self, const RuntimeScriptValue *p
 }
 
 
-
 void RegisterListBoxAPI()
 {
     ScFnRegister listbox_api[] = {
-        { "ListBox::AddItem^1",           API_FN_PAIR(ListBox_AddItem) },
-        { "ListBox::Clear^0",             API_FN_PAIR(ListBox_Clear) },
-        { "ListBox::FillDirList^1",       API_FN_PAIR(ListBox_FillDirList) },
-        { "ListBox::FillDirList^3",       API_FN_PAIR(ListBox_FillDirList3) },
-        { "ListBox::FillSaveGameList^0",  API_FN_PAIR(ListBox_FillSaveGameList) },
-        { "ListBox::FillSaveGameList^2",  API_FN_PAIR(ListBox_FillSaveGameList2) },
-        { "ListBox::FillSaveGameList^4",  API_FN_PAIR(ListBox_FillSaveGameList4) },
-        { "ListBox::FillSaveGameSlots^3", API_FN_PAIR(ListBox_FillSaveGameSlots) },
-        { "ListBox::GetItemAtLocation^2", API_FN_PAIR(ListBox_GetItemAtLocation) },
-        { "ListBox::GetItemText^2",       API_FN_PAIR(ListBox_GetItemText) },
-        { "ListBox::InsertItemAt^2",      API_FN_PAIR(ListBox_InsertItemAt) },
-        { "ListBox::RemoveItem^1",        API_FN_PAIR(ListBox_RemoveItem) },
-        { "ListBox::ScrollDown^0",        API_FN_PAIR(ListBox_ScrollDown) },
-        { "ListBox::ScrollUp^0",          API_FN_PAIR(ListBox_ScrollUp) },
-        { "ListBox::SetItemText^2",       API_FN_PAIR(ListBox_SetItemText) },
-        { "ListBox::SortItems^2",         API_FN_PAIR(ListBox_SortItems) },
-        { "ListBox::get_Font",            API_FN_PAIR(ListBox_GetFont) },
-        { "ListBox::set_Font",            API_FN_PAIR(ListBox_SetFont) },
-        { "ListBox::get_ShowBorder",      API_FN_PAIR(ListBox_GetShowBorder) },
-        { "ListBox::set_ShowBorder",      API_FN_PAIR(ListBox_SetShowBorder) },
-        { "ListBox::get_ShowScrollArrows", API_FN_PAIR(ListBox_GetShowScrollArrows) },
-        { "ListBox::set_ShowScrollArrows", API_FN_PAIR(ListBox_SetShowScrollArrows) },
-        { "ListBox::get_ItemCount",       API_FN_PAIR(ListBox_GetItemCount) },
-        { "ListBox::geti_Items",          API_FN_PAIR(ListBox_GetItems) },
-        { "ListBox::seti_Items",          API_FN_PAIR(ListBox_SetItemText) },
-        { "ListBox::get_RowCount",        API_FN_PAIR(ListBox_GetRowCount) },
-        { "ListBox::get_RowHeight",       API_FN_PAIR(ListBox_GetRowHeight) },
-        { "ListBox::geti_SaveGameSlots",  API_FN_PAIR(ListBox_GetSaveGameSlots) },
-        { "ListBox::get_SelectedBackColor", API_FN_PAIR(ListBox_GetSelectedBackColor) },
-        { "ListBox::set_SelectedBackColor", API_FN_PAIR(ListBox_SetSelectedBackColor) },
-        { "ListBox::get_SelectedIndex",   API_FN_PAIR(ListBox_GetSelectedIndex) },
-        { "ListBox::set_SelectedIndex",   API_FN_PAIR(ListBox_SetSelectedIndex) },
-        { "ListBox::get_SelectedTextColor", API_FN_PAIR(ListBox_GetSelectedTextColor) },
-        { "ListBox::set_SelectedTextColor", API_FN_PAIR(ListBox_SetSelectedTextColor) },
-        { "ListBox::get_TextAlignment",   API_FN_PAIR(ListBox_GetTextAlignment) },
-        { "ListBox::set_TextAlignment",   API_FN_PAIR(ListBox_SetTextAlignment) },
-        { "ListBox::get_TextColor",       API_FN_PAIR(ListBox_GetTextColor) },
-        { "ListBox::set_TextColor",       API_FN_PAIR(ListBox_SetTextColor) },
-        { "ListBox::get_TextOutlineColor", API_FN_PAIR(ListBox_GetTextOutlineColor) },
-        { "ListBox::set_TextOutlineColor", API_FN_PAIR(ListBox_SetTextOutlineColor) },
-        { "ListBox::get_TopItem",         API_FN_PAIR(ListBox_GetTopItem) },
-        { "ListBox::set_TopItem",         API_FN_PAIR(ListBox_SetTopItem) },
+        {"ListBox::AddItem^1", API_FN_PAIR(ListBox_AddItem)},
+        {"ListBox::Clear^0", API_FN_PAIR(ListBox_Clear)},
+        {"ListBox::FillDirList^1", API_FN_PAIR(ListBox_FillDirList)},
+        {"ListBox::FillDirList^3", API_FN_PAIR(ListBox_FillDirList3)},
+        {"ListBox::FillSaveGameList^0", API_FN_PAIR(ListBox_FillSaveGameList)},
+        {"ListBox::FillSaveGameList^2", API_FN_PAIR(ListBox_FillSaveGameList2)},
+        {"ListBox::FillSaveGameList^4", API_FN_PAIR(ListBox_FillSaveGameList4)},
+        {"ListBox::FillSaveGameSlots^3", API_FN_PAIR(ListBox_FillSaveGameSlots)},
+        {"ListBox::GetItemAtLocation^2", API_FN_PAIR(ListBox_GetItemAtLocation)},
+        {"ListBox::GetItemText^2", API_FN_PAIR(ListBox_GetItemText)},
+        {"ListBox::InsertItemAt^2", API_FN_PAIR(ListBox_InsertItemAt)},
+        {"ListBox::RemoveItem^1", API_FN_PAIR(ListBox_RemoveItem)},
+        {"ListBox::ScrollDown^0", API_FN_PAIR(ListBox_ScrollDown)},
+        {"ListBox::ScrollUp^0", API_FN_PAIR(ListBox_ScrollUp)},
+        {"ListBox::SetItemText^2", API_FN_PAIR(ListBox_SetItemText)},
+        {"ListBox::SortItems^2", API_FN_PAIR(ListBox_SortItems)},
+        {"ListBox::get_Font", API_FN_PAIR(ListBox_GetFont)},
+        {"ListBox::set_Font", API_FN_PAIR(ListBox_SetFont)},
+        {"ListBox::get_ShowBorder", API_FN_PAIR(ListBox_GetShowBorder)},
+        {"ListBox::set_ShowBorder", API_FN_PAIR(ListBox_SetShowBorder)},
+        {"ListBox::get_ShowScrollArrows", API_FN_PAIR(ListBox_GetShowScrollArrows)},
+        {"ListBox::set_ShowScrollArrows", API_FN_PAIR(ListBox_SetShowScrollArrows)},
+        {"ListBox::get_ItemCount", API_FN_PAIR(ListBox_GetItemCount)},
+        {"ListBox::geti_Items", API_FN_PAIR(ListBox_GetItems)},
+        {"ListBox::seti_Items", API_FN_PAIR(ListBox_SetItemText)},
+        {"ListBox::get_RowCount", API_FN_PAIR(ListBox_GetRowCount)},
+        {"ListBox::get_RowHeight", API_FN_PAIR(ListBox_GetRowHeight)},
+        {"ListBox::geti_SaveGameSlots", API_FN_PAIR(ListBox_GetSaveGameSlots)},
+        {"ListBox::get_SelectedBackColor", API_FN_PAIR(ListBox_GetSelectedBackColor)},
+        {"ListBox::set_SelectedBackColor", API_FN_PAIR(ListBox_SetSelectedBackColor)},
+        {"ListBox::get_SelectedIndex", API_FN_PAIR(ListBox_GetSelectedIndex)},
+        {"ListBox::set_SelectedIndex", API_FN_PAIR(ListBox_SetSelectedIndex)},
+        {"ListBox::get_SelectedTextColor", API_FN_PAIR(ListBox_GetSelectedTextColor)},
+        {"ListBox::set_SelectedTextColor", API_FN_PAIR(ListBox_SetSelectedTextColor)},
+        {"ListBox::get_TextAlignment", API_FN_PAIR(ListBox_GetTextAlignment)},
+        {"ListBox::set_TextAlignment", API_FN_PAIR(ListBox_SetTextAlignment)},
+        {"ListBox::get_TextColor", API_FN_PAIR(ListBox_GetTextColor)},
+        {"ListBox::set_TextColor", API_FN_PAIR(ListBox_SetTextColor)},
+        {"ListBox::get_TextOutlineColor", API_FN_PAIR(ListBox_GetTextOutlineColor)},
+        {"ListBox::set_TextOutlineColor", API_FN_PAIR(ListBox_SetTextOutlineColor)},
+        {"ListBox::get_TopItem", API_FN_PAIR(ListBox_GetTopItem)},
+        {"ListBox::set_TopItem", API_FN_PAIR(ListBox_SetTopItem)},
     };
 
     ccAddExternalFunctions(listbox_api);

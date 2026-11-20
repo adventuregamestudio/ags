@@ -23,13 +23,16 @@
 namespace AGS
 {
 
-namespace Common { class Bitmap; }
+namespace Common
+{
+class Bitmap;
+}
 
 namespace Engine
 {
 
 // IRouteFinder: a basic pathfinding interface.
-class IRouteFinder 
+class IRouteFinder
 {
 public:
     virtual ~IRouteFinder() = default;
@@ -41,8 +44,8 @@ public:
     // exact_dest - tells to fail if the destination is inside the wall and cannot be reached;
     //              otherwise pathfinder will try to find the closest possible end point.
     // ignore_walls - tells to ignore impassable areas (builds a straight line path).
-    virtual bool FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
-        bool exact_dest = false, bool ignore_walls = false) = 0;
+    virtual bool FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty, bool exact_dest = false,
+                           bool ignore_walls = false) = 0;
     // Tells whether the current position is walkable
     virtual bool IsWalkableAt(int x, int y) = 0;
     // Searchs for the nearest walkable point, starting from the given position.
@@ -67,8 +70,8 @@ public:
     // exact_dest - tells to fail if the destination is inside the wall and cannot be reached;
     //              otherwise pathfinder will try to find the closest possible end point.
     // ignore_walls - tells to ignore impassable areas (builds a straight line path).
-    bool FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
-        bool exact_dest = false, bool ignore_walls = false) override;
+    bool FindRoute(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty, bool exact_dest = false,
+                   bool ignore_walls = false) override;
     // Tells whether the current position is walkable
     bool IsWalkableAt(int x, int y) override;
     // Searchs for the nearest walkable point, starting from the given position.
@@ -83,10 +86,11 @@ protected:
     // Update the implementation after a new walkable area is set
     virtual void OnSetWalkableArea() = 0;
     // CanSeeFrom implementation
-    virtual bool CanSeeFromImpl(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr) = 0;
+    virtual bool CanSeeFromImpl(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr,
+                                int *lastcy = nullptr) = 0;
     // FindRoute implementation
-    virtual bool FindRouteImpl(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
-        bool exact_dest, bool ignore_walls) = 0;
+    virtual bool FindRouteImpl(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty, bool exact_dest,
+                               bool ignore_walls) = 0;
 
     const Common::Bitmap *_walkablearea = nullptr;
     int _coordScale = 1;
@@ -98,19 +102,19 @@ protected:
 // Manages converting navigation paths into MoveLists.
 namespace Pathfinding
 {
-    // Creates a default engine's MaskRouteFinder implementation
-    std::unique_ptr<MaskRouteFinder> CreateDefaultMaskPathfinder();
+// Creates a default engine's MaskRouteFinder implementation
+std::unique_ptr<MaskRouteFinder> CreateDefaultMaskPathfinder();
 
-    // Find route using a provided IRouteFinder, and calculate the MoveList using move speeds
-    bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx, int dsty,
-        float move_speed_x, float move_speed_y, bool exact_dest, bool ignore_walls, const RunPathParams &run_params);
-    // Searchs for the nearest walkable point on a mask, starting from the given location,
-    // and scanning around in the given square range. Optionally limit the scan to the certain rectangle.
-    bool FindNearestWalkablePoint(const AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt,
-        const int range = 0, const int step = 1, const bool use_method362 = true);
-    bool FindNearestWalkablePoint(const AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt,
-        const Rect &limits, const int range = 0, const int step = 0, const bool use_method362 = true);
-}
+// Find route using a provided IRouteFinder, and calculate the MoveList using move speeds
+bool FindRoute(MoveList &mls, IRouteFinder *finder, int srcx, int srcy, int dstx, int dsty, float move_speed_x,
+               float move_speed_y, bool exact_dest, bool ignore_walls, const RunPathParams &run_params);
+// Searchs for the nearest walkable point on a mask, starting from the given location,
+// and scanning around in the given square range. Optionally limit the scan to the certain rectangle.
+bool FindNearestWalkablePoint(const AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt, const int range = 0,
+                              const int step = 1, const bool use_method362 = true);
+bool FindNearestWalkablePoint(const AGS::Common::Bitmap *mask, const Point &from_pt, Point &dst_pt, const Rect &limits,
+                              const int range = 0, const int step = 0, const bool use_method362 = true);
+} // namespace Pathfinding
 
 } // namespace Engine
 } // namespace AGS

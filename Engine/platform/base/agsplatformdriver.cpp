@@ -48,9 +48,9 @@ AGSPlatformDriver::AGSPlatformDriver()
     _writeStdOut = &AGSPlatformDriver::WriteStdOut;
 }
 
-void AGSPlatformDriver::AttachToParentConsole() { }
-void AGSPlatformDriver::PauseApplication() { }
-void AGSPlatformDriver::ResumeApplication() { }
+void AGSPlatformDriver::AttachToParentConsole() {}
+void AGSPlatformDriver::PauseApplication() {}
+void AGSPlatformDriver::ResumeApplication() {}
 
 Size AGSPlatformDriver::ValidateWindowSize(int display_index, const Size &sz, bool borderless) const
 {
@@ -65,7 +65,7 @@ Size AGSPlatformDriver::ValidateWindowSize(int display_index, const Size &sz, bo
     return Size::Clamp(sz, Size(1, 1), Size(rc.w, rc.h));
 }
 
-const char* AGSPlatformDriver::GetBackendFailUserHint()
+const char *AGSPlatformDriver::GetBackendFailUserHint()
 {
     return "Make sure you have latest version of SDL2 libraries installed, and your system is running in graphical mode.";
 }
@@ -129,14 +129,16 @@ void AGSPlatformDriver::DisplayMessageBox(const char *text)
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, _windowTitle.GetCStr(), text, sys_get_window());
 }
 
-void AGSPlatformDriver::YieldCPU() {
+void AGSPlatformDriver::YieldCPU()
+{
     // NOTE: this is called yield, but if we actually yield instead of delay,
     // we get a massive increase in CPU usage.
     this->Delay(1);
     //std::this_thread::yield();
 }
 
-SetupReturnValue AGSPlatformDriver::RunSetup(const ConfigTree &/*cfg_in*/, const ConfigTree &/*def_cfg_in*/, ConfigTree &/*cfg_out*/)
+SetupReturnValue AGSPlatformDriver::RunSetup(const ConfigTree & /*cfg_in*/, const ConfigTree & /*def_cfg_in*/,
+                                             ConfigTree & /*cfg_out*/)
 {
     return kSetup_Cancel;
 }
@@ -168,9 +170,9 @@ public:
     typedef void (AGSPlatformDriver::*PfnWriteStdOut)(const char *fmt, ...);
 
     StdOutLogger(AGSPlatformDriver *platform, PfnWriteStdOut write_stdout)
-        : _platform(platform)
-        , _writeStdOut(write_stdout)
-    {}
+        : _platform(platform), _writeStdOut(write_stdout)
+    {
+    }
 
     void OnRegister() override
     {
@@ -189,7 +191,7 @@ public:
     }
 
 private:
-    AGSPlatformDriver * const _platform = nullptr;
+    AGSPlatformDriver *const _platform = nullptr;
     PfnWriteStdOut const _writeStdOut = nullptr;
 };
 
@@ -199,7 +201,7 @@ std::unique_ptr<IOutputHandler> AGSPlatformDriver::GetStdOut()
     return out;
 }
 
-AGSPlatformDriver* AGSPlatformDriver::GetDriver()
+AGSPlatformDriver *AGSPlatformDriver::GetDriver()
 {
     if (!_instance)
         _instance.reset(CreateDriver());
@@ -212,21 +214,29 @@ void AGSPlatformDriver::Shutdown()
 }
 
 
-void AGSPlatformDriver::Delay(int millis) {
-  auto now = Clock::now();
-  auto delayUntil = now + std::chrono::milliseconds(millis);
+void AGSPlatformDriver::Delay(int millis)
+{
+    auto now = Clock::now();
+    auto delayUntil = now + std::chrono::milliseconds(millis);
 
-  for (;;) {
-    if (now >= delayUntil) { break; }
+    for (;;)
+    {
+        if (now >= delayUntil)
+        {
+            break;
+        }
 
-    auto duration = std::min<std::chrono::nanoseconds>(delayUntil - now, MaximumDelayBetweenPolling);
-    std::this_thread::sleep_for(duration);
-    now = Clock::now(); // update now
+        auto duration = std::min<std::chrono::nanoseconds>(delayUntil - now, MaximumDelayBetweenPolling);
+        std::this_thread::sleep_for(duration);
+        now = Clock::now(); // update now
 
-    if (now >= delayUntil) { break; }
+        if (now >= delayUntil)
+        {
+            break;
+        }
 
-    // don't allow it to check for debug messages, since this Delay()
-    // call might be from within a debugger polling loop
-    now = Clock::now(); // update now
-  }
+        // don't allow it to check for debug messages, since this Delay()
+        // call might be from within a debugger polling loop
+        now = Clock::now(); // update now
+    }
 }

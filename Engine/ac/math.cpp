@@ -23,19 +23,12 @@ float RoundImpl(const char *apiname, float value, int roundDirection)
 {
     switch (roundDirection)
     {
-    case eRoundDown:
-        return std::floor(value);
-    case eRoundUp:
-        return std::ceil(value);
-    case eRoundNearest:
-        return std::round(value);
-    case eRoundTowardsZero:
-        return std::trunc(value);
-    case eRoundAwayFromZero:
-        return value < 0.f ? std::floor(value) : std::ceil(value);
-    default:
-        debug_script_warn("!%s: invalid round direction %d", apiname, roundDirection);
-        return value;
+    case eRoundDown: return std::floor(value);
+    case eRoundUp: return std::ceil(value);
+    case eRoundNearest: return std::round(value);
+    case eRoundTowardsZero: return std::trunc(value);
+    case eRoundAwayFromZero: return value < 0.f ? std::floor(value) : std::ceil(value);
+    default: debug_script_warn("!%s: invalid round direction %d", apiname, roundDirection); return value;
     }
     return 0.f;
 }
@@ -315,27 +308,27 @@ RuntimeScriptValue Sc_Math_GetPi(const RuntimeScriptValue *params, int32_t param
 void RegisterMathAPI()
 {
     ScFnRegister math_api[] = {
-        { "Maths::ArcCos^1",              API_FN_PAIR(Math_ArcCos) },
-        { "Maths::ArcSin^1",              API_FN_PAIR(Math_ArcSin) },
-        { "Maths::ArcTan^1",              API_FN_PAIR(Math_ArcTan) },
-        { "Maths::ArcTan2^2",             API_FN_PAIR(Math_ArcTan2) },
-        { "Maths::Cos^1",                 API_FN_PAIR(Math_Cos) },
-        { "Maths::Cosh^1",                API_FN_PAIR(Math_Cosh) },
-        { "Maths::DegreesToRadians^1",    API_FN_PAIR(Math_DegreesToRadians) },
-        { "Maths::Exp^1",                 API_FN_PAIR(Math_Exp) },
-        { "Maths::Log^1",                 API_FN_PAIR(Math_Log) },
-        { "Maths::Log10^1",               API_FN_PAIR(Math_Log10) },
-        { "Maths::RadiansToDegrees^1",    API_FN_PAIR(Math_RadiansToDegrees) },
-        { "Maths::RaiseToPower^2",        API_FN_PAIR(Math_RaiseToPower) },
-        { "Maths::Random^1",              API_FN_PAIR(Math_Random) },
-        { "Maths::RandomFloat^0",         API_FN_PAIR(Math_RandomFloat) },
-        { "Maths::Round^2",               API_FN_PAIR(Math_Round) },
-        { "Maths::Sin^1",                 API_FN_PAIR(Math_Sin) },
-        { "Maths::Sinh^1",                API_FN_PAIR(Math_Sinh) },
-        { "Maths::Sqrt^1",                API_FN_PAIR(Math_Sqrt) },
-        { "Maths::Tan^1",                 API_FN_PAIR(Math_Tan) },
-        { "Maths::Tanh^1",                API_FN_PAIR(Math_Tanh) },
-        { "Maths::get_Pi",                API_FN_PAIR(Math_GetPi) },
+        {"Maths::ArcCos^1", API_FN_PAIR(Math_ArcCos)},
+        {"Maths::ArcSin^1", API_FN_PAIR(Math_ArcSin)},
+        {"Maths::ArcTan^1", API_FN_PAIR(Math_ArcTan)},
+        {"Maths::ArcTan2^2", API_FN_PAIR(Math_ArcTan2)},
+        {"Maths::Cos^1", API_FN_PAIR(Math_Cos)},
+        {"Maths::Cosh^1", API_FN_PAIR(Math_Cosh)},
+        {"Maths::DegreesToRadians^1", API_FN_PAIR(Math_DegreesToRadians)},
+        {"Maths::Exp^1", API_FN_PAIR(Math_Exp)},
+        {"Maths::Log^1", API_FN_PAIR(Math_Log)},
+        {"Maths::Log10^1", API_FN_PAIR(Math_Log10)},
+        {"Maths::RadiansToDegrees^1", API_FN_PAIR(Math_RadiansToDegrees)},
+        {"Maths::RaiseToPower^2", API_FN_PAIR(Math_RaiseToPower)},
+        {"Maths::Random^1", API_FN_PAIR(Math_Random)},
+        {"Maths::RandomFloat^0", API_FN_PAIR(Math_RandomFloat)},
+        {"Maths::Round^2", API_FN_PAIR(Math_Round)},
+        {"Maths::Sin^1", API_FN_PAIR(Math_Sin)},
+        {"Maths::Sinh^1", API_FN_PAIR(Math_Sinh)},
+        {"Maths::Sqrt^1", API_FN_PAIR(Math_Sqrt)},
+        {"Maths::Tan^1", API_FN_PAIR(Math_Tan)},
+        {"Maths::Tanh^1", API_FN_PAIR(Math_Tanh)},
+        {"Maths::get_Pi", API_FN_PAIR(Math_GetPi)},
     };
 
     ccAddExternalFunctions(math_api);

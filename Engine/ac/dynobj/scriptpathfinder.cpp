@@ -129,6 +129,4 @@ size_t RoomPathfinder::CalcSerializeSize(const void *address)
     return 0u;
 }
 
-void RoomPathfinder::Serialize(const void *address, AGS::Common::Stream *out)
-{
-}
+void RoomPathfinder::Serialize(const void *address, AGS::Common::Stream *out) {}

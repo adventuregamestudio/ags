@@ -25,7 +25,7 @@ class DummyLibrary final : public BaseLibrary
 {
 public:
     DummyLibrary() = default;
-    DummyLibrary(const DummyLibrary&) = delete;
+    DummyLibrary(const DummyLibrary &) = delete;
     DummyLibrary(DummyLibrary &&other) = default;
     ~DummyLibrary() override { /* do nothing */ };
 
@@ -55,7 +55,6 @@ typedef DummyLibrary Library;
 
 } // namespace Engine
 } // namespace AGS
-
 
 
 #endif // __AGS_EE_UTIL__LIBRARY_DUMMY_H

@@ -27,12 +27,19 @@ struct RGBShifts32
     RGBShifts32(int r, int g, int b, int a)
         : _r(_rgb_r_shift_32), _g(_rgb_g_shift_32), _b(_rgb_b_shift_32), _a(_rgb_a_shift_32)
     {
-        _rgb_r_shift_32 = r; _rgb_g_shift_32 = g; _rgb_b_shift_32 = b; _rgb_a_shift_32 = a;
+        _rgb_r_shift_32 = r;
+        _rgb_g_shift_32 = g;
+        _rgb_b_shift_32 = b;
+        _rgb_a_shift_32 = a;
     }
     ~RGBShifts32()
     {
-        _rgb_r_shift_32 = _r; _rgb_g_shift_32 = _g; _rgb_b_shift_32 = _b; _rgb_a_shift_32 = _a;
+        _rgb_r_shift_32 = _r;
+        _rgb_g_shift_32 = _g;
+        _rgb_b_shift_32 = _b;
+        _rgb_a_shift_32 = _a;
     }
+
 private:
     int _r, _g, _b, _a;
 };

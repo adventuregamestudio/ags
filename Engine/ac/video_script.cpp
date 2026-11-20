@@ -29,8 +29,7 @@ using namespace AGS::Engine;
 ScriptVideoPlayer *VideoPlayer_Open(const char *filename, bool auto_play, int repeat_style)
 {
     int video_id;
-    HError err = open_video(filename,
-        kVideo_EnableVideo | kVideo_EnableAudio | kVideo_DropFrames, video_id);
+    HError err = open_video(filename, kVideo_EnableVideo | kVideo_EnableAudio | kVideo_DropFrames, video_id);
     if (!err)
     {
         debug_script_warn("Failed to play video '%s': %s", filename, err->FullMessage().GetCStr());
@@ -331,34 +330,31 @@ RuntimeScriptValue Sc_VideoPlayer_SetVolume(void *self, const RuntimeScriptValue
 }
 
 
-
 void RegisterVideoAPI()
 {
-    ScFnRegister video_api[] = {
-        { "VideoPlayer::Open",          API_FN_PAIR(VideoPlayer_Open) },
-        { "VideoPlayer::Play",          API_FN_PAIR(VideoPlayer_Play) },
-        { "VideoPlayer::Pause",         API_FN_PAIR(VideoPlayer_Pause) },
-        { "VideoPlayer::NextFrame",     API_FN_PAIR(VideoPlayer_NextFrame) },
-        { "VideoPlayer::SeekFrame",     API_FN_PAIR(VideoPlayer_SeekFrame) },
-        { "VideoPlayer::SeekMs",        API_FN_PAIR(VideoPlayer_SeekMs) },
-        { "VideoPlayer::Stop",          API_FN_PAIR(VideoPlayer_Stop) },
+    ScFnRegister video_api[] = {{"VideoPlayer::Open", API_FN_PAIR(VideoPlayer_Open)},
+                                {"VideoPlayer::Play", API_FN_PAIR(VideoPlayer_Play)},
+                                {"VideoPlayer::Pause", API_FN_PAIR(VideoPlayer_Pause)},
+                                {"VideoPlayer::NextFrame", API_FN_PAIR(VideoPlayer_NextFrame)},
+                                {"VideoPlayer::SeekFrame", API_FN_PAIR(VideoPlayer_SeekFrame)},
+                                {"VideoPlayer::SeekMs", API_FN_PAIR(VideoPlayer_SeekMs)},
+                                {"VideoPlayer::Stop", API_FN_PAIR(VideoPlayer_Stop)},
 
-        { "VideoPlayer::get_Frame",     API_FN_PAIR(VideoPlayer_GetFrame) },
-        { "VideoPlayer::get_FrameCount", API_FN_PAIR(VideoPlayer_GetFrameCount) },
-        { "VideoPlayer::get_FrameHeight", API_FN_PAIR(VideoPlayer_GetFrameHeight) },
-        { "VideoPlayer::get_FrameRate", API_FN_PAIR(VideoPlayer_GetFrameRate) },
-        { "VideoPlayer::get_FrameWidth", API_FN_PAIR(VideoPlayer_GetFrameWidth) },
-        { "VideoPlayer::get_Graphic",   API_FN_PAIR(VideoPlayer_GetGraphic) },
-        { "VideoPlayer::get_LengthMs",  API_FN_PAIR(VideoPlayer_GetLengthMs) },
-        { "VideoPlayer::get_Looping",   API_FN_PAIR(VideoPlayer_GetLooping) },
-        { "VideoPlayer::set_Looping",   API_FN_PAIR(VideoPlayer_SetLooping) },
-        { "VideoPlayer::get_PositionMs", API_FN_PAIR(VideoPlayer_GetPositionMs) },
-        { "VideoPlayer::get_Speed",     API_FN_PAIR(VideoPlayer_GetSpeed) },
-        { "VideoPlayer::set_Speed",     API_FN_PAIR(VideoPlayer_SetSpeed) },
-        { "VideoPlayer::get_State",     API_FN_PAIR(VideoPlayer_GetState) },
-        { "VideoPlayer::get_Volume",    API_FN_PAIR(VideoPlayer_GetVolume) },
-        { "VideoPlayer::set_Volume",    API_FN_PAIR(VideoPlayer_SetVolume) }
-    };
+                                {"VideoPlayer::get_Frame", API_FN_PAIR(VideoPlayer_GetFrame)},
+                                {"VideoPlayer::get_FrameCount", API_FN_PAIR(VideoPlayer_GetFrameCount)},
+                                {"VideoPlayer::get_FrameHeight", API_FN_PAIR(VideoPlayer_GetFrameHeight)},
+                                {"VideoPlayer::get_FrameRate", API_FN_PAIR(VideoPlayer_GetFrameRate)},
+                                {"VideoPlayer::get_FrameWidth", API_FN_PAIR(VideoPlayer_GetFrameWidth)},
+                                {"VideoPlayer::get_Graphic", API_FN_PAIR(VideoPlayer_GetGraphic)},
+                                {"VideoPlayer::get_LengthMs", API_FN_PAIR(VideoPlayer_GetLengthMs)},
+                                {"VideoPlayer::get_Looping", API_FN_PAIR(VideoPlayer_GetLooping)},
+                                {"VideoPlayer::set_Looping", API_FN_PAIR(VideoPlayer_SetLooping)},
+                                {"VideoPlayer::get_PositionMs", API_FN_PAIR(VideoPlayer_GetPositionMs)},
+                                {"VideoPlayer::get_Speed", API_FN_PAIR(VideoPlayer_GetSpeed)},
+                                {"VideoPlayer::set_Speed", API_FN_PAIR(VideoPlayer_SetSpeed)},
+                                {"VideoPlayer::get_State", API_FN_PAIR(VideoPlayer_GetState)},
+                                {"VideoPlayer::get_Volume", API_FN_PAIR(VideoPlayer_GetVolume)},
+                                {"VideoPlayer::set_Volume", API_FN_PAIR(VideoPlayer_SetVolume)}};
 
     ccAddExternalFunctions(video_api);
 }

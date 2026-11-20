@@ -29,15 +29,12 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 // Sound cache, stores most recent used sounds, tracks use history with MRU list.
-class SoundCache final :
-    public ResourceCache<String, std::shared_ptr<std::vector<uint8_t>>>
+class SoundCache final : public ResourceCache<String, std::shared_ptr<std::vector<uint8_t>>>
 {
 public:
     typedef std::shared_ptr<std::vector<uint8_t>> DataRef;
 
-    SoundCache() : ResourceCache(DEFAULT_SOUNDCACHESIZE_KB)
-    {
-    }
+    SoundCache() : ResourceCache(DEFAULT_SOUNDCACHESIZE_KB) {}
 
 private:
     // Calculates item size; expects to return 0 if an item is invalid
@@ -124,7 +121,10 @@ std::unique_ptr<SoundClip> load_sound_clip(const AssetPath &apath, const char *e
         slot = audio_core_slot_init(std::move(s_in), ext_hint, loop);
     }
 
-    if (slot < 0) { return nullptr; }
+    if (slot < 0)
+    {
+        return nullptr;
+    }
 
     const auto sound_type = ScriptAudioClip::GetAudioFileTypeFromExt(ext_hint.GetCStr());
     return std::unique_ptr<SoundClip>(new SoundClip(slot, sound_type, loop));

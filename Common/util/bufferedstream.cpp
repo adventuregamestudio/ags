@@ -34,7 +34,7 @@ void BufferedStream::Open(std::unique_ptr<IStreamBase> &&base_stream)
     if (!base_stream)
         throw std::runtime_error("Base stream invalid.");
     soff_t end_pos = base_stream->Seek(0, kSeekEnd);
-    if  (end_pos < 0)
+    if (end_pos < 0)
         throw std::runtime_error("Error determining stream end.");
     if (base_stream->Seek(0, kSeekBegin) < 0)
         throw std::runtime_error("Error determining stream end.");
@@ -44,8 +44,7 @@ void BufferedStream::Open(std::unique_ptr<IStreamBase> &&base_stream)
     _end = end_pos;
 }
 
-void BufferedStream::OpenSection(std::unique_ptr<IStreamBase> &&base_stream,
-    soff_t start_pos, soff_t end_pos)
+void BufferedStream::OpenSection(std::unique_ptr<IStreamBase> &&base_stream, soff_t start_pos, soff_t end_pos)
 {
     assert(start_pos <= end_pos);
     Open(std::move(base_stream));
@@ -75,8 +74,7 @@ void BufferedStream::FillBufferFromPosition(soff_t position)
 
     _base->Seek(position, kSeekBegin);
     // remember to restrict to the end position!
-    size_t fill_size = static_cast<size_t>(
-        std::min<uint64_t>(BufferSize, static_cast<uint64_t>(_end - position)));
+    size_t fill_size = static_cast<size_t>(std::min<uint64_t>(BufferSize, static_cast<uint64_t>(_end - position)));
     _buffer.resize(fill_size);
     auto sz = _base->Read(_buffer.data(), fill_size);
     _buffer.resize(sz);
@@ -151,14 +149,13 @@ size_t BufferedStream::Read(void *buffer, size_t size)
 
         _base->Seek(_position, kSeekBegin);
         // remember to restrict to the end position!
-        size_t fill_size = static_cast<size_t>(
-            std::min<uint64_t>(size, static_cast<uint64_t>(_end - _position)));
+        size_t fill_size = static_cast<size_t>(std::min<uint64_t>(size, static_cast<uint64_t>(_end - _position)));
         size_t sz = _base->Read(buffer, fill_size);
         _position += sz;
         return sz;
     }
 
-    auto *to = static_cast<uint8_t*>(buffer);
+    auto *to = static_cast<uint8_t *>(buffer);
     while (size > 0)
     {
         // If the buffer filled with bytes to write, then flush it into the stream
@@ -173,9 +170,12 @@ size_t BufferedStream::Read(void *buffer, size_t size)
         {
             FillBufferFromPosition(_position);
         }
-        if (_buffer.empty()) { break; } // reached EOS
+        if (_buffer.empty())
+        {
+            break;
+        } // reached EOS
         assert(_position >= _bufferPosition &&
-            static_cast<uint64_t>(_position) < static_cast<uint64_t>(_bufferPosition + _buffer.size()));
+               static_cast<uint64_t>(_position) < static_cast<uint64_t>(_bufferPosition + _buffer.size()));
 
         soff_t bufferOffset = _position - _bufferPosition;
         assert(bufferOffset >= 0);
@@ -188,20 +188,23 @@ size_t BufferedStream::Read(void *buffer, size_t size)
         _position += chunkSize;
         size -= chunkSize;
     }
-    return to - static_cast<uint8_t*>(buffer);
+    return to - static_cast<uint8_t *>(buffer);
 }
 
 int32_t BufferedStream::ReadByte()
 {
     uint8_t ch;
     auto bytesRead = Read(&ch, 1);
-    if (bytesRead != 1) { return EOF; }
+    if (bytesRead != 1)
+    {
+        return EOF;
+    }
     return ch;
 }
 
 size_t BufferedStream::Write(const void *buffer, size_t size)
 {
-    const uint8_t *from = static_cast<const uint8_t*>(buffer);
+    const uint8_t *from = static_cast<const uint8_t *>(buffer);
     while (size > 0)
     {
         // If the buffer is not holding written bytes, then clear it and reposition the stream
@@ -214,9 +217,9 @@ size_t BufferedStream::Write(const void *buffer, size_t size)
 
         // Flush the written buffer into the stream, if necessary
         if ((_bufferMode == kStream_Write) &&
-           (_position < _bufferPosition || // seeked before buffer pos
-            _position > _bufferPosition + static_cast<soff_t>(_buffer.size()) || // seeked beyond buffer pos
-            _position >= _bufferPosition + static_cast<soff_t>(BufferSize))) // seeked, or exceeded buffer limit
+            (_position < _bufferPosition ||                                       // seeked before buffer pos
+             _position > _bufferPosition + static_cast<soff_t>(_buffer.size()) || // seeked beyond buffer pos
+             _position >= _bufferPosition + static_cast<soff_t>(BufferSize)))     // seeked, or exceeded buffer limit
         {
             FlushBuffer(_position);
         }
@@ -232,25 +235,28 @@ size_t BufferedStream::Write(const void *buffer, size_t size)
     }
 
     _end = std::max(_end, _position);
-    return from - static_cast<const uint8_t*>(buffer);
+    return from - static_cast<const uint8_t *>(buffer);
 }
 
 int32_t BufferedStream::WriteByte(uint8_t val)
 {
     auto sz = Write(&val, 1);
-    if (sz != 1) { return -1; }
+    if (sz != 1)
+    {
+        return -1;
+    }
     return val;
 }
 
 soff_t BufferedStream::Seek(soff_t offset, StreamSeek origin)
 {
     soff_t want_pos = -1;
-    switch(origin)
+    switch (origin)
     {
-        case StreamSeek::kSeekCurrent:  want_pos = _position   + offset; break;
-        case StreamSeek::kSeekBegin:    want_pos = _start      + offset; break;
-        case StreamSeek::kSeekEnd:      want_pos = _end        + offset; break;
-        default: return -1;
+    case StreamSeek::kSeekCurrent: want_pos = _position + offset; break;
+    case StreamSeek::kSeekBegin: want_pos = _start + offset; break;
+    case StreamSeek::kSeekEnd: want_pos = _end + offset; break;
+    default: return -1;
     }
     // clamp to the valid range
     _position = std::min(std::max(want_pos, _start), _end);

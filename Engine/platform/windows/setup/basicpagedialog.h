@@ -51,8 +51,8 @@ struct WinConfig : public GameConfig
     String Title;
     String VersionString;
     String DataDirectory;
-    Size   GameResolution;
-    int    GameColourDepth;
+    Size GameResolution;
+    int GameColourDepth;
     String DefaultLanguageName; // human-readable title for the "default language" selection
 
     WinConfig();
@@ -71,10 +71,7 @@ struct WinConfig : public GameConfig
 class WinSetupPageDialog : public WinPageDialog
 {
 public:
-    WinSetupPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in)
-        : _winCfg(win_cfg)
-        , _cfgIn(cfg_in)
-    {}
+    WinSetupPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in) : _winCfg(win_cfg), _cfgIn(cfg_in) {}
 
     virtual void ResetSetup(const ConfigTree &cfg_from) { /* do nothing */ };
     virtual void SaveSetup() { /* do nothing */ };
@@ -93,8 +90,7 @@ protected:
 class BasicPageDialog : public WinSetupPageDialog
 {
 public:
-    BasicPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in)
-        : WinSetupPageDialog(win_cfg, cfg_in) {}
+    BasicPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in) : WinSetupPageDialog(win_cfg, cfg_in) {}
 
     String GetTitle() const override { return "Basic"; }
 
@@ -113,7 +109,7 @@ protected:
 private:
     enum GfxModeSpecial
     {
-        kGfxMode_None    = -1,
+        kGfxMode_None = -1,
         kGfxMode_Desktop = -2,
         kGfxMode_GameRes = -3,
     };
@@ -136,7 +132,7 @@ private:
     {
         VDispModes Modes;
 
-        int  GetModeCount() const override;
+        int GetModeCount() const override;
         bool GetMode(int index, DisplayMode &mode) const override;
     };
 
@@ -144,12 +140,12 @@ private:
     struct DriverDesc
     {
         IGfxDriverFactory *Factory = nullptr;
-        IGraphicsDriver *Driver    = nullptr;
-        String      Id;            // internal id
-        String      UserName;      // human-friendly driver name
-        GfxModes    GfxModeList;   // list of supported modes
-        VFilters    FilterList;    // list of supported filters
-        int         UseColorDepth; // recommended display depth
+        IGraphicsDriver *Driver = nullptr;
+        String Id;            // internal id
+        String UserName;      // human-friendly driver name
+        GfxModes GfxModeList; // list of supported modes
+        VFilters FilterList;  // list of supported filters
+        int UseColorDepth;    // recommended display depth
     };
 
     // Operations
@@ -160,7 +156,7 @@ private:
     void FillGfxModeList();
     void FillLanguageList();
     void FillScalingList(HWND hlist, bool windowed);
-    int  GetRealDisplayIndex();
+    int GetRealDisplayIndex();
     void SetScalingSelection();
     void InitDriverDescFromFactory(const String &id);
     void UpdateDriverModesFromFactory();

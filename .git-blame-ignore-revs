@@ -1,0 +1,14 @@
+# Commits that only reformat code. GitHub's blame view skips them;
+# for git blame: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# Common: reformat with clang-format
+f115a5a358bb24fc457de80be5f7458b455c1fdb
+# Compiler: reformat with clang-format
+b1fb81098c6a6f86c1df7693c3bf7878a333a705
+# Engine: reformat with clang-format
+a11cf12d3e40add3dd34894ff5f402d0e4237997
+# Plugins: reformat with clang-format
+72138447ebafe648558fbdbc6feab8fb459e9277
+# Tools: reformat with clang-format
+7d39d84dbdcc260c2d54a5e2c1d835b3b84331c0
+# Editor: reformat Native with clang-format
+2d56a477af3029ce0455053972ea9e43ca8f3787

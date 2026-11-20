@@ -59,28 +59,28 @@ PixelBuffer GetDefPixels8(Palette &pal)
 {
     // WARNING: remember that Allegro 4's palette operations
     // have 64-color-range precision, so all colors must be multiple of 4
-    std::fill(pal.begin(), pal.end(), RGB{0,0,0,0});
+    std::fill(pal.begin(), pal.end(), RGB{0, 0, 0, 0});
     // palette 0 is a default transparent slot
-    pal[0] = { 0, 0, 0 };
-    pal[1] = { 255, 0, 0 };
-    pal[2] = { 0, 255, 0 };
-    pal[3] = { 0, 0, 255 };
-    pal[4] = { 255, 255, 0 };
-    pal[5] = { 255, 0, 255 };
-    pal[6] = { 0, 255, 255 };
-    pal[7] = { 255, 255, 255 };
-    pal[8] = { 128, 0, 0 };
-    pal[9] = { 0, 128, 0 };
-    pal[10] = { 0, 0, 128 };
-    pal[11] = { 128, 128, 0 };
-    pal[12] = { 128, 0, 128 };
-    pal[13] = { 0, 128, 128 };
-    pal[14] = { 128, 128, 128 };
-    pal[15] = { 64, 64, 64 };
-    pal[16] = { 32, 32, 32 };
+    pal[0] = {0, 0, 0};
+    pal[1] = {255, 0, 0};
+    pal[2] = {0, 255, 0};
+    pal[3] = {0, 0, 255};
+    pal[4] = {255, 255, 0};
+    pal[5] = {255, 0, 255};
+    pal[6] = {0, 255, 255};
+    pal[7] = {255, 255, 255};
+    pal[8] = {128, 0, 0};
+    pal[9] = {0, 128, 0};
+    pal[10] = {0, 0, 128};
+    pal[11] = {128, 128, 0};
+    pal[12] = {128, 0, 128};
+    pal[13] = {0, 128, 128};
+    pal[14] = {128, 128, 128};
+    pal[15] = {64, 64, 64};
+    pal[16] = {32, 32, 32};
 
     PixelBuffer image(4, 4, kPxFmt_Indexed8);
-    uint8_t *pixels = reinterpret_cast<uint8_t*>(image.GetData());
+    uint8_t *pixels = reinterpret_cast<uint8_t *>(image.GetData());
     pixels[0] = 1; // top-left
     pixels[1] = 2;
     pixels[2] = 3;
@@ -103,7 +103,7 @@ PixelBuffer GetDefPixels8(Palette &pal)
 PixelBuffer GetDefPixels16()
 {
     PixelBuffer image(4, 4, kPxFmt_R5G6B5);
-    uint16_t *pixels = reinterpret_cast<uint16_t*>(image.GetData());
+    uint16_t *pixels = reinterpret_cast<uint16_t *>(image.GetData());
     pixels[0] = 0xFFFF; // top-left
     pixels[1] = 0x5555;
     pixels[2] = MASK_COLOR_16;
@@ -126,7 +126,7 @@ PixelBuffer GetDefPixels16()
 PixelBuffer GetDefPixels32()
 {
     PixelBuffer image(4, 4, kPxFmt_A8R8G8B8);
-    uint32_t *pixels = reinterpret_cast<uint32_t*>(image.GetData());
+    uint32_t *pixels = reinterpret_cast<uint32_t *>(image.GetData());
     pixels[0] = 0xFFFFFFFF; // top-left
     pixels[1] = 0x00555555;
     pixels[2] = MASK_COLOR_32;
@@ -150,7 +150,7 @@ void PrintPixelData8(const BitmapData &bm_data1, const BitmapData &bm_data2)
 {
     for (size_t i = 0; i < bm_data1.GetDataSize(); ++i)
     {
-        printf("--- %3d : %3d\n", ((uint8_t*)bm_data1.GetData())[i], ((uint8_t*)bm_data2.GetData())[i]);
+        printf("--- %3d : %3d\n", ((uint8_t *)bm_data1.GetData())[i], ((uint8_t *)bm_data2.GetData())[i]);
     }
 }
 
@@ -158,7 +158,7 @@ void PrintPixelData16(const BitmapData &bm_data1, const BitmapData &bm_data2)
 {
     for (size_t i = 0; i < bm_data1.GetDataSize() / 2; ++i)
     {
-        printf("--- %8x : %8x\n", ((uint16_t*)bm_data1.GetData())[i], ((uint16_t*)bm_data2.GetData())[i]);
+        printf("--- %8x : %8x\n", ((uint16_t *)bm_data1.GetData())[i], ((uint16_t *)bm_data2.GetData())[i]);
     }
 }
 
@@ -166,7 +166,7 @@ void PrintPixelData32(const BitmapData &bm_data1, const BitmapData &bm_data2)
 {
     for (size_t i = 0; i < bm_data1.GetDataSize() / 4; ++i)
     {
-        printf("--- %8x : %8x\n", ((uint32_t*)bm_data1.GetData())[i], ((uint32_t*)bm_data2.GetData())[i]);
+        printf("--- %8x : %8x\n", ((uint32_t *)bm_data1.GetData())[i], ((uint32_t *)bm_data2.GetData())[i]);
     }
 }
 
@@ -176,11 +176,14 @@ void TestPixelData4x4(const BitmapData &bm_expect, const BitmapData &bm_result)
     const PxType *expect_p = reinterpret_cast<const PxType *>(bm_expect.GetData());
     const PxType *result_p = reinterpret_cast<const PxType *>(bm_result.GetData());
     for (size_t i = 0; i < 16; ++i)
-        EXPECT_EQ(expect_p[i], result_p[i]) << "[" << i << "]: expect " << expect_p[i] << " (0x" << std::hex << expect_p[i] << ") got " << std::dec << result_p[i] << std::hex << " (0x" << result_p[i] << ")";
+        EXPECT_EQ(expect_p[i], result_p[i])
+            << "[" << i << "]: expect " << expect_p[i] << " (0x" << std::hex << expect_p[i] << ") got " << std::dec
+            << result_p[i] << std::hex << " (0x" << result_p[i] << ")";
 }
 
-PixelBuffer ImportDefault8Sprite(const GameColorSettings *use_color_set, const RoomPaletteCache *room_pal_cache, int room_to_use,
-    GameColorDepth convert_to_depth = kGameColorDepth_Palette, SpriteImportTransparency trans = kSpriteImport_LeaveAsIs)
+PixelBuffer ImportDefault8Sprite(const GameColorSettings *use_color_set, const RoomPaletteCache *room_pal_cache,
+                                 int room_to_use, GameColorDepth convert_to_depth = kGameColorDepth_Palette,
+                                 SpriteImportTransparency trans = kSpriteImport_LeaveAsIs)
 {
     Palette pal;
     PixelBuffer image = GetDefPixels8(pal);
@@ -225,12 +228,14 @@ PixelBuffer ImportDefault8Sprite(const GameColorSettings *use_color_set, const R
     return dest;
 }
 
-PixelBuffer ImportDefault8Sprite(GameColorDepth convert_to_depth = kGameColorDepth_Palette, SpriteImportTransparency trans = kSpriteImport_LeaveAsIs)
+PixelBuffer ImportDefault8Sprite(GameColorDepth convert_to_depth = kGameColorDepth_Palette,
+                                 SpriteImportTransparency trans = kSpriteImport_LeaveAsIs)
 {
     return ImportDefault8Sprite(nullptr, nullptr, -1, convert_to_depth, trans);
 }
 
-PixelBuffer ImportDefault16Sprite(GameColorDepth convert_to_depth = kGameColorDepth_HighColor, SpriteImportTransparency trans = kSpriteImport_LeaveAsIs)
+PixelBuffer ImportDefault16Sprite(GameColorDepth convert_to_depth = kGameColorDepth_HighColor,
+                                  SpriteImportTransparency trans = kSpriteImport_LeaveAsIs)
 {
     auto image = GetDefPixels16();
     PixelBuffer dest;
@@ -249,7 +254,8 @@ PixelBuffer ImportDefault16Sprite(GameColorDepth convert_to_depth = kGameColorDe
     return dest;
 }
 
-PixelBuffer ImportDefault32Sprite(GameColorDepth convert_to_depth = kGameColorDepth_TrueColor, SpriteImportTransparency trans = kSpriteImport_LeaveAsIs)
+PixelBuffer ImportDefault32Sprite(GameColorDepth convert_to_depth = kGameColorDepth_TrueColor,
+                                  SpriteImportTransparency trans = kSpriteImport_LeaveAsIs)
 {
     auto image = GetDefPixels32();
     PixelBuffer dest;
@@ -297,7 +303,7 @@ TEST(SpriteImport, DirectImportConvert8To16)
     EXPECT_EQ(4 * 4 * 2, dest.GetDataSize());
 
     auto image2 = PixelBuffer(4, 4, kPxFmt_R5G6B5);
-    uint16_t *pixels = reinterpret_cast<uint16_t*>(image2.GetData());
+    uint16_t *pixels = reinterpret_cast<uint16_t *>(image2.GetData());
     pixels[0] = makecol16(255, 0, 0);
     pixels[1] = makecol16(0, 255, 0);
     pixels[2] = makecol16(0, 0, 255);
@@ -326,7 +332,7 @@ TEST(SpriteImport, DirectImportConvert8To32)
     EXPECT_EQ(4 * 4 * 4, dest.GetDataSize());
 
     auto image2 = PixelBuffer(4, 4, kPxFmt_A8R8G8B8);
-    uint32_t *pixels = reinterpret_cast<uint32_t*>(image2.GetData());
+    uint32_t *pixels = reinterpret_cast<uint32_t *>(image2.GetData());
     pixels[0] = 0xFFFF0000;
     pixels[1] = 0xFF00FF00;
     pixels[2] = 0xFF0000FF;
@@ -354,16 +360,16 @@ TEST(SpriteImport, DirectImportConvert8To32)
 TEST(SpriteImport, DirectImportConvert8WithAlphaTo32)
 {
     Palette pal;
-    std::fill(pal.begin(), pal.end(), RGB{0,0,0,0});
-    pal[1] = { 255, 0, 0, 255 };
-    pal[2] = { 0, 255, 0, 128 };
-    pal[3] = { 0, 0, 255, 64 };
-    pal[4] = { 255, 255, 255, 255 };
-    pal[5] = { 128, 128, 0, 200 };
-    pal[6] = { 16, 32, 48, 32 };
+    std::fill(pal.begin(), pal.end(), RGB{0, 0, 0, 0});
+    pal[1] = {255, 0, 0, 255};
+    pal[2] = {0, 255, 0, 128};
+    pal[3] = {0, 0, 255, 64};
+    pal[4] = {255, 255, 255, 255};
+    pal[5] = {128, 128, 0, 200};
+    pal[6] = {16, 32, 48, 32};
     const int width = 3;
     const int height = 4;
-    const uint8_t indices[height][width] = { { 1, 2, 3 }, { 4, 5, 6 }, { 0, 6, 1 }, { 3, 0, 5 } };
+    const uint8_t indices[height][width] = {{1, 2, 3}, {4, 5, 6}, {0, 6, 1}, {3, 0, 5}};
     PixelBuffer image(width, height, kPxFmt_Indexed8);
     for (int y = 0; y < height; ++y)
         for (int x = 0; x < width; ++x)
@@ -379,11 +385,10 @@ TEST(SpriteImport, DirectImportConvert8WithAlphaTo32)
     ASSERT_EQ(width * height * 4u, dest.GetDataSize());
 
     // 0xAARRGGBB; the entry with zero alpha becomes the mask color
-    const uint32_t argb[] = { MASK_COLOR_32, 0xFFFF0000, 0x8000FF00, 0x400000FF,
-        0xFFFFFFFF, 0xC8808000, 0x20102030 };
+    const uint32_t argb[] = {MASK_COLOR_32, 0xFFFF0000, 0x8000FF00, 0x400000FF, 0xFFFFFFFF, 0xC8808000, 0x20102030};
     for (int y = 0; y < height; ++y)
     {
-        const uint32_t *line = reinterpret_cast<const uint32_t*>(dest.GetLine(y));
+        const uint32_t *line = reinterpret_cast<const uint32_t *>(dest.GetLine(y));
         for (int x = 0; x < width; ++x)
             EXPECT_EQ(argb[indices[y][x]], line[x]) << "pixel (" << x << ", " << y << ")";
     }
@@ -409,7 +414,7 @@ TEST(SpriteImport, Transparency8LeaveAsIs)
 
     Palette pal2;
     auto image2 = GetDefPixels8(pal2);
-    uint16_t *pixels = reinterpret_cast<uint16_t*>(image2.GetData());
+    uint16_t *pixels = reinterpret_cast<uint16_t *>(image2.GetData());
     /* PrintPixelData8(dest, image2); */
 
     TestPixelData4x4<uint8_t>(image2, dest);
@@ -420,7 +425,7 @@ TEST(SpriteImport, Transparency16LeaveAsIs)
     auto dest = ImportDefault16Sprite(kGameColorDepth_HighColor, kSpriteImport_LeaveAsIs);
 
     auto image2 = GetDefPixels16();
-    uint16_t *pixels = reinterpret_cast<uint16_t*>(image2.GetData());
+    uint16_t *pixels = reinterpret_cast<uint16_t *>(image2.GetData());
     /* PrintPixelData16(dest, image2); */
 
     TestPixelData4x4<uint16_t>(image2, dest);
@@ -433,8 +438,8 @@ TEST(SpriteImport, Transparency32LeaveAsIs)
     auto image2 = GetDefPixels32();
     // Even though the import spec is LeaveAsIs, the conversion replaces
     // any zero-alpha pixels with the mask color (0x00FF00FF)
-    uint32_t *pixels = reinterpret_cast<uint32_t*>(image2.GetData());
-    pixels[1]  = MASK_COLOR_32; // 0x00555555 -> MASK_COLOR_32
+    uint32_t *pixels = reinterpret_cast<uint32_t *>(image2.GetData());
+    pixels[1] = MASK_COLOR_32;  // 0x00555555 -> MASK_COLOR_32
     pixels[10] = MASK_COLOR_32; // 0x00777777 -> MASK_COLOR_32
     pixels[13] = MASK_COLOR_32; // 0x00AAAAAA -> MASK_COLOR_32
     /* PrintPixelData32(dest, image2); */
@@ -448,14 +453,14 @@ TEST(SpriteImport, Transparency32To16LeaveAsIs)
     // and opaque magenta become the 16-bit mask color, while a semi-transparent
     // magenta is kept as a visible near-magenta color.
     PixelBuffer image(4, 4, kPxFmt_A8R8G8B8);
-    uint32_t *src_px = reinterpret_cast<uint32_t*>(image.GetData());
+    uint32_t *src_px = reinterpret_cast<uint32_t *>(image.GetData());
     for (size_t i = 0; i < 16; ++i)
         src_px[i] = 0xFF000000;
     src_px[0] = 0xFFFFFFFF;
-    src_px[1] = 0x00555555; // zero alpha
+    src_px[1] = 0x00555555;    // zero alpha
     src_px[2] = MASK_COLOR_32; // zero alpha magenta
-    src_px[3] = 0xFFFF00FF; // opaque magenta
-    src_px[4] = 0x80FF00FF; // semi-transparent magenta
+    src_px[3] = 0xFFFF00FF;    // opaque magenta
+    src_px[4] = 0x80FF00FF;    // semi-transparent magenta
     src_px[5] = 0xFF4080C0;
 
     PixelBuffer dest;
@@ -468,7 +473,7 @@ TEST(SpriteImport, Transparency32To16LeaveAsIs)
     ASSERT_EQ(kPxFmt_R5G6B5, dest.GetFormat());
 
     PixelBuffer image2(4, 4, kPxFmt_R5G6B5);
-    uint16_t *pixels = reinterpret_cast<uint16_t*>(image2.GetData());
+    uint16_t *pixels = reinterpret_cast<uint16_t *>(image2.GetData());
     for (size_t i = 0; i < 16; ++i)
         pixels[i] = 0;
     pixels[0] = makecol16(255, 255, 255);
@@ -489,7 +494,7 @@ TEST(SpriteImport, Transparency8NoTransparency)
     Palette pal2;
     auto image2 = GetDefPixels8(pal2);
     // Replace color 0 with 16 (alternate black)
-    uint8_t *pixels = reinterpret_cast<uint8_t*>(image2.GetData());
+    uint8_t *pixels = reinterpret_cast<uint8_t *>(image2.GetData());
     pixels[5] = 16;
     pixels[9] = 16;
     /* PrintPixelData8(dest, image2); */
@@ -503,9 +508,9 @@ TEST(SpriteImport, Transparency16NoTransparency)
 
     auto image2 = GetDefPixels16();
     // No transparency import replaces mask color pixels with the nearest color
-    uint16_t *pixels = reinterpret_cast<uint16_t*>(image2.GetData());
-    pixels[2]  = MASK_COLOR_16 - 1;
-    pixels[7]  = MASK_COLOR_16 - 1;
+    uint16_t *pixels = reinterpret_cast<uint16_t *>(image2.GetData());
+    pixels[2] = MASK_COLOR_16 - 1;
+    pixels[7] = MASK_COLOR_16 - 1;
     pixels[14] = MASK_COLOR_16 - 1;
     /* PrintPixelData16(dest, image2); */
 
@@ -519,10 +524,10 @@ TEST(SpriteImport, Transparency32NoTransparency)
     auto image2 = GetDefPixels32();
     // Zero alpha pixels are first replaced with the mask color
     // No transparency import replaces any mask color pixels with the nearest color
-    uint32_t *pixels = reinterpret_cast<uint32_t*>(image2.GetData());
-    pixels[1]  = MASK_COLOR_32 - 1; // 0x00555555 -> MASK_COLOR_32 -> NO TRANS
-    pixels[2]  = MASK_COLOR_32 - 1; // MASK_COLOR_32 -> NO TRANS
-    pixels[7]  = MASK_COLOR_32 - 1; // MASK_COLOR_32 -> NO TRANS
+    uint32_t *pixels = reinterpret_cast<uint32_t *>(image2.GetData());
+    pixels[1] = MASK_COLOR_32 - 1;  // 0x00555555 -> MASK_COLOR_32 -> NO TRANS
+    pixels[2] = MASK_COLOR_32 - 1;  // MASK_COLOR_32 -> NO TRANS
+    pixels[7] = MASK_COLOR_32 - 1;  // MASK_COLOR_32 -> NO TRANS
     pixels[10] = MASK_COLOR_32 - 1; // 0x00777777 -> MASK_COLOR_32 -> NO TRANS
     pixels[13] = MASK_COLOR_32 - 1; // 0x00AAAAAA -> MASK_COLOR_32 -> NO TRANS
     pixels[14] = MASK_COLOR_32 - 1; // MASK_COLOR_32 -> NO TRANS
@@ -539,7 +544,7 @@ TEST(SpriteImport, Transparency8TopLeft)
     auto image2 = GetDefPixels8(pal2);
     // Replace top-left pixel values with 0
     // Replace color 0 with 16 (alternate black)
-    uint8_t *pixels = reinterpret_cast<uint8_t*>(image2.GetData());
+    uint8_t *pixels = reinterpret_cast<uint8_t *>(image2.GetData());
     pixels[0] = 0;
     pixels[5] = 16;
     pixels[9] = 16;
@@ -555,7 +560,7 @@ TEST(SpriteImport, Transparency16TopLeft)
     auto image2 = GetDefPixels16();
     // Pick top-left pixel's value and replace all pixels with this value to the mask color
     // Existing mask color pixels are replaced with zero-alpha black
-    uint16_t *pixels = reinterpret_cast<uint16_t*>(image2.GetData());
+    uint16_t *pixels = reinterpret_cast<uint16_t *>(image2.GetData());
     pixels[0] = MASK_COLOR_16;
     pixels[2] = 0;
     pixels[4] = MASK_COLOR_16;
@@ -574,7 +579,7 @@ TEST(SpriteImport, Transparency32TopLeft)
     auto image2 = GetDefPixels32();
     // Pick top-left pixel's value and replace all pixels with this value to the mask color;
     // Existing mask color pixels (and zero-alpha pixels) are replaced with zero-alpha black
-    uint32_t *pixels = reinterpret_cast<uint32_t*>(image2.GetData());
+    uint32_t *pixels = reinterpret_cast<uint32_t *>(image2.GetData());
     pixels[0] = MASK_COLOR_32;
     pixels[1] = 0;
     pixels[2] = 0;
@@ -597,7 +602,7 @@ TEST(SpriteImport, Transparency8TopRight)
     auto image2 = GetDefPixels8(pal2);
     // Replace top-right pixel values with 0
     // Replace color 0 with 16 (alternate black)
-    uint8_t *pixels = reinterpret_cast<uint8_t*>(image2.GetData());
+    uint8_t *pixels = reinterpret_cast<uint8_t *>(image2.GetData());
     pixels[3] = 0;
     pixels[5] = 16;
     pixels[9] = 16;
@@ -613,7 +618,7 @@ TEST(SpriteImport, Transparency16TopRight)
     auto image2 = GetDefPixels16();
     // Pick top-right pixel's value and replace all pixels with this value to the mask color
     // Existing mask color pixels are replaced with zero-alpha black
-    uint16_t *pixels = reinterpret_cast<uint16_t*>(image2.GetData());
+    uint16_t *pixels = reinterpret_cast<uint16_t *>(image2.GetData());
     pixels[2] = 0;
     pixels[3] = MASK_COLOR_16; // top-right
     pixels[5] = MASK_COLOR_16;
@@ -632,7 +637,7 @@ TEST(SpriteImport, Transparency32TopRight)
     auto image2 = GetDefPixels32();
     // Pick top-right pixel's value and replace all pixels with this value to the mask color;
     // Existing mask color pixels (and zero-alpha pixels) are replaced with zero-alpha black
-    uint32_t *pixels = reinterpret_cast<uint32_t*>(image2.GetData());
+    uint32_t *pixels = reinterpret_cast<uint32_t *>(image2.GetData());
     pixels[1] = 0;
     pixels[2] = 0;
     pixels[3] = MASK_COLOR_32; // top-right
@@ -655,7 +660,7 @@ TEST(SpriteImport, Transparency8BottomLeft)
     auto image2 = GetDefPixels8(pal2);
     // Replace bottom-left pixel values with 0
     // Replace color 0 with 16 (alternate black)
-    uint8_t *pixels = reinterpret_cast<uint8_t*>(image2.GetData());
+    uint8_t *pixels = reinterpret_cast<uint8_t *>(image2.GetData());
     pixels[5] = 16;
     pixels[9] = 16;
     pixels[12] = 0;
@@ -671,7 +676,7 @@ TEST(SpriteImport, Transparency16BottomLeft)
     auto image2 = GetDefPixels16();
     // Pick top-right pixel's value and replace all pixels with this value to the mask color
     // Existing mask color pixels are replaced with zero-alpha black
-    uint16_t *pixels = reinterpret_cast<uint16_t*>(image2.GetData());
+    uint16_t *pixels = reinterpret_cast<uint16_t *>(image2.GetData());
     pixels[2] = 0;
     pixels[6] = MASK_COLOR_16;
     pixels[7] = 0;
@@ -690,7 +695,7 @@ TEST(SpriteImport, Transparency32BottomLeft)
     auto image2 = GetDefPixels32();
     // Pick top-right pixel's value and replace all pixels with this value to the mask color;
     // Existing mask color pixels (and zero-alpha pixels) are replaced with zero-alpha black
-    uint32_t *pixels = reinterpret_cast<uint32_t*>(image2.GetData());
+    uint32_t *pixels = reinterpret_cast<uint32_t *>(image2.GetData());
     pixels[1] = 0;
     pixels[2] = 0;
     pixels[6] = MASK_COLOR_32;
@@ -713,7 +718,7 @@ TEST(SpriteImport, Transparency8BottomRight)
     auto image2 = GetDefPixels8(pal2);
     // Replace bottom-left pixel values with 0
     // Replace color 0 with 16 (alternate black)
-    uint8_t *pixels = reinterpret_cast<uint8_t*>(image2.GetData());
+    uint8_t *pixels = reinterpret_cast<uint8_t *>(image2.GetData());
     pixels[5] = 16;
     pixels[9] = 16;
     pixels[15] = 0;
@@ -729,7 +734,7 @@ TEST(SpriteImport, Transparency16BottomRight)
     auto image2 = GetDefPixels16();
     // Pick top-right pixel's value and replace all pixels with this value to the mask color
     // Existing mask color pixels are replaced with zero-alpha black
-    uint16_t *pixels = reinterpret_cast<uint16_t*>(image2.GetData());
+    uint16_t *pixels = reinterpret_cast<uint16_t *>(image2.GetData());
     pixels[2] = 0;
     pixels[7] = 0;
     pixels[14] = 0;
@@ -746,7 +751,7 @@ TEST(SpriteImport, Transparency32BottomRight)
     auto image2 = GetDefPixels32();
     // Pick top-right pixel's value and replace all pixels with this value to the mask color;
     // Existing mask color pixels (and zero-alpha pixels) are replaced with zero-alpha black
-    uint32_t *pixels = reinterpret_cast<uint32_t*>(image2.GetData());
+    uint32_t *pixels = reinterpret_cast<uint32_t *>(image2.GetData());
     pixels[1] = 0;
     pixels[2] = 0;
     pixels[7] = 0;
@@ -764,23 +769,23 @@ TEST(SpriteImport, Import8RemapToGamePalette)
     // WARNING: remember that Allegro 4's palette operations
     // have 64-color-range precision, so all colors must be multiple of 4
     GameColorSettings color_set;
-    color_set.Palette[0] = { 32, 32, 32 };
-    color_set.Palette[1] = { 64, 64, 64 };
-    color_set.Palette[2] = { 128, 128, 128 };
-    color_set.Palette[3] = { 0, 128, 128 };
-    color_set.Palette[4] = { 128, 0, 128 };
-    color_set.Palette[5] = { 128, 128, 0 };
-    color_set.Palette[6] = { 0, 0, 128 };
-    color_set.Palette[7] = { 0, 128, 0 };
-    color_set.Palette[8] = { 128, 0, 0 };
-    color_set.Palette[9] = { 255, 255, 255 };
-    color_set.Palette[10] = { 0, 255, 255 };
-    color_set.Palette[11] = { 255, 0, 255 };
-    color_set.Palette[12] = { 255, 255, 0 };
-    color_set.Palette[13] = { 0, 0, 255 };
-    color_set.Palette[14] = { 0, 255, 0 };
-    color_set.Palette[15] = { 255, 0, 0 };
-    color_set.Palette[16] = { 0, 0, 0 };
+    color_set.Palette[0] = {32, 32, 32};
+    color_set.Palette[1] = {64, 64, 64};
+    color_set.Palette[2] = {128, 128, 128};
+    color_set.Palette[3] = {0, 128, 128};
+    color_set.Palette[4] = {128, 0, 128};
+    color_set.Palette[5] = {128, 128, 0};
+    color_set.Palette[6] = {0, 0, 128};
+    color_set.Palette[7] = {0, 128, 0};
+    color_set.Palette[8] = {128, 0, 0};
+    color_set.Palette[9] = {255, 255, 255};
+    color_set.Palette[10] = {0, 255, 255};
+    color_set.Palette[11] = {255, 0, 255};
+    color_set.Palette[12] = {255, 255, 0};
+    color_set.Palette[13] = {0, 0, 255};
+    color_set.Palette[14] = {0, 255, 0};
+    color_set.Palette[15] = {255, 0, 0};
+    color_set.Palette[16] = {0, 0, 0};
 
     // Convert to Allegro 4's 16-bit RGB palette
     for (auto &p : color_set.Palette)
@@ -795,17 +800,17 @@ TEST(SpriteImport, Import8RemapToGamePalette)
 
     Palette pal2;
     auto image2 = GetDefPixels8(pal2);
-    uint8_t *pixels = reinterpret_cast<uint8_t*>(image2.GetData());
+    uint8_t *pixels = reinterpret_cast<uint8_t *>(image2.GetData());
     pixels[0] = 15;
     pixels[1] = 14;
     pixels[2] = 13;
     pixels[3] = 12;
     pixels[4] = 11;
-    pixels[5] = 0;  // transparency is always at 0
+    pixels[5] = 0; // transparency is always at 0
     pixels[6] = 9;
     pixels[7] = 8;
     pixels[8] = 7;
-    pixels[9] = 0;  // transparency is always at 0
+    pixels[9] = 0; // transparency is always at 0
     pixels[10] = 5;
     pixels[11] = 4;
     pixels[12] = 3;
@@ -822,23 +827,23 @@ TEST(SpriteImport, Import8RemapToRoomPalette)
     // WARNING: remember that Allegro 4's palette operations
     // have 64-color-range precision, so all colors must be multiple of 4
     GameColorSettings color_set;
-    color_set.Palette[0] = { 32, 32, 32 };
-    color_set.Palette[1] = { 64, 64, 64 };
-    color_set.Palette[2] = { 128, 128, 128 };
-    color_set.Palette[3] = { 0, 128, 128 };
-    color_set.Palette[4] = { 128, 0, 128 };
-    color_set.Palette[5] = { 128, 128, 0 };
-    color_set.Palette[6] = { 0, 0, 128 };
-    color_set.Palette[7] = { 0, 128, 0 };
-    color_set.Palette[8] = { 128, 0, 0 };
-    color_set.Palette[9] = { 255, 255, 255 };
-    color_set.Palette[10] = { 0, 255, 255 };
-    color_set.Palette[11] = { 255, 0, 255 };
-    color_set.Palette[12] = { 255, 255, 0 };
-    color_set.Palette[13] = { 0, 0, 255 };
-    color_set.Palette[14] = { 0, 255, 0 };
-    color_set.Palette[15] = { 255, 0, 0 };
-    color_set.Palette[16] = { 0, 0, 0 };
+    color_set.Palette[0] = {32, 32, 32};
+    color_set.Palette[1] = {64, 64, 64};
+    color_set.Palette[2] = {128, 128, 128};
+    color_set.Palette[3] = {0, 128, 128};
+    color_set.Palette[4] = {128, 0, 128};
+    color_set.Palette[5] = {128, 128, 0};
+    color_set.Palette[6] = {0, 0, 128};
+    color_set.Palette[7] = {0, 128, 0};
+    color_set.Palette[8] = {128, 0, 0};
+    color_set.Palette[9] = {255, 255, 255};
+    color_set.Palette[10] = {0, 255, 255};
+    color_set.Palette[11] = {255, 0, 255};
+    color_set.Palette[12] = {255, 255, 0};
+    color_set.Palette[13] = {0, 0, 255};
+    color_set.Palette[14] = {0, 255, 0};
+    color_set.Palette[15] = {255, 0, 0};
+    color_set.Palette[16] = {0, 0, 0};
     // Give some color slots to the room background
     for (int i = 10; i < PAL_SIZE; ++i)
         color_set.PalUses[i] = kPaletteColourType_Background;
@@ -853,14 +858,14 @@ TEST(SpriteImport, Import8RemapToRoomPalette)
     }
 
     Palette room_palette;
-    std::fill(room_palette.begin(), room_palette.end(), RGB{0,0,0,0});
-    room_palette[10] = { 0, 0, 0 };
-    room_palette[11] = { 255, 0, 0 };
-    room_palette[12] = { 0, 255, 0 };
-    room_palette[13] = { 0, 0, 255 };
-    room_palette[14] = { 255, 255, 0 };
-    room_palette[15] = { 255, 0, 255 };
-    room_palette[16] = { 0, 255, 255 };
+    std::fill(room_palette.begin(), room_palette.end(), RGB{0, 0, 0, 0});
+    room_palette[10] = {0, 0, 0};
+    room_palette[11] = {255, 0, 0};
+    room_palette[12] = {0, 255, 0};
+    room_palette[13] = {0, 0, 255};
+    room_palette[14] = {255, 255, 0};
+    room_palette[15] = {255, 0, 255};
+    room_palette[16] = {0, 255, 255};
 
     // Convert to Allegro 4's 16-bit RGB palette
     for (auto &p : room_palette)
@@ -878,17 +883,17 @@ TEST(SpriteImport, Import8RemapToRoomPalette)
 
     Palette pal2;
     auto image2 = GetDefPixels8(pal2);
-    uint8_t *pixels = reinterpret_cast<uint8_t*>(image2.GetData());
+    uint8_t *pixels = reinterpret_cast<uint8_t *>(image2.GetData());
     pixels[0] = 11;
     pixels[1] = 12;
     pixels[2] = 13;
     pixels[3] = 14;
     pixels[4] = 15;
-    pixels[5] = 0;  // transparency is always at 0
+    pixels[5] = 0; // transparency is always at 0
     pixels[6] = 9;
     pixels[7] = 8;
     pixels[8] = 7;
-    pixels[9] = 0;  // transparency is always at 0
+    pixels[9] = 0; // transparency is always at 0
     pixels[10] = 5;
     pixels[11] = 4;
     pixels[12] = 3;

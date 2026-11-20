@@ -32,10 +32,16 @@ Size get_desktop_size(int display_index);
 // Gets desktop size for the displays that hosts game window
 Size get_desktop_size();
 
-namespace AGS { namespace Engine { class IGfxModeList; }}
-bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, const Size &wanted_size,
-                                 const int color_depth, const Size *ratio_reference, const Size *upper_bound,
-                                 AGS::Engine::DisplayMode &dm, int *mode_index = nullptr);
+namespace AGS
+{
+namespace Engine
+{
+class IGfxModeList;
+}
+} // namespace AGS
+bool find_nearest_supported_mode(const AGS::Engine::IGfxModeList &modes, const Size &wanted_size, const int color_depth,
+                                 const Size *ratio_reference, const Size *upper_bound, AGS::Engine::DisplayMode &dm,
+                                 int *mode_index = nullptr);
 
 
 // The game-to-screen transformation
@@ -49,16 +55,16 @@ extern AGS::Common::PlaneScaling GameScaling;
 // of a config file, and for the setup application.
 enum WindowSizeHint
 {
-    kWndSizeHint_Desktop,       // use current desktop resolution
-    kWndSizeHint_GameNative,    // use native game resolution
-    kWndSizeHint_Explicit,      // explicit size (WxH)
-    kWndSizeHint_GameScale      // as a scale factor of native game res
+    kWndSizeHint_Desktop,    // use current desktop resolution
+    kWndSizeHint_GameNative, // use native game resolution
+    kWndSizeHint_Explicit,   // explicit size (WxH)
+    kWndSizeHint_GameScale   // as a scale factor of native game res
 };
 
 // Filter configuration
 struct GfxFilterSetup
 {
-    String ID;          // filter ID
+    String ID; // filter ID
 };
 
 // Defines how game frame is scaled inside a larger window
@@ -74,65 +80,75 @@ enum FrameScaleDef
 // Configuration that is used to determine the size and style of the window
 struct WindowSetup
 {
-    WindowSizeHint       SizeHint = kWndSizeHint_Explicit;
-    ::Size               Size;      // explicit screen metrics
-    int                  Scale = 0; // explicit game scale factor
-    WindowMode           Mode = AGS::Engine::kWnd_Windowed; // window mode
+    WindowSizeHint SizeHint = kWndSizeHint_Explicit;
+    ::Size Size;                                  // explicit screen metrics
+    int Scale = 0;                                // explicit game scale factor
+    WindowMode Mode = AGS::Engine::kWnd_Windowed; // window mode
 
     inline bool IsDefaultSize() const { return Size.IsNull() && Scale == 0; }
 
     WindowSetup() = default;
     WindowSetup(WindowSizeHint hint, const ::Size &sz, WindowMode mode = AGS::Engine::kWnd_Windowed)
-        : SizeHint(hint), Size(sz), Mode(mode) {}
+        : SizeHint(hint), Size(sz), Mode(mode)
+    {
+    }
     WindowSetup(const ::Size &sz, WindowMode mode = AGS::Engine::kWnd_Windowed)
-        : SizeHint(kWndSizeHint_Explicit), Size(sz), Mode(mode) {}
+        : SizeHint(kWndSizeHint_Explicit), Size(sz), Mode(mode)
+    {
+    }
     WindowSetup(int scale, WindowMode mode = AGS::Engine::kWnd_Windowed)
-        : SizeHint(kWndSizeHint_GameScale), Scale(scale), Mode(mode) {}
+        : SizeHint(kWndSizeHint_GameScale), Scale(scale), Mode(mode)
+    {
+    }
     WindowSetup(WindowMode mode) // Init with mode type only assumes using "desktop resolution"
-        : SizeHint(kWndSizeHint_Desktop), Mode(mode) {}
+        : SizeHint(kWndSizeHint_Desktop), Mode(mode)
+    {
+    }
 };
 
 // Additional parameters for the display mode setup
 struct DisplayParamsEx
 {
-    int  DisplayIndex = 0; // 0-based display index
-    int  RefreshRate = 0;  // gfx mode refresh rate
-    bool VSync = false;    // vertical sync
+    int DisplayIndex = 0; // 0-based display index
+    int RefreshRate = 0;  // gfx mode refresh rate
+    bool VSync = false;   // vertical sync
 
     DisplayParamsEx(int display_index, int rate, bool vsync)
-        : DisplayIndex(display_index), RefreshRate(rate), VSync(vsync) {}
+        : DisplayIndex(display_index), RefreshRate(rate), VSync(vsync)
+    {
+    }
 };
 
 // Full graphics configuration, contains graphics driver selection,
 // alternate settings for windowed and fullscreen modes and gfx filter setup.
 struct DisplayModeSetup
 {
-    String               DriverID;      // graphics driver ID
+    String DriverID; // graphics driver ID
 
     // Definitions for the fullscreen and windowed modes and scaling methods.
     // When the initial display mode is set, corresponding scaling method from this pair is used.
     // The second method is meant to be saved and used if display mode is switched at runtime.
-    WindowSetup          FsSetup;       // definition of the fullscreen mode
-    WindowSetup          WinSetup;      // definition of the windowed mode
-    FrameScaleDef        FsGameFrame =  // how the game frame should be scaled/positioned in fullscreen mode
-                                kFrame_Undefined;
-    FrameScaleDef        WinGameFrame = // how the game frame should be scaled/positioned in windowed mode
-                                kFrame_Undefined;
+    WindowSetup FsSetup;        // definition of the fullscreen mode
+    WindowSetup WinSetup;       // definition of the windowed mode
+    FrameScaleDef FsGameFrame = // how the game frame should be scaled/positioned in fullscreen mode
+        kFrame_Undefined;
+    FrameScaleDef WinGameFrame = // how the game frame should be scaled/positioned in windowed mode
+        kFrame_Undefined;
 
-    bool                 UseDefaultDisplay = true; // used when writing config back
-    int                  DisplayIndex = 0; // 0-based display index
-    bool                 Windowed = false; // initial mode
-    int                  RefreshRate = 0;  // gfx mode refresh rate
-    bool                 VSync = false;    // vertical sync
+    bool UseDefaultDisplay = true; // used when writing config back
+    int DisplayIndex = 0;          // 0-based display index
+    bool Windowed = false;         // initial mode
+    int RefreshRate = 0;           // gfx mode refresh rate
+    bool VSync = false;            // vertical sync
 
-    GfxFilterSetup       Filter;        // graphics filter definition
+    GfxFilterSetup Filter; // graphics filter definition
 };
 
 // Display mode color depth variants suggested for the use
 struct ColorDepthOption
 {
-    int     Bits;   // color depth value in bits
-    bool    Forced; // whether the depth should be forced, or driver's recommendation used
+    int Bits;    // color depth value in bits
+    bool Forced; // whether the depth should be forced, or driver's recommendation used
 
     ColorDepthOption() : Bits(0), Forced(false) {}
     ColorDepthOption(int bits, bool forced = false) : Bits(bits), Forced(forced) {}
@@ -142,22 +158,21 @@ struct ColorDepthOption
 // which is useful if you need to save active settings and reapply them later.
 struct ActiveDisplaySetting
 {
-    DisplayMode     Dm;
-    FrameScaleDef   Frame = kFrame_Undefined;
+    DisplayMode Dm;
+    FrameScaleDef Frame = kFrame_Undefined;
 };
 
 // Initializes any possible gfx mode, using user config as a recommendation;
 // may try all available renderers and modes before succeeding (or failing).
 // Returns result, and sets original desktop size on the used display.
-bool graphics_mode_init_any(const GraphicResolution &game_res, const DisplayModeSetup &setup, const ColorDepthOption &color_depth,
-                            Size *init_desktop_size);
+bool graphics_mode_init_any(const GraphicResolution &game_res, const DisplayModeSetup &setup,
+                            const ColorDepthOption &color_depth, Size *init_desktop_size);
 // Return last saved display mode of the given kind
 ActiveDisplaySetting graphics_mode_get_last_setting(bool windowed);
 // Creates graphics driver of given id
 bool graphics_mode_create_renderer(const String &driver_id);
 // Try to find and initialize compatible display mode as close to given setup as possible
-bool graphics_mode_set_dm_any(const Size &game_size, const WindowSetup &ws,
-                              const ColorDepthOption &color_depth,
+bool graphics_mode_set_dm_any(const Size &game_size, const WindowSetup &ws, const ColorDepthOption &color_depth,
                               const FrameScaleDef frame, const DisplayParamsEx &params);
 // Set the display mode with given parameters
 bool graphics_mode_set_dm(const AGS::Engine::DisplayMode &dm);

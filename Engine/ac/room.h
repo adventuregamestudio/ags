@@ -20,8 +20,8 @@
 #include "script/runtimescriptvalue.h"
 #include "game/roomstruct.h"
 
-ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber);
-ScriptDrawingSurface* Room_GetDrawingSurfaceForMask(RoomAreaMask mask);
+ScriptDrawingSurface *Room_GetDrawingSurfaceForBackground(int backgroundNumber);
+ScriptDrawingSurface *Room_GetDrawingSurfaceForMask(RoomAreaMask mask);
 int Room_GetObjectCount();
 int Room_GetWidth();
 int Room_GetHeight();
@@ -30,7 +30,7 @@ int Room_GetLeftEdge();
 int Room_GetRightEdge();
 int Room_GetTopEdge();
 int Room_GetBottomEdge();
-const char* Room_GetTextProperty(const char *property);
+const char *Room_GetTextProperty(const char *property);
 int Room_GetProperty(const char *property);
 RuntimeScriptValue Sc_Room_GetProperty(const RuntimeScriptValue *params, int32_t param_count);
 ScriptDrawingSurface *GetDrawingSurfaceForWalkableArea();
@@ -40,19 +40,19 @@ ScriptDrawingSurface *Region_GetDrawingSurface();
 
 //=============================================================================
 
-void  save_room_data_segment ();
-void  unload_old_room();
-void  load_new_room(int newnum,CharacterInfo*forchar);
-void  new_room(int newnum,CharacterInfo*forchar);
+void save_room_data_segment();
+void unload_old_room();
+void load_new_room(int newnum, CharacterInfo *forchar);
+void new_room(int newnum, CharacterInfo *forchar);
 // Sets up a placeholder room object; this is used to avoid occasional crashes
 // in case an API function was called that needs to access a room, while no real room is loaded
-void  set_room_placeholder();
-void  first_room_initialization();
-void  check_new_room();
-void  compile_room_script();
-void  on_background_frame_change ();
+void set_room_placeholder();
+void first_room_initialization();
+void check_new_room();
+void compile_room_script();
+void on_background_frame_change();
 // Clear the current room pointer if room status is no longer valid
-void  croom_ptr_clear();
+void croom_ptr_clear();
 
 // Retrieves a DrawingSurface object, connected to the given room background.
 ScriptDrawingSurface *get_room_bg_surface(uint32_t bgindex);
@@ -60,19 +60,19 @@ ScriptDrawingSurface *get_room_bg_surface(uint32_t bgindex);
 ScriptDrawingSurface *get_room_mask_surface(RoomAreaMask mask);
 // Attaches drawing surface handle to the room background.
 // This method is used when unserializing drawing surfaces from the game save.
-void  attach_room_bg_surface(uint32_t bgindex, int surface_handle);
+void attach_room_bg_surface(uint32_t bgindex, int surface_handle);
 // Attaches drawing surface handle to the room mask.
 // This method is used when unserializing drawing surfaces from the game save.
-void  attach_room_mask_surface(RoomAreaMask mask, int surface_handle);
+void attach_room_mask_surface(RoomAreaMask mask, int surface_handle);
 // Detaches all drawing surfaces related to the room background and masks.
 // This invalidates DrawingSurface script object(s), and erases a bg-surface reference.
-void  detach_room_bg_surfaces();
+void detach_room_bg_surfaces();
 // Notifies room that its background's drawing surface was released
-void  on_room_bg_surface_release(uint32_t bgindex, bool modified);
+void on_room_bg_surface_release(uint32_t bgindex, bool modified);
 // Notifies room that its mask's drawing surface was released
-void  on_room_mask_surface_release(RoomAreaMask mask, bool modified);
-void  init_room_pathfinder();
-void  dispose_room_pathfinder();
+void on_room_mask_surface_release(RoomAreaMask mask, bool modified);
+void init_room_pathfinder();
+void dispose_room_pathfinder();
 // Gets current room's pathfinder object
 AGS::Engine::MaskRouteFinder *get_room_pathfinder();
 

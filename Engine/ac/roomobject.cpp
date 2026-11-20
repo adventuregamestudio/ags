@@ -61,21 +61,24 @@ RoomObject::RoomObject()
     UpdateGraphicSpace();
 }
 
-int RoomObject::get_width() const {
+int RoomObject::get_width() const
+{
     // FIXME: don't use global game object here, instead make sure last_width is always valid
     if (width == 0)
         return game.SpriteInfos[num].Width;
     return width;
 }
 
-int RoomObject::get_height() const {
+int RoomObject::get_height() const
+{
     // FIXME: don't use global game object here, instead make sure last_height is always valid
     if (height == 0)
         return game.SpriteInfos[num].Height;
     return height;
 }
 
-int RoomObject::get_baseline() const {
+int RoomObject::get_baseline() const
+{
     if (baseline < 1)
         return y;
     return baseline;
@@ -83,36 +86,45 @@ int RoomObject::get_baseline() const {
 
 void RoomObject::UpdateCyclingView(int ref_id)
 {
-    if (!is_enabled()) return;
+    if (!is_enabled())
+        return;
     if (moving > 0)
     {
         MoveList &mlist = *get_movelist(moving);
         // If we support smooth walk, then keep moving even across multiple stages,
         // until all the "current move" is not depleted OR until we have to turn.
         for (MoveResult mresult = kMoveResult_Continue;
-            ((mresult = do_movelist_move(moving, x, y, mresult == kMoveResult_Continue)) == kMoveResult_NextStage)
-            && !Math::IsFloatZero(mlist.onpart);) { }
+             ((mresult = do_movelist_move(moving, x, y, mresult == kMoveResult_Continue)) == kMoveResult_NextStage) &&
+             !Math::IsFloatZero(mlist.onpart);)
+        {
+        }
 
         if (moving == 0)
             OnStopMoving();
     }
-    if (!is_animating()) return;
-    if (view == RoomObject::NoView) return;
-    if (wait>0) { wait--; return; }
+    if (!is_animating())
+        return;
+    if (view == RoomObject::NoView)
+        return;
+    if (wait > 0)
+    {
+        wait--;
+        return;
+    }
 
     if (!CycleViewAnim(view, loop, frame, anim))
     {
         anim = ViewAnimateParams();
     }
 
-    ViewFrame*vfptr=&views[view].loops[loop].frames[frame];
+    ViewFrame *vfptr = &views[view].loops[loop].frames[frame];
     if (vfptr->pic > UINT16_MAX)
-        debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0",
-            ref_id, vfptr->pic, UINT16_MAX);
+        debug_script_warn("Object's (id %d) sprite %d is outside of internal range (%d), reset to 0", ref_id,
+                          vfptr->pic, UINT16_MAX);
     num = Math::InRangeOrDef<uint16_t>(vfptr->pic, 0);
 
     if (!is_animating())
-      return;
+        return;
 
     wait = anim.Delay + vfptr->speed;
     CheckViewFrame();
@@ -144,15 +156,15 @@ int RoomObject::GetFrameSoundVolume() const
 void RoomObject::CheckViewFrame()
 {
     ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
-    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), audio_panning, audio_speed,
-        objevt, &thisroom.Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
+    ::CheckViewFrame(view, loop, frame, GetFrameSoundVolume(), audio_panning, audio_speed, objevt,
+                     &thisroom.Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
 }
 
 bool RoomObject::RunFrameEvent(int view, int loop, int frame)
 {
     ObjectEvent objevt(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrObj[id], &ccDynamicObject));
-    return ::RunViewFrameEvent(view, loop, frame,
-        objevt, &thisroom.Objects[id].GetEvents(), kRoomObjectEvent_OnFrameEvent);
+    return ::RunViewFrameEvent(view, loop, frame, objevt, &thisroom.Objects[id].GetEvents(),
+                               kRoomObjectEvent_OnFrameEvent);
 }
 
 void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
@@ -176,7 +188,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
     wait = in->ReadInt16();
     moving = in->ReadInt16();
     int legacy_animating = in->ReadInt8(); // legacy animating
-    int anim_delay = in->ReadInt8(); // legacy anim delay (8-bit)
+    int anim_delay = in->ReadInt8();       // legacy anim delay (8-bit)
     if (cmp_ver >= kRoomStatSvgVersion_40003)
     {
         flags = in->ReadInt32();
@@ -186,7 +198,7 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         uint8_t on = in->ReadInt8(); // old enabled + visible flag
         flags = in->ReadInt8();
         // Only treat "on" as visible and make objects from old saves all enabled
-        flags |= OBJF_ENABLED | (OBJF_VISIBLE) * on;
+        flags |= OBJF_ENABLED | (OBJF_VISIBLE)*on;
     }
 
     blocking_width = in->ReadInt16();
@@ -239,12 +251,12 @@ void RoomObject::ReadFromSavegame(Stream *in, int cmp_ver)
         // Reserved for colour options
         in->ReadInt32(); // colour flags
         // Reserved for transform options
-        in->ReadInt32(); // sprite transform flags1
-        in->ReadInt32(); // sprite transform flags2
-        in->ReadInt32(); // transform scale x
-        in->ReadInt32(); // transform scale y
-        in->ReadInt32(); // transform skew x
-        in->ReadInt32(); // transform skew y
+        in->ReadInt32();              // sprite transform flags1
+        in->ReadInt32();              // sprite transform flags2
+        in->ReadInt32();              // transform scale x
+        in->ReadInt32();              // transform scale y
+        in->ReadInt32();              // transform skew x
+        in->ReadInt32();              // transform skew y
         rotation = in->ReadFloat32(); // transform rotate
         float px = in->ReadFloat32(); // sprite pivot x
         float py = in->ReadFloat32(); // sprite pivot y
@@ -380,15 +392,15 @@ void RoomObject::WriteToSavegame(Stream *out) const
     // Reserved for colour options
     out->WriteInt32(0); // colour flags
     // Reserved for transform options
-    out->WriteInt32(0); // sprite transform flags1
-    out->WriteInt32(0); // sprite transform flags2
-    out->WriteInt32(0); // transform scale x
-    out->WriteInt32(0); // transform scale y
-    out->WriteInt32(0); // transform skew x
-    out->WriteInt32(0); // transform skew y
-    out->WriteFloat32(rotation); // transform rotate
-    out->WriteFloat32(pivot.X); // sprite pivot x
-    out->WriteFloat32(pivot.Y); // sprite pivot y
+    out->WriteInt32(0);              // sprite transform flags1
+    out->WriteInt32(0);              // sprite transform flags2
+    out->WriteInt32(0);              // transform scale x
+    out->WriteInt32(0);              // transform scale y
+    out->WriteInt32(0);              // transform skew x
+    out->WriteInt32(0);              // transform skew y
+    out->WriteFloat32(rotation);     // transform rotate
+    out->WriteFloat32(pivot.X);      // sprite pivot x
+    out->WriteFloat32(pivot.Y);      // sprite pivot y
     out->WriteFloat32(spr_anchor.X); // sprite anchor x
     out->WriteFloat32(spr_anchor.Y); // sprite anchor y
     // kRoomStatSvgVersion_40016
@@ -416,12 +428,10 @@ void RoomObject::WriteToSavegame(Stream *out) const
 
 void RoomObject::UpdateGraphicSpace()
 {
-    _gs = GraphicSpace(
-        x, y, spr_anchor, // origin
-        Size(spr_width, spr_height), // source sprite size
-        Size(width, height), // destination size (scaled)
-        // real graphical aabb (maybe with extra offsets)
-        RectWH(frame_xoff + spr_offset.X, frame_yoff + spr_offset.Y, spr_width, spr_height),
-        rotation, pivot, pivot_offset
-    );
+    _gs = GraphicSpace(x, y, spr_anchor,            // origin
+                       Size(spr_width, spr_height), // source sprite size
+                       Size(width, height),         // destination size (scaled)
+                       // real graphical aabb (maybe with extra offsets)
+                       RectWH(frame_xoff + spr_offset.X, frame_yoff + spr_offset.Y, spr_width, spr_height), rotation,
+                       pivot, pivot_offset);
 }

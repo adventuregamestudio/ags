@@ -24,9 +24,9 @@ class D3D11GfxFilter : public ScalingGfxFilter
 public:
     static const GfxFilterInfo FilterInfo;
 
-    const GfxFilterInfo& GetInfo() const;
+    const GfxFilterInfo &GetInfo() const;
     int GetSamplerStateForStandardSprite();
-    void SetSamplerStateForStandardSprite(void* direct3dcontext);
+    void SetSamplerStateForStandardSprite(void *direct3dcontext);
     bool NeedToColourEdgeLines();
 
     // D3D11-specific helper. The AGS-facing interface above remains

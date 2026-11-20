@@ -36,21 +36,21 @@ public:
     GUISlider();
 
     // Properties
-    int  GetMinValue() const { return _minValue; }
+    int GetMinValue() const { return _minValue; }
     void SetMinValue(int minval);
-    int  GetMaxValue() const { return _maxValue; }
+    int GetMaxValue() const { return _maxValue; }
     void SetMaxValue(int maxval);
-    int  GetValue() const { return _value; }
+    int GetValue() const { return _value; }
     void SetValue(int value);
-    int  GetBgImage() const { return _bgImage; }
+    int GetBgImage() const { return _bgImage; }
     void SetBgImage(int image);
-    int  GetHandleColor() const { return _handleColor; }
+    int GetHandleColor() const { return _handleColor; }
     void SetHandleColor(int color);
-    int  GetHandleImage() const { return _handleImage; }
+    int GetHandleImage() const { return _handleImage; }
     void SetHandleImage(int image);
-    int  GetHandleOffset() const { return _handleOffset; }
+    int GetHandleOffset() const { return _handleOffset; }
     void SetHandleOffset(int offset);
-    int  GetBorderShadeColor() const { return _borderShadeColor; }
+    int GetBorderShadeColor() const { return _borderShadeColor; }
     void SetBorderShadeColor(int color);
     // Tells if the slider is horizontal (otherwise - vertical)
     bool IsHorizontal() const;
@@ -99,23 +99,23 @@ private:
     // Script events schema
     static ScriptEventSchema _eventSchema;
 
-    int     _minValue = 0;
-    int     _maxValue = 0;
-    int     _value = 0;
-    int     _bgImage = 0;
-    int     _handleImage = 0;
-    int     _handleOffset = 0;
-    int     _handleColor = 0;
-    int     _borderShadeColor = 0;
-    bool    _isMousePressed = false;
+    int _minValue = 0;
+    int _maxValue = 0;
+    int _value = 0;
+    int _bgImage = 0;
+    int _handleImage = 0;
+    int _handleOffset = 0;
+    int _handleColor = 0;
+    int _borderShadeColor = 0;
+    bool _isMousePressed = false;
     // Cached coordinates of slider bar; in relative coords
-    Rect    _cachedBar;
+    Rect _cachedBar;
     // Cached coordinates of slider handle; in relative coords
-    Rect    _cachedHandle;
+    Rect _cachedHandle;
     // The length of the handle movement range, in pixels
-    int     _handleRange;
+    int _handleRange;
     // Geometric range of the handle, between minimal and maximal position
-    Rect    _handleGraphRange;
+    Rect _handleGraphRange;
 };
 
 } // namespace Common

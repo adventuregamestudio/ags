@@ -17,12 +17,12 @@
 #include "ac/speech.h"
 
 void Display(AGS_FORMAT_STRING_ARG const char *texx, ...) AGS_FORMAT_STRING(1); // applies translation
-void DisplaySimple(const char* text); // does not apply translation
-void DisplayMB(const char* text); // forces standard Display message box
-void DisplayAt(int xxp,int yyp,int widd, const char*text);
-void DisplayAtY (int ypos, const char *texx);
+void DisplaySimple(const char *text);                                           // does not apply translation
+void DisplayMB(const char *text);                                               // forces standard Display message box
+void DisplayAt(int xxp, int yyp, int widd, const char *text);
+void DisplayAtY(int ypos, const char *texx);
 void DisplayTopBar(int ypos, int ttexcol, int backcol, const char *title, const char *text);
 void DisplaySpeechAt(int xx, int yy, int wii, int aschar, const char *spch);
-int  DisplaySpeechBackground(int charid, const char *speel);// [DEPRECATED] but still used by Character_SayBackground
+int DisplaySpeechBackground(int charid, const char *speel); // [DEPRECATED] but still used by Character_SayBackground
 
 #endif // __AGS_EE_AC__GLOBALDISPLAY_H

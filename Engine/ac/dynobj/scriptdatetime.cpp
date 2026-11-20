@@ -19,7 +19,7 @@
 
 using namespace AGS::Common;
 
-int ScriptDateTime::Dispose(void* /*address*/, bool /*force*/)
+int ScriptDateTime::Dispose(void * /*address*/, bool /*force*/)
 {
     // always dispose a DateTime
     delete this;
@@ -50,19 +50,21 @@ ScriptDateTime::ScriptDateTime(const ClockTimePoint &time)
     return sdt;
 }
 
-/* static */ ScriptDateTime *ScriptDateTime::FromFullDate(int year, int month, int day, int hour, int minute, int second)
+/* static */ ScriptDateTime *ScriptDateTime::FromFullDate(int year, int month, int day, int hour, int minute,
+                                                          int second)
 {
     // NOTE: we do not init our calendar fields here directly, and instead
     // go through SetTime, in case the combination of input values does not
     // represent a true date, in which case it may be auto corrected when
     // constructing a time point.
-    std::tm tm = { /* .tm_sec  = */ second,
-                   /* .tm_min  = */ minute,
-                   /* .tm_hour = */ hour,
-                   /* .tm_mday = */ day,
-                   /* .tm_mon  = */ month - 1,
-                   /* .tm_year = */ year - 1900,
-                };
+    std::tm tm = {
+        /* .tm_sec  = */ second,
+        /* .tm_min  = */ minute,
+        /* .tm_hour = */ hour,
+        /* .tm_mday = */ day,
+        /* .tm_mon  = */ month - 1,
+        /* .tm_year = */ year - 1900,
+    };
     tm.tm_isdst = -1; // use DST value from local time zone
     ScriptDateTime *sdt = new ScriptDateTime();
     sdt->SetTime(std::chrono::system_clock::from_time_t(std::mktime(&tm)));
@@ -91,12 +93,12 @@ void ScriptDateTime::SetTime(const ClockTimePoint &time)
     _year = newtime->tm_year + 1900;
 }
 
-size_t ScriptDateTime::CalcSerializeSize(const void* /*address*/)
+size_t ScriptDateTime::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t) * 7;
 }
 
-void ScriptDateTime::Serialize(const void* /*address*/, Stream *out)
+void ScriptDateTime::Serialize(const void * /*address*/, Stream *out)
 {
     out->WriteInt32(_year);
     out->WriteInt32(_month);

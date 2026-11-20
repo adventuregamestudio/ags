@@ -62,7 +62,7 @@ using namespace AGS::Engine;
 
 
 extern RoomStruct thisroom;
-extern int cur_mode,cur_cursor;
+extern int cur_mode, cur_cursor;
 extern std::vector<ScriptGUI> scrGui;
 extern GameSetupStruct game;
 extern IGraphicsDriver *gfxDriver;
@@ -71,8 +71,8 @@ extern CCGUI ccDynamicGUI;
 extern CCGUIControl ccDynamicGUIControl;
 
 
-int ifacepopped=-1;  // currently displayed pop-up GUI (-1 if none)
-int mouse_on_iface=-1;   // mouse cursor is over this interface
+int ifacepopped = -1;    // currently displayed pop-up GUI (-1 if none)
+int mouse_on_iface = -1; // mouse cursor is over this interface
 
 int eip_guinum, eip_guiobj;
 
@@ -188,12 +188,12 @@ void MarkDisabledGUIForUpdate()
     }
 }
 
-} // namespace GUI
+} // namespace GUIE
 } // namespace Engine
 } // namespace AGS
 
 
-ScriptGUI* GUI_AsTextWindow(ScriptGUI *tehgui)
+ScriptGUI *GUI_AsTextWindow(ScriptGUI *tehgui)
 { // Internally both GUI and TextWindow are implemented by same class
     return guis[tehgui->id].IsTextWindow() ? &scrGui[tehgui->id] : nullptr;
 }
@@ -211,7 +211,7 @@ void GUI_SetPopupStyle(ScriptGUI *tehgui, int popup_style)
 
     GUIMain &g = guis[tehgui->id];
     g.SetPopupStyle(static_cast<GUIPopupStyle>(popup_style));
-    
+
     // Conceal or un-conceal when changing to or from PopupAtY
     if (popup_style == kGUIPopupMouseY)
     {
@@ -242,62 +242,74 @@ void GUI_SetPopupStyle(ScriptGUI *tehgui, int popup_style)
     }
 }
 
-void GUI_SetVisible(ScriptGUI *tehgui, int isvisible) {
-  if (isvisible)
-    InterfaceOn(tehgui->id);
-  else
-    InterfaceOff(tehgui->id);
+void GUI_SetVisible(ScriptGUI *tehgui, int isvisible)
+{
+    if (isvisible)
+        InterfaceOn(tehgui->id);
+    else
+        InterfaceOff(tehgui->id);
 }
 
-int GUI_GetVisible(ScriptGUI *tehgui) {
-  return (guis[tehgui->id].IsVisible()) ? 1 : 0;
+int GUI_GetVisible(ScriptGUI *tehgui)
+{
+    return (guis[tehgui->id].IsVisible()) ? 1 : 0;
 }
 
-bool GUI_GetShown(ScriptGUI *tehgui) {
+bool GUI_GetShown(ScriptGUI *tehgui)
+{
     return guis[tehgui->id].IsDisplayed();
 }
 
-int GUI_GetX(ScriptGUI *tehgui) {
+int GUI_GetX(ScriptGUI *tehgui)
+{
     return guis[tehgui->id].GetX();
 }
 
-void GUI_SetX(ScriptGUI *tehgui, int x) {
+void GUI_SetX(ScriptGUI *tehgui, int x)
+{
     guis[tehgui->id].SetX(x);
 }
 
-int GUI_GetY(ScriptGUI *tehgui) {
+int GUI_GetY(ScriptGUI *tehgui)
+{
     return guis[tehgui->id].GetY();
 }
 
-void GUI_SetY(ScriptGUI *tehgui, int y) {
+void GUI_SetY(ScriptGUI *tehgui, int y)
+{
     guis[tehgui->id].SetY(y);
 }
 
-void GUI_SetPosition(ScriptGUI *tehgui, int x, int y) {
+void GUI_SetPosition(ScriptGUI *tehgui, int x, int y)
+{
     guis[tehgui->id].SetPosition(x, y);
 }
 
-void GUI_SetSize(ScriptGUI *sgui, int w, int h) {
-  if ((w < 1) || (h < 1))
-  {
-      debug_script_warn("GUI.SetSize: invalid dimensions (tried to set to %d x %d)", w, h);
-      w = std::max(1, w);
-      h = std::max(1, h);
-  }
+void GUI_SetSize(ScriptGUI *sgui, int w, int h)
+{
+    if ((w < 1) || (h < 1))
+    {
+        debug_script_warn("GUI.SetSize: invalid dimensions (tried to set to %d x %d)", w, h);
+        w = std::max(1, w);
+        h = std::max(1, h);
+    }
 
-  GUIMain *tehgui = &guis[sgui->id];
-  tehgui->SetSize(w, h);
+    GUIMain *tehgui = &guis[sgui->id];
+    tehgui->SetSize(w, h);
 }
 
-int GUI_GetWidth(ScriptGUI *sgui) {
-  return guis[sgui->id].GetWidth();
+int GUI_GetWidth(ScriptGUI *sgui)
+{
+    return guis[sgui->id].GetWidth();
 }
 
-int GUI_GetHeight(ScriptGUI *sgui) {
-  return guis[sgui->id].GetHeight();
+int GUI_GetHeight(ScriptGUI *sgui)
+{
+    return guis[sgui->id].GetHeight();
 }
 
-void GUI_SetWidth(ScriptGUI *sgui, int newwid) {
+void GUI_SetWidth(ScriptGUI *sgui, int newwid)
+{
     if (newwid < 1)
     {
         debug_script_warn("GUI.SetWidth: invalid value (tried to set to %d)", newwid);
@@ -306,7 +318,8 @@ void GUI_SetWidth(ScriptGUI *sgui, int newwid) {
     guis[sgui->id].SetWidth(newwid);
 }
 
-void GUI_SetHeight(ScriptGUI *sgui, int newhit) {
+void GUI_SetHeight(ScriptGUI *sgui, int newhit)
+{
     if (newhit < 1)
     {
         debug_script_warn("GUI.SetHeight: invalid value (tried to set to %d)", newhit);
@@ -315,13 +328,15 @@ void GUI_SetHeight(ScriptGUI *sgui, int newhit) {
     guis[sgui->id].SetHeight(newhit);
 }
 
-void GUI_SetZOrder(ScriptGUI *tehgui, int z) {
-  guis[tehgui->id].SetZOrder(z);
-  update_gui_zorder();
+void GUI_SetZOrder(ScriptGUI *tehgui, int z)
+{
+    guis[tehgui->id].SetZOrder(z);
+    update_gui_zorder();
 }
 
-int GUI_GetZOrder(ScriptGUI *tehgui) {
-  return guis[tehgui->id].GetZOrder();
+int GUI_GetZOrder(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].GetZOrder();
 }
 
 void *GUI_GetGraphicPosition(ScriptGUI *tehgui)
@@ -342,16 +357,19 @@ void *GUI_GetGraphicBoundBox(ScriptGUI *tehgui)
     return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
 }
 
-void GUI_SetClickable(ScriptGUI *tehgui, int clickable) {
-  guis[tehgui->id].SetClickable(clickable != 0);
+void GUI_SetClickable(ScriptGUI *tehgui, int clickable)
+{
+    guis[tehgui->id].SetClickable(clickable != 0);
 }
 
-int GUI_GetClickable(ScriptGUI *tehgui) {
-  return guis[tehgui->id].IsClickable() ? 1 : 0;
+int GUI_GetClickable(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].IsClickable() ? 1 : 0;
 }
 
-int GUI_GetID(ScriptGUI *tehgui) {
-  return tehgui->id;
+int GUI_GetID(ScriptGUI *tehgui)
+{
+    return tehgui->id;
 }
 
 const char *GUI_GetScriptName(ScriptGUI *tehgui)
@@ -359,14 +377,16 @@ const char *GUI_GetScriptName(ScriptGUI *tehgui)
     return CreateNewScriptString(guis[tehgui->id].GetName());
 }
 
-GUIControl* GUI_GetiControls(ScriptGUI *tehgui, int idx) {
-  if ((idx < 0) || (idx >= guis[tehgui->id].GetControlCount()))
-    return nullptr;
-  return guis[tehgui->id].GetControl(idx);
+GUIControl *GUI_GetiControls(ScriptGUI *tehgui, int idx)
+{
+    if ((idx < 0) || (idx >= guis[tehgui->id].GetControlCount()))
+        return nullptr;
+    return guis[tehgui->id].GetControl(idx);
 }
 
-int GUI_GetControlCount(ScriptGUI *tehgui) {
-  return guis[tehgui->id].GetControlCount();
+int GUI_GetControlCount(ScriptGUI *tehgui)
+{
+    return guis[tehgui->id].GetControlCount();
 }
 
 int GUI_GetPopupYPos(ScriptGUI *tehgui)
@@ -380,22 +400,25 @@ void GUI_SetPopupYPos(ScriptGUI *tehgui, int newpos)
         guis[tehgui->id].SetPopupAtY(newpos);
 }
 
-void GUI_SetTransparency(ScriptGUI *tehgui, int trans) {
-  if ((trans < 0) | (trans > 100))
-    quit("!SetGUITransparency: transparency value must be between 0 and 100");
+void GUI_SetTransparency(ScriptGUI *tehgui, int trans)
+{
+    if ((trans < 0) | (trans > 100))
+        quit("!SetGUITransparency: transparency value must be between 0 and 100");
 
-  guis[tehgui->id].SetTransparencyAsPercentage(trans);
+    guis[tehgui->id].SetTransparencyAsPercentage(trans);
 }
 
-int GUI_GetTransparency(ScriptGUI *tehgui) {
-  return GfxDef::LegacyTrans255ToTrans100(guis[tehgui->id].GetTransparency());
+int GUI_GetTransparency(ScriptGUI *tehgui)
+{
+    return GfxDef::LegacyTrans255ToTrans100(guis[tehgui->id].GetTransparency());
 }
 
-void GUI_Centre(ScriptGUI *sgui) {
-  GUIMain *tehgui = &guis[sgui->id];
-  int x = play.GetUIViewport().GetWidth() / 2 - tehgui->GetWidth() / 2;
-  int y = play.GetUIViewport().GetHeight() / 2 - tehgui->GetHeight() / 2;
-  tehgui->SetPosition(x, y);
+void GUI_Centre(ScriptGUI *sgui)
+{
+    GUIMain *tehgui = &guis[sgui->id];
+    int x = play.GetUIViewport().GetWidth() / 2 - tehgui->GetWidth() / 2;
+    int y = play.GetUIViewport().GetHeight() / 2 - tehgui->GetHeight() / 2;
+    tehgui->SetPosition(x, y);
 }
 
 void GUI_SetBackgroundGraphic(ScriptGUI *tehgui, int slotn)
@@ -464,50 +487,42 @@ void GUI_SetTextPadding(ScriptGUI *tehgui, int newpos)
 
 int GUI_GetLeftGraphic(ScriptGUI *tehgui)
 {
-    return guis[tehgui->id].IsTextWindow() ?
-        get_but_pic(&guis[tehgui->id], kTW_Left) : 0;
+    return guis[tehgui->id].IsTextWindow() ? get_but_pic(&guis[tehgui->id], kTW_Left) : 0;
 }
 
 int GUI_GetTopLeftGraphic(ScriptGUI *tehgui)
 {
-    return guis[tehgui->id].IsTextWindow() ?
-        get_but_pic(&guis[tehgui->id], kTW_TopLeft) : 0;
+    return guis[tehgui->id].IsTextWindow() ? get_but_pic(&guis[tehgui->id], kTW_TopLeft) : 0;
 }
 
 int GUI_GetTopGraphic(ScriptGUI *tehgui)
 {
-    return guis[tehgui->id].IsTextWindow() ?
-        get_but_pic(&guis[tehgui->id], kTW_Top) : 0;
+    return guis[tehgui->id].IsTextWindow() ? get_but_pic(&guis[tehgui->id], kTW_Top) : 0;
 }
 
 int GUI_GetTopRightGraphic(ScriptGUI *tehgui)
 {
-    return guis[tehgui->id].IsTextWindow() ?
-        get_but_pic(&guis[tehgui->id], kTW_TopRight) : 0;
+    return guis[tehgui->id].IsTextWindow() ? get_but_pic(&guis[tehgui->id], kTW_TopRight) : 0;
 }
 
 int GUI_GetRightGraphic(ScriptGUI *tehgui)
 {
-    return guis[tehgui->id].IsTextWindow() ?
-        get_but_pic(&guis[tehgui->id], kTW_Right) : 0;
+    return guis[tehgui->id].IsTextWindow() ? get_but_pic(&guis[tehgui->id], kTW_Right) : 0;
 }
 
 int GUI_GetBottomRightGraphic(ScriptGUI *tehgui)
 {
-    return guis[tehgui->id].IsTextWindow() ?
-        get_but_pic(&guis[tehgui->id], kTW_BottomRight) : 0;
+    return guis[tehgui->id].IsTextWindow() ? get_but_pic(&guis[tehgui->id], kTW_BottomRight) : 0;
 }
 
 int GUI_GetBottomGraphic(ScriptGUI *tehgui)
 {
-    return guis[tehgui->id].IsTextWindow() ?
-        get_but_pic(&guis[tehgui->id], kTW_Bottom) : 0;
+    return guis[tehgui->id].IsTextWindow() ? get_but_pic(&guis[tehgui->id], kTW_Bottom) : 0;
 }
 
 int GUI_GetBottomLeftGraphic(ScriptGUI *tehgui)
 {
-    return guis[tehgui->id].IsTextWindow() ?
-        get_but_pic(&guis[tehgui->id], kTW_BottomLeft) : 0;
+    return guis[tehgui->id].IsTextWindow() ? get_but_pic(&guis[tehgui->id], kTW_BottomLeft) : 0;
 }
 
 int GetGUIAt(int x, int y, int hit_options)
@@ -521,7 +536,7 @@ int GetGUIAt(int x, int y, int hit_options)
             // test in the GUI's own coordinates, which account for its scale and rotation
             const Point local = guis[*g].GetGraphicSpace().WorldToLocal(x, y);
             if ((only_clickable && guis[*g].IsInteractableAt(x, y) ||
-                (!only_clickable && RectWH(guis[*g].GetSize()).IsInside(local))))
+                 (!only_clickable && RectWH(guis[*g].GetSize()).IsInside(local))))
             {
                 return *g;
             }
@@ -559,17 +574,19 @@ void GUI_ProcessClick(int x, int y, int mbut)
     }
 }
 
-int GUI_GetBlendMode(ScriptGUI *gui) {
+int GUI_GetBlendMode(ScriptGUI *gui)
+{
     return guis[gui->id].GetBlendMode();
 }
 
-void GUI_SetBlendMode(ScriptGUI *gui, int blend_mode) {
+void GUI_SetBlendMode(ScriptGUI *gui, int blend_mode)
+{
     guis[gui->id].SetBlendMode(ValidateBlendMode("GUI.BlendMode", guis[gui->id].GetName().GetCStr(), blend_mode));
 }
 
 ScriptShaderInstance *GUI_GetShader(ScriptGUI *gui)
 {
-    return static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(guis[gui->id].GetShaderHandle()));
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(guis[gui->id].GetShaderHandle()));
 }
 
 void GUI_SetShader(ScriptGUI *gui, ScriptShaderInstance *shader_inst)
@@ -579,31 +596,38 @@ void GUI_SetShader(ScriptGUI *gui, ScriptShaderInstance *shader_inst)
                    ccReplaceObjectHandle(guim.GetShaderHandle(), shader_inst));
 }
 
-float GUI_GetRotation(ScriptGUI *gui) {
+float GUI_GetRotation(ScriptGUI *gui)
+{
     return guis[gui->id].GetRotation();
 }
 
-void GUI_SetRotation(ScriptGUI *gui, float rotation) {
+void GUI_SetRotation(ScriptGUI *gui, float rotation)
+{
     guis[gui->id].SetRotation(rotation);
 }
 
-float GUI_GetScaleX(ScriptGUI *gui) {
+float GUI_GetScaleX(ScriptGUI *gui)
+{
     return guis[gui->id].GetScale().X;
 }
 
-void GUI_SetScaleX(ScriptGUI *gui, float scalex) {
+void GUI_SetScaleX(ScriptGUI *gui, float scalex)
+{
     guis[gui->id].SetScale(scalex, guis[gui->id].GetScale().Y);
 }
 
-float GUI_GetScaleY(ScriptGUI *gui) {
+float GUI_GetScaleY(ScriptGUI *gui)
+{
     return guis[gui->id].GetScale().Y;
 }
 
-void GUI_SetScaleY(ScriptGUI *gui, float scaley) {
+void GUI_SetScaleY(ScriptGUI *gui, float scaley)
+{
     guis[gui->id].SetScale(guis[gui->id].GetScale().X, scaley);
 }
 
-void GUI_SetScale(ScriptGUI *gui, float scalex, float scaley) {
+void GUI_SetScale(ScriptGUI *gui, float scalex, float scaley)
+{
     guis[gui->id].SetScale(scalex, scaley);
 }
 
@@ -612,7 +636,7 @@ int GUI_GetProperty(ScriptGUI *gui, const char *property)
     return get_int_property(game.guiProps[gui->id], play.guiProps[gui->id], property);
 }
 
-const char* GUI_GetTextProperty(ScriptGUI *gui, const char *property)
+const char *GUI_GetTextProperty(ScriptGUI *gui, const char *property)
 {
     return get_text_property_dynamic_string(game.guiProps[gui->id], play.guiProps[gui->id], property);
 }
@@ -629,24 +653,27 @@ bool GUI_SetTextProperty(ScriptGUI *gui, const char *property, const char *value
 
 //=============================================================================
 
-void remove_popup_interface(int ifacenum) {
-    if (ifacepopped != ifacenum) return;
-    ifacepopped=-1;
+void remove_popup_interface(int ifacenum)
+{
+    if (ifacepopped != ifacenum)
+        return;
+    ifacepopped = -1;
     UnPauseGame();
     guis[ifacenum].SetConceal(true);
-    if (play.mouse_input_enabled && mousey<=guis[ifacenum].GetPopupAtY())
-        Mouse::SetPosition(Point(mousex, guis[ifacenum].GetPopupAtY() +2));
+    if (play.mouse_input_enabled && mousey <= guis[ifacenum].GetPopupAtY())
+        Mouse::SetPosition(Point(mousex, guis[ifacenum].GetPopupAtY() + 2));
     if ((!IsInterfaceEnabled()) && (cur_cursor == cur_mode))
         // Only change the mouse cursor if it hasn't been specifically changed first
         set_cursor_look(game.GetModeWait());
     else if (IsInterfaceEnabled())
         set_default_cursor_look();
 
-    if (ifacenum==mouse_on_iface) mouse_on_iface=-1;
+    if (ifacenum == mouse_on_iface)
+        mouse_on_iface = -1;
 }
 
-static void run_control_event(GUIControl *control, const String &script_module, int evt_index,
-                              int mb_param, bool do_interface_click)
+static void run_control_event(GUIControl *control, const String &script_module, int evt_index, int mb_param,
+                              bool do_interface_click)
 {
     // If the object has a special handler script then run it;
     // otherwise, run interface_click
@@ -659,19 +686,19 @@ static void run_control_event(GUIControl *control, const String &script_module, 
         const ScriptFunctionRef fn_ref(script_module, control->GetEvents().GetHandler(evt_index).FunctionName);
         if (mb_param >= 0)
         {
-            RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(control, &ccDynamicGUIControl),
-                RuntimeScriptValue().SetInt32(mb_param) };
+            RuntimeScriptValue params[]{RuntimeScriptValue().SetScriptObject(control, &ccDynamicGUIControl),
+                                        RuntimeScriptValue().SetInt32(mb_param)};
             RunScriptFunctionAuto(kScTypeGame, fn_ref, 2, params);
         }
         else
         {
-            RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(control, &ccDynamicGUIControl) };
+            RuntimeScriptValue params[]{RuntimeScriptValue().SetScriptObject(control, &ccDynamicGUIControl)};
             RunScriptFunctionAuto(kScTypeGame, fn_ref, 1, params);
         }
     }
     else if (do_interface_click)
     {
-        RuntimeScriptValue params[]{ control->GetParentID(), control->GetID() };
+        RuntimeScriptValue params[]{control->GetParentID(), control->GetID()};
         RunScriptFunctionAuto(kScTypeGame, "interface_click", 2, params);
     }
 }
@@ -682,9 +709,10 @@ void process_interface_click(int ifce, int btn, int mbut)
     if (btn < 0)
     {
         // click on GUI background
-        RuntimeScriptValue params[]{ RuntimeScriptValue().SetScriptObject(&scrGui[ifce], &ccDynamicGUI),
-            RuntimeScriptValue().SetInt32(mbut) };
-        TryRunScriptHandler(kScTypeGame, gui.GetScriptModule(), gui.GetEvents().GetHandler(kGUIEvent_OnClick), 2, params);
+        RuntimeScriptValue params[]{RuntimeScriptValue().SetScriptObject(&scrGui[ifce], &ccDynamicGUI),
+                                    RuntimeScriptValue().SetInt32(mbut)};
+        TryRunScriptHandler(kScTypeGame, gui.GetScriptModule(), gui.GetEvents().GetHandler(kGUIEvent_OnClick), 2,
+                            params);
         return;
     }
 
@@ -697,30 +725,20 @@ void process_interface_click(int ifce, int btn, int mbut)
     switch (ctrl_type)
     {
     case kGUIButton:
+    {
+        const GUIButton *but = dynamic_cast<GUIButton *>(control);
+        GUIClickAction action_type = but->GetClickAction(kGUIClickLeft);
+        switch (action_type)
         {
-            const GUIButton *but = dynamic_cast<GUIButton*>(control);
-            GUIClickAction action_type = but->GetClickAction(kGUIClickLeft);
-            switch (action_type)
-            {
-            case kGUIAction_SetMode:
-                set_cursor_mode(but->GetClickData(kGUIClickLeft));
-                break;
-            case kGUIAction_RunScript:
-                run_control_event(control, gui.GetScriptModule(), kButtonEvent_OnClick, mbut, true);
-            default:
-                break;
-            }
+        case kGUIAction_SetMode: set_cursor_mode(but->GetClickData(kGUIClickLeft)); break;
+        case kGUIAction_RunScript: run_control_event(control, gui.GetScriptModule(), kButtonEvent_OnClick, mbut, true);
+        default: break;
         }
-        break;
-    case kGUIListBox:
-        run_control_event(control, gui.GetScriptModule(), kListBoxEvent_OnSelChanged, -1, true);
-        break;
-    case kGUISlider:
-        run_control_event(control, gui.GetScriptModule(), kSliderEvent_OnChange, -1, true);
-        break;
-    case kGUITextBox:
-        run_control_event(control, gui.GetScriptModule(), kTextBoxEvent_OnActivate, -1, true);
-        break;
+    }
+    break;
+    case kGUIListBox: run_control_event(control, gui.GetScriptModule(), kListBoxEvent_OnSelChanged, -1, true); break;
+    case kGUISlider: run_control_event(control, gui.GetScriptModule(), kSliderEvent_OnChange, -1, true); break;
+    case kGUITextBox: run_control_event(control, gui.GetScriptModule(), kTextBoxEvent_OnActivate, -1, true); break;
     default:
         assert(false); // should not happen
         break;
@@ -730,7 +748,7 @@ void process_interface_click(int ifce, int btn, int mbut)
 bool sort_gui_less(const int g1, const int g2)
 {
     return (guis[g1].GetZOrder() < guis[g2].GetZOrder()) ||
-        ((guis[g1].GetZOrder() == guis[g2].GetZOrder()) && (g1 < g2));
+           ((guis[g1].GetZOrder() == guis[g2].GetZOrder()) && (g1 < g2));
 }
 
 void update_gui_zorder()
@@ -776,7 +794,7 @@ void prepare_gui_runtime(bool startup)
             if (gui.GetBgImage() > 0)
                 add_sprite_changed_callback(gui.GetBgImage(), &gui);
         }
-        for (auto& btn : guibuts)
+        for (auto &btn : guibuts)
         {
             if (btn.GetNormalImage() > 0)
                 add_sprite_changed_callback(btn.GetNormalImage(), &btn);
@@ -785,7 +803,7 @@ void prepare_gui_runtime(bool startup)
             if (btn.GetMouseOverImage() > 0)
                 add_sprite_changed_callback(btn.GetMouseOverImage(), &btn);
         }
-        for (auto& sld : guislider)
+        for (auto &sld : guislider)
         {
             if (sld.GetBgImage() > 0)
                 add_sprite_changed_callback(sld.GetBgImage(), &sld);
@@ -805,14 +823,14 @@ void update_gui_disabled_status()
 {
     // update GUI display status (perhaps we've gone into an interface disabled state)
     const GuiDisableStyle disabled_state_was = GUI::Context.DisabledState;
-    GUI::Context.DisabledState = IsInterfaceEnabled() ?
-        kGuiDis_Undefined : GUI::Options.DisabledStyle;
+    GUI::Context.DisabledState = IsInterfaceEnabled() ? kGuiDis_Undefined : GUI::Options.DisabledStyle;
 
     if (disabled_state_was != GUI::Context.DisabledState)
     {
         // Mark guis for redraw and reset control-under-mouse detection
-        const bool keep_visuals = (disabled_state_was == kGuiDis_Undefined || disabled_state_was == kGuiDis_Unchanged)
-            && (GUI::Context.DisabledState == kGuiDis_Undefined || GUI::Context.DisabledState == kGuiDis_Unchanged);
+        const bool keep_visuals =
+            (disabled_state_was == kGuiDis_Undefined || disabled_state_was == kGuiDis_Unchanged) &&
+            (GUI::Context.DisabledState == kGuiDis_Undefined || GUI::Context.DisabledState == kGuiDis_Unchanged);
         GUIE::MarkAllGUIForUpdate(!keep_visuals, true);
         if (!keep_visuals)
         {
@@ -834,8 +852,7 @@ static bool should_skip_adjust_for_gui(const GUIMain &gui)
 
 int adjust_x_for_guis(int x, int y, bool assume_blocking)
 {
-    if ((GUI::Options.DisabledStyle == kGuiDis_Off) &&
-        (!IsInterfaceEnabled() || assume_blocking))
+    if ((GUI::Options.DisabledStyle == kGuiDis_Off) && (!IsInterfaceEnabled() || assume_blocking))
         return x; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it right a bit
     // FIXME: should not we also account for the text's width here?
@@ -862,8 +879,7 @@ int adjust_x_for_guis(int x, int y, bool assume_blocking)
 
 int adjust_y_for_guis(int y, bool assume_blocking)
 {
-    if ((GUI::Options.DisabledStyle == kGuiDis_Off) &&
-        (!IsInterfaceEnabled() || assume_blocking))
+    if ((GUI::Options.DisabledStyle == kGuiDis_Off) && (!IsInterfaceEnabled() || assume_blocking))
         return y; // All GUI off (or will be when the message is displayed)
     // If it's covered by a GUI, move it down a bit
     // FIXME: should not we also account for the text's height here?
@@ -896,7 +912,8 @@ int gui_on_mouse_move(const int mx, const int my)
 {
     int mouse_over_gui = -1;
     // If all GUIs are off, skip the loop
-    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0)) ;
+    if ((game.options[OPT_DISABLEOFF] == kGuiDis_Off) && (GUI::Context.DisabledState >= 0))
+        ;
     else
     {
         // Scan for mouse-y-pos GUIs, and pop one up if appropriate
@@ -905,20 +922,26 @@ int gui_on_mouse_move(const int mx, const int my)
         // from farthest to nearest (this was in original code?)
         for (int guin : play.gui_draw_order)
         {
-            if (guis[guin].IsInteractableAt(mx, my)) mouse_over_gui=guin;
+            if (guis[guin].IsInteractableAt(mx, my))
+                mouse_over_gui = guin;
 
-            if (guis[guin].GetPopupStyle()!=kGUIPopupMouseY) continue;
-            if (play.complete_overlay_on > 0) break;  // interfaces disabled
-            if (ifacepopped==guin) continue;
-            if (!guis[guin].IsVisible()) continue;
+            if (guis[guin].GetPopupStyle() != kGUIPopupMouseY)
+                continue;
+            if (play.complete_overlay_on > 0)
+                break; // interfaces disabled
+            if (ifacepopped == guin)
+                continue;
+            if (!guis[guin].IsVisible())
+                continue;
             // Don't allow it to be popped up while skipping cutscene
-            if (play.fast_forward) continue;
+            if (play.fast_forward)
+                continue;
 
             if (mousey < guis[guin].GetPopupAtY())
             {
                 set_cursor_look(game.GetModePointer());
                 guis[guin].SetConceal(false);
-                ifacepopped=guin;
+                ifacepopped = guin;
                 PauseGame();
                 break;
             }
@@ -984,7 +1007,7 @@ void gui_on_mouse_up(const int wasongui, const int wasbutdown, const int mx, con
             click_handled = true;
             Point guipt = gui.GetGraphicSpace().WorldToLocal(mx, my);
             Point gobjpt = guio->GetGraphicSpace().WorldToLocal(guipt.X, guipt.Y);
-            int iit = InvWindow_GetItemAtXY((GUIInvWindow*)guio, gobjpt.X, gobjpt.Y);
+            int iit = InvWindow_GetItemAtXY((GUIInvWindow *)guio, gobjpt.X, gobjpt.Y);
             if (iit >= 0)
             {
                 play.used_inv_on = iit;
@@ -1032,8 +1055,7 @@ void gui_on_mouse_down(const int guin, const int mbut, const int mx, const int m
     if (over_ctrl >= 0)
     {
         // NOTE: we make exception for InvWindow control, as it has a special action for RMB
-        if (gui_control_should_handle_button(mbut) ||
-            (guis[guin].GetControlType(over_ctrl) == kGUIInvWindow))
+        if (gui_control_should_handle_button(mbut) || (guis[guin].GetControlType(over_ctrl) == kGUIInvWindow))
         {
             guis[guin].OnMouseButtonDown(mx, my);
         }
@@ -1062,7 +1084,7 @@ GUITextBox *gui_get_active_textbox()
         {
             if (gui.GetControlType(i) == kGUITextBox)
             {
-                auto *guitex = static_cast<GUITextBox*>(gui.GetControl(i));
+                auto *guitex = static_cast<GUITextBox *>(gui.GetControl(i));
                 if (guitex && guitex->IsEnabled() && guitex->IsVisible())
                     return guitex;
             }
@@ -1086,7 +1108,7 @@ GUITextBox *gui_get_active_textbox()
 
 ScriptGUI *GUI_GetByName(const char *name)
 {
-    return static_cast<ScriptGUI*>(ccGetScriptObjectAddress(name, ccDynamicGUI.GetType()));
+    return static_cast<ScriptGUI *>(ccGetScriptObjectAddress(name, ccDynamicGUI.GetType()));
 }
 
 GUITextBox *GUI_GetActiveTextInputControl()
@@ -1503,85 +1525,85 @@ RuntimeScriptValue Sc_GUI_GetBottomLeftGraphic(void *self, const RuntimeScriptVa
 void RegisterGUIAPI()
 {
     ScFnRegister gui_api[] = {
-        { "GUI::GetAtScreenXY^2",         API_FN_PAIR(GUI_GetAtScreenXY2) },
-        { "GUI::GetAtScreenXY^3",         API_FN_PAIR(GUI_GetAtScreenXY) },
+        {"GUI::GetAtScreenXY^2", API_FN_PAIR(GUI_GetAtScreenXY2)},
+        {"GUI::GetAtScreenXY^3", API_FN_PAIR(GUI_GetAtScreenXY)},
         // [OBSOLETE] GetByName => GetByScriptName
-        { "GUI::GetByName^1",             API_FN_PAIR(GUI_GetByName) },
-        { "GUI::GetByScriptName^1",       API_FN_PAIR(GUI_GetByName) },
-        { "GUI::GetActiveTextInputControl^0", API_FN_PAIR(GUI_GetActiveTextInputControl) },
-        { "GUI::ProcessClick^3",          API_FN_PAIR(GUI_ProcessClick) },
-        { "GUI::ScreenToGUIPoint",        API_FN_PAIR(GUI_ScreenToGUIPoint) },
-        { "GUI::GUIToScreenPoint",        API_FN_PAIR(GUI_GUIToScreenPoint) },
+        {"GUI::GetByName^1", API_FN_PAIR(GUI_GetByName)},
+        {"GUI::GetByScriptName^1", API_FN_PAIR(GUI_GetByName)},
+        {"GUI::GetActiveTextInputControl^0", API_FN_PAIR(GUI_GetActiveTextInputControl)},
+        {"GUI::ProcessClick^3", API_FN_PAIR(GUI_ProcessClick)},
+        {"GUI::ScreenToGUIPoint", API_FN_PAIR(GUI_ScreenToGUIPoint)},
+        {"GUI::GUIToScreenPoint", API_FN_PAIR(GUI_GUIToScreenPoint)},
 
-        { "GUI::Centre^0",                API_FN_PAIR(GUI_Centre) },
-        { "GUI::Click^1",                 API_FN_PAIR(GUI_Click) },
-        { "GUI::SetPosition^2",           API_FN_PAIR(GUI_SetPosition) },
-        { "GUI::SetSize^2",               API_FN_PAIR(GUI_SetSize) },
-        { "GUI::GetGraphicPosition^0",    API_FN_PAIR(GUI_GetGraphicPosition) },
-        { "GUI::GetGraphicBoundBox^0",    API_FN_PAIR(GUI_GetGraphicBoundBox) },
-        { "GUI::GetProperty^1",           API_FN_PAIR(GUI_GetProperty) },
-        { "GUI::GetTextProperty^1",       API_FN_PAIR(GUI_GetTextProperty) },
-        { "GUI::SetProperty^2",           API_FN_PAIR(GUI_SetProperty) },
-        { "GUI::SetTextProperty^2",       API_FN_PAIR(GUI_SetTextProperty) },
-        { "GUI::get_BackgroundGraphic",   API_FN_PAIR(GUI_GetBackgroundGraphic) },
-        { "GUI::set_BackgroundGraphic",   API_FN_PAIR(GUI_SetBackgroundGraphic) },
-        { "GUI::get_BackgroundColor",     API_FN_PAIR(GUI_GetBackgroundColor) },
-        { "GUI::set_BackgroundColor",     API_FN_PAIR(GUI_SetBackgroundColor) },
-        { "GUI::get_BorderColor",         API_FN_PAIR(GUI_GetBorderColor) },
-        { "GUI::set_BorderColor",         API_FN_PAIR(GUI_SetBorderColor) },
-        { "GUI::get_Clickable",           API_FN_PAIR(GUI_GetClickable) },
-        { "GUI::set_Clickable",           API_FN_PAIR(GUI_SetClickable) },
-        { "GUI::get_ControlCount",        API_FN_PAIR(GUI_GetControlCount) },
-        { "GUI::geti_Controls",           API_FN_PAIR(GUI_GetiControls) },
-        { "GUI::get_Height",              API_FN_PAIR(GUI_GetHeight) },
-        { "GUI::set_Height",              API_FN_PAIR(GUI_SetHeight) },
-        { "GUI::get_ID",                  API_FN_PAIR(GUI_GetID) },
-        { "GUI::get_AsTextWindow",        API_FN_PAIR(GUI_AsTextWindow) },
-        { "GUI::get_PopupStyle",          API_FN_PAIR(GUI_GetPopupStyle) },
-        { "GUI::set_PopupStyle",          API_FN_PAIR(GUI_SetPopupStyle) },
-        { "GUI::get_PopupYPos",           API_FN_PAIR(GUI_GetPopupYPos) },
-        { "GUI::set_PopupYPos",           API_FN_PAIR(GUI_SetPopupYPos) },
-        { "GUI::get_ScriptName",          API_FN_PAIR(GUI_GetScriptName) },
-        { "GUI::get_Transparency",        API_FN_PAIR(GUI_GetTransparency) },
-        { "GUI::set_Transparency",        API_FN_PAIR(GUI_SetTransparency) },
-        { "GUI::get_Visible",             API_FN_PAIR(GUI_GetVisible) },
-        { "GUI::set_Visible",             API_FN_PAIR(GUI_SetVisible) },
-        { "GUI::get_Width",               API_FN_PAIR(GUI_GetWidth) },
-        { "GUI::set_Width",               API_FN_PAIR(GUI_SetWidth) },
-        { "GUI::get_X",                   API_FN_PAIR(GUI_GetX) },
-        { "GUI::set_X",                   API_FN_PAIR(GUI_SetX) },
-        { "GUI::get_Y",                   API_FN_PAIR(GUI_GetY) },
-        { "GUI::set_Y",                   API_FN_PAIR(GUI_SetY) },
-        { "GUI::get_ZOrder",              API_FN_PAIR(GUI_GetZOrder) },
-        { "GUI::set_ZOrder",              API_FN_PAIR(GUI_SetZOrder) },
-        { "GUI::get_Shown",               API_FN_PAIR(GUI_GetShown) },
+        {"GUI::Centre^0", API_FN_PAIR(GUI_Centre)},
+        {"GUI::Click^1", API_FN_PAIR(GUI_Click)},
+        {"GUI::SetPosition^2", API_FN_PAIR(GUI_SetPosition)},
+        {"GUI::SetSize^2", API_FN_PAIR(GUI_SetSize)},
+        {"GUI::GetGraphicPosition^0", API_FN_PAIR(GUI_GetGraphicPosition)},
+        {"GUI::GetGraphicBoundBox^0", API_FN_PAIR(GUI_GetGraphicBoundBox)},
+        {"GUI::GetProperty^1", API_FN_PAIR(GUI_GetProperty)},
+        {"GUI::GetTextProperty^1", API_FN_PAIR(GUI_GetTextProperty)},
+        {"GUI::SetProperty^2", API_FN_PAIR(GUI_SetProperty)},
+        {"GUI::SetTextProperty^2", API_FN_PAIR(GUI_SetTextProperty)},
+        {"GUI::get_BackgroundGraphic", API_FN_PAIR(GUI_GetBackgroundGraphic)},
+        {"GUI::set_BackgroundGraphic", API_FN_PAIR(GUI_SetBackgroundGraphic)},
+        {"GUI::get_BackgroundColor", API_FN_PAIR(GUI_GetBackgroundColor)},
+        {"GUI::set_BackgroundColor", API_FN_PAIR(GUI_SetBackgroundColor)},
+        {"GUI::get_BorderColor", API_FN_PAIR(GUI_GetBorderColor)},
+        {"GUI::set_BorderColor", API_FN_PAIR(GUI_SetBorderColor)},
+        {"GUI::get_Clickable", API_FN_PAIR(GUI_GetClickable)},
+        {"GUI::set_Clickable", API_FN_PAIR(GUI_SetClickable)},
+        {"GUI::get_ControlCount", API_FN_PAIR(GUI_GetControlCount)},
+        {"GUI::geti_Controls", API_FN_PAIR(GUI_GetiControls)},
+        {"GUI::get_Height", API_FN_PAIR(GUI_GetHeight)},
+        {"GUI::set_Height", API_FN_PAIR(GUI_SetHeight)},
+        {"GUI::get_ID", API_FN_PAIR(GUI_GetID)},
+        {"GUI::get_AsTextWindow", API_FN_PAIR(GUI_AsTextWindow)},
+        {"GUI::get_PopupStyle", API_FN_PAIR(GUI_GetPopupStyle)},
+        {"GUI::set_PopupStyle", API_FN_PAIR(GUI_SetPopupStyle)},
+        {"GUI::get_PopupYPos", API_FN_PAIR(GUI_GetPopupYPos)},
+        {"GUI::set_PopupYPos", API_FN_PAIR(GUI_SetPopupYPos)},
+        {"GUI::get_ScriptName", API_FN_PAIR(GUI_GetScriptName)},
+        {"GUI::get_Transparency", API_FN_PAIR(GUI_GetTransparency)},
+        {"GUI::set_Transparency", API_FN_PAIR(GUI_SetTransparency)},
+        {"GUI::get_Visible", API_FN_PAIR(GUI_GetVisible)},
+        {"GUI::set_Visible", API_FN_PAIR(GUI_SetVisible)},
+        {"GUI::get_Width", API_FN_PAIR(GUI_GetWidth)},
+        {"GUI::set_Width", API_FN_PAIR(GUI_SetWidth)},
+        {"GUI::get_X", API_FN_PAIR(GUI_GetX)},
+        {"GUI::set_X", API_FN_PAIR(GUI_SetX)},
+        {"GUI::get_Y", API_FN_PAIR(GUI_GetY)},
+        {"GUI::set_Y", API_FN_PAIR(GUI_SetY)},
+        {"GUI::get_ZOrder", API_FN_PAIR(GUI_GetZOrder)},
+        {"GUI::set_ZOrder", API_FN_PAIR(GUI_SetZOrder)},
+        {"GUI::get_Shown", API_FN_PAIR(GUI_GetShown)},
 
-        { "GUI::get_BlendMode",           API_FN_PAIR(GUI_GetBlendMode) },
-        { "GUI::set_BlendMode",           API_FN_PAIR(GUI_SetBlendMode) },
-        { "GUI::get_Rotation",            API_FN_PAIR(GUI_GetRotation) },
-        { "GUI::set_Rotation",            API_FN_PAIR(GUI_SetRotation) },
-        { "GUI::get_ScaleX",              API_FN_PAIR(GUI_GetScaleX) },
-        { "GUI::set_ScaleX",              API_FN_PAIR(GUI_SetScaleX) },
-        { "GUI::get_ScaleY",              API_FN_PAIR(GUI_GetScaleY) },
-        { "GUI::set_ScaleY",              API_FN_PAIR(GUI_SetScaleY) },
-        { "GUI::SetScale",                API_FN_PAIR(GUI_SetScale) },
-        { "GUI::SetScale",                API_FN_PAIR(GUI_SetScale) },
+        {"GUI::get_BlendMode", API_FN_PAIR(GUI_GetBlendMode)},
+        {"GUI::set_BlendMode", API_FN_PAIR(GUI_SetBlendMode)},
+        {"GUI::get_Rotation", API_FN_PAIR(GUI_GetRotation)},
+        {"GUI::set_Rotation", API_FN_PAIR(GUI_SetRotation)},
+        {"GUI::get_ScaleX", API_FN_PAIR(GUI_GetScaleX)},
+        {"GUI::set_ScaleX", API_FN_PAIR(GUI_SetScaleX)},
+        {"GUI::get_ScaleY", API_FN_PAIR(GUI_GetScaleY)},
+        {"GUI::set_ScaleY", API_FN_PAIR(GUI_SetScaleY)},
+        {"GUI::SetScale", API_FN_PAIR(GUI_SetScale)},
+        {"GUI::SetScale", API_FN_PAIR(GUI_SetScale)},
 
-        { "GUI::get_Shader",              API_FN_PAIR(GUI_GetShader) },
-        { "GUI::set_Shader",              API_FN_PAIR(GUI_SetShader) },
-        
-        { "TextWindowGUI::get_TextColor", API_FN_PAIR(GUI_GetTextColor) },
-        { "TextWindowGUI::set_TextColor", API_FN_PAIR(GUI_SetTextColor) },
-        { "TextWindowGUI::get_TextPadding", API_FN_PAIR(GUI_GetTextPadding) },
-        { "TextWindowGUI::set_TextPadding", API_FN_PAIR(GUI_SetTextPadding) },
-        { "TextWindowGUI::get_LeftGraphic", API_FN_PAIR(GUI_GetLeftGraphic) },
-        { "TextWindowGUI::get_TopLeftGraphic", API_FN_PAIR(GUI_GetTopLeftGraphic) },
-        { "TextWindowGUI::get_TopGraphic", API_FN_PAIR(GUI_GetTopGraphic) },
-        { "TextWindowGUI::get_TopRightGraphic", API_FN_PAIR(GUI_GetTopRightGraphic) },
-        { "TextWindowGUI::get_RightGraphic", API_FN_PAIR(GUI_GetRightGraphic) },
-        { "TextWindowGUI::get_BottomRightGraphic", API_FN_PAIR(GUI_GetBottomRightGraphic) },
-        { "TextWindowGUI::get_BottomGraphic", API_FN_PAIR(GUI_GetBottomGraphic) },
-        { "TextWindowGUI::get_BottomLeftGraphic", API_FN_PAIR(GUI_GetBottomLeftGraphic) },
+        {"GUI::get_Shader", API_FN_PAIR(GUI_GetShader)},
+        {"GUI::set_Shader", API_FN_PAIR(GUI_SetShader)},
+
+        {"TextWindowGUI::get_TextColor", API_FN_PAIR(GUI_GetTextColor)},
+        {"TextWindowGUI::set_TextColor", API_FN_PAIR(GUI_SetTextColor)},
+        {"TextWindowGUI::get_TextPadding", API_FN_PAIR(GUI_GetTextPadding)},
+        {"TextWindowGUI::set_TextPadding", API_FN_PAIR(GUI_SetTextPadding)},
+        {"TextWindowGUI::get_LeftGraphic", API_FN_PAIR(GUI_GetLeftGraphic)},
+        {"TextWindowGUI::get_TopLeftGraphic", API_FN_PAIR(GUI_GetTopLeftGraphic)},
+        {"TextWindowGUI::get_TopGraphic", API_FN_PAIR(GUI_GetTopGraphic)},
+        {"TextWindowGUI::get_TopRightGraphic", API_FN_PAIR(GUI_GetTopRightGraphic)},
+        {"TextWindowGUI::get_RightGraphic", API_FN_PAIR(GUI_GetRightGraphic)},
+        {"TextWindowGUI::get_BottomRightGraphic", API_FN_PAIR(GUI_GetBottomRightGraphic)},
+        {"TextWindowGUI::get_BottomGraphic", API_FN_PAIR(GUI_GetBottomGraphic)},
+        {"TextWindowGUI::get_BottomLeftGraphic", API_FN_PAIR(GUI_GetBottomLeftGraphic)},
     };
 
     ccAddExternalFunctions(gui_api);

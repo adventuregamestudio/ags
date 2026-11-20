@@ -79,9 +79,7 @@ String get_caps_list(const std::set<String> &caps)
 HGameFileError game_file_first_open(MainGameSource &src)
 {
     HGameFileError err = OpenMainGameFileFromDefaultAsset(src, AssetMgr.get());
-    if (err ||
-        err->Code() == kMGFErr_SignatureFailed ||
-        err->Code() == kMGFErr_FormatVersionNotSupported)
+    if (err || err->Code() == kMGFErr_SignatureFailed || err->Code() == kMGFErr_FormatVersionNotSupported)
     {
         // Log data description for debugging
         Debug::Printf(kDbgMsg_Info, "Opened game data file: %s", src.Filename.GetCStr());
@@ -127,13 +125,15 @@ UScript TryLoadScriptAsset(UScript &&existing_script, const String &script_obj_n
     auto in = AssetMgr->OpenAsset(script_obj_name);
     if (in)
     {
-        UScript script(ccScript::CreateFromStream(Path::ReplaceExtension(script_obj_name, "asc").ToStdString(), in.get()));
+        UScript script(
+            ccScript::CreateFromStream(Path::ReplaceExtension(script_obj_name, "asc").ToStdString(), in.get()));
         if (script)
         {
             Debug::Printf(kDbgMsg_Info, "Script module asset '%s' is found and loaded", script_obj_name.GetCStr());
             return script;
         }
-        Debug::Printf(kDbgMsg_Error, "Failed to load a script module asset '%s':\n\t%s", script_obj_name.GetCStr(), cc_get_error().ErrorString.GetCStr());
+        Debug::Printf(kDbgMsg_Error, "Failed to load a script module asset '%s':\n\t%s", script_obj_name.GetCStr(),
+                      cc_get_error().ErrorString.GetCStr());
         return std::move(existing_script);
     }
     if (is_requested)
@@ -171,7 +171,8 @@ void TryLoadGameScripts(LoadedGameEntities &ents)
     for (size_t i = 0; i < modules.size(); ++i)
     {
         ents.ScriptModules[i] = TryLoadScriptAsset(std::move(ents.ScriptModules[i]), modules[i], true);
-        ents.ScriptModuleNames[i] = ents.ScriptModules[i] ? ents.ScriptModules[i]->GetScriptName() : Path::ReplaceExtension(modules[i], "asc");
+        ents.ScriptModuleNames[i] =
+            ents.ScriptModules[i] ? ents.ScriptModules[i]->GetScriptName() : Path::ReplaceExtension(modules[i], "asc");
     }
 }
 
@@ -212,6 +213,7 @@ HError load_game_file()
 
 void display_game_file_error(HError err)
 {
-    platform->DisplayAlert("Loading game failed with error:\n%s\n\nThe game files may be incomplete, corrupt or from unsupported version of AGS.",
+    platform->DisplayAlert(
+        "Loading game failed with error:\n%s\n\nThe game files may be incomplete, corrupt or from unsupported version of AGS.",
         err->FullMessage().GetCStr());
 }

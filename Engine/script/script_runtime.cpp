@@ -30,23 +30,20 @@ SystemImports simp_for_plugin;
 bool ccAddExternalStaticFunction(const String &name, ScriptAPIFunction *scfn, void *dirfn)
 {
     return simp.Add(name, RuntimeScriptValue().SetStaticFunction(scfn), nullptr) != UINT32_MAX &&
-        (!dirfn ||
-        simp_for_plugin.Add(name, RuntimeScriptValue().SetPluginFunction(dirfn), nullptr) != UINT32_MAX);
+           (!dirfn || simp_for_plugin.Add(name, RuntimeScriptValue().SetPluginFunction(dirfn), nullptr) != UINT32_MAX);
 }
 
 bool ccAddExternalObjectFunction(const String &name, ScriptAPIObjectFunction *scfn, void *dirfn)
 {
     return simp.Add(name, RuntimeScriptValue().SetObjectFunction(scfn), nullptr) != UINT32_MAX &&
-        (!dirfn ||
-        simp_for_plugin.Add(name, RuntimeScriptValue().SetPluginFunction(dirfn), nullptr) != UINT32_MAX);
+           (!dirfn || simp_for_plugin.Add(name, RuntimeScriptValue().SetPluginFunction(dirfn), nullptr) != UINT32_MAX);
 }
 
 bool ccAddExternalFunction(const ScFnRegister &scfnreg)
 {
     String name = String::Wrapper(scfnreg.Name);
     return simp.Add(name, scfnreg.Fn, nullptr) != UINT32_MAX &&
-        (scfnreg.PlFn.IsNull() ||
-        simp_for_plugin.Add(name, scfnreg.PlFn, nullptr) != UINT32_MAX);
+           (scfnreg.PlFn.IsNull() || simp_for_plugin.Add(name, scfnreg.PlFn, nullptr) != UINT32_MAX);
 }
 
 bool ccAddExternalPluginFunction(const String &name, void *pfn)
@@ -66,7 +63,8 @@ bool ccAddExternalScriptObject(const String &name, void *ptr, IScriptObject *man
 
 bool ccAddExternalScriptObjectHandle(const String &name, void *ptr)
 {
-     return simp.Add(name, RuntimeScriptValue().SetScriptObject(ptr, &GlobalStaticManager), nullptr, kScValHint_Handle) != UINT32_MAX;
+    return simp.Add(name, RuntimeScriptValue().SetScriptObject(ptr, &GlobalStaticManager), nullptr,
+                    kScValHint_Handle) != UINT32_MAX;
 }
 
 bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, RuntimeScript *script)
@@ -125,7 +123,7 @@ bool ccGetScriptObjectAddress(const String &name, void *&obj_out, IScriptObject 
     IScriptObject *mgr;
     if (imp->ValueHint == kScValHint_Handle)
     {
-        const int32_t handle = *static_cast<const int32_t*>(imp->Value.Ptr);
+        const int32_t handle = *static_cast<const int32_t *>(imp->Value.Ptr);
         if (ccGetObjectAddressAndManagerFromHandle(handle, object, mgr) == kScValUndefined)
             return false;
     }
@@ -168,13 +166,12 @@ void *ccGetScriptObjectAddress(const String &name, const std::vector<String> &ty
 new_line_hook_type new_line_hook = nullptr;
 
 
-void ccSetScriptAliveTimer(unsigned sys_poll_timeout, unsigned abort_timeout,
-    unsigned abort_loops)
+void ccSetScriptAliveTimer(unsigned sys_poll_timeout, unsigned abort_timeout, unsigned abort_loops)
 {
     scriptExecutor->SetExecTimeout(sys_poll_timeout, abort_timeout, abort_loops);
 }
 
-void ccNotifyScriptStillAlive ()
+void ccNotifyScriptStillAlive()
 {
     scriptExecutor->NotifyAlive();
 }

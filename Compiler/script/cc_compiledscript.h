@@ -15,36 +15,37 @@
 #define __CC_COMPILEDSCRIPT_H
 
 #include <cstdint>
-#include "script/cc_script.h"       // ccScript
-#include "cs_parser_common.h"   // macro definitions
-#include "cc_symboldef.h"       // SymbolDef
+#include "script/cc_script.h" // ccScript
+#include "cs_parser_common.h" // macro definitions
+#include "cc_symboldef.h"     // SymbolDef
 
 
-struct ccCompiledScript: public ccScript {
+struct ccCompiledScript : public ccScript
+{
     std::vector<std::string> functions;
     std::vector<int32_t> funccodeoffs;
     std::vector<int16_t> funcnumparams;
     int32_t codeallocated = 0;
     int32_t cur_sp = 0;
-    int  next_line = 0;     // line number of next code
-    int  ax_val_type = 0;   // type of value in AX
-    int  ax_val_scope = 0;  // SYM_LOCALVAR or SYM_GLOBALAVR
+    int next_line = 0;    // line number of next code
+    int ax_val_type = 0;  // type of value in AX
+    int ax_val_scope = 0; // SYM_LOCALVAR or SYM_GLOBALAVR
 
     // free the extra bits that ccScript doesn't have
     // FIXME: refactor this, implement std::move constructor for ccScript?
     void free_extra();
-    int  add_global(int,const char*);
-    int  add_string(const char*);
-    void add_fixup(int32_t,char);
+    int add_global(int, const char *);
+    int add_string(const char *);
+    void add_fixup(int32_t, char);
     void fixup_previous(char);
-    int  add_new_function(const char*, int *idx);
-    int  add_new_import(const char*);
-    int  find_or_add_import(const char*);
-    int  add_new_export(const char*, int, int32_t, int);
+    int add_new_function(const char *, int *idx);
+    int add_new_import(const char *);
+    int find_or_add_import(const char *);
+    int add_new_export(const char *, int, int32_t, int);
     void write_code(int32_t);
-    void set_line_number(int nlum) { next_line=nlum; }
+    void set_line_number(int nlum) { next_line = nlum; }
     void flush_line_numbers();
-    int  remove_any_import(const char*, SymbolDef *oldSym);
+    int remove_any_import(const char *, SymbolDef *oldSym);
     void start_new_section(const char *section_name, const char *module_name = "");
 
     // Returns current code size as int32 value;
@@ -53,9 +54,9 @@ struct ccCompiledScript: public ccScript {
     inline int32_t codesize_i32() const { return static_cast<int32_t>(code.size()); }
 
     void write_cmd(int cmdd);
-    void write_cmd1(int cmdd,int param);
-    void write_cmd2(int cmdd,int param,int param2);
-    void write_cmd3(int cmdd,int param,int param2,int param3);
+    void write_cmd1(int cmdd, int param);
+    void write_cmd2(int cmdd, int param, int param2);
+    void write_cmd3(int cmdd, int param, int param2, int param3);
 
     void push_reg(int regg);
     void pop_reg(int regg);

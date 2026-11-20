@@ -70,22 +70,22 @@ namespace Engine
 enum VideoStateFlags
 {
     // Force-clear screen on begin and end (meant for software render)
-    kVideoState_ClearScreen    = 0x0001,
+    kVideoState_ClearScreen = 0x0001,
     // Stretch video to the game screen
-    kVideoState_Stretch        = 0x0002,
+    kVideoState_Stretch = 0x0002,
     // Stop game audio and restore after video finishes playing
-    kVideoState_StopGameAudio  = 0x0004,
+    kVideoState_StopGameAudio = 0x0004,
     // Increase game FPS to match video's
-    kVideoState_SetGameFps     = 0x0008
+    kVideoState_SetGameFps = 0x0008
 };
 
 // Flags which define a skipping method for the blocking video playback
 enum VideoSkipType
 {
-    VideoSkipNone         = 0,
-    VideoSkipEscape       = 1,
-    VideoSkipAnyKey       = 2,
-    VideoSkipKeyOrMouse   = 3
+    VideoSkipNone = 0,
+    VideoSkipEscape = 1,
+    VideoSkipAnyKey = 2,
+    VideoSkipKeyOrMouse = 3
 };
 
 } // namespace Engine
@@ -95,7 +95,8 @@ enum VideoSkipType
 // Legacy Blocking video API
 //
 // Start a blocking OGV playback
-AGS::Common::HError play_theora_video(const AGS::Common::String &name, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip);
+AGS::Common::HError play_theora_video(const AGS::Common::String &name, int video_flags, int state_flags,
+                                      AGS::Engine::VideoSkipType skip);
 // Start a blocking FLIC playback
 AGS::Common::HError play_flc_video(int numb, int video_flags, int state_flags, AGS::Engine::VideoSkipType skip);
 // Pause the active blocking video
@@ -114,10 +115,7 @@ public:
     ~VideoControl();
 
     // Gets if the video is valid (playing or ready to play)
-    bool IsReady() const
-    {
-        return IsPlaybackReady(_state);
-    }
+    bool IsReady() const { return IsPlaybackReady(_state); }
 
     int GetVideoID() const { return _videoID; }
     int GetSpriteID() const { return _spriteID; }
@@ -172,18 +170,18 @@ private:
 
     const int _videoID;
     const int _spriteID;
-    int       _scriptHandle = -1;
-    Size      _frameRes;
-    float     _frameRate = 0.f;
-    float     _durMs = 0.f;
-    uint32_t  _frameCount = 0;
-    int       _volume = 100;
-    float     _speed = 1.f;
-    bool      _looping = false;
+    int _scriptHandle = -1;
+    Size _frameRes;
+    float _frameRate = 0.f;
+    float _durMs = 0.f;
+    uint32_t _frameCount = 0;
+    int _volume = 100;
+    float _speed = 1.f;
+    bool _looping = false;
     PlaybackState _state = PlayStateInitial;
-    uint32_t  _frameIndex = 0;
-    float     _posMs = 0.f;
-    bool      _paramsChanged = false;
+    uint32_t _frameIndex = 0;
+    float _posMs = 0.f;
+    bool _paramsChanged = false;
 };
 
 // open_video starts video and returns a VideoControl object

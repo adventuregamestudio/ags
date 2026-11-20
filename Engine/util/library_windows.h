@@ -28,14 +28,15 @@
 // TODO: honestly, dont see much use of inlining in the Library class,
 // might just divide the code into h/cpp as proper.
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
     WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule);
     WINBASEAPI FARPROC WINAPI GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
     WINBASEAPI HMODULE WINAPI LoadLibraryW(LPCWSTR lpLibFileName);
-    WINBASEAPI DWORD WINAPI FormatMessageW(DWORD dwFlags, LPCVOID lpSource, DWORD dwMessageId,
-        DWORD dwLanguageId, LPWSTR lpBuffer, DWORD nSize, va_list *Arguments);
+    WINBASEAPI DWORD WINAPI FormatMessageW(DWORD dwFlags, LPCVOID lpSource, DWORD dwMessageId, DWORD dwLanguageId,
+                                           LPWSTR lpBuffer, DWORD nSize, va_list *Arguments);
     WINBASEAPI BOOL WINAPI SetDllDirectoryW(LPCWSTR lpPathName);
 
 #ifdef __cplusplus
@@ -54,7 +55,7 @@ class WindowsLibrary final : public BaseLibrary
 {
 public:
     WindowsLibrary() = default;
-    WindowsLibrary(const WindowsLibrary&) = delete;
+    WindowsLibrary(const WindowsLibrary &) = delete;
     WindowsLibrary(WindowsLibrary &&other)
     {
         _library = other._library;
@@ -63,18 +64,11 @@ public:
         _filename = std::move(other._filename);
         _path = std::move(other._path);
     }
-    ~WindowsLibrary() override
-    {
-        Unload();
-    };
+    ~WindowsLibrary() override { Unload(); };
 
-    String GetFilenameForLib(const String &libname) override
-    {
-        return String::FromFormat("%s.dll", libname.GetCStr());
-    }
+    String GetFilenameForLib(const String &libname) override { return String::FromFormat("%s.dll", libname.GetCStr()); }
 
-    bool Load(const String &libname,
-        const std::vector<String> &lookup = std::vector<String>()) override
+    bool Load(const String &libname, const std::vector<String> &lookup = std::vector<String>()) override
     {
         Unload();
         String libfile = GetFilenameForLib(libname);
@@ -101,10 +95,7 @@ public:
         }
     }
 
-    virtual bool IsLoaded() const override
-    {
-        return _library != NULL;
-    }
+    virtual bool IsLoaded() const override { return _library != NULL; }
 
     void *GetFunctionAddress(const String &fn_name) override
     {
@@ -123,7 +114,8 @@ private:
         if (hmodule == NULL)
         {
             std::vector<WCHAR> wbuffer(1024);
-            FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, GetLastError(),
+            FormatMessageW(
+                FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK, NULL, GetLastError(),
                 MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), // always en_US, because our logs are in English
                 wbuffer.data(), wbuffer.size(), NULL);
             std::vector<char> err_msg;
@@ -133,8 +125,7 @@ private:
         return hmodule;
     }
 
-    HMODULE TryLoadAnywhere(const String &libfile,
-         const std::vector<String> &lookup, String &path)
+    HMODULE TryLoadAnywhere(const String &libfile, const std::vector<String> &lookup, String &path)
     {
         // First try default system search
         path = libfile;

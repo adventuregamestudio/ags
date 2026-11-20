@@ -21,21 +21,24 @@ using namespace AGS::Common;
 
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 
-const char *CCAudioChannel::GetType() {
+const char *CCAudioChannel::GetType()
+{
     return "AudioChannel";
 }
 
-size_t CCAudioChannel::CalcSerializeSize(const void* /*address*/)
+size_t CCAudioChannel::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCAudioChannel::Serialize(const void *address, Stream *out) {
-    const ScriptAudioChannel *ach = static_cast<const ScriptAudioChannel*>(address);
+void CCAudioChannel::Serialize(const void *address, Stream *out)
+{
+    const ScriptAudioChannel *ach = static_cast<const ScriptAudioChannel *>(address);
     out->WriteInt32(ach->id);
 }
 
-void CCAudioChannel::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void CCAudioChannel::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
     int id = in->ReadInt32();
     ccRegisterUnserializedPersistentObject(index, &scrAudioChannel[id], this);
 }

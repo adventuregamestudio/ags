@@ -16,7 +16,7 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
-struct ScriptDynamicSprite final  : AGSCCDynamicObject
+struct ScriptDynamicSprite final : AGSCCDynamicObject
 {
 public:
     static const char *TypeID;

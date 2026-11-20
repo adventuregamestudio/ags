@@ -27,8 +27,11 @@ protected:
     size_t cursor = 0u;
 };
 
-TEST_F(SrcList, GetNext) {
-    std::vector<AGS::Symbol> script = { 1, 2, 3, 4, 5, };
+TEST_F(SrcList, GetNext)
+{
+    std::vector<AGS::Symbol> script = {
+        1, 2, 3, 4, 5,
+    };
     AGS::SrcList src(script, lh, cursor);
 
     EXPECT_EQ(1, src.GetNext());
@@ -46,8 +49,11 @@ TEST_F(SrcList, GetNext) {
     EXPECT_TRUE(src.ReachedEOF());
 }
 
-TEST_F(SrcList, PeekNext) {
-    std::vector<AGS::Symbol> script = { 1, 2, 3, 4, 5, };
+TEST_F(SrcList, PeekNext)
+{
+    std::vector<AGS::Symbol> script = {
+        1, 2, 3, 4, 5,
+    };
     AGS::SrcList src(script, lh, cursor);
 
     src.SetCursor(1u);
@@ -59,16 +65,22 @@ TEST_F(SrcList, PeekNext) {
     EXPECT_TRUE(src.ReachedEOF());
 }
 
-TEST_F(SrcList, InRange) {
-    std::vector<AGS::Symbol> script = { 1, 2, 3, 4, 5, };
+TEST_F(SrcList, InRange)
+{
+    std::vector<AGS::Symbol> script = {
+        1, 2, 3, 4, 5,
+    };
     AGS::SrcList src(script, lh, cursor);
 
     EXPECT_TRUE(src.InRange(3u));
     EXPECT_FALSE(src.InRange(5u));
 }
 
-TEST_F(SrcList, Brackets) {
-    std::vector<AGS::Symbol> script = { 1, 2, 3, 4, 5, };
+TEST_F(SrcList, Brackets)
+{
+    std::vector<AGS::Symbol> script = {
+        1, 2, 3, 4, 5,
+    };
     AGS::SrcList src(script, lh, cursor);
 
     EXPECT_EQ(1, src[0u]);
@@ -77,7 +89,8 @@ TEST_F(SrcList, Brackets) {
     EXPECT_EQ(AGS::SrcList::kEOF, src[12345u]);
 }
 
-TEST_F(SrcList, AppendLineno) {
+TEST_F(SrcList, AppendLineno)
+{
     std::vector<AGS::Symbol> script;
     AGS::SrcList src(script, lh, cursor);
     src.Append(1);
@@ -97,7 +110,8 @@ TEST_F(SrcList, AppendLineno) {
     EXPECT_EQ(11u, src.GetLineno());
 }
 
-TEST_F(SrcList, AppendSections) {
+TEST_F(SrcList, AppendSections)
+{
     // A section change will only "stick" when it is followed by a 'NewLine()'
     std::vector<AGS::Symbol> script;
     AGS::SrcList src(script, lh, cursor);
@@ -122,7 +136,8 @@ TEST_F(SrcList, AppendSections) {
     EXPECT_STREQ("", src.SectionId2Section(src.GetSectionId()).c_str());
 }
 
-TEST_F(SrcList, Reference0) {
+TEST_F(SrcList, Reference0)
+{
     std::vector<AGS::Symbol> script;
     // Script 1  1   3  9
     // Line   10 10  10 77
@@ -161,8 +176,8 @@ TEST_F(SrcList, Reference0) {
     EXPECT_STREQ("Cherry", part.SectionId2Section(part.GetSectionIdAt(1)).c_str());
 }
 
-TEST_F(SrcList, Reference1) {
-
+TEST_F(SrcList, Reference1)
+{
     // cpy is set up as an excerpt of src.
     // GetCursor() should give the cursor position relative to the respective SrcList.
     // Moving the cursor in one SrcList should move the cursor in the other, too.
@@ -186,8 +201,8 @@ TEST_F(SrcList, Reference1) {
     EXPECT_EQ(false, src.ReachedEOF());
 }
 
-TEST_F(SrcList, Reference2) {
-
+TEST_F(SrcList, Reference2)
+{
     // cpy is set up as an excerpt of src.
     // Line numbers for a symbol should be the same
     // no matter the way the symbol is referenced.

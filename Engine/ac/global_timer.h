@@ -19,7 +19,7 @@
 #define __AGS_EE_AC__GLOBALTIMER_H
 
 void SetTimer(int tnum, int timeout);
-int  GetTimerPos(int tnum);
-int  IsTimerExpired(int tnum);
+int GetTimerPos(int tnum);
+int IsTimerExpired(int tnum);
 
 #endif // __AGS_EE_AC__GLOBALTIMER_H

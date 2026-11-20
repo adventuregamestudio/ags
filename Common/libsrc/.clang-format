@@ -1,0 +1,3 @@
+# Third-party code: never reformatted
+DisableFormat: true
+SortIncludes: Never

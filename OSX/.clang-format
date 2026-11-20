@@ -1,0 +1,3 @@
+# Objective-C and Xcode project sources: the shared .clang-format is for C/C++ only
+DisableFormat: true
+SortIncludes: Never

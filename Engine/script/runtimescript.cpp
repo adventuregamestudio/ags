@@ -402,8 +402,7 @@ bool RuntimeScript::ResolveImports(const SystemImports &simp)
         return false;
     }
 
-    ResolveImportFixups();
-    return true;
+    return ResolveImportFixups();
 }
 
 bool RuntimeScript::ResolveImportFixups()

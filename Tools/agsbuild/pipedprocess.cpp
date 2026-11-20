@@ -29,9 +29,7 @@ namespace AGSBuild
 {
 
 PipedProcess::PipedProcess(const String &exe_path, const String &params, TextStreamWriter *log_writer)
-    : _exePath(exe_path)
-    , _params(params)
-    , _logWriter(log_writer)
+    : _exePath(exe_path), _params(params), _logWriter(log_writer)
 {
     _command = String::FromFormat("%s %s", exe_path.GetCStr(), params.GetCStr());
 #if (AGS_PLATFORM_OS_WINDOWS)
@@ -74,12 +72,12 @@ HError PipedProcess::CreateProcess()
 {
 #if (AGS_PLATFORM_OS_WINDOWS)
     std::lock_guard<std::mutex> lk(CreateProcessMutex);
-    STARTUPINFOW si = { sizeof(si), NULL, NULL, NULL, NULL, CREATE_NO_WINDOW, NULL };
+    STARTUPINFOW si = {sizeof(si), NULL, NULL, NULL, NULL, CREATE_NO_WINDOW, NULL};
 
     SECURITY_ATTRIBUTES sa;
-    sa.nLength = sizeof(SECURITY_ATTRIBUTES); 
-    sa.bInheritHandle = TRUE; 
-    sa.lpSecurityDescriptor = NULL; 
+    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+    sa.bInheritHandle = TRUE;
+    sa.lpSecurityDescriptor = NULL;
     const bool stdout_pipe = CreatePipe(&_hStdOutPipeRead, &_hStdOutPipeWrite, &sa, 1024u) == TRUE;
     const bool stderr_pipe = CreatePipe(&_hStdErrPipeRead, &_hStdErrPipeWrite, &sa, 1024u) == TRUE;
     // Only the write ends are for the child; our read ends must not be inherited by anyone
@@ -96,10 +94,11 @@ HError PipedProcess::CreateProcess()
         si.hStdOutput = _hStdOutPipeWrite;
         si.hStdError = _hStdErrPipeWrite;
     }
-    
+
     std::vector<wchar_t> cmd(_command.GetLength() + 1);
     StrUtil::ConvertUtf8ToWstr(_command.GetCStr(), cmd.data(), cmd.size());
-    const bool created = CreateProcessW(NULL, cmd.data(), NULL, NULL, TRUE /* bInheritHandles */, CREATE_NO_WINDOW, NULL, NULL, &si, &_pi) == TRUE;
+    const bool created = CreateProcessW(NULL, cmd.data(), NULL, NULL, TRUE /* bInheritHandles */, CREATE_NO_WINDOW,
+                                        NULL, NULL, &si, &_pi) == TRUE;
     const DWORD create_error = created ? 0 : GetLastError();
     // The child has its own copies of the write ends now. Keeping ours open would keep the pipes
     // from ever reporting end-of-file, and would leak them into the next process we start.
@@ -130,7 +129,7 @@ HError PipedProcess::CreateProcess()
         dup2(_stdErrPipe[1], STDERR_FILENO);
         // Close our pipe instances
         // TODO: smart pointer for the pipe handle
-        close(_stdOutPipe[0]);       
+        close(_stdOutPipe[0]);
         close(_stdOutPipe[1]);
         close(_stdErrPipe[0]);
         close(_stdErrPipe[1]);
@@ -166,9 +165,9 @@ bool PipedProcess::ReadFromPipe(HANDLE pipe, std::vector<uint8_t> *output_data, 
         // Never ask ReadFile for more than the pipe reported: a blocking ReadFile on an empty pipe
         // waits until more data arrives, which never happens once the process has exited.
         DWORD bytes_read = 0;
-        while (pipe_has_bytes > 0
-            && ReadFile(pipe, buffer, std::min<DWORD>(pipe_has_bytes, sizeof(buffer) - 1), &bytes_read, NULL) == TRUE
-            && bytes_read > 0 && bytes_read <= pipe_has_bytes)
+        while (pipe_has_bytes > 0 &&
+               ReadFile(pipe, buffer, std::min<DWORD>(pipe_has_bytes, sizeof(buffer) - 1), &bytes_read, NULL) == TRUE &&
+               bytes_read > 0 && bytes_read <= pipe_has_bytes)
         {
             if (output_data)
             {
@@ -177,7 +176,7 @@ bool PipedProcess::ReadFromPipe(HANDLE pipe, std::vector<uint8_t> *output_data, 
             if (print_to_buffer)
             {
                 buffer[bytes_read] = 0;
-                _logWriter->WriteString(reinterpret_cast<const char*>(buffer));
+                _logWriter->WriteString(reinterpret_cast<const char *>(buffer));
             }
             pipe_has_bytes -= bytes_read;
             any_read = true;
@@ -202,11 +201,10 @@ void PipedProcess::ReadFromPipe(int pipe_fd, std::vector<uint8_t> *output_data, 
             if (print_to_buffer)
             {
                 buffer[bytes_read] = 0;
-                _logWriter->WriteString(reinterpret_cast<const char*>(buffer));
+                _logWriter->WriteString(reinterpret_cast<const char *>(buffer));
             }
         }
-    }
-    while ((bytes_read > 0) || (bytes_read == EAGAIN || bytes_read == EWOULDBLOCK));
+    } while ((bytes_read > 0) || (bytes_read == EAGAIN || bytes_read == EWOULDBLOCK));
 }
 #endif
 
@@ -224,8 +222,7 @@ HError PipedProcess::RunProcessSync(std::vector<uint8_t> *stdout_data)
             ReadFromPipe(_hStdOutPipeRead, stdout_data, true);
         if (_hStdErrPipeRead)
             ReadFromPipe(_hStdErrPipeRead, nullptr, true);
-    }
-    while (proc_result == WAIT_TIMEOUT);
+    } while (proc_result == WAIT_TIMEOUT);
     // Collect whatever the process wrote just before it exited
     bool any_left = true;
     while (any_left)
@@ -250,9 +247,8 @@ HError PipedProcess::RunProcessSync(std::vector<uint8_t> *stdout_data)
             ReadFromPipe(_stdOutPipe[0], stdout_data, true);
         if (_stdErrPipe[0] != 0)
             ReadFromPipe(_stdErrPipe[0], nullptr, true);
-    }
-    while ((wait_pid == 0) || ((wait_pid == _cpid) && !WIFEXITED(wstatus) && !WIFSIGNALED(wstatus)));
-    
+    } while ((wait_pid == 0) || ((wait_pid == _cpid) && !WIFEXITED(wstatus) && !WIFSIGNALED(wstatus)));
+
     if (WIFEXITED(wstatus))
         _exitCode = static_cast<int8_t>(WEXITSTATUS(wstatus));
     else if (WIFSIGNALED(wstatus))
@@ -266,7 +262,7 @@ void PipedProcess::WaitForProcessSync()
 #if (AGS_PLATFORM_OS_WINDOWS)
     WaitForSingleObject(_pi.hProcess, INFINITE);
 #else
-    
+
     int wstatus = 0;
     waitpid(_cpid, &wstatus, 0);
     if (WIFEXITED(wstatus))

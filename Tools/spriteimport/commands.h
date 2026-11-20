@@ -18,22 +18,22 @@
 
 namespace SpriteImport
 {
-    using String = AGS::Common::String;
-    using SpriteStorage = AGS::Common::SpriteStorage;
-    using SpriteCompression = AGS::Common::SpriteCompression;
+using String = AGS::Common::String;
+using SpriteStorage = AGS::Common::SpriteStorage;
+using SpriteCompression = AGS::Common::SpriteCompression;
 
-    struct CommandOptions
-    {
-        bool OutputToSpritePak = false;
-        String IndexFile;
-        String ImageFilePattern;
-        SpriteStorage StorageFlags = AGS::Common::kSprStore_OptimizeForSize;
-        SpriteCompression Compress = AGS::Common::kSprCompress_Deflate;
-        String RoomDirectory;
-    };
+struct CommandOptions
+{
+    bool OutputToSpritePak = false;
+    String IndexFile;
+    String ImageFilePattern;
+    SpriteStorage StorageFlags = AGS::Common::kSprStore_OptimizeForSize;
+    SpriteCompression Compress = AGS::Common::kSprCompress_Deflate;
+    String RoomDirectory;
+};
 
-    void Init();
-    int Command_Import(const String &src_agf, const String &dst_path, const CommandOptions &opts, bool verbose);
-}
+void Init();
+int Command_Import(const String &src_agf, const String &dst_path, const CommandOptions &opts, bool verbose);
+} // namespace SpriteImport
 
 #endif // __AGS_TOOL_SPRITEIMPORT__COMMANDS_H

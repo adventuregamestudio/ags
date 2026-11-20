@@ -40,8 +40,8 @@ using AGS::Common::Stream;
 static bool is_regex_syntax_character(const int c)
 {
     // see https://tc39.es/ecma262/#prod-SyntaxCharacter
-    return (c == '^') || (c == '$') || (c =='\\') || (c == '.') || (c == '*') || (c == '+') || (c == '?') ||
-        (c == '(') || (c == ')') || (c == '[') || (c == ']') || (c == '{') || (c == '}') || (c == '|');
+    return (c == '^') || (c == '$') || (c == '\\') || (c == '.') || (c == '*') || (c == '+') || (c == '?') ||
+           (c == '(') || (c == ')') || (c == '[') || (c == ']') || (c == '{') || (c == '}') || (c == '|');
 }
 
 static String translate_to_regex_string(const String &pattern)
@@ -56,15 +56,21 @@ static String translate_to_regex_string(const String &pattern)
         result.Append("(^|/)");
     }
 
-    while (i < n) {
+    while (i < n)
+    {
         char c = pattern[i];
         ++i;
 
-        if (c == '*') {
+        if (c == '*')
+        {
             result.Append(".*");
-        } else if (c == '?') {
+        }
+        else if (c == '?')
+        {
             result.AppendChar('.');
-        } else if (c == '[') {
+        }
+        else if (c == '[')
+        {
             int j = i;
             /*
              * The following two statements check if the sequence we stumbled
@@ -82,33 +88,46 @@ static String translate_to_regex_string(const String &pattern)
              */
             while (j < n && pattern[j] != ']')
                 ++j;
-            if (j >= n) {
+            if (j >= n)
+            {
                 result.Append("\\[");
-            } else {
+            }
+            else
+            {
                 String stuff = pattern;
-                stuff.ClipMid(i, j-i);
-                stuff.Replace("\\"," \\\\");
+                stuff.ClipMid(i, j - i);
+                stuff.Replace("\\", " \\\\");
                 char first_char = pattern.GetAt(i);
                 i = j + 1;
                 result.Append("[");
-                if (first_char == '!') {
+                if (first_char == '!')
+                {
                     result.Append("^");
                     stuff.ClipLeft(1);
                     result.Append(stuff);
-                } else if (first_char == '^') {
+                }
+                else if (first_char == '^')
+                {
                     result.Append("\\");
                     result.Append(stuff);
-                } else {
+                }
+                else
+                {
                     result.Append(stuff);
                 }
                 result.Append("]");
             }
-        } else {
+        }
+        else
+        {
             // Escape a regex syntax character if necessary, otherwise print one verbatim
-            if (is_regex_syntax_character(c)) {
+            if (is_regex_syntax_character(c))
+            {
                 result.Append("\\");
                 result.AppendChar(c);
-            } else {
+            }
+            else
+            {
                 result.AppendChar(c);
             }
         }
@@ -144,7 +163,7 @@ HError description_to_patterns(const std::vector<String> &description, std::vect
         line.Trim();
 
         // line is empty or a comment
-        if(line.IsEmpty() || line.StartsWith("#"))
+        if (line.IsEmpty() || line.StartsWith("#"))
             continue;
 
         Pattern p;
@@ -166,11 +185,10 @@ HError description_to_patterns(const std::vector<String> &description, std::vect
         {
             p.Regex = regex_txt.GetCStr();
         }
-        catch (const std::exception& ex)
+        catch (const std::exception &ex)
         {
-            return new Error(
-            "include_utils: failed at translating pattern at line '%s', error: '%s'.", line.GetCStr(), ex.what()
-            );
+            return new Error("include_utils: failed at translating pattern at line '%s', error: '%s'.", line.GetCStr(),
+                             ex.what());
         }
 
         patterns.emplace_back(p);
@@ -178,7 +196,7 @@ HError description_to_patterns(const std::vector<String> &description, std::vect
     return HError::None();
 }
 
-bool match_file(const String& file, const std::vector<Pattern> &patterns)
+bool match_file(const String &file, const std::vector<Pattern> &patterns)
 {
     // if a file entry matches no pattern of the include type it should not be included in the list
     // if a file entry matches a pattern of the include type it should be included unless a pattern of exclude type will match it after
@@ -188,11 +206,16 @@ bool match_file(const String& file, const std::vector<Pattern> &patterns)
     String normalized_file_path = file.LowerUTF8(); // for case insensitivity
     normalized_file_path = normalize_separators_in_string(normalized_file_path);
 
-    for (const auto& pattern : patterns) {
-        if (std::regex_search(normalized_file_path.GetCStr(), pattern.Regex)) {
-            if (pattern.Type == eInclude) {
+    for (const auto &pattern : patterns)
+    {
+        if (std::regex_search(normalized_file_path.GetCStr(), pattern.Regex))
+        {
+            if (pattern.Type == eInclude)
+            {
                 include = true;
-            } else if (pattern.Type == eExclude) {
+            }
+            else if (pattern.Type == eExclude)
+            {
                 include = false;
             }
         }
@@ -204,8 +227,10 @@ bool match_file(const String& file, const std::vector<Pattern> &patterns)
 std::vector<String> match_files(const std::vector<String> &files, const std::vector<Pattern> &patterns)
 {
     std::vector<String> matches;
-    for (const auto &file : files) {
-        if (match_file(file, patterns)) {
+    for (const auto &file : files)
+    {
+        if (match_file(file, patterns))
+        {
             matches.push_back(file);
         }
     }
@@ -215,10 +240,10 @@ std::vector<String> match_files(const std::vector<String> &files, const std::vec
 std::vector<String> read_file(const String &filename, bool verbose)
 {
     std::vector<String> lines;
-    std::unique_ptr<Stream> in (File::OpenFileRead(filename));
+    std::unique_ptr<Stream> in(File::OpenFileRead(filename));
     if (!in)
     {
-        if(verbose)
+        if (verbose)
         {
             printf("Warning: pattern file '%s' not found.\n", filename.GetCStr());
         }
@@ -231,11 +256,12 @@ std::vector<String> read_file(const String &filename, bool verbose)
     if (sr.EOS())
         return lines;
 
-    do {
+    do
+    {
         String line = sr.ReadLine();
-        if(!(line.IsNullOrSpace() || line.IsEmpty()))
+        if (!(line.IsNullOrSpace() || line.IsEmpty()))
             lines.push_back(line);
-    } while(!sr.EOS());
+    } while (!sr.EOS());
 
     return lines;
 }
@@ -246,15 +272,15 @@ HError CreatePatternList(const std::vector<String> pattern_desc, std::vector<Pat
 }
 
 HError MatchPatternPaths(const std::vector<String> &input_files, std::vector<String> &output_matches,
-    const std::vector<String> &pattern_desc)
+                         const std::vector<String> &pattern_desc)
 {
-    std::vector<Pattern> patterns {};
+    std::vector<Pattern> patterns{};
     HError err = description_to_patterns(pattern_desc, patterns);
     return MatchPatternPaths(input_files, output_matches, patterns);
 }
 
 HError MatchPatternPaths(const std::vector<String> &input_files, std::vector<String> &output_matches,
-    const std::vector<Pattern> &patterns)
+                         const std::vector<Pattern> &patterns)
 {
     const std::vector<String> matches = match_files(input_files, patterns);
     output_matches.insert(output_matches.end(), matches.begin(), matches.end());
@@ -262,7 +288,7 @@ HError MatchPatternPaths(const std::vector<String> &input_files, std::vector<Str
 }
 
 HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> &output_files,
-    const String &include_pattern_file, const bool verbose)
+                    const String &include_pattern_file, const bool verbose)
 {
     std::vector<String> pattern_desc = read_file(include_pattern_file, verbose);
     std::vector<Pattern> patterns{};
@@ -273,7 +299,7 @@ HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> 
 }
 
 HError IncludeFiles(const std::vector<String> &input_files, std::vector<String> &output_files,
-    const std::vector<Pattern> &patterns, bool verbose)
+                    const std::vector<Pattern> &patterns, bool verbose)
 {
     std::vector<String> matches{};
     HError err = MatchPatternPaths(input_files, matches, patterns);

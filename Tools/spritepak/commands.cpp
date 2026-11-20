@@ -34,7 +34,7 @@ void Init()
 }
 
 static HError OpenSpriteFile(SpriteFile &reader, const String &sprite_file, const String &index_file,
-    std::vector<SpriteDatHeader> *metrics = nullptr)
+                             std::vector<SpriteDatHeader> *metrics = nullptr)
 {
     std::unique_ptr<Stream> file_in = File::OpenFileRead(sprite_file);
     if (!file_in)
@@ -80,11 +80,10 @@ static void SaveIndexFile(const String &index_file, const SpriteFileIndex &index
 
 static void PrintQuickInfo(const SpriteFile &reader)
 {
-    printf("Sprite file info:\n\tcompression: %s\n\tstorage flags: 0x%08x\n\ttotal sprites: %zu\n\thighest sprite: %d\n",
-           GetCompressionName(reader.GetSpriteCompression()).GetCStr(),
-           reader.GetStoreFlags(),
-           reader.GetSpriteCount(),
-           reader.GetTopmostSprite());
+    printf(
+        "Sprite file info:\n\tcompression: %s\n\tstorage flags: 0x%08x\n\ttotal sprites: %zu\n\thighest sprite: %d\n",
+        GetCompressionName(reader.GetSpriteCompression()).GetCStr(), reader.GetStoreFlags(), reader.GetSpriteCount(),
+        reader.GetTopmostSprite());
 }
 
 int Command_Create(const String &src_dir, const String &dst_pak, const CommandOptions &opts, bool verbose)
@@ -138,15 +137,14 @@ int Command_Create(const String &src_dir, const String &dst_pak, const CommandOp
     for (const auto &imf : files)
     {
         sprkey_t slot;
-        if ((sscanf(imf.GetCStr(), image_pattern.GetCStr(), &slot) == 1)
-            && (slot >= 0) && (slot < INT32_MAX))
+        if ((sscanf(imf.GetCStr(), image_pattern.GetCStr(), &slot) == 1) && (slot >= 0) && (slot < INT32_MAX))
         {
             sorted_files.push_back(std::make_pair(slot, imf));
             top_index = std::max(top_index, slot);
         }
     }
     std::sort(sorted_files.begin(), sorted_files.end(),
-        [](const SlotImageFilePair &f1, const SlotImageFilePair &f2) { return f1.first < f2.first; });
+              [](const SlotImageFilePair &f1, const SlotImageFilePair &f2) { return f1.first < f2.first; });
 
     //-----------------------------------------------------------------------//
     // Write sprite file

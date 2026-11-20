@@ -18,25 +18,25 @@
 
 namespace SpritePak
 {
-    using String = AGS::Common::String;
-    using SpriteStorage = AGS::Common::SpriteStorage;
-    using SpriteCompression = AGS::Common::SpriteCompression;
+using String = AGS::Common::String;
+using SpriteStorage = AGS::Common::SpriteStorage;
+using SpriteCompression = AGS::Common::SpriteCompression;
 
-    struct CommandOptions
-    {
-        String IndexFile;
-        String OutIndexFile;
-        String ImageFilePattern;
-        SpriteStorage StorageFlags = AGS::Common::kSprStore_OptimizeForSize;
-        SpriteCompression Compress = AGS::Common::kSprCompress_Deflate;
-    };
+struct CommandOptions
+{
+    String IndexFile;
+    String OutIndexFile;
+    String ImageFilePattern;
+    SpriteStorage StorageFlags = AGS::Common::kSprStore_OptimizeForSize;
+    SpriteCompression Compress = AGS::Common::kSprCompress_Deflate;
+};
 
-    void Init();
-    int Command_Create(const String &src_dir, const String &dst_pak, const CommandOptions &opts, bool verbose);
-    int Command_Export(const String &src_pak, const String &dst_dir, const CommandOptions &opts, bool verbose);
-    int Command_Info(const String &src_pak, const CommandOptions &opts);
-    int Command_List(const String &src_pak, const CommandOptions &opts);
-    int Command_Copy(const String &src_pak, const String &dst_pak, const CommandOptions &opts, bool verbose);
-}
+void Init();
+int Command_Create(const String &src_dir, const String &dst_pak, const CommandOptions &opts, bool verbose);
+int Command_Export(const String &src_pak, const String &dst_dir, const CommandOptions &opts, bool verbose);
+int Command_Info(const String &src_pak, const CommandOptions &opts);
+int Command_List(const String &src_pak, const CommandOptions &opts);
+int Command_Copy(const String &src_pak, const String &dst_pak, const CommandOptions &opts, bool verbose);
+} // namespace SpritePak
 
 #endif // __AGS_TOOL_SPRITEPAK__COMMANDS_H

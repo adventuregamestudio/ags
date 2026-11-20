@@ -11,9 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-// 
+//
 // AGS package file pack/unpack utility.
-// 
+//
 // TODO:
 // * option to fully test result of "create", including binary comparison of
 //   all asset data.
@@ -21,7 +21,7 @@
 // * proper unified error codes for the AGS tools?
 // * clarify the use of "verbose" option, and make it consistent
 //   throughout the operations.
-// 
+//
 //=============================================================================
 #include <regex>
 #include "commands.h"
@@ -33,68 +33,67 @@ using namespace AGS::Common;
 using namespace AGS::DataUtil;
 
 const char *BIN_STRING = "agspak v0.5.0 - AGS game packaging tool\n"
-    "Copyright (c) 2026 AGS Team and contributors\n";
+                         "Copyright (c) 2026 AGS Team and contributors\n";
 
 const char *HELP_STRING = "Usage:\n"
-   //--------------------------------------------------------------------------------|
-    "  agspak <COMMAND> <PAK-FILE> [<WORK-DIR>|<DEST-FILE>] [<FILES>] [OPTIONS]\n"
-    "      executes an operation regarding the chosen package file, a working\n"
-    "      directory, and an optional files list. Depending on a command either the\n"
-    "      pack or the directory is an input or an output.\n"
-    "      File list should be a comma-separated list of file names, which may\n"
-    "      contain include/exclude patterns. If no file list is provided, then all\n"
-    "      the files found in the respective input location (dir or pack) will be\n"
-    "      selected for the operation.\n"
-    "      Options may adjust the operation further.\n"
-    "\n"
-    "Commands:\n"
-    "  -a, --attach           attach an existing pack file to another file;\n"
-    "                         overwrites any assets that were attached previously.\n"
-    "                         This is commonly used to attach asset data to exe.\n"
-    "  -c, --create           create a new pack file, gathering the asset files from\n"
-    "                         the input directory.\n"
-    "  -A, --create-attach    create a asset pack attached to the existing file,\n"
-    "                         gathering the asset files from the input directory.\n"
-    "                         This is commonly used to attach asset data to exe.\n"
-    "  -d, --detach           detach appended asset data from a file, writes them\n"
-    "                         into a standalone pack file, then cuts off the original\n"
-    "                         attachment.\n"
-    "                         If no asset data is found, then nothing will be done.\n"
-    "  -e, --export           export (extract) files from the existing pack file\n"
-    "                         into the output directory.\n"
-    // -i, --import           RESERVED: import (add, overwrite) asset(s) to the pack
-    "  -l, --list             print pack file's contents.\n"
-    // -x, --cut              RESERVED: cut (delete) selected asset(s) from the pack
-    "  -X, --cut-attachment   cut (delete) all appended asset data from a file.\n"
-    "                         If no asset data is found, then nothing will be done.\n"
-    "\n"
-    "Command options:\n"
-    "  -D, --dir <directory>  when creating a pack file, additionally include files\n"
-    "                         from this input directory. These files will be put into\n"
-    "                         the root level of the asset pack's virtual filesystem.\n"
-    "  -f, --pattern-file <file>\n"
-    "                         when creating a pack file, use pattern file with the\n"
-    "                         include/exclude patterns\n"
-    "  -p, --partition <MB>   when creating a pack file, split asset files between\n"
-    "                         partitions of this size max. Input files are not split,\n"
-    "                         so files larger than this amount will occupy a single\n"
-    "                         partition\n"
-    "  -r, --recursive        when creating a pack file, include all subdirectories\n"
-    "                         of a working directory too\n"
-    "  -R, --recursive-dir <directory>\n"
-    "                         when creating a pack file, additionally include files\n"
-    "                         from this directory and all of its subdirectories.\n"
-    "                         These files will be put into respective subdirs\n"
-    "                         relative to the asset pack's root.\n"
-    "  --replace-dup          when creating a pack file from multiple input dirs\n"
-    "                         replace any assets with duplicate names with the last\n"
-    "                         asset file found.\n"
-    "  --skip-dup             when creating a pack file from multiple input dirs\n"
-    "                         skip any assets with duplicate names.\n"
-    "\n"
-    "Other options:\n"
-    "  -v, --verbose          print operation details"
-    ;
+                          //--------------------------------------------------------------------------------|
+                          "  agspak <COMMAND> <PAK-FILE> [<WORK-DIR>|<DEST-FILE>] [<FILES>] [OPTIONS]\n"
+                          "      executes an operation regarding the chosen package file, a working\n"
+                          "      directory, and an optional files list. Depending on a command either the\n"
+                          "      pack or the directory is an input or an output.\n"
+                          "      File list should be a comma-separated list of file names, which may\n"
+                          "      contain include/exclude patterns. If no file list is provided, then all\n"
+                          "      the files found in the respective input location (dir or pack) will be\n"
+                          "      selected for the operation.\n"
+                          "      Options may adjust the operation further.\n"
+                          "\n"
+                          "Commands:\n"
+                          "  -a, --attach           attach an existing pack file to another file;\n"
+                          "                         overwrites any assets that were attached previously.\n"
+                          "                         This is commonly used to attach asset data to exe.\n"
+                          "  -c, --create           create a new pack file, gathering the asset files from\n"
+                          "                         the input directory.\n"
+                          "  -A, --create-attach    create a asset pack attached to the existing file,\n"
+                          "                         gathering the asset files from the input directory.\n"
+                          "                         This is commonly used to attach asset data to exe.\n"
+                          "  -d, --detach           detach appended asset data from a file, writes them\n"
+                          "                         into a standalone pack file, then cuts off the original\n"
+                          "                         attachment.\n"
+                          "                         If no asset data is found, then nothing will be done.\n"
+                          "  -e, --export           export (extract) files from the existing pack file\n"
+                          "                         into the output directory.\n"
+                          // -i, --import           RESERVED: import (add, overwrite) asset(s) to the pack
+                          "  -l, --list             print pack file's contents.\n"
+                          // -x, --cut              RESERVED: cut (delete) selected asset(s) from the pack
+                          "  -X, --cut-attachment   cut (delete) all appended asset data from a file.\n"
+                          "                         If no asset data is found, then nothing will be done.\n"
+                          "\n"
+                          "Command options:\n"
+                          "  -D, --dir <directory>  when creating a pack file, additionally include files\n"
+                          "                         from this input directory. These files will be put into\n"
+                          "                         the root level of the asset pack's virtual filesystem.\n"
+                          "  -f, --pattern-file <file>\n"
+                          "                         when creating a pack file, use pattern file with the\n"
+                          "                         include/exclude patterns\n"
+                          "  -p, --partition <MB>   when creating a pack file, split asset files between\n"
+                          "                         partitions of this size max. Input files are not split,\n"
+                          "                         so files larger than this amount will occupy a single\n"
+                          "                         partition\n"
+                          "  -r, --recursive        when creating a pack file, include all subdirectories\n"
+                          "                         of a working directory too\n"
+                          "  -R, --recursive-dir <directory>\n"
+                          "                         when creating a pack file, additionally include files\n"
+                          "                         from this directory and all of its subdirectories.\n"
+                          "                         These files will be put into respective subdirs\n"
+                          "                         relative to the asset pack's root.\n"
+                          "  --replace-dup          when creating a pack file from multiple input dirs\n"
+                          "                         replace any assets with duplicate names with the last\n"
+                          "                         asset file found.\n"
+                          "  --skip-dup             when creating a pack file from multiple input dirs\n"
+                          "                         skip any assets with duplicate names.\n"
+                          "\n"
+                          "Other options:\n"
+                          "  -v, --verbose          print operation details";
 
 
 int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
@@ -186,49 +185,50 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     switch (command)
     {
     case 'a': // attach
-        {
-            if (cmdargs.PosArgs.size() < 2)
-                break; // not enough args
-            return AGSPak::Command_Attach(pak_file, dst_file, verbose);
-        }
+    {
+        if (cmdargs.PosArgs.size() < 2)
+            break; // not enough args
+        return AGSPak::Command_Attach(pak_file, dst_file, verbose);
+    }
     case 'c': // create
     case 'A': // create-attach
-        {
-            if (cmdargs.PosArgs.size() < 2)
-                break; // not enough args
+    {
+        if (cmdargs.PosArgs.size() < 2)
+            break; // not enough args
 
-            AGSPak::DuplicateAssetAction dup_action = AGSPak::kAssetDup_Error;
-            if (cmdargs.Opt.count("--replace-dup") != 0)
-                dup_action = AGSPak::kAssetDup_Replace;
-            else if (cmdargs.Opt.count("--skip-dup") != 0)
-                dup_action = AGSPak::kAssetDup_Skip;
+        AGSPak::DuplicateAssetAction dup_action = AGSPak::kAssetDup_Error;
+        if (cmdargs.Opt.count("--replace-dup") != 0)
+            dup_action = AGSPak::kAssetDup_Replace;
+        else if (cmdargs.Opt.count("--skip-dup") != 0)
+            dup_action = AGSPak::kAssetDup_Skip;
 
-            return AGSPak::Command_Create(work_dirs, pak_file, command == 'A', pattern_list, pattern_file, dup_action, part_size_mb, verbose);
-        }
+        return AGSPak::Command_Create(work_dirs, pak_file, command == 'A', pattern_list, pattern_file, dup_action,
+                                      part_size_mb, verbose);
+    }
     case 'd': // detach
-        {
-            if (cmdargs.PosArgs.size() < 2)
-                break; // not enough args
-            return AGSPak::Command_Detach(pak_file, dst_file, verbose);
-        }
+    {
+        if (cmdargs.PosArgs.size() < 2)
+            break; // not enough args
+        return AGSPak::Command_Detach(pak_file, dst_file, verbose);
+    }
     case 'e': // export
-        {
-            if (cmdargs.PosArgs.size() < 2)
-                break; // not enough args
-            return AGSPak::Command_Export(pak_file, work_dir, pattern_list);
-        }
+    {
+        if (cmdargs.PosArgs.size() < 2)
+            break; // not enough args
+        return AGSPak::Command_Export(pak_file, work_dir, pattern_list);
+    }
     case 'l': // list
-        {
-            if (cmdargs.PosArgs.size() < 1)
-                break; // not enough args
-            return AGSPak::Command_List(pak_file);
-        }
+    {
+        if (cmdargs.PosArgs.size() < 1)
+            break; // not enough args
+        return AGSPak::Command_List(pak_file);
+    }
     case 'X': // cut-attachment
-        {
-            if (cmdargs.PosArgs.size() < 1)
-                break; // not enough args
-            return AGSPak::Command_CutAttachment(pak_file, verbose);
-        }
+    {
+        if (cmdargs.PosArgs.size() < 1)
+            break; // not enough args
+        return AGSPak::Command_CutAttachment(pak_file, verbose);
+    }
     default:
         printf("Error: no valid command is specified\n");
         printf("%s\n", HELP_STRING);
@@ -244,7 +244,8 @@ int main(int argc, char *argv[])
 {
     printf("%s\n", BIN_STRING);
 
-    CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(argc, argv, {"-p", "-f", "--pattern-file", "-D", "--dir", "-R", "--recursive-dir"});
+    CmdLineOpts::ParseResult cmdargs =
+        CmdLineOpts::Parse(argc, argv, {"-p", "-f", "--pattern-file", "-D", "--dir", "-R", "--recursive-dir"});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

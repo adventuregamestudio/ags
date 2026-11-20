@@ -19,23 +19,23 @@
 
 namespace AGSPak
 {
-    using String = AGS::Common::String;
+using String = AGS::Common::String;
 
-    enum DuplicateAssetAction
-    {
-        kAssetDup_Error,
-        kAssetDup_Replace,
-        kAssetDup_Skip,
-    };
+enum DuplicateAssetAction
+{
+    kAssetDup_Error,
+    kAssetDup_Replace,
+    kAssetDup_Skip,
+};
 
-    int Command_Attach(const String &src_pak, const String &dst_file, bool verbose);
-    int Command_Create(std::vector<std::pair<String, bool>> &src_dirs, const String &dst_pak, bool append,
-        const std::vector<String> &pattern_list, const String &pattern_file, DuplicateAssetAction dup_action,
-        size_t part_size_mb, bool verbose);
-    int Command_CutAttachment(const String &src_file, bool verbose);
-    int Command_Detach(const String &src_file, const String &dst_pak, bool verbose);
-    int Command_Export(const String &src_pak, const String &dst_dir, const std::vector<String> &pattern_list);
-    int Command_List(const String &src_pak);
-}
+int Command_Attach(const String &src_pak, const String &dst_file, bool verbose);
+int Command_Create(std::vector<std::pair<String, bool>> &src_dirs, const String &dst_pak, bool append,
+                   const std::vector<String> &pattern_list, const String &pattern_file, DuplicateAssetAction dup_action,
+                   size_t part_size_mb, bool verbose);
+int Command_CutAttachment(const String &src_file, bool verbose);
+int Command_Detach(const String &src_file, const String &dst_pak, bool verbose);
+int Command_Export(const String &src_pak, const String &dst_dir, const std::vector<String> &pattern_list);
+int Command_List(const String &src_pak);
+} // namespace AGSPak
 
 #endif // __AGS_TOOL_AGSPAK__COMMANDS_H

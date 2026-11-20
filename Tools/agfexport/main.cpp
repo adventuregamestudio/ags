@@ -16,120 +16,120 @@ using namespace AGS::DataUtil;
 namespace AGF = AGS::AGF;
 
 const char *HELP_STRING = ""
-   //--------------------------------------------------------------------------------|
-    "agfexport v0.3.0 - AGS game project miscellaneous export tool\n"
-    "Copyright (c) 2026 AGS Team and contributors\n"
-    "Usage: agfexport <COMMAND> [<OPTIONS>] <input-game.agf> <out-file>\n"
-    "Commands:\n"
-    "  audioclip-list         Exports list of audio clips and their sources\n"
-    "  autoash                Generate auto script header\n"
-    "  custom-data-dir        Exports list of custom data directories\n"
-    "  font-list              Exports list of font files\n"
-    "  game-cfg               Generate default game config\n"
-    "  glvar                  Generate global variables scripts\n"
-    "  header-list            Exports ordered list of headers from script modules\n"
-    "  plugin-list            Exports list of game plugins\n"
-    "  room-list              Exports list of active rooms\n"
-    "  script-list            Exports ordered list of scripts from script modules\n"
-    "  tra-list               Exports list of translations\n"
-    "  -h, --help             Show help message for command\n";
+                          //--------------------------------------------------------------------------------|
+                          "agfexport v0.3.0 - AGS game project miscellaneous export tool\n"
+                          "Copyright (c) 2026 AGS Team and contributors\n"
+                          "Usage: agfexport <COMMAND> [<OPTIONS>] <input-game.agf> <out-file>\n"
+                          "Commands:\n"
+                          "  audioclip-list         Exports list of audio clips and their sources\n"
+                          "  autoash                Generate auto script header\n"
+                          "  custom-data-dir        Exports list of custom data directories\n"
+                          "  font-list              Exports list of font files\n"
+                          "  game-cfg               Generate default game config\n"
+                          "  glvar                  Generate global variables scripts\n"
+                          "  header-list            Exports ordered list of headers from script modules\n"
+                          "  plugin-list            Exports list of game plugins\n"
+                          "  room-list              Exports list of active rooms\n"
+                          "  script-list            Exports ordered list of scripts from script modules\n"
+                          "  tra-list               Exports list of translations\n"
+                          "  -h, --help             Show help message for command\n";
 
 const char *HELP_AUDIOCLIP_LIST = ""
-    "Usage: agfexport audioclip-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-    "Writes <OUT-FILE>, a file with a list of audio files used by the game\n."
-    "Each entry in the list consists of 3 comma-separated items:\n"
-    "  * audio clip's import filename\n"
-    "  * audio clip's source absolute filepath\n"
-    "  * packing location, which is either 'ags' for the main game pack\n"
-    "    or 'vox' for the separate 'audio.vox'\n"
+                                  "Usage: agfexport audioclip-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+                                  "Writes <OUT-FILE>, a file with a list of audio files used by the game\n."
+                                  "Each entry in the list consists of 3 comma-separated items:\n"
+                                  "  * audio clip's import filename\n"
+                                  "  * audio clip's source absolute filepath\n"
+                                  "  * packing location, which is either 'ags' for the main game pack\n"
+                                  "    or 'vox' for the separate 'audio.vox'\n"
 #if (AGS_PLATFORM_OS_WINDOWS)
-    "Entry example: au000001.ogg,C:\\Projects\\Audio\\OriginalMusic.ogg,vox\n"
+                                  "Entry example: au000001.ogg,C:\\Projects\\Audio\\OriginalMusic.ogg,vox\n"
 #else
-    "Entry example: au000001.ogg,~/Projects/Audio/OriginalMusic.ogg,vox\n"
+                                  "Entry example: au000001.ogg,~/Projects/Audio/OriginalMusic.ogg,vox\n"
 #endif
-    "Commands:\n"
-    "  -h, --help             Show this help message\n"
-    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
-    "  -s, --stdout           Instead print the list to stdout\n";
+                                  "Commands:\n"
+                                  "  -h, --help             Show this help message\n"
+                                  "  -n, --no-empty         Do not create any file if it's going to be empty\n"
+                                  "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_AUTOASH = ""
-    "Usage: agfexport autoash <INPUT-GAME.AGF> <OUT-FILE.ASH>\n"
-    "Writes <OUT-FILE.ASH>, the auto-generated script header from <INPUT-GAME.AGF>\n"
-    "This header has global elements from the game necessary for building scripts.\n"
-    "Commands:\n"
-    "  -h, --help             Show this help message\n"
-    "  -n, --no-empty         Do not create any file if it's going to be empty\n";
+                           "Usage: agfexport autoash <INPUT-GAME.AGF> <OUT-FILE.ASH>\n"
+                           "Writes <OUT-FILE.ASH>, the auto-generated script header from <INPUT-GAME.AGF>\n"
+                           "This header has global elements from the game necessary for building scripts.\n"
+                           "Commands:\n"
+                           "  -h, --help             Show this help message\n"
+                           "  -n, --no-empty         Do not create any file if it's going to be empty\n";
 
 const char *HELP_CUSTOMDATADIR_LIST = ""
-    "Usage: agfexport custom-data-dir <INPUT-GAME.AGF> <OUT-FILE>\n"
-    "Writes <OUT-FILE>, a file with a list of custom game data directories.\n"
-    "Commands:\n"
-    "  -h, --help             Show this help message\n"
-    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
-    "  -s, --stdout           Instead print the list to stdout\n";
+                                      "Usage: agfexport custom-data-dir <INPUT-GAME.AGF> <OUT-FILE>\n"
+                                      "Writes <OUT-FILE>, a file with a list of custom game data directories.\n"
+                                      "Commands:\n"
+                                      "  -h, --help             Show this help message\n"
+                                      "  -n, --no-empty         Do not create any file if it's going to be empty\n"
+                                      "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_FONT_LIST = ""
-    "Usage: agfexport font-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-    "Writes <OUT-FILE>, a file with a list of font files used by the game\n."
-    "Commands:\n"
-    "  -h, --help             Show this help message\n"
-    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
-    "  -s, --stdout           Instead print the list to stdout\n";
+                             "Usage: agfexport font-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+                             "Writes <OUT-FILE>, a file with a list of font files used by the game\n."
+                             "Commands:\n"
+                             "  -h, --help             Show this help message\n"
+                             "  -n, --no-empty         Do not create any file if it's going to be empty\n"
+                             "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_GAMECFG = ""
-    "Usage: agfexport game-cfg <INPUT-GAME.AGF> <OUT-FILE.CFG>\n"
-    "Writes <OUT-FILE.CFG>, default game config.\n"
-    "Config's contents are based on DefaultSetup node of the AGF file.\n"
-    "Commands:\n"
-    "  -h, --help             Show this help message\n";
+                           "Usage: agfexport game-cfg <INPUT-GAME.AGF> <OUT-FILE.CFG>\n"
+                           "Writes <OUT-FILE.CFG>, default game config.\n"
+                           "Config's contents are based on DefaultSetup node of the AGF file.\n"
+                           "Commands:\n"
+                           "  -h, --help             Show this help message\n";
 
 const char *HELP_GLVAR = ""
-    "Usage: agfexport glvar <INPUT-GAME.AGF> <HEAD.ASH> <BODY.ASC>\n"
-    "Writes both <HEAD.ASH> (e.g. globalvars.ash) and <BODY.ASC> (e.g. globalvars.asc).\n"
-    "These are retrieved from the game project in <INPUT-GAME.AGF>.\n"
-    "Commands:\n"
-    "  -h, --help             Show this help message\n"
-    "  -n, --no-empty         Do not create any file if it's going to be empty\n";
+                         "Usage: agfexport glvar <INPUT-GAME.AGF> <HEAD.ASH> <BODY.ASC>\n"
+                         "Writes both <HEAD.ASH> (e.g. globalvars.ash) and <BODY.ASC> (e.g. globalvars.asc).\n"
+                         "These are retrieved from the game project in <INPUT-GAME.AGF>.\n"
+                         "Commands:\n"
+                         "  -h, --help             Show this help message\n"
+                         "  -n, --no-empty         Do not create any file if it's going to be empty\n";
 
 const char *HELP_HEADER_LIST = ""
-    "Usage: agfexport header-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-    "Writes <OUT-FILE>, a file with a list of headers from script modules.\n"
-    "Commands:\n"
-    "  -h, --help             Show this help message\n"
-    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
-    "  -s, --stdout           Instead print the list to stdout\n";
+                               "Usage: agfexport header-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+                               "Writes <OUT-FILE>, a file with a list of headers from script modules.\n"
+                               "Commands:\n"
+                               "  -h, --help             Show this help message\n"
+                               "  -n, --no-empty         Do not create any file if it's going to be empty\n"
+                               "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_PLUGIN_LIST = ""
-    "Usage: agfexport plugin-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-    "Writes <OUT-FILE>, a file with a list of game plugins.\n"
-    "Commands:\n"
-    "  -h, --help             Show this help message\n"
-    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
-    "  -s, --stdout           Instead print the list to stdout\n";
+                               "Usage: agfexport plugin-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+                               "Writes <OUT-FILE>, a file with a list of game plugins.\n"
+                               "Commands:\n"
+                               "  -h, --help             Show this help message\n"
+                               "  -n, --no-empty         Do not create any file if it's going to be empty\n"
+                               "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_ROOM_LIST = ""
-    "Usage: agfexport room-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-    "Writes <OUT-FILE>, a file with a list of rooms.\n"
-    "Commands:\n"
-    "  -h, --help             Show this help message\n"
-    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
-    "  -s, --stdout           Instead print the list to stdout\n";
+                             "Usage: agfexport room-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+                             "Writes <OUT-FILE>, a file with a list of rooms.\n"
+                             "Commands:\n"
+                             "  -h, --help             Show this help message\n"
+                             "  -n, --no-empty         Do not create any file if it's going to be empty\n"
+                             "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_SCRIPT_LIST = ""
-    "Usage: agfexport script-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-    "Writes <OUT-FILE>, a file with an ordered list of scripts from script modules.\n"
-    "Commands:\n"
-    "  -h, --help             Show this help message\n"
-    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
-    "  -s, --stdout           Instead print the list to stdout\n";
+                               "Usage: agfexport script-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+                               "Writes <OUT-FILE>, a file with an ordered list of scripts from script modules.\n"
+                               "Commands:\n"
+                               "  -h, --help             Show this help message\n"
+                               "  -n, --no-empty         Do not create any file if it's going to be empty\n"
+                               "  -s, --stdout           Instead print the list to stdout\n";
 
 const char *HELP_TRA_LIST = ""
-    "Usage: agfexport tra-list <INPUT-GAME.AGF> <OUT-FILE>\n"
-    "Writes <OUT-FILE>, a file with a list of translations.\n"
-    "Commands:\n"
-    "  -h, --help             Show this help message\n"
-    "  -n, --no-empty         Do not create any file if it's going to be empty\n"
-    "  -s, --stdout           Instead print the list to stdout\n";
+                            "Usage: agfexport tra-list <INPUT-GAME.AGF> <OUT-FILE>\n"
+                            "Writes <OUT-FILE>, a file with a list of translations.\n"
+                            "Commands:\n"
+                            "  -h, --help             Show this help message\n"
+                            "  -n, --no-empty         Do not create any file if it's going to be empty\n"
+                            "  -s, --stdout           Instead print the list to stdout\n";
 
 enum CommandType
 {
@@ -154,20 +154,18 @@ struct Command
     const CommandType Cmd;
     const size_t NumArgs;
     const char *Help;
-} Command[] = {
-        {"audioclip-list", kCmdAudioClipList, 2, HELP_AUDIOCLIP_LIST},
-        {"autoash",     kCmdAutoAsh,    2, HELP_AUTOASH},
-        {"custom-data-dir", kCmdCustomDataDir, 2, HELP_CUSTOMDATADIR_LIST},
-        {"font-list",   kCmdFontList,   2, HELP_FONT_LIST},
-        {"game-cfg",    kCmdGameCfg,    2, HELP_GAMECFG},
-        {"glvar",       kCmdGlVar,      3, HELP_GLVAR},
-        {"header-list", kCmdHeaderList, 2, HELP_HEADER_LIST},
-        {"plugin-list", kCmdPluginList, 2, HELP_PLUGIN_LIST},
-        {"room-list",   kCmdRoomList,   2, HELP_ROOM_LIST},
-        {"script-list", kCmdScriptList, 2, HELP_SCRIPT_LIST},
-        {"tra-list",    kCmdTraList,    2, HELP_TRA_LIST},
-        {nullptr,       kCmdNone,       0, nullptr}
-};
+} Command[] = {{"audioclip-list", kCmdAudioClipList, 2, HELP_AUDIOCLIP_LIST},
+               {"autoash", kCmdAutoAsh, 2, HELP_AUTOASH},
+               {"custom-data-dir", kCmdCustomDataDir, 2, HELP_CUSTOMDATADIR_LIST},
+               {"font-list", kCmdFontList, 2, HELP_FONT_LIST},
+               {"game-cfg", kCmdGameCfg, 2, HELP_GAMECFG},
+               {"glvar", kCmdGlVar, 3, HELP_GLVAR},
+               {"header-list", kCmdHeaderList, 2, HELP_HEADER_LIST},
+               {"plugin-list", kCmdPluginList, 2, HELP_PLUGIN_LIST},
+               {"room-list", kCmdRoomList, 2, HELP_ROOM_LIST},
+               {"script-list", kCmdScriptList, 2, HELP_SCRIPT_LIST},
+               {"tra-list", kCmdTraList, 2, HELP_TRA_LIST},
+               {nullptr, kCmdNone, 0, nullptr}};
 
 // A file target to print program log to (info, warnings and errors)
 // TODO: replace this with a proper log system for tools.
@@ -200,7 +198,8 @@ HError write_to_file_if(const String &content, const String &file, bool skip_if_
     return HError::None();
 }
 
-HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String &file, bool to_stdout, bool no_empty_files)
+HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String &file, bool to_stdout,
+                    bool no_empty_files)
 {
     if (!to_stdout)
         fprintf(StdFile, "Output list file: %s\n", file.GetCStr());
@@ -214,7 +213,7 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
         for (const auto &clip : clips)
         {
             exp_data.AppendFmt("%s,%s,%s\n", clip.CacheFileName.GetCStr(), clip.SourceFileName.GetCStr(),
-                clip.BundlingType == kAudioBundling_InMainData ? "ags" : "vox");
+                               clip.BundlingType == kAudioBundling_InMainData ? "ags" : "vox");
         }
     }
 
@@ -245,7 +244,7 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
     {
         std::vector<String> scripts;
         AGF::ReadScriptHeaderList(scripts, reader.GetGameRoot());
-        for (const auto &s: scripts)
+        for (const auto &s : scripts)
             exp_data.AppendFmt("%s\n", s.GetCStr());
     }
 
@@ -254,7 +253,7 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
         std::vector<String> plugins;
         AGF::ReadPluginList(plugins, reader.GetGameRoot());
         // We expect the plugin's filename to contain .dll extension
-        for (const auto &s: plugins)
+        for (const auto &s : plugins)
             exp_data.AppendFmt("%s\n", s.GetCStr());
     }
 
@@ -264,11 +263,11 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
         std::vector<std::pair<int, String>> rooms_dsc;
         AGF::ReadRoomList(rooms_dsc, reader.GetGameRoot());
         rooms.reserve(rooms_dsc.size());
-        for (const auto &rd: rooms_dsc)
+        for (const auto &rd : rooms_dsc)
             rooms.push_back(rd.first);
 
         std::sort(rooms.begin(), rooms.end());
-        for (const auto &r: rooms)
+        for (const auto &r : rooms)
             exp_data.AppendFmt("room%d.crm\n", r);
     }
 
@@ -276,7 +275,7 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
     {
         std::vector<String> scripts;
         AGF::ReadScriptList(scripts, reader.GetGameRoot());
-        for (const auto &s: scripts)
+        for (const auto &s : scripts)
             exp_data.AppendFmt("%s\n", s.GetCStr());
     }
 
@@ -284,7 +283,7 @@ HError list_command(const AGF::AGFReader &reader, CommandType cmd, const String 
     {
         std::vector<String> translations;
         AGF::ReadTranslationList(translations, reader.GetGameRoot());
-        for (const auto &s: translations)
+        for (const auto &s : translations)
             exp_data.AppendFmt("%s.trs\n", s.GetCStr());
     }
 
@@ -410,7 +409,7 @@ int main(int argc, char *argv[])
             }
 
             game_agf = result.PosArgs[1];
-            if(!stdout_list_print)
+            if (!stdout_list_print)
             {
                 out_file = result.PosArgs[2];
             }
@@ -444,30 +443,22 @@ int main(int argc, char *argv[])
     String exp_data;
     switch (command)
     {
-        case kCmdAudioClipList:
-        case kCmdCustomDataDir:
-        case kCmdFontList:
-        case kCmdHeaderList:
-        case kCmdPluginList:
-        case kCmdRoomList:
-        case kCmdScriptList:
-        case kCmdTraList:
-            err = list_command(reader, command, out_file, stdout_list_print, no_empty_files);
-            break;
-        case kCmdAutoAsh:
-            err = autoash_command(reader, out_file, no_empty_files);
-            break;
-        case kCmdGlVar:
-            err = glvar_command(reader, out_file, result.PosArgs[3], no_empty_files);
-            break;
-        case kCmdGameCfg:
-            err = gamecfg_command(reader, out_file, no_empty_files);
-            break;
-        case kCmdMAX:
-        default:
-            // should never happen but handle just in case
-            err = new Error("Internal error caused invalid command");
-            break;
+    case kCmdAudioClipList:
+    case kCmdCustomDataDir:
+    case kCmdFontList:
+    case kCmdHeaderList:
+    case kCmdPluginList:
+    case kCmdRoomList:
+    case kCmdScriptList:
+    case kCmdTraList: err = list_command(reader, command, out_file, stdout_list_print, no_empty_files); break;
+    case kCmdAutoAsh: err = autoash_command(reader, out_file, no_empty_files); break;
+    case kCmdGlVar: err = glvar_command(reader, out_file, result.PosArgs[3], no_empty_files); break;
+    case kCmdGameCfg: err = gamecfg_command(reader, out_file, no_empty_files); break;
+    case kCmdMAX:
+    default:
+        // should never happen but handle just in case
+        err = new Error("Internal error caused invalid command");
+        break;
     }
 
     if (!err)

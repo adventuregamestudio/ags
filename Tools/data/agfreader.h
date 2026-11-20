@@ -38,7 +38,11 @@
 #include "data/game_utils.h"
 #include "util/error.h"
 
-namespace tinyxml2 { class XMLDocument; class XMLElement; }
+namespace tinyxml2
+{
+class XMLDocument;
+class XMLElement;
+} // namespace tinyxml2
 
 namespace AGS
 {
@@ -47,7 +51,7 @@ namespace AGF
 
 using AGS::Common::String;
 typedef tinyxml2::XMLDocument Document;
-typedef tinyxml2::XMLElement* DocElem;
+typedef tinyxml2::XMLElement *DocElem;
 
 // The oldest and the newest project format AGFReader opens,
 // as the Version attribute of Game.agf names them
@@ -147,17 +151,17 @@ protected:
     // list_elem - name of the list element, cannot be null;
     // type_elem - name of the object element; pass null if exact name should
     //     be ignored: this is useful if the list contains multiple types;
-    void GetAllElems(DocElem root, std::vector<DocElem> &elems,
-        const char *folder_elem, const char *list_elem, const char *type_elem);
+    void GetAllElems(DocElem root, std::vector<DocElem> &elems, const char *folder_elem, const char *list_elem,
+                     const char *type_elem);
     // Special case of above: when the root elem and list elem have different names;
     // root_elem - name of the topmost list element, cannot be null;
-    void GetAllElems(DocElem root, std::vector<DocElem> &elems,
-        const char *root_elem, const char *folder_elem, const char *list_elem, const char *type_elem);
+    void GetAllElems(DocElem root, std::vector<DocElem> &elems, const char *root_elem, const char *folder_elem,
+                     const char *list_elem, const char *type_elem);
 
 private:
     // Internal implementation of recursive subfolder parsing
-    void GetElemsRecursive(DocElem folder, std::vector<DocElem> &elems,
-        const char *folder_elem, const char *list_elem, const char *type_elem);
+    void GetElemsRecursive(DocElem folder, std::vector<DocElem> &elems, const char *folder_elem, const char *list_elem,
+                           const char *type_elem);
 };
 
 
@@ -187,7 +191,7 @@ class Character : public EntityParser
 public:
     String ReadType(DocElem elem) override { return "Character"; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
-    String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName");  }
+    String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName"); }
     void ReadAllData(DocElem elem, DataUtil::CharacterData &data);
 };
 
@@ -230,13 +234,13 @@ public:
     String ReadType(DocElem elem) override;
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
     String ReadScriptName(DocElem elem) override { return ReadString(elem, "ScriptName"); }
-    void ReadAllData(DocElem elem, DataUtil::GUIControlData& data);
-    void ReadButtonData(DocElem elem, DataUtil::GUIButtonData& data);
-    void ReadLabelData(DocElem elem, DataUtil::GUILabelData& data);
-    void ReadSliderData(DocElem elem, DataUtil::GUISliderData& data);
-    void ReadInventoryData(DocElem elem, DataUtil::GUIInventoryData& data);
-    void ReadTextBoxData(DocElem elem, DataUtil::GUITextBoxData& data);
-    void ReadListBoxData(DocElem elem, DataUtil::GUIListBoxData& data);
+    void ReadAllData(DocElem elem, DataUtil::GUIControlData &data);
+    void ReadButtonData(DocElem elem, DataUtil::GUIButtonData &data);
+    void ReadLabelData(DocElem elem, DataUtil::GUILabelData &data);
+    void ReadSliderData(DocElem elem, DataUtil::GUISliderData &data);
+    void ReadInventoryData(DocElem elem, DataUtil::GUIInventoryData &data);
+    void ReadTextBoxData(DocElem elem, DataUtil::GUITextBoxData &data);
+    void ReadListBoxData(DocElem elem, DataUtil::GUIListBoxData &data);
 };
 
 // GUI data parser
@@ -246,7 +250,7 @@ public:
     String ReadType(DocElem elem) override { return "GUI"; }
     int ReadID(DocElem elem) override;
     String ReadScriptName(DocElem elem) override;
-    void ReadAllData(DocElem elem, DataUtil::GUIData& gui_data);
+    void ReadAllData(DocElem elem, DataUtil::GUIData &gui_data);
 
 private:
     DocElem GetNormalGUI(DocElem elem);
@@ -408,7 +412,7 @@ class Game : public EntityParser
 {
 public:
     String ReadType(DocElem elem) override { return "Game"; }
-    int    ReadID(DocElem elem) override { return -1; }
+    int ReadID(DocElem elem) override { return -1; }
     String ReadScriptName(DocElem elem) override { return ""; }
 
     DocElem GetSettings(DocElem elem);
@@ -419,25 +423,25 @@ class GameSettings : public EntityParser
 {
 public:
     String ReadType(DocElem elem) override { return "GameSettings"; }
-    int    ReadID(DocElem elem) override { return -1; }
+    int ReadID(DocElem elem) override { return -1; }
     String ReadScriptName(DocElem elem) override { return ""; }
-    void   ReadAllData(DocElem elem, DataUtil::GameSettings& s);
+    void ReadAllData(DocElem elem, DataUtil::GameSettings &s);
 };
 
 class RuntimeSetup : public EntityParser
 {
 public:
     String ReadType(DocElem elem) override { return "RuntimeSetup"; }
-    int    ReadID(DocElem elem) override { return -1; }
+    int ReadID(DocElem elem) override { return -1; }
     String ReadScriptName(DocElem elem) override { return ""; }
-    void   ReadAllData(DocElem elem, DataUtil::RuntimeSetup &setup);
+    void ReadAllData(DocElem elem, DataUtil::RuntimeSetup &setup);
 };
 
 // Parses a description of an individual script file (header or body)
 class ScriptElem : public ValueParser
 {
 public:
-    bool   IsHeader(DocElem elem) { return ReadBool(elem, "IsHeader"); }
+    bool IsHeader(DocElem elem) { return ReadBool(elem, "IsHeader"); }
     String ReadFilename(DocElem elem) { return ReadString(elem, "FileName"); }
 };
 
@@ -525,8 +529,8 @@ DataUtil::LipSyncType ReadLipSyncType(const String &value);
 void ReadEntityRef(DataUtil::EntityRef &ent, EntityParser &parser, DocElem elem);
 // Reads a group of entity ref data using given list and entity parsers
 // from the given doc root element.
-void ReadAllEntityRefs(std::vector<DataUtil::EntityRef> &ents, EntityListParser &list_parser,
-    EntityParser &parser, DocElem root);
+void ReadAllEntityRefs(std::vector<DataUtil::EntityRef> &ents, EntityListParser &list_parser, EntityParser &parser,
+                       DocElem root);
 // Reads global variables defined inside the game project from the given doc root element.
 void ReadGlobalVariables(std::vector<DataUtil::Variable> &vars, DocElem root);
 // Reads custom property schema definitions from the given doc root element.

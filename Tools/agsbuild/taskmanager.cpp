@@ -54,9 +54,7 @@ void ReadStringListFromStdOut(const String &input_s, std::vector<String> &input_
     String uni_input_s = input_s;
     uni_input_s.Replace("\r\n", "\n");
     auto list = uni_input_s.Split("\n");
-    list.erase(
-        std::remove_if(list.begin(), list.end(), [](const String &s){return s.IsEmpty();}),
-        list.end());
+    list.erase(std::remove_if(list.begin(), list.end(), [](const String &s) { return s.IsEmpty(); }), list.end());
     input_list.insert(input_list.end(), list.begin(), list.end());
 }
 
@@ -86,17 +84,13 @@ HError WriteStringListToTextFile(const String &filename, const std::vector<Strin
 // Task
 //-----------------------------------------------------------------------------
 
-Task::Task(const String &name, ITaskManager *mgr)
-    : _name(name.Clone())
-    , _mgr(mgr)
+Task::Task(const String &name, ITaskManager *mgr) : _name(name.Clone()), _mgr(mgr)
 {
     _logWriter.reset(new TextStreamWriter(AsStream<VectorStream>(_logBuffer, kStream_Write)));
 }
 
 Task::Task(const String &name, ITaskManager *mgr, const std::vector<TaskInput> &input_tasks)
-    : _name(name.Clone())
-    , _mgr(mgr)
-    , _inputs(Clone(input_tasks))
+    : _name(name.Clone()), _mgr(mgr), _inputs(Clone(input_tasks))
 {
     _inputData.resize(_inputs.size());
     _logWriter.reset(new TextStreamWriter(AsStream<VectorStream>(_logBuffer, kStream_Write)));
@@ -124,7 +118,7 @@ String Task::GetLogBuffer() const
 {
     std::lock_guard<std::mutex> lk(_mutex);
     _logBuffer.push_back(0); // for safety
-    return String(reinterpret_cast<const char*>(_logBuffer.data()));
+    return String(reinterpret_cast<const char *>(_logBuffer.data()));
 }
 
 void Task::Cancel()
@@ -138,7 +132,7 @@ void Task::SetInputData(uint32_t in_index, const String &data)
     std::lock_guard<std::mutex> lk(_mutex);
     if (in_index < _inputs.size())
     {
-        // Clone string in order to avoid problems with threads (String has a ref-counted data) 
+        // Clone string in order to avoid problems with threads (String has a ref-counted data)
         _inputData[in_index] = data.Clone();
     }
 }
@@ -172,8 +166,8 @@ HError TaskMoveFiles::RunImpl()
     if (_fileOp < FileMoveOp::Move || _fileOp > FileMoveOp::Hardlink)
         _fileOp = FileMoveOp::Copy;
 
-    const char *op_names[] = { "Move", "Copy", "Hardlink" };
-    const char *op_names2[] = { "move", "copy", "hardlink" };
+    const char *op_names[] = {"Move", "Copy", "Hardlink"};
+    const char *op_names2[] = {"move", "copy", "hardlink"};
 
     for (const auto item : _files)
     {
@@ -194,18 +188,21 @@ HError TaskMoveFiles::RunImpl()
             FileMoveOp do_op = _fileOp;
             if (!success && _fileOp != FileMoveOp::Copy)
             {
-                _logWriter->WriteFormat("Failed to %s file %s to %s, fallback to Copy\n", op_names2[(int)_fileOp], src_filepath.GetCStr(), dst_filepath.GetCStr());
+                _logWriter->WriteFormat("Failed to %s file %s to %s, fallback to Copy\n", op_names2[(int)_fileOp],
+                                        src_filepath.GetCStr(), dst_filepath.GetCStr());
                 success = File::CopyFile(src_filepath, dst_filepath, true);
                 do_op = FileMoveOp::Copy;
             }
 
             if (success)
             {
-                _logWriter->WriteFormat("+ %s: %s -> %s\n", op_names[(int)do_op], src_filepath.GetCStr(), dst_filepath.GetCStr());
+                _logWriter->WriteFormat("+ %s: %s -> %s\n", op_names[(int)do_op], src_filepath.GetCStr(),
+                                        dst_filepath.GetCStr());
             }
             else
             {
-                return new Error("Failed to %s file %s to %s", op_names2[(int)do_op], src_filepath.GetCStr(), dst_filepath.GetCStr());
+                return new Error("Failed to %s file %s to %s", op_names2[(int)do_op], src_filepath.GetCStr(),
+                                 dst_filepath.GetCStr());
             }
         }
         else if (_skipIfNoSrc)
@@ -258,15 +255,13 @@ HError TaskWriteStringList::RunImpl()
 //-----------------------------------------------------------------------------
 
 TaskPipedProcess::TaskPipedProcess(const String &name, ITaskManager *mgr, const PipedProcessParams &params)
-    : Task(name, mgr)
-    , _params(params.Clone())
+    : Task(name, mgr), _params(params.Clone())
 {
 }
 
 TaskPipedProcess::TaskPipedProcess(const String &name, ITaskManager *mgr, const PipedProcessParams &params,
-    const std::vector<TaskInput> &input_tasks)
-    : Task(name, mgr, input_tasks)
-    , _params(params.Clone())
+                                   const std::vector<TaskInput> &input_tasks)
+    : Task(name, mgr, input_tasks), _params(params.Clone())
 {
 }
 
@@ -286,7 +281,7 @@ HError TaskPipedProcess::RunImpl()
         if (_params.OutputToStdOut)
         {
             data.push_back(0); // safety fix
-            _outputData.push_back(String(reinterpret_cast<const char*>(data.data())));
+            _outputData.push_back(String(reinterpret_cast<const char *>(data.data())));
             /* TODO: ?
             // We assume that the output is a list of strings, separated by linebreaks.
             // Then we assume that there's a second kind of separator: an empty line;
@@ -311,8 +306,7 @@ HError TaskPipedProcess::RunImpl()
 // TaskManager
 //-----------------------------------------------------------------------------
 
-TaskManager::TaskManager(uint32_t max_threads, bool verbose)
-    : _verbose(verbose)
+TaskManager::TaskManager(uint32_t max_threads, bool verbose) : _verbose(verbose)
 {
     assert(max_threads > 0);
     for (uint32_t i = 0; i < max_threads; ++i)
@@ -363,7 +357,10 @@ HError TaskManager::RunAll()
         switch (state)
         {
         case TaskState::Success: success_tasks++; break;
-        case TaskState::Failure: failed_task_names.push_back(task.first); failed_tasks++; break;
+        case TaskState::Failure:
+            failed_task_names.push_back(task.first);
+            failed_tasks++;
+            break;
         case TaskState::Cancelled:
         default:
             cancelled_task_names.push_back(task.first);
@@ -386,8 +383,9 @@ HError TaskManager::RunAll()
             printf("\t%s\n", name.GetCStr());
     }
 
-    return (failed_tasks == 0u && cancelled_tasks == 0u) ? HError::None()
-        : new Error("%d task(s) failed to complete", failed_tasks + cancelled_tasks);
+    return (failed_tasks == 0u && cancelled_tasks == 0u)
+               ? HError::None()
+               : new Error("%d task(s) failed to complete", failed_tasks + cancelled_tasks);
 }
 
 static void RunTaskOnThread(Task *task)
@@ -436,7 +434,8 @@ void TaskManager::RunReadyTasks()
                         if (auto_cancel)
                         {
                             auto_cancel_because = input.OutputTask;
-                            printf("Task %s: prerequisite %s has failed to complete\n", task.first.GetCStr(), input.OutputTask.GetCStr());
+                            printf("Task %s: prerequisite %s has failed to complete\n", task.first.GetCStr(),
+                                   input.OutputTask.GetCStr());
                         }
                     }
                     else
@@ -524,7 +523,8 @@ bool TaskManager::UpdateTaskState(bool &has_any_task_finished)
                         {
                             if ((input.OutputTask == name) && (input.OutputIndex < out_data.size()))
                             {
-                                printf("Task %s: pass output data to task %s\n", name.GetCStr(), pending_task->GetName().GetCStr());
+                                printf("Task %s: pass output data to task %s\n", name.GetCStr(),
+                                       pending_task->GetName().GetCStr());
                                 pending_task->SetInputData(input.InputIndex, out_data[input.OutputIndex]);
                             }
                         }
@@ -586,14 +586,16 @@ void TaskManager::CancelTaskDependents(const String &task_name, std::vector<Stri
     {
         Task *pending_task = entry.second;
         const auto &inputs = pending_task->GetInputs();
-        if (std::find_if(inputs.begin(), inputs.end(), [task_name](const TaskInput &ti){ return ti.OutputTask == task_name;}) != inputs.end())
+        if (std::find_if(inputs.begin(), inputs.end(),
+                         [task_name](const TaskInput &ti) { return ti.OutputTask == task_name; }) != inputs.end())
         {
             CancelTask(pending_task, task_name, cancel_tasks);
         }
     }
 }
 
-void TaskManager::MoveTasks(std::vector<String> &tasks, std::unordered_map<String, Task *> &from, std::unordered_map<String, Task *> &to)
+void TaskManager::MoveTasks(std::vector<String> &tasks, std::unordered_map<String, Task *> &from,
+                            std::unordered_map<String, Task *> &to)
 {
     // Sort and remove duplicates
     std::sort(tasks.begin(), tasks.end());

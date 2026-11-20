@@ -11,13 +11,13 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-// 
+//
 // AGS sprite import utility.
 // Parses Game.agf for game sprite specs. Looks up for the source image files,
 // loads them up, cuts sprites out, converts to AGS compatible format, and
 // optionally either writes individual image files one per sprite into the
 // destination directory, or compiles a spritefile.
-// 
+//
 //=============================================================================
 #include "commands.h"
 #include "util/cmdlineopts.h"
@@ -29,56 +29,55 @@ using namespace AGS::Common;
 
 
 const char *BIN_STRING = "spriteimport v0.1.0 - AGS sprite import tool\n"
-"Copyright (c) 2026 AGS Team and contributors\n";
+                         "Copyright (c) 2026 AGS Team and contributors\n";
 
 const char *HELP_STRING = "Usage:\n"
-//------------------------------------------------------------------------------|
-"  spriteimport <COMMAND> <GAME.AGF> <OUT-PATH> [<COMMAND-OPTIONS>] [<OPTIONS>]\n"
-"      parses the input GAME.AGF file, and writes an output depending on the\n"
-"      command and additional options (see below).\n"
-"\n"
-"Commands:\n"
-"  -c, --out-pak    outputs a compiled spritefile. Additional options '-n', '-s'\n"
-"                   and '-z' modify this command's behavior.\n"
-"  -f, --out-files  outputs sprites as individual image files into the specified\n"
-"                   directory. The files's names and format is determined by\n"
-"                   the pattern option (see '-p'). If not such pattern provided\n"
-"                   then uses \"spr%6N%.png\" by default.\n"
-"\n"
-"Command options:\n"
-"  -n, --index <indexfile>\n"
-"                   when output is the spritefile: specifies the accompanying\n"
-"                   sprite index file.\n"
-"  -p, --pattern <name pattern>\n"
-"                   when output is image files: use the given pattern to define\n"
-"                   their naming and image format.\n"
-"                   The pattern may be given with or without file extension.\n"
-"                   The pattern may contain following placeholders:\n"
-"                     * %xN% - sprite number, where 'x' may be any single digit\n"
-"                              integer specifying number of padding zeroes,\n"
-"                              e.g. \"%6N%."
-"                   If no pattern is provided, the program will use \"spr%6N%\"\n"
-"                   pattern by default. If no extension is specified in the\n"
-"                   pattern, then \".png\" will be used as an extension.\n"
-"  -r, --room-dir   directory to search for the room files (roomN.crm);\n"
-"                   this is needed for 8-bit games (require room palettes)\n"
-"  -s, --storage-flags <flags>\n"
-"                   when output is the spritefile: use additional storage\n"
-"                   options, defined using a hexadecimal bitset:\n"
-"                     * 0x01 - optimize storage size when possible;\n"
-"                   e.g. write 16/32-bit images as 8-bit images with palette\n"
-"                   (only when this achieves less space). Default is \"0x01\"\n"
-"  -z, --compress <type>\n"
-"                   when output is the spritefile: use compression:\n"
-"                     * none\n"
-"                     * rle\n"
-"                     * lzw\n"
-"                     * deflate\n"
-"                   Default is \"deflate\".\n"
-"\n"
-"Other options:\n"
-"  -v, --verbose    print operation details"
-;
+                          //------------------------------------------------------------------------------|
+                          "  spriteimport <COMMAND> <GAME.AGF> <OUT-PATH> [<COMMAND-OPTIONS>] [<OPTIONS>]\n"
+                          "      parses the input GAME.AGF file, and writes an output depending on the\n"
+                          "      command and additional options (see below).\n"
+                          "\n"
+                          "Commands:\n"
+                          "  -c, --out-pak    outputs a compiled spritefile. Additional options '-n', '-s'\n"
+                          "                   and '-z' modify this command's behavior.\n"
+                          "  -f, --out-files  outputs sprites as individual image files into the specified\n"
+                          "                   directory. The files's names and format is determined by\n"
+                          "                   the pattern option (see '-p'). If not such pattern provided\n"
+                          "                   then uses \"spr%6N%.png\" by default.\n"
+                          "\n"
+                          "Command options:\n"
+                          "  -n, --index <indexfile>\n"
+                          "                   when output is the spritefile: specifies the accompanying\n"
+                          "                   sprite index file.\n"
+                          "  -p, --pattern <name pattern>\n"
+                          "                   when output is image files: use the given pattern to define\n"
+                          "                   their naming and image format.\n"
+                          "                   The pattern may be given with or without file extension.\n"
+                          "                   The pattern may contain following placeholders:\n"
+                          "                     * %xN% - sprite number, where 'x' may be any single digit\n"
+                          "                              integer specifying number of padding zeroes,\n"
+                          "                              e.g. \"%6N%."
+                          "                   If no pattern is provided, the program will use \"spr%6N%\"\n"
+                          "                   pattern by default. If no extension is specified in the\n"
+                          "                   pattern, then \".png\" will be used as an extension.\n"
+                          "  -r, --room-dir   directory to search for the room files (roomN.crm);\n"
+                          "                   this is needed for 8-bit games (require room palettes)\n"
+                          "  -s, --storage-flags <flags>\n"
+                          "                   when output is the spritefile: use additional storage\n"
+                          "                   options, defined using a hexadecimal bitset:\n"
+                          "                     * 0x01 - optimize storage size when possible;\n"
+                          "                   e.g. write 16/32-bit images as 8-bit images with palette\n"
+                          "                   (only when this achieves less space). Default is \"0x01\"\n"
+                          "  -z, --compress <type>\n"
+                          "                   when output is the spritefile: use compression:\n"
+                          "                     * none\n"
+                          "                     * rle\n"
+                          "                     * lzw\n"
+                          "                     * deflate\n"
+                          "                   Default is \"deflate\".\n"
+                          "\n"
+                          "Other options:\n"
+                          "  -v, --verbose    print operation details";
 
 
 int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
@@ -123,7 +122,8 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
         }
         else if (opt_with_value.first == "-s" || opt_with_value.first == "--storage-flags")
         {
-            opts.StorageFlags = static_cast<SpriteImport::SpriteStorage>(StrUtil::StringToIntHex(opt_with_value.second));
+            opts.StorageFlags =
+                static_cast<SpriteImport::SpriteStorage>(StrUtil::StringToIntHex(opt_with_value.second));
         }
         else if (opt_with_value.first == "-z" || opt_with_value.first == "--compress")
         {
@@ -167,8 +167,9 @@ int main(int argc, char *argv[])
 {
     printf("%s\n", BIN_STRING);
 
-    CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(argc, argv,
-        { "-n", "--index", "-p", "--pattern", "-r", "--room-dir", "-s", "--storage-flags", "-z", "--compress"});
+    CmdLineOpts::ParseResult cmdargs = CmdLineOpts::Parse(
+        argc, argv,
+        {"-n", "--index", "-p", "--pattern", "-r", "--room-dir", "-s", "--storage-flags", "-z", "--compress"});
     if (cmdargs.HelpRequested)
     {
         printf("%s\n", HELP_STRING);

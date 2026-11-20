@@ -28,7 +28,5 @@ public:
         bestfit_color(dummy, 0, 0, 0);
     }
 
-    void TearDown() override
-    {
-    }
+    void TearDown() override {}
 };

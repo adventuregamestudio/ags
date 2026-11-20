@@ -11,9 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-// 
+//
 // Stubs for the certain project-dependent script-related cc_* functions.
-// 
+//
 //=============================================================================
 #include "util/string.h"
 

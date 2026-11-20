@@ -21,8 +21,10 @@
 #include "util/stream.h"
 #include "data/game_utils.h"
 
-namespace AGS {
-namespace DataFileWriter {
+namespace AGS
+{
+namespace DataFileWriter
+{
 
 using AGS::Common::Stream;
 
@@ -37,22 +39,16 @@ struct CompiledData
     explicit CompiledData(const DataUtil::GameData &game);
 };
 
-void WriteCharacter(Stream *out, const DataUtil::GameData &game,
-    const DataUtil::CharacterData &character, int index);
-void WriteInventoryItem(Stream *out,
-    const DataUtil::InventoryItemData &item);
+void WriteCharacter(Stream *out, const DataUtil::GameData &game, const DataUtil::CharacterData &character, int index);
+void WriteInventoryItem(Stream *out, const DataUtil::InventoryItemData &item);
 void WriteCursor(Stream *out, const DataUtil::CursorData &cursor);
 void WriteTextParserDictionary(const DataUtil::GameData &game, Stream *out);
-void WriteView(Stream *out, const DataUtil::GameData &game,
-    const DataUtil::ViewData &view);
+void WriteView(Stream *out, const DataUtil::GameData &game, const DataUtil::ViewData &view);
 void WriteAudioType(Stream *out, const DataUtil::AudioTypeData &type, int id);
-void WriteAudioClip(Stream *out, const DataUtil::AudioClipData &clip,
-    int index);
+void WriteAudioClip(Stream *out, const DataUtil::AudioClipData &clip, int index);
 void WriteExt363Dialogs(Stream *out, const DataUtil::GameData &game);
-void WritePropertySchemaBlock(Stream *out,
-    const std::vector<DataUtil::CustomPropertySchemaItem> &schema);
-void WritePropertyValues(Stream *out,
-    const std::vector<DataUtil::CustomPropertyValue> &properties);
+void WritePropertySchemaBlock(Stream *out, const std::vector<DataUtil::CustomPropertySchemaItem> &schema);
+void WritePropertyValues(Stream *out, const std::vector<DataUtil::CustomPropertyValue> &properties);
 
 // Block-level writers used by WriteGameData28. These are exposed separately so
 // that their count, ordering and reserved-slot framing may be unit-tested.
@@ -81,13 +77,12 @@ void WriteExt363GameInfo(Stream *out, const DataUtil::GameData &game);
 void WriteGuiControlLooks363(Stream *out, const DataUtil::GUIControlData &control);
 void WriteExt363GuiControls(Stream *out, const DataUtil::GameData &game);
 
-using ExtensionWriter = std::function<void(Stream*, const DataUtil::GameData&)>;
-void WriteExtension(Stream *out, const char *id,
-    const DataUtil::GameData &game, ExtensionWriter writer);
+using ExtensionWriter = std::function<void(Stream *, const DataUtil::GameData &)>;
+void WriteExtension(Stream *out, const char *id, const DataUtil::GameData &game, ExtensionWriter writer);
 
 // Serializes the legacy GameSetupStructBase block.
 void WriteGameSetupStructBase(const DataUtil::GameData &game, const CompiledData &data, Stream *out,
-    soff_t &ext_offset_pos);
+                              soff_t &ext_offset_pos);
 
 } // namespace DataFileWriter
 

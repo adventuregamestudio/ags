@@ -11,9 +11,9 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-// 
+//
 // CRM room file pack/unpack utility.
-// 
+//
 //=============================================================================
 #include "commands.h"
 #include "util/cmdlineopts.h"
@@ -25,10 +25,10 @@ using namespace AGS::Common;
 
 const char *TOOL_NAME = TOOL_NAME_DEF;
 const char *BIN_STRING = TOOL_NAME_DEF " - AGS compiled room's (re)packer\n"
-"Copyright (c) 2026 AGS Team and contributors";
+                                       "Copyright (c) 2026 AGS Team and contributors";
 
 const char *HELP_STRING =
-   //------------------------------------------------------------------------------|
+    //------------------------------------------------------------------------------|
     "Usage:\n"
     "  crmpak <COMMAND> <ROOM-FILE> [<CONTENT-LIST>] [<OPTIONS>]\n"
     "      executes an operation regarding the chosen room file, and the selected\n"
@@ -72,8 +72,7 @@ const char *HELP_STRING =
     "                         into a new file; otherwise will modify the input file\n"
     "\n"
     "Other options:\n"
-    "  -v, --verbose          print operation details"
-    ;
+    "  -v, --verbose          print operation details";
 
 CRMPak::Content ParseContent(const String &cont_type, const String &filename)
 {
@@ -85,8 +84,8 @@ CRMPak::Content ParseContent(const String &cont_type, const String &filename)
         return {};
     }
 
-    auto cont = StrUtil::ParseEnum<CRMPak::ContentType, CRMPak::kNumContentTypes>(cont_type,
-        CRMPak::GetContentNames(), CRMPak::kContent_Undefined);
+    auto cont = StrUtil::ParseEnum<CRMPak::ContentType, CRMPak::kNumContentTypes>(cont_type, CRMPak::GetContentNames(),
+                                                                                  CRMPak::kContent_Undefined);
     return CRMPak::Content(cont, filename);
 }
 

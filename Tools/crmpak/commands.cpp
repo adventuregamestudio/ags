@@ -29,82 +29,60 @@ using namespace AGS::Common;
 // This is necessary, because 16/32-bit rooms do not always contain valid palette,
 // so mask colors will be not "visible".
 // TODO: move elsewhere to let share among tools?
-PALETTE default_palette =
-{
+PALETTE default_palette = {
     // FIXME: convert 64-unit RGBs to 256-unit RGBs!
-    { 0,  0,  0,  0 },   { 0,  0,  42, 0 },   { 0,  42, 0,  0 },   { 0,  42, 42, 0 }, 
-    { 42, 0,  0,  0 },   { 42, 0,  42, 0 },   { 42, 21, 0,  0 },   { 42, 42, 42, 0 }, 
-    { 21, 21, 21, 0 },   { 21, 21, 63, 0 },   { 21, 63, 21, 0 },   { 21, 63, 63, 0 }, 
-    { 63, 21, 21, 0 },   { 63, 21, 63, 0 },   { 63, 63, 21, 0 },   { 63, 63, 63, 0 }, 
-    { 0,  0,  0,  0 },   { 5,  5,  5,  0 },   { 8,  8,  8,  0 },   { 11, 11, 11, 0 }, 
-    { 14, 14, 14, 0 },   { 17, 17, 17, 0 },   { 20, 20, 20, 0 },   { 24, 24, 24, 0 }, 
-    { 28, 28, 28, 0 },   { 32, 32, 32, 0 },   { 36, 36, 36, 0 },   { 40, 40, 40, 0 }, 
-    { 45, 45, 45, 0 },   { 50, 50, 50, 0 },   { 56, 56, 56, 0 },   { 63, 63, 63, 0 }, 
-    { 0,  0,  63, 0 },   { 16, 0,  63, 0 },   { 31, 0,  63, 0 },   { 47, 0,  63, 0 }, 
-    { 63, 0,  63, 0 },   { 63, 0,  47, 0 },   { 63, 0,  31, 0 },   { 63, 0,  16, 0 }, 
-    { 63, 0,  0,  0 },   { 63, 16, 0,  0 },   { 63, 31, 0,  0 },   { 63, 47, 0,  0 }, 
-    { 63, 63, 0,  0 },   { 47, 63, 0,  0 },   { 31, 63, 0,  0 },   { 16, 63, 0,  0 }, 
-    { 0,  63, 0,  0 },   { 0,  63, 16, 0 },   { 0,  63, 31, 0 },   { 0,  63, 47, 0 }, 
-    { 0,  63, 63, 0 },   { 0,  47, 63, 0 },   { 0,  31, 63, 0 },   { 0,  16, 63, 0 }, 
-    { 31, 31, 63, 0 },   { 39, 31, 63, 0 },   { 47, 31, 63, 0 },   { 55, 31, 63, 0 }, 
-    { 63, 31, 63, 0 },   { 63, 31, 55, 0 },   { 63, 31, 47, 0 },   { 63, 31, 39, 0 }, 
-    { 63, 31, 31, 0 },   { 63, 39, 31, 0 },   { 63, 47, 31, 0 },   { 63, 55, 31, 0 }, 
-    { 63, 63, 31, 0 },   { 55, 63, 31, 0 },   { 47, 63, 31, 0 },   { 39, 63, 31, 0 }, 
-    { 31, 63, 31, 0 },   { 31, 63, 39, 0 },   { 31, 63, 47, 0 },   { 31, 63, 55, 0 }, 
-    { 31, 63, 63, 0 },   { 31, 55, 63, 0 },   { 31, 47, 63, 0 },   { 31, 39, 63, 0 }, 
-    { 45, 45, 63, 0 },   { 49, 45, 63, 0 },   { 54, 45, 63, 0 },   { 58, 45, 63, 0 }, 
-    { 63, 45, 63, 0 },   { 63, 45, 58, 0 },   { 63, 45, 54, 0 },   { 63, 45, 49, 0 }, 
-    { 63, 45, 45, 0 },   { 63, 49, 45, 0 },   { 63, 54, 45, 0 },   { 63, 58, 45, 0 }, 
-    { 63, 63, 45, 0 },   { 58, 63, 45, 0 },   { 54, 63, 45, 0 },   { 49, 63, 45, 0 }, 
-    { 45, 63, 45, 0 },   { 45, 63, 49, 0 },   { 45, 63, 54, 0 },   { 45, 63, 58, 0 }, 
-    { 45, 63, 63, 0 },   { 45, 58, 63, 0 },   { 45, 54, 63, 0 },   { 45, 49, 63, 0 }, 
-    { 0,  0,  28, 0 },   { 7,  0,  28, 0 },   { 14, 0,  28, 0 },   { 21, 0,  28, 0 }, 
-    { 28, 0,  28, 0 },   { 28, 0,  21, 0 },   { 28, 0,  14, 0 },   { 28, 0,  7,  0 }, 
-    { 28, 0,  0,  0 },   { 28, 7,  0,  0 },   { 28, 14, 0,  0 },   { 28, 21, 0,  0 }, 
-    { 28, 28, 0,  0 },   { 21, 28, 0,  0 },   { 14, 28, 0,  0 },   { 7,  28, 0,  0 }, 
-    { 0,  28, 0,  0 },   { 0,  28, 7,  0 },   { 0,  28, 14, 0 },   { 0,  28, 21, 0 }, 
-    { 0,  28, 28, 0 },   { 0,  21, 28, 0 },   { 0,  14, 28, 0 },   { 0,  7,  28, 0 }, 
-    { 14, 14, 28, 0 },   { 17, 14, 28, 0 },   { 21, 14, 28, 0 },   { 24, 14, 28, 0 }, 
-    { 28, 14, 28, 0 },   { 28, 14, 24, 0 },   { 28, 14, 21, 0 },   { 28, 14, 17, 0 }, 
-    { 28, 14, 14, 0 },   { 28, 17, 14, 0 },   { 28, 21, 14, 0 },   { 28, 24, 14, 0 }, 
-    { 28, 28, 14, 0 },   { 24, 28, 14, 0 },   { 21, 28, 14, 0 },   { 17, 28, 14, 0 }, 
-    { 14, 28, 14, 0 },   { 14, 28, 17, 0 },   { 14, 28, 21, 0 },   { 14, 28, 24, 0 }, 
-    { 14, 28, 28, 0 },   { 14, 24, 28, 0 },   { 14, 21, 28, 0 },   { 14, 17, 28, 0 }, 
-    { 20, 20, 28, 0 },   { 22, 20, 28, 0 },   { 24, 20, 28, 0 },   { 26, 20, 28, 0 }, 
-    { 28, 20, 28, 0 },   { 28, 20, 26, 0 },   { 28, 20, 24, 0 },   { 28, 20, 22, 0 }, 
-    { 28, 20, 20, 0 },   { 28, 22, 20, 0 },   { 28, 24, 20, 0 },   { 28, 26, 20, 0 }, 
-    { 28, 28, 20, 0 },   { 26, 28, 20, 0 },   { 24, 28, 20, 0 },   { 22, 28, 20, 0 }, 
-    { 20, 28, 20, 0 },   { 20, 28, 22, 0 },   { 20, 28, 24, 0 },   { 20, 28, 26, 0 }, 
-    { 20, 28, 28, 0 },   { 20, 26, 28, 0 },   { 20, 24, 28, 0 },   { 20, 22, 28, 0 }, 
-    { 0,  0,  16, 0 },   { 4,  0,  16, 0 },   { 8,  0,  16, 0 },   { 12, 0,  16, 0 }, 
-    { 16, 0,  16, 0 },   { 16, 0,  12, 0 },   { 16, 0,  8,  0 },   { 16, 0,  4,  0 }, 
-    { 16, 0,  0,  0 },   { 16, 4,  0,  0 },   { 16, 8,  0,  0 },   { 16, 12, 0,  0 }, 
-    { 16, 16, 0,  0 },   { 12, 16, 0,  0 },   { 8,  16, 0,  0 },   { 4,  16, 0,  0 }, 
-    { 0,  16, 0,  0 },   { 0,  16, 4,  0 },   { 0,  16, 8,  0 },   { 0,  16, 12, 0 }, 
-    { 0,  16, 16, 0 },   { 0,  12, 16, 0 },   { 0,  8,  16, 0 },   { 0,  4,  16, 0 }, 
-    { 8,  8,  16, 0 },   { 10, 8,  16, 0 },   { 12, 8,  16, 0 },   { 14, 8,  16, 0 }, 
-    { 16, 8,  16, 0 },   { 16, 8,  14, 0 },   { 16, 8,  12, 0 },   { 16, 8,  10, 0 }, 
-    { 16, 8,  8,  0 },   { 16, 10, 8,  0 },   { 16, 12, 8,  0 },   { 16, 14, 8,  0 }, 
-    { 16, 16, 8,  0 },   { 14, 16, 8,  0 },   { 12, 16, 8,  0 },   { 10, 16, 8,  0 }, 
-    { 8,  16, 8,  0 },   { 8,  16, 10, 0 },   { 8,  16, 12, 0 },   { 8,  16, 14, 0 }, 
-    { 8,  16, 16, 0 },   { 8,  14, 16, 0 },   { 8,  12, 16, 0 },   { 8,  10, 16, 0 }, 
-    { 11, 11, 16, 0 },   { 12, 11, 16, 0 },   { 13, 11, 16, 0 },   { 15, 11, 16, 0 }, 
-    { 16, 11, 16, 0 },   { 16, 11, 15, 0 },   { 16, 11, 13, 0 },   { 16, 11, 12, 0 }, 
-    { 16, 11, 11, 0 },   { 16, 12, 11, 0 },   { 16, 13, 11, 0 },   { 16, 15, 11, 0 }, 
-    { 16, 16, 11, 0 },   { 15, 16, 11, 0 },   { 13, 16, 11, 0 },   { 12, 16, 11, 0 }, 
-    { 11, 16, 11, 0 },   { 11, 16, 12, 0 },   { 11, 16, 13, 0 },   { 11, 16, 15, 0 }, 
-    { 11, 16, 16, 0 },   { 11, 15, 16, 0 },   { 11, 13, 16, 0 },   { 11, 12, 16, 0 }, 
-    { 0,  0,  0,  0 },   { 0,  0,  0,  0 },   { 0,  0,  0,  0 },   { 0,  0,  0,  0 }, 
-    { 0,  0,  0,  0 },   { 0,  0,  0,  0 },   { 0,  0,  0,  0 },   { 63, 63, 63, 0 }
-};
+    {0, 0, 0, 0},    {0, 0, 42, 0},   {0, 42, 0, 0},   {0, 42, 42, 0},  {42, 0, 0, 0},   {42, 0, 42, 0},
+    {42, 21, 0, 0},  {42, 42, 42, 0}, {21, 21, 21, 0}, {21, 21, 63, 0}, {21, 63, 21, 0}, {21, 63, 63, 0},
+    {63, 21, 21, 0}, {63, 21, 63, 0}, {63, 63, 21, 0}, {63, 63, 63, 0}, {0, 0, 0, 0},    {5, 5, 5, 0},
+    {8, 8, 8, 0},    {11, 11, 11, 0}, {14, 14, 14, 0}, {17, 17, 17, 0}, {20, 20, 20, 0}, {24, 24, 24, 0},
+    {28, 28, 28, 0}, {32, 32, 32, 0}, {36, 36, 36, 0}, {40, 40, 40, 0}, {45, 45, 45, 0}, {50, 50, 50, 0},
+    {56, 56, 56, 0}, {63, 63, 63, 0}, {0, 0, 63, 0},   {16, 0, 63, 0},  {31, 0, 63, 0},  {47, 0, 63, 0},
+    {63, 0, 63, 0},  {63, 0, 47, 0},  {63, 0, 31, 0},  {63, 0, 16, 0},  {63, 0, 0, 0},   {63, 16, 0, 0},
+    {63, 31, 0, 0},  {63, 47, 0, 0},  {63, 63, 0, 0},  {47, 63, 0, 0},  {31, 63, 0, 0},  {16, 63, 0, 0},
+    {0, 63, 0, 0},   {0, 63, 16, 0},  {0, 63, 31, 0},  {0, 63, 47, 0},  {0, 63, 63, 0},  {0, 47, 63, 0},
+    {0, 31, 63, 0},  {0, 16, 63, 0},  {31, 31, 63, 0}, {39, 31, 63, 0}, {47, 31, 63, 0}, {55, 31, 63, 0},
+    {63, 31, 63, 0}, {63, 31, 55, 0}, {63, 31, 47, 0}, {63, 31, 39, 0}, {63, 31, 31, 0}, {63, 39, 31, 0},
+    {63, 47, 31, 0}, {63, 55, 31, 0}, {63, 63, 31, 0}, {55, 63, 31, 0}, {47, 63, 31, 0}, {39, 63, 31, 0},
+    {31, 63, 31, 0}, {31, 63, 39, 0}, {31, 63, 47, 0}, {31, 63, 55, 0}, {31, 63, 63, 0}, {31, 55, 63, 0},
+    {31, 47, 63, 0}, {31, 39, 63, 0}, {45, 45, 63, 0}, {49, 45, 63, 0}, {54, 45, 63, 0}, {58, 45, 63, 0},
+    {63, 45, 63, 0}, {63, 45, 58, 0}, {63, 45, 54, 0}, {63, 45, 49, 0}, {63, 45, 45, 0}, {63, 49, 45, 0},
+    {63, 54, 45, 0}, {63, 58, 45, 0}, {63, 63, 45, 0}, {58, 63, 45, 0}, {54, 63, 45, 0}, {49, 63, 45, 0},
+    {45, 63, 45, 0}, {45, 63, 49, 0}, {45, 63, 54, 0}, {45, 63, 58, 0}, {45, 63, 63, 0}, {45, 58, 63, 0},
+    {45, 54, 63, 0}, {45, 49, 63, 0}, {0, 0, 28, 0},   {7, 0, 28, 0},   {14, 0, 28, 0},  {21, 0, 28, 0},
+    {28, 0, 28, 0},  {28, 0, 21, 0},  {28, 0, 14, 0},  {28, 0, 7, 0},   {28, 0, 0, 0},   {28, 7, 0, 0},
+    {28, 14, 0, 0},  {28, 21, 0, 0},  {28, 28, 0, 0},  {21, 28, 0, 0},  {14, 28, 0, 0},  {7, 28, 0, 0},
+    {0, 28, 0, 0},   {0, 28, 7, 0},   {0, 28, 14, 0},  {0, 28, 21, 0},  {0, 28, 28, 0},  {0, 21, 28, 0},
+    {0, 14, 28, 0},  {0, 7, 28, 0},   {14, 14, 28, 0}, {17, 14, 28, 0}, {21, 14, 28, 0}, {24, 14, 28, 0},
+    {28, 14, 28, 0}, {28, 14, 24, 0}, {28, 14, 21, 0}, {28, 14, 17, 0}, {28, 14, 14, 0}, {28, 17, 14, 0},
+    {28, 21, 14, 0}, {28, 24, 14, 0}, {28, 28, 14, 0}, {24, 28, 14, 0}, {21, 28, 14, 0}, {17, 28, 14, 0},
+    {14, 28, 14, 0}, {14, 28, 17, 0}, {14, 28, 21, 0}, {14, 28, 24, 0}, {14, 28, 28, 0}, {14, 24, 28, 0},
+    {14, 21, 28, 0}, {14, 17, 28, 0}, {20, 20, 28, 0}, {22, 20, 28, 0}, {24, 20, 28, 0}, {26, 20, 28, 0},
+    {28, 20, 28, 0}, {28, 20, 26, 0}, {28, 20, 24, 0}, {28, 20, 22, 0}, {28, 20, 20, 0}, {28, 22, 20, 0},
+    {28, 24, 20, 0}, {28, 26, 20, 0}, {28, 28, 20, 0}, {26, 28, 20, 0}, {24, 28, 20, 0}, {22, 28, 20, 0},
+    {20, 28, 20, 0}, {20, 28, 22, 0}, {20, 28, 24, 0}, {20, 28, 26, 0}, {20, 28, 28, 0}, {20, 26, 28, 0},
+    {20, 24, 28, 0}, {20, 22, 28, 0}, {0, 0, 16, 0},   {4, 0, 16, 0},   {8, 0, 16, 0},   {12, 0, 16, 0},
+    {16, 0, 16, 0},  {16, 0, 12, 0},  {16, 0, 8, 0},   {16, 0, 4, 0},   {16, 0, 0, 0},   {16, 4, 0, 0},
+    {16, 8, 0, 0},   {16, 12, 0, 0},  {16, 16, 0, 0},  {12, 16, 0, 0},  {8, 16, 0, 0},   {4, 16, 0, 0},
+    {0, 16, 0, 0},   {0, 16, 4, 0},   {0, 16, 8, 0},   {0, 16, 12, 0},  {0, 16, 16, 0},  {0, 12, 16, 0},
+    {0, 8, 16, 0},   {0, 4, 16, 0},   {8, 8, 16, 0},   {10, 8, 16, 0},  {12, 8, 16, 0},  {14, 8, 16, 0},
+    {16, 8, 16, 0},  {16, 8, 14, 0},  {16, 8, 12, 0},  {16, 8, 10, 0},  {16, 8, 8, 0},   {16, 10, 8, 0},
+    {16, 12, 8, 0},  {16, 14, 8, 0},  {16, 16, 8, 0},  {14, 16, 8, 0},  {12, 16, 8, 0},  {10, 16, 8, 0},
+    {8, 16, 8, 0},   {8, 16, 10, 0},  {8, 16, 12, 0},  {8, 16, 14, 0},  {8, 16, 16, 0},  {8, 14, 16, 0},
+    {8, 12, 16, 0},  {8, 10, 16, 0},  {11, 11, 16, 0}, {12, 11, 16, 0}, {13, 11, 16, 0}, {15, 11, 16, 0},
+    {16, 11, 16, 0}, {16, 11, 15, 0}, {16, 11, 13, 0}, {16, 11, 12, 0}, {16, 11, 11, 0}, {16, 12, 11, 0},
+    {16, 13, 11, 0}, {16, 15, 11, 0}, {16, 16, 11, 0}, {15, 16, 11, 0}, {13, 16, 11, 0}, {12, 16, 11, 0},
+    {11, 16, 11, 0}, {11, 16, 12, 0}, {11, 16, 13, 0}, {11, 16, 15, 0}, {11, 16, 16, 0}, {11, 15, 16, 0},
+    {11, 13, 16, 0}, {11, 12, 16, 0}, {0, 0, 0, 0},    {0, 0, 0, 0},    {0, 0, 0, 0},    {0, 0, 0, 0},
+    {0, 0, 0, 0},    {0, 0, 0, 0},    {0, 0, 0, 0},    {63, 63, 63, 0}};
 
 namespace CRMPak
 {
 
-const CstrArr<CRMPak::kNumContentTypes> ContentNames = 
-    {{ "undefined", "ash", "back", "mask-hotspot", "mask-region", "mask-walkarea", "mask-walkbehind", "script", "script-text" }};
-const CstrArr<CRMPak::kNumContentTypes> FriendlyContentNames = 
-    {{ "undefined", "Room header", "Background %d", "Hotspot mask", "Region mask", "Walkable mask", "Walk-behind mask", "Compiled script", "Script text" }};
+const CstrArr<CRMPak::kNumContentTypes> ContentNames = {{"undefined", "ash", "back", "mask-hotspot", "mask-region",
+                                                         "mask-walkarea", "mask-walkbehind", "script", "script-text"}};
+const CstrArr<CRMPak::kNumContentTypes> FriendlyContentNames = {{"undefined", "Room header", "Background %d",
+                                                                 "Hotspot mask", "Region mask", "Walkable mask",
+                                                                 "Walk-behind mask", "Compiled script", "Script text"}};
 
 const CstrArr<kNumContentTypes> &GetContentNames()
 {
@@ -122,7 +100,7 @@ HRoomFileError ReadOnlyScriptNames(RoomDataExt &room, std::unique_ptr<Stream> &&
     RoomReadOptions read_opts;
     read_opts.SkipImageData = true; // we read main block, which contains main bg and masks
     HRoomFileError err = ReadRoomData(&room, &room, std::move(in), data_ver,
-        {{ kRoomFblk_Main, "" }, { kRoomFblk_ObjectScNames, "" }}, read_opts);
+                                      {{kRoomFblk_Main, ""}, {kRoomFblk_ObjectScNames, ""}}, read_opts);
     // Must call UpdateRoomData, because certain script names from older room formats need to be converted
     if (err)
         err = UpdateRoomData(&room, data_ver, nullptr);
@@ -134,12 +112,12 @@ HRoomFileError ReadOnlyScriptNames(RoomDataExt &room, std::unique_ptr<Stream> &&
 HRoomFileError ReadOnlyCompiledScript(RoomDataExt &room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
     // the compiled script is read into RoomData, unlike the script text
-    return ReadRoomData(&room, &room, std::move(in), data_ver, {{ kRoomFblk_CompScript3, "" }}, {});
+    return ReadRoomData(&room, &room, std::move(in), data_ver, {{kRoomFblk_CompScript3, ""}}, {});
 }
 
 HRoomFileError ReadOnlyScriptText(RoomDataExt &room, std::unique_ptr<Stream> &&in, RoomFileVersion data_ver)
 {
-    return ReadRoomData(nullptr, &room, std::move(in), data_ver, {{ kRoomFblk_Script, "" }}, {});
+    return ReadRoomData(nullptr, &room, std::move(in), data_ver, {{kRoomFblk_Script, ""}}, {});
 }
 
 bool LoadBlockList(std::vector<DataExtBlockInfo> &blk_infos, const String &filename)
@@ -270,11 +248,12 @@ bool LoadImageFile(PixelBuffer &out_px_buf, RGB *pal, const String &filename, in
     {
         if (!PixelOp::CopyConvert(px_buf, out_px_buf, ColorDepthToPixelFormat(import_bpp)))
         {
-            printf("Error: failed to convert input image (%d bpp) to destination format (%d bpp)\n", px_buf.GetColorDepth(), import_bpp);
+            printf("Error: failed to convert input image (%d bpp) to destination format (%d bpp)\n",
+                   px_buf.GetColorDepth(), import_bpp);
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -347,8 +326,9 @@ bool DoesContentExist(const RoomDataExt &room, const Content &c, bool allow_expa
     switch (c.Type)
     {
     case kContent_Background:
-        return c.Index >= 0 && static_cast<uint32_t>(c.Index) < (allow_expand ? MAX_ROOM_BGFRAMES : room.BgFrameCount)
-            && (!test_instance || room.BgFrames[c.Index].GraphicBuf);
+        return c.Index >= 0 &&
+               static_cast<uint32_t>(c.Index) < (allow_expand ? MAX_ROOM_BGFRAMES : room.BgFrameCount) &&
+               (!test_instance || room.BgFrames[c.Index].GraphicBuf);
     case kContent_Hotspot: return (!test_instance || room.HotspotMaskBuf);
     case kContent_Region: return (!test_instance || room.RegionMaskBuf);
     case kContent_WalkArea: return (!test_instance || room.WalkAreaMaskBuf);
@@ -398,31 +378,18 @@ void ExportContent(const RoomDataExt &room, const std::vector<Content> &content)
             bool result = false;
             switch (c.Type)
             {
-            case kContent_Ash:
-                result = Export_Ash(room, c.FileName);
-                break;
+            case kContent_Ash: result = Export_Ash(room, c.FileName); break;
             case kContent_Background:
                 if (c.Index >= 0 && static_cast<uint32_t>(c.Index) < room.BgFrameCount)
-                    result = SaveImageFile(room.BgFrames[c.Index].GraphicBuf, room.BgFrames[c.Index].Palette, c.FileName);
+                    result =
+                        SaveImageFile(room.BgFrames[c.Index].GraphicBuf, room.BgFrames[c.Index].Palette, c.FileName);
                 break;
-            case kContent_Hotspot:
-                result = SaveImageFile(room.HotspotMaskBuf, pal_to_use, c.FileName);
-                break;
-            case kContent_Region:
-                result = SaveImageFile(room.RegionMaskBuf, pal_to_use, c.FileName);
-                break;
-            case kContent_WalkArea:
-                result = SaveImageFile(room.WalkAreaMaskBuf, pal_to_use, c.FileName);
-                break;
-            case kContent_WalkBehind:
-                result = SaveImageFile(room.WalkBehindMaskBuf, pal_to_use, c.FileName);
-                break;
-            case kContent_ScriptCompiled3:
-                result = SaveScriptFile(*room.CompiledScript, c.FileName);
-                break;
-            case kContent_ScriptText:
-                result = SaveTextFile(room.ScriptText, c.FileName);
-                break;
+            case kContent_Hotspot: result = SaveImageFile(room.HotspotMaskBuf, pal_to_use, c.FileName); break;
+            case kContent_Region: result = SaveImageFile(room.RegionMaskBuf, pal_to_use, c.FileName); break;
+            case kContent_WalkArea: result = SaveImageFile(room.WalkAreaMaskBuf, pal_to_use, c.FileName); break;
+            case kContent_WalkBehind: result = SaveImageFile(room.WalkBehindMaskBuf, pal_to_use, c.FileName); break;
+            case kContent_ScriptCompiled3: result = SaveScriptFile(*room.CompiledScript, c.FileName); break;
+            case kContent_ScriptText: result = SaveTextFile(room.ScriptText, c.FileName); break;
             default: break;
             }
 
@@ -455,8 +422,9 @@ void ImportContent(RoomDataExt &room, const std::vector<Content> &content, int i
                         room.BgFrameCount = c.Index + 1u;
                         room.BgFrames.resize(room.BgFrameCount);
                     }
-                    result = LoadImageFile(room.BgFrames[c.Index].GraphicBuf, room.BgFrames[c.Index].Palette, c.FileName,
-                        (c.Index == 0 && import_bpp > 0) ? import_bpp : room.BackgroundBPP * 8);
+                    result =
+                        LoadImageFile(room.BgFrames[c.Index].GraphicBuf, room.BgFrames[c.Index].Palette, c.FileName,
+                                      (c.Index == 0 && import_bpp > 0) ? import_bpp : room.BackgroundBPP * 8);
                 }
                 if (result && c.Index == 0)
                 {
@@ -464,24 +432,14 @@ void ImportContent(RoomDataExt &room, const std::vector<Content> &content, int i
                     new_room_bpp = room.BackgroundBPP;
                 }
                 break;
-            case kContent_Hotspot:
-                result = LoadImageFile(room.HotspotMaskBuf, room.Palette, c.FileName, 8);
-                break;
-            case kContent_Region:
-                result = LoadImageFile(room.RegionMaskBuf, room.Palette, c.FileName, 8);
-                break;
-            case kContent_WalkArea:
-                result = LoadImageFile(room.WalkAreaMaskBuf, room.Palette, c.FileName, 8);
-                break;
+            case kContent_Hotspot: result = LoadImageFile(room.HotspotMaskBuf, room.Palette, c.FileName, 8); break;
+            case kContent_Region: result = LoadImageFile(room.RegionMaskBuf, room.Palette, c.FileName, 8); break;
+            case kContent_WalkArea: result = LoadImageFile(room.WalkAreaMaskBuf, room.Palette, c.FileName, 8); break;
             case kContent_WalkBehind:
                 result = LoadImageFile(room.WalkBehindMaskBuf, room.Palette, c.FileName, 8);
                 break;
-            case kContent_ScriptCompiled3:
-                result = LoadScriptFile(room.CompiledScript, c.FileName);
-                break;
-            case kContent_ScriptText:
-                result = LoadTextFile(room.ScriptText, c.FileName);
-                break;
+            case kContent_ScriptCompiled3: result = LoadScriptFile(room.CompiledScript, c.FileName); break;
+            case kContent_ScriptText: result = LoadTextFile(room.ScriptText, c.FileName); break;
             }
 
             if (result)
@@ -495,7 +453,8 @@ void ImportContent(RoomDataExt &room, const std::vector<Content> &content, int i
 
     if ((old_room_bpp != new_room_bpp) && (room.BgFrameCount > 1))
     {
-        printf("Primary background's color depth changed (%d-bits -> %d-bits);\n\twill convert %u existing secondary background frames to the new color depth.\n",
+        printf(
+            "Primary background's color depth changed (%d-bits -> %d-bits);\n\twill convert %u existing secondary background frames to the new color depth.\n",
             old_room_bpp * 8, new_room_bpp * 8, room.BgFrameCount - 1);
         for (uint32_t i = 1; i < room.BgFrameCount; ++i)
         {
@@ -535,7 +494,8 @@ void CutContent(RoomDataExt &room, const std::vector<Content> &content)
     }
 }
 
-int Command_Create(const String &dst_room, const std::vector<Content> &content, int import_bpp, const String &compiled_with, bool verbose)
+int Command_Create(const String &dst_room, const std::vector<Content> &content, int import_bpp,
+                   const String &compiled_with, bool verbose)
 {
     printf("Output room file: %s\n", dst_room.GetCStr());
     PrintContentOptions(content, "Import");
@@ -549,7 +509,8 @@ int Command_Create(const String &dst_room, const std::vector<Content> &content, 
     return 0;
 }
 
-int Command_Cut(const String &src_room, const String &dst_room, const std::vector<Content> &content, const String &compiled_with, bool verbose)
+int Command_Cut(const String &src_room, const String &dst_room, const std::vector<Content> &content,
+                const String &compiled_with, bool verbose)
 {
     printf("Input room file: %s\n", src_room.GetCStr());
     printf("Output room file: %s\n", dst_room.GetCStr());
@@ -584,7 +545,8 @@ int Command_Export(const String &src_room, const std::vector<Content> &content, 
     return 0;
 }
 
-int Command_Import(const String &src_room, const String &dst_room, const std::vector<Content> &content, int import_bpp, const String &compiled_with, bool verbose)
+int Command_Import(const String &src_room, const String &dst_room, const std::vector<Content> &content, int import_bpp,
+                   const String &compiled_with, bool verbose)
 {
     printf("Input room file: %s\n", src_room.GetCStr());
     printf("Output room file: %s\n", dst_room.GetCStr());
@@ -615,8 +577,8 @@ int Command_List(const String &src_room)
     printf("------ Block ID ------|------- Offset -------|--- Size --\n");
     for (const auto &blk_info : blk_infos)
     {
-        printf(" %-16s (%d) | %20" PRId64 " | %10zu\n",
-            blk_info.ID.Name.GetCStr(), blk_info.ID.ID, blk_info.Offset, static_cast<size_t>(blk_info.Length));
+        printf(" %-16s (%d) | %20" PRId64 " | %10zu\n", blk_info.ID.Name.GetCStr(), blk_info.ID.ID, blk_info.Offset,
+               static_cast<size_t>(blk_info.Length));
     }
     printf("---------------------------------------------------------\n\n");
 
@@ -628,29 +590,34 @@ int Command_List(const String &src_room)
     for (uint32_t i = 0; i < room.BgFrameCount; ++i)
     {
         if (room.BgFrames[i].GraphicBuf)
-            printf("\tbackground %u: %dx%d %d-bit\n", i, room.BgFrames[i].GraphicBuf.GetWidth(), room.BgFrames[i].GraphicBuf.GetHeight(), room.BgFrames[i].GraphicBuf.GetColorDepth());
+            printf("\tbackground %u: %dx%d %d-bit\n", i, room.BgFrames[i].GraphicBuf.GetWidth(),
+                   room.BgFrames[i].GraphicBuf.GetHeight(), room.BgFrames[i].GraphicBuf.GetColorDepth());
         else
             printf("\tbackground %u: no image\n", i);
     }
 
     if (room.HotspotMaskBuf)
     {
-        printf("* Hotspot mask: %dx%d %d-bit\n", room.HotspotMaskBuf.GetWidth(), room.HotspotMaskBuf.GetHeight(), room.HotspotMaskBuf.GetColorDepth());
+        printf("* Hotspot mask: %dx%d %d-bit\n", room.HotspotMaskBuf.GetWidth(), room.HotspotMaskBuf.GetHeight(),
+               room.HotspotMaskBuf.GetColorDepth());
         printf("* Hotspots: %d\n", room.HotspotCount);
     }
     if (room.RegionMaskBuf)
     {
-        printf("* Region mask: %dx%d %d-bit\n", room.RegionMaskBuf.GetWidth(), room.RegionMaskBuf.GetHeight(), room.RegionMaskBuf.GetColorDepth());
+        printf("* Region mask: %dx%d %d-bit\n", room.RegionMaskBuf.GetWidth(), room.RegionMaskBuf.GetHeight(),
+               room.RegionMaskBuf.GetColorDepth());
         printf("* Regions: %d\n", room.RegionCount);
     }
     if (room.WalkAreaMaskBuf)
     {
-        printf("* Walkable mask: %dx%d %d-bit\n", room.WalkAreaMaskBuf.GetWidth(), room.WalkAreaMaskBuf.GetHeight(), room.WalkAreaMaskBuf.GetColorDepth());
+        printf("* Walkable mask: %dx%d %d-bit\n", room.WalkAreaMaskBuf.GetWidth(), room.WalkAreaMaskBuf.GetHeight(),
+               room.WalkAreaMaskBuf.GetColorDepth());
         printf("* Walkable areas: %d\n", room.WalkAreaCount);
     }
     if (room.WalkBehindMaskBuf)
     {
-        printf("* Walk-behind mask: %dx%d %d-bit\n", room.WalkBehindMaskBuf.GetWidth(), room.WalkBehindMaskBuf.GetHeight(), room.WalkBehindMaskBuf.GetColorDepth());
+        printf("* Walk-behind mask: %dx%d %d-bit\n", room.WalkBehindMaskBuf.GetWidth(),
+               room.WalkBehindMaskBuf.GetHeight(), room.WalkBehindMaskBuf.GetColorDepth());
         printf("* Walk-behinds: %d\n", room.WalkBehindCount);
     }
 
@@ -659,7 +626,8 @@ int Command_List(const String &src_room)
     if (room.CompiledScript)
     {
         printf("* Compiled script:\n\tbytecode %zu bytes\n\tvariables %zu bytes\n\tstrings %zu bytes\n",
-            room.CompiledScript->code.size(), room.CompiledScript->globaldata.size(), room.CompiledScript->strings.size());
+               room.CompiledScript->code.size(), room.CompiledScript->globaldata.size(),
+               room.CompiledScript->strings.size());
     }
 
     if (!room.ScriptText.IsEmpty())

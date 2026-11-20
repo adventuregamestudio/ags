@@ -13,8 +13,8 @@ using namespace AGS::DataUtil;
 
 //------------------------------------------------------------------------------|
 static const char *HELP_STRING = "Usage:\n"
-"  po2tra <input.po> [<output.tra>] [--gamename <name>][--uniqueid <idnum>]\n"
-"  po2tra -u <input.tra> [<output.po>]\n";
+                                 "  po2tra <input.po> [<output.tra>] [--gamename <name>][--uniqueid <idnum>]\n"
+                                 "  po2tra -u <input.tra> [<output.po>]\n";
 
 static int Command_Compile(const String &src, const String &dst, const String *game_name, const int *game_uid)
 {

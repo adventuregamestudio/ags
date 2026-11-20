@@ -60,9 +60,9 @@ static String DeclareEntityAsMacro(const EntityRef &ent, const char *check_prefi
 // If array_base is > 0, it will be added to the array size in declaration.
 // If macro_prefix is provided then each object also gets a macro, declared before it
 // (see DeclareEntityAsMacro), as in Editor's Tasks.AppendCharactersToHeader.
-static String DeclareEntities(const std::vector<EntityRef> &ents,
-    const char *type_name, const char *array_name = nullptr, const int array_base = 0,
-    const char *macro_prefix = nullptr)
+static String DeclareEntities(const std::vector<EntityRef> &ents, const char *type_name,
+                              const char *array_name = nullptr, const int array_base = 0,
+                              const char *macro_prefix = nullptr)
 {
     if (ents.size() == 0)
     {
@@ -73,8 +73,7 @@ static String DeclareEntities(const std::vector<EntityRef> &ents,
 
     String header;
     if (array_name)
-        header.AppendFmt("import %s *%s[%zu];\n",
-            type_name, array_name, ents.size() + array_base);
+        header.AppendFmt("import %s *%s[%zu];\n", type_name, array_name, ents.size() + array_base);
 
     for (const auto &ent : ents)
     {
@@ -90,8 +89,7 @@ static String DeclareEntities(const std::vector<EntityRef> &ents,
 
 // Generates game object declarations in the form of *macros*,
 // see DeclareEntityAsMacro.
-static String DeclareEntitiesAsMacros(const std::vector<EntityRef> &ents,
-    const char *check_prefix = nullptr)
+static String DeclareEntitiesAsMacros(const std::vector<EntityRef> &ents, const char *check_prefix = nullptr)
 {
     if (ents.size() == 0)
         return "";
@@ -113,8 +111,8 @@ static String DeclareEntitiesAsMacros(const std::vector<EntityRef> &ents,
 // The actual constant name will be <script_name>, where "script_name" is read
 // from the object data. The constant values are made equal to object's ID
 // (numeric index).
-static String DeclareEntitiesAsEnum(const std::vector<EntityRef> &ents,
-    const char *enum_name, const char *dummy_name, const char *first_members = nullptr)
+static String DeclareEntitiesAsEnum(const std::vector<EntityRef> &ents, const char *enum_name, const char *dummy_name,
+                                    const char *first_members = nullptr)
 {
     String header;
     header.AppendFmt("enum %s {\n", enum_name);

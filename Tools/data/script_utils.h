@@ -36,13 +36,15 @@ extern const char *NEW_SCRIPT_MARKER;
 // type of message (warning, info).
 struct CompileMessage
 {
-    bool   Error;
+    bool Error;
     String Message;
     String ScriptName;
     size_t LineNumber;
 
     CompileMessage(bool error, const String &msg, const String &script_name, size_t line)
-        : Error(error), Message(msg), ScriptName(script_name), LineNumber(line) {}
+        : Error(error), Message(msg), ScriptName(script_name), LineNumber(line)
+    {
+    }
 };
 
 typedef std::vector<CompileMessage> CompileMessages;

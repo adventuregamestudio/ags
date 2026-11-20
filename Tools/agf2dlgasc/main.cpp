@@ -16,8 +16,8 @@ static const char *HELP_STRING = "Usage: agf2dlgasc <in-game.agf> <out-dialog.as
 
 int main(int argc, char *argv[])
 {
-    printf("agf2dlgasc v0.1.0 - AGS game's dialog script generator\n"\
-        "Copyright (c) 2021 AGS Team and contributors\n");
+    printf("agf2dlgasc v0.1.0 - AGS game's dialog script generator\n"
+           "Copyright (c) 2021 AGS Team and contributors\n");
 
     ParseResult cmdargs = Parse(argc, argv, {});
     if (cmdargs.HelpRequested)

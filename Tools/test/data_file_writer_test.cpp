@@ -42,10 +42,9 @@ using namespace AGS::Common;
 namespace
 {
 
-using GameBlockWriter = void (*)(const DataUtil::GameData&, Stream*);
+using GameBlockWriter = void (*)(const DataUtil::GameData &, Stream *);
 
-std::vector<uint8_t> WriteGameBlock(const DataUtil::GameData &game,
-    GameBlockWriter writer)
+std::vector<uint8_t> WriteGameBlock(const DataUtil::GameData &game, GameBlockWriter writer)
 {
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
@@ -54,8 +53,7 @@ std::vector<uint8_t> WriteGameBlock(const DataUtil::GameData &game,
     return buffer;
 }
 
-std::vector<uint8_t> WriteExtensionPayload(const DataUtil::GameData &game,
-    DataFileWriter::ExtensionWriter writer)
+std::vector<uint8_t> WriteExtensionPayload(const DataUtil::GameData &game, DataFileWriter::ExtensionWriter writer)
 {
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
@@ -135,8 +133,7 @@ TEST(DataFileWriter, RoundTripGameSetupStructBase)
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
     soff_t extension_offset_pos = 0;
-    DataFileWriter::WriteGameSetupStructBase(game, DataFileWriter::CompiledData(game), out.get(),
-        extension_offset_pos);
+    DataFileWriter::WriteGameSetupStructBase(game, DataFileWriter::CompiledData(game), out.get(), extension_offset_pos);
     out.reset();
 
     auto in = AsStream<VectorStream>(buffer);
@@ -262,7 +259,7 @@ TEST(DataFileWriter, RoundTripInventoryBlock)
     DataUtil::InventoryItemData coin;
     coin.Description = "Coin";
     coin.Image = 20;
-    game.Inventory = { key, coin };
+    game.Inventory = {key, coin};
 
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
@@ -321,7 +318,7 @@ TEST(DataFileWriter, RoundTripCursorBlock)
     DataUtil::CursorData look;
     look.Name = "Look";
     look.Image = 2;
-    game.Cursors = { walk, look };
+    game.Cursors = {walk, look};
 
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
@@ -342,8 +339,8 @@ TEST(DataFileWriter, RoundTripCursorBlock)
 TEST(DataFileWriter, RoundTripTextParserDictionary)
 {
     DataUtil::GameData game;
-    game.ParserWords.push_back({ "look, examine", 10 });
-    game.ParserWords.push_back({ "inventory", 20 });
+    game.ParserWords.push_back({"look, examine", 10});
+    game.ParserWords.push_back({"inventory", 20});
 
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
@@ -412,7 +409,7 @@ TEST(DataFileWriter, RoundTripViewsBlock)
     // the editor writes views by ID, with empty slots for missing IDs
     first.ID = 3;
     second.ID = 1;
-    game.Views = { first, second };
+    game.Views = {first, second};
 
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
@@ -441,7 +438,7 @@ TEST(DataFileWriter, RoundTripCharactersBlock)
     DataUtil::CharacterData second;
     second.RealName = "Second";
     second.ScriptName = "cSecond";
-    game.Characters = { first, second };
+    game.Characters = {first, second};
 
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
@@ -524,7 +521,7 @@ TEST(DataFileWriter, RoundTripAudioBlock)
     DataUtil::AudioTypeData sound;
     sound.ID = 20;
     sound.MaxChannels = 4;
-    game.AudioTypes = { music, sound };
+    game.AudioTypes = {music, sound};
 
     DataUtil::AudioClipData theme;
     theme.ID = 101;
@@ -536,7 +533,7 @@ TEST(DataFileWriter, RoundTripAudioBlock)
     click.Index = 20;
     click.ScriptName = "aClick";
     click.CacheFileName = "click.wav";
-    game.AudioClips = { theme, click };
+    game.AudioClips = {theme, click};
     game.Settings.PlaySoundOnScore = 20;
 
     LoadedAudioBlock loaded = RoundTripAudioBlock(game);
@@ -560,8 +557,8 @@ TEST(DataFileWriter, RoundTripExt363Dialogs)
     DataUtil::DialogRef dialog;
     dialog.ScriptName = "dGreeting";
     dialog.ShowTextParser = true;
-    dialog.Options.push_back({ "Hello", true, true });
-    dialog.Options.push_back({ "Say \\\"goodbye\\\"\\n(politely)", false, false }); // test escapes
+    dialog.Options.push_back({"Hello", true, true});
+    dialog.Options.push_back({"Say \\\"goodbye\\\"\\n(politely)", false, false}); // test escapes
     DataUtil::GameData game;
     game.Dialogs.push_back(dialog);
 
@@ -590,10 +587,8 @@ TEST(DataFileWriter, RoundTripExtensionFraming)
     DataUtil::GameData game;
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
-    DataFileWriter::WriteExtension(out.get(), "small", game,
-        WriteSmallExtensionPayload);
-    DataFileWriter::WriteExtension(out.get(), "large", game,
-        WriteLargeExtensionPayload);
+    DataFileWriter::WriteExtension(out.get(), "small", game, WriteSmallExtensionPayload);
+    DataFileWriter::WriteExtension(out.get(), "large", game, WriteLargeExtensionPayload);
     out.reset();
 
     auto in = AsStream<VectorStream>(buffer);
@@ -631,7 +626,7 @@ TEST(DataFileWriter, RoundTripCustomProperties)
     schema_item.Type = kPropertyInteger;
     schema_item.Description = "Character health";
     schema_item.DefaultValue = "100";
-    std::vector<DataUtil::CustomPropertySchemaItem> schema = { schema_item };
+    std::vector<DataUtil::CustomPropertySchemaItem> schema = {schema_item};
 
     std::vector<uint8_t> schema_buffer;
     auto schema_out = AsStream<VectorStream>(schema_buffer, kStream_Write);
@@ -640,8 +635,7 @@ TEST(DataFileWriter, RoundTripCustomProperties)
 
     auto schema_in = AsStream<VectorStream>(schema_buffer);
     PropertySchema loaded_schema;
-    ASSERT_EQ(kPropertyErr_NoError,
-        Properties::ReadSchema(loaded_schema, schema_in.get()));
+    ASSERT_EQ(kPropertyErr_NoError, Properties::ReadSchema(loaded_schema, schema_in.get()));
     ASSERT_EQ(1u, loaded_schema.size());
     const auto loaded_item_it = loaded_schema.find("Health");
     ASSERT_NE(loaded_schema.end(), loaded_item_it);
@@ -651,8 +645,11 @@ TEST(DataFileWriter, RoundTripCustomProperties)
     EXPECT_STREQ("100", loaded_item.DefaultValue.GetCStr());
 
     std::vector<DataUtil::CustomPropertyValue> values = {
-        { "Health", "75" }, { "Mood", "Happy" }, { "String1", "Test \\\"escaped\\\" string" },
-        { "String2", "Test escaped \\[ square bracket" }, { "String3", "Test escaped\\nline-break" },
+        {"Health", "75"},
+        {"Mood", "Happy"},
+        {"String1", "Test \\\"escaped\\\" string"},
+        {"String2", "Test escaped \\[ square bracket"},
+        {"String3", "Test escaped\\nline-break"},
     };
     std::vector<uint8_t> values_buffer;
     auto values_out = AsStream<VectorStream>(values_buffer, kStream_Write);
@@ -661,8 +658,7 @@ TEST(DataFileWriter, RoundTripCustomProperties)
 
     auto values_in = AsStream<VectorStream>(values_buffer);
     StringIMap loaded_values;
-    ASSERT_EQ(kPropertyErr_NoError,
-        Properties::ReadValues(loaded_values, values_in.get()));
+    ASSERT_EQ(kPropertyErr_NoError, Properties::ReadValues(loaded_values, values_in.get()));
     const auto health_it = loaded_values.find("Health");
     const auto mood_it = loaded_values.find("Mood");
     const auto string1_it = loaded_values.find("String1");
@@ -687,16 +683,16 @@ TEST(DataFileWriter, RoundTripCustomPropertiesBlock)
     game.PropertySchema.push_back(schema_item);
 
     DataUtil::CharacterData first_character;
-    first_character.Properties.push_back({ "Value", "11" });
+    first_character.Properties.push_back({"Value", "11"});
     DataUtil::CharacterData second_character;
-    second_character.Properties.push_back({ "Value", "22" });
-    game.Characters = { first_character, second_character };
+    second_character.Properties.push_back({"Value", "22"});
+    game.Characters = {first_character, second_character};
 
     DataUtil::InventoryItemData first_item;
-    first_item.Properties.push_back({ "Value", "33" });
+    first_item.Properties.push_back({"Value", "33"});
     DataUtil::InventoryItemData second_item;
-    second_item.Properties.push_back({ "Value", "44" });
-    game.Inventory = { first_item, second_item };
+    second_item.Properties.push_back({"Value", "44"});
+    game.Inventory = {first_item, second_item};
 
     std::vector<uint8_t> buffer;
     auto out = AsStream<VectorStream>(buffer, kStream_Write);
@@ -709,8 +705,7 @@ TEST(DataFileWriter, RoundTripCustomPropertiesBlock)
     ASSERT_EQ(1u, schema.size());
     StringIMap character_properties[2];
     for (auto &properties : character_properties)
-        ASSERT_EQ(kPropertyErr_NoError,
-            Properties::ReadValues(properties, in.get()));
+        ASSERT_EQ(kPropertyErr_NoError, Properties::ReadValues(properties, in.get()));
     StringIMap inventory_properties[2];
     for (auto &properties : inventory_properties)
         ASSERT_EQ(kPropertyErr_NoError, Properties::ReadValues(properties, in.get()));
@@ -739,10 +734,9 @@ TEST(DataFileWriter, RoundTripFontBlock)
     sized_font.HeightDefinedBy = DataUtil::kFontHeight_CustomValue;
     sized_font.OutlineStyle = DataUtil::kFontOutline_UseOutlineFont;
     sized_font.OutlineFont = 4;
-    game.Fonts = { multiplier_font, sized_font };
+    game.Fonts = {multiplier_font, sized_font};
 
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteFontBlock);
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteFontBlock);
     auto in = AsStream<VectorStream>(buffer);
 
     FontInfo loaded[2];
@@ -776,14 +770,11 @@ TEST(DataFileWriter, RoundTripSpriteFlags)
     DataUtil::GameData game;
 
     // FIXME: proper AGS 4 test
-    game.Sprites = {
-        { 1, 0, 0, 0, DataUtil::kSpriteImport_Real, true },
-        { 3, 0, 0, 0, DataUtil::kSpriteImport_HighRes, false }
-    };
+    game.Sprites = {{1, 0, 0, 0, DataUtil::kSpriteImport_Real, true},
+                    {3, 0, 0, 0, DataUtil::kSpriteImport_HighRes, false}};
     game.Sprites[1].ImportColorDepth = 8; // Indexed8Bit
 
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteSpriteFlags);
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteSpriteFlags);
     auto in = AsStream<VectorStream>(buffer);
     const int count = in->ReadInt32();
     ASSERT_EQ(4, count);
@@ -802,8 +793,7 @@ TEST(DataFileWriter, RoundTripInteractionScriptsBlock)
     DataUtil::GameData game;
     game.Characters.resize(2);
     game.Inventory.resize(2);
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteInteractionScriptsBlock);
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteInteractionScriptsBlock);
     auto in = AsStream<VectorStream>(buffer);
 
     // GameSetupStruct reads two characters, then inventory slots 1 and 2;
@@ -821,12 +811,11 @@ TEST(DataFileWriter, RoundTripInteractionScriptsBlock)
 TEST(DataFileWriter, RoundTripLipSyncBlock)
 {
     DataUtil::GameData game;
-    game.LipSyncFrames = { "A", "BCD" };
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteLipSyncBlock);
+    game.LipSyncFrames = {"A", "BCD"};
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteLipSyncBlock);
     auto in = AsStream<VectorStream>(buffer);
 
-    char frames[MAXLIPSYNCFRAMES][50] = {{ 0 }};
+    char frames[MAXLIPSYNCFRAMES][50] = {{0}};
     in->ReadArray(&frames[0][0], MAXLIPSYNCFRAMES, 50);
     EXPECT_STREQ("A", frames[0]);
     EXPECT_STREQ("BCD", frames[1]);
@@ -842,8 +831,7 @@ TEST(DataFileWriter, RoundTripSaveGameInfo)
     game.Settings.GUIDAsString = "01234567-89ab-cdef-0123-456789abcdef";
     game.Settings.SaveGameFileExtension = "sav";
     game.Settings.SaveGameFolderName = "Round Trip Saves";
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteSaveGameInfo);
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteSaveGameInfo);
     auto in = AsStream<VectorStream>(buffer);
 
     char guid[MAX_GUID_LENGTH] = {};
@@ -871,7 +859,7 @@ TEST(DataFileWriter, RoundTripLegacyScriptNamesBlock)
     key.ScriptName = "iKey";
     DataUtil::InventoryItemData coin;
     coin.TypeName = "CoinItem";
-    game.Inventory = { key, coin };
+    game.Inventory = {key, coin};
     std::vector<uint8_t> buffer;
     {
         auto out = AsStream<VectorStream>(buffer, kStream_Write);
@@ -890,12 +878,8 @@ TEST(DataFileWriter, RoundTripLegacyScriptNamesBlock)
 TEST(DataFileWriter, RoundTripPluginsBlock)
 {
     DataUtil::GameData game;
-    game.Plugins = {
-        { "plugin-one", { 0, 1, 2, 255 } },
-        { "empty-plugin", {} }
-    };
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WritePluginsBlock);
+    game.Plugins = {{"plugin-one", {0, 1, 2, 255}}, {"empty-plugin", {}}};
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WritePluginsBlock);
     auto in = AsStream<VectorStream>(buffer);
 
     EXPECT_EQ(1, in->ReadInt32());
@@ -915,9 +899,8 @@ TEST(DataFileWriter, RoundTripRoomNamesBlock)
 {
     DataUtil::GameData game;
     game.Settings.DebugMode = true;
-    game.Rooms = { { 1, "Hall" }, { 42, "Secret room" } };
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteRoomNamesBlock);
+    game.Rooms = {{1, "Hall"}, {42, "Secret room"}};
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteRoomNamesBlock);
     auto in = AsStream<VectorStream>(buffer);
 
     ASSERT_EQ(2, in->ReadInt32());
@@ -944,9 +927,8 @@ TEST(DataFileWriter, RoundTripExt360Fonts)
     second.AutoOutlineThickness = 4;
     second.CharacterSpacing = 5;
     second.CustomHeightValue = 19;
-    game.Fonts = { first, second };
-    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
-        DataFileWriter::WriteExt360Fonts);
+    game.Fonts = {first, second};
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game, DataFileWriter::WriteExt360Fonts);
     auto in = AsStream<VectorStream>(buffer);
 
     for (const auto &font : game.Fonts)
@@ -968,9 +950,8 @@ TEST(DataFileWriter, RoundTripExt360Cursors)
     first.AnimationDelay = 6;
     DataUtil::CursorData second;
     second.AnimationDelay = 12;
-    game.Cursors = { first, second };
-    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
-        DataFileWriter::WriteExt360Cursors);
+    game.Cursors = {first, second};
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game, DataFileWriter::WriteExt360Cursors);
     auto in = AsStream<VectorStream>(buffer);
 
     for (const auto &cursor : game.Cursors)
@@ -1002,8 +983,7 @@ TEST(DataFileWriter, RoundTripExt361ObjNames)
     clip.ScriptName = "aTheme";
     clip.CacheFileName = "theme.ogg";
     game.AudioClips.push_back(clip);
-    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
-        DataFileWriter::WriteExt361ObjNames);
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game, DataFileWriter::WriteExt361ObjNames);
     auto in = AsStream<VectorStream>(buffer);
 
     EXPECT_STREQ("Extended Game", StrUtil::ReadString(in.get()).GetCStr());
@@ -1044,13 +1024,12 @@ TEST(DataFileWriter, RoundTripExt362Interactions)
     DataUtil::GUIData gui;
     gui.ScriptModule = "GuiModule";
     game.GUI.push_back(gui);
-    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
-        DataFileWriter::WriteExt362Interactions);
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game, DataFileWriter::WriteExt362Interactions);
     auto in = AsStream<VectorStream>(buffer);
 
     EXPECT_TRUE(StrUtil::ReadString(in.get()).IsEmpty()); // global script asset
     EXPECT_TRUE(StrUtil::ReadString(in.get()).IsEmpty()); // dialog script asset
-    EXPECT_EQ(0, in->ReadInt32()); // separately stored script modules
+    EXPECT_EQ(0, in->ReadInt32());                        // separately stored script modules
     ASSERT_EQ(2, in->ReadInt32());
     ScriptEventHandlers loaded_hero;
     HError error = loaded_hero.Read(in.get());
@@ -1093,8 +1072,7 @@ TEST(DataFileWriter, RoundTripExt363GameInfo)
     game.Settings.ReleaseDate = "2026-07-21";
     game.Settings.Version = "1.2.3";
     game.Settings.GameTextLanguage = "pt-BR";
-    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
-        DataFileWriter::WriteExt363GameInfo);
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game, DataFileWriter::WriteExt363GameInfo);
     auto in = AsStream<VectorStream>(buffer);
 
     StringMap info;
@@ -1130,14 +1108,12 @@ struct LoadedGuiBlock
 
 LoadedGuiBlock ReadGuiBlock(const DataUtil::GameData &game)
 {
-    std::vector<uint8_t> buffer = WriteGameBlock(game,
-        DataFileWriter::WriteGuiBlock);
+    std::vector<uint8_t> buffer = WriteGameBlock(game, DataFileWriter::WriteGuiBlock);
     auto in = AsStream<VectorStream>(buffer);
 
     LoadedGuiBlock loaded;
     GUIRefCollection refs(loaded.Objects);
-    HError error = GUI::ReadGUI(loaded.Guis, kGameVersion_Current,
-        loaded.Version, refs, in.get());
+    HError error = GUI::ReadGUI(loaded.Guis, kGameVersion_Current, loaded.Version, refs, in.get());
     EXPECT_TRUE(error);
     loaded.StreamLength = in->GetLength();
     loaded.StreamPosition = in->GetPosition();
@@ -1165,7 +1141,7 @@ DataUtil::GUIData MakeGui()
     return gui;
 }
 
-template <typename T>
+template<typename T>
 std::shared_ptr<T> MakeControl(const char *name)
 {
     auto control = std::make_shared<T>();
@@ -1184,8 +1160,7 @@ std::shared_ptr<T> MakeControl(const char *name)
     return control;
 }
 
-void ExpectControlBase(const DataUtil::GUIControlData &expected,
-    const GUIControl &actual)
+void ExpectControlBase(const DataUtil::GUIControlData &expected, const GUIControl &actual)
 {
     EXPECT_STREQ(expected.ScriptName.GetCStr(), actual.GetName().GetCStr());
     EXPECT_EQ(expected.Left, actual.GetX());
@@ -1210,8 +1185,7 @@ void SetControlLooks(DataUtil::GUIControlData &control, int base)
     control.PaddingY = base + 5;
 }
 
-void ExpectControlLooks(const DataUtil::GUIControlData &expected,
-    const GUIControl &actual)
+void ExpectControlLooks(const DataUtil::GUIControlData &expected, const GUIControl &actual)
 {
     EXPECT_EQ(expected.BackgroundColor, actual.GetBackColor());
     EXPECT_EQ(expected.BorderColor, actual.GetBorderColor());
@@ -1226,14 +1200,9 @@ TEST(DataFileWriter, RoundTripGuiMain)
 {
     DataUtil::GameData game;
     DataUtil::GUIData gui = MakeGui();
-    gui.Controls = {
-        MakeControl<DataUtil::GUIButtonData>("btn"),
-        MakeControl<DataUtil::GUILabelData>("lbl"),
-        MakeControl<DataUtil::GUIInventoryData>("inv"),
-        MakeControl<DataUtil::GUISliderData>("sld"),
-        MakeControl<DataUtil::GUITextBoxData>("txt"),
-        MakeControl<DataUtil::GUIListBoxData>("lst")
-    };
+    gui.Controls = {MakeControl<DataUtil::GUIButtonData>("btn"),    MakeControl<DataUtil::GUILabelData>("lbl"),
+                    MakeControl<DataUtil::GUIInventoryData>("inv"), MakeControl<DataUtil::GUISliderData>("sld"),
+                    MakeControl<DataUtil::GUITextBoxData>("txt"),   MakeControl<DataUtil::GUIListBoxData>("lst")};
     game.GUI.push_back(gui);
 
     LoadedGuiBlock loaded = ReadGuiBlock(game);
@@ -1253,8 +1222,7 @@ TEST(DataFileWriter, RoundTripGuiMain)
     EXPECT_EQ(gui.BorderColor, actual.GetFgColor());
     EXPECT_TRUE(actual.IsClickable());
     EXPECT_TRUE(actual.IsVisible());
-    EXPECT_EQ(GfxDef::Trans100ToLegacyTrans255(gui.Transparency),
-        actual.GetTransparency());
+    EXPECT_EQ(GfxDef::Trans100ToLegacyTrans255(gui.Transparency), actual.GetTransparency());
     EXPECT_EQ(gui.ZOrder, actual.GetZOrder());
     // ReadGUI restores serialized references; runtime control pointers are
     // connected later by GUI::RebuildGUI() during game initialization.
@@ -1433,8 +1401,7 @@ TEST(DataFileWriter, RoundTripGuiListBox)
     EXPECT_EQ(list_box->SelectedBackgroundColor, actual.GetSelectedBgColor());
     EXPECT_NE(0, actual.GetListBoxFlags() & kListBox_ShowBorder);
     EXPECT_NE(0, actual.GetListBoxFlags() & kListBox_ShowArrows);
-    EXPECT_EQ(static_cast<FrameAlignment>(list_box->TextAlignment),
-        actual.GetTextAlignment());
+    EXPECT_EQ(static_cast<FrameAlignment>(list_box->TextAlignment), actual.GetTextAlignment());
     EXPECT_TRUE(actual.GetEventHandler(0).IsEmpty()); // events are in "v400_eventtables"
     EXPECT_EQ(loaded.StreamLength, loaded.StreamPosition);
 }
@@ -1443,6 +1410,7 @@ class DummyGUIControl : public GUIControl
 {
 public:
     DummyGUIControl() : GUIControl(&_defaultSchema) {}
+
 private:
     static ScriptEventSchema _defaultSchema;
 };
@@ -1500,10 +1468,9 @@ TEST(DataFileWriter, RoundTripExt363GuiControls)
     text_box->TextAlignment = kAlignBottomCenter;
     text_box->TextOutlineColor = 231;
     list_box->TextOutlineColor = 241;
-    gui.Controls = { button, label, inv, slider, text_box, list_box };
+    gui.Controls = {button, label, inv, slider, text_box, list_box};
     game.GUI.push_back(gui);
-    std::vector<uint8_t> buffer = WriteExtensionPayload(game,
-        DataFileWriter::WriteExt363GuiControls);
+    std::vector<uint8_t> buffer = WriteExtensionPayload(game, DataFileWriter::WriteExt363GuiControls);
     auto in = AsStream<VectorStream>(buffer);
 
     ASSERT_EQ(1, in->ReadInt32());

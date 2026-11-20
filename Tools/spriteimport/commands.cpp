@@ -45,18 +45,18 @@ class SpriteWriter
 {
 public:
     SpriteWriter(std::unique_ptr<SpriteFileWriter> &&sf_writer, int store_flags, SpriteCompression compress,
-            bool use_sequential_index = false)
+                 bool use_sequential_index = false)
         : _sfWriter(std::move(sf_writer))
         , _sfStoreFlags(store_flags)
         , _sfCompress(compress)
         , _useSequentialIndex(use_sequential_index)
-    {}
+    {
+    }
 
     SpriteWriter(const String &out_dir, const String &image_pattern, bool use_sequential_index = false)
-        : _outDir(out_dir)
-        , _imagePattern(image_pattern)
-        , _useSequentialIndex(use_sequential_index)
-    {}
+        : _outDir(out_dir), _imagePattern(image_pattern), _useSequentialIndex(use_sequential_index)
+    {
+    }
 
     HError Begin(sprkey_t topmost_sprite)
     {
@@ -119,8 +119,9 @@ private:
     int _lastSlot = -1;
 };
 
-HError GatherSpriteSpecsFromAgf(const String &src_agf, std::vector<SpriteData> &sprites, GameColorSettings &game_color_opts,
-    std::vector<std::pair<int, String>> &room_list, bool verbose)
+HError GatherSpriteSpecsFromAgf(const String &src_agf, std::vector<SpriteData> &sprites,
+                                GameColorSettings &game_color_opts, std::vector<std::pair<int, String>> &room_list,
+                                bool verbose)
 {
     AGF::AGFReader reader;
     HError err = reader.Open(src_agf.GetCStr());
@@ -144,14 +145,15 @@ HError GatherSpriteSpecsFromAgf(const String &src_agf, std::vector<SpriteData> &
     return HError::None();
 }
 
-void MapSpritesToSources(const String &src_dir, const std::vector<SpriteData> &sprites, std::multimap<String, SpriteData> &source_to_sprite)
+void MapSpritesToSources(const String &src_dir, const std::vector<SpriteData> &sprites,
+                         std::multimap<String, SpriteData> &source_to_sprite)
 {
     for (const auto &sprite : sprites)
     {
         if (!sprite.SourceFile.IsEmpty())
         {
-            String sprite_path = Path::IsRelativePath(sprite.SourceFile) ?
-                Path::ConcatPaths(src_dir, sprite.SourceFile) : sprite.SourceFile;
+            String sprite_path = Path::IsRelativePath(sprite.SourceFile) ? Path::ConcatPaths(src_dir, sprite.SourceFile)
+                                                                         : sprite.SourceFile;
             source_to_sprite.insert(std::make_pair(sprite_path, sprite));
         }
         else
@@ -162,7 +164,8 @@ void MapSpritesToSources(const String &src_dir, const std::vector<SpriteData> &s
 }
 
 void CacheRoomPalettes(RoomPaletteCache &room_cache, const String &room_dir,
-    const std::vector<std::pair<int, String>> &room_list, const std::vector<SpriteData> &sprites, bool verbose)
+                       const std::vector<std::pair<int, String>> &room_list, const std::vector<SpriteData> &sprites,
+                       bool verbose)
 {
     for (const auto &room_ref : room_list)
     {
@@ -175,11 +178,11 @@ void CacheRoomPalettes(RoomPaletteCache &room_cache, const String &room_dir,
             printf("%s\n", err->FullMessage().GetCStr());
             continue;
         }
-        
+
         // For the room palette we must read its primary background image
         // found in the kRoomFblk_Main
         RoomData room;
-        err = ReadRoomData(&room, nullptr, std::move(src.InputStream), src.DataVersion, {{ kRoomFblk_Main, "" }}, {});
+        err = ReadRoomData(&room, nullptr, std::move(src.InputStream), src.DataVersion, {{kRoomFblk_Main, ""}}, {});
         if (!err)
         {
             printf("Error: failed to read room file '%s':\n", filepath.GetCStr());
@@ -195,8 +198,9 @@ void CacheRoomPalettes(RoomPaletteCache &room_cache, const String &room_dir,
     }
 }
 
-HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> &sprites, const GameColorSettings &game_color_opts,
-    const RoomPaletteCache &room_cache, SpriteWriter &writer, bool verbose)
+HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> &sprites,
+                          const GameColorSettings &game_color_opts, const RoomPaletteCache &room_cache,
+                          SpriteWriter &writer, bool verbose)
 {
     PixelFormat px_fmt;
     Palette pal;
@@ -215,7 +219,8 @@ HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> 
     printf("> %s\n", src_file.GetCStr());
     for (const auto &sprite : sprites)
     {
-        PixelBuffer tile = PixelOp::CopyPixelsRegion(image, sprite.ImportOffsetX, sprite.ImportOffsetY, sprite.ImportWidth, sprite.ImportHeight);
+        PixelBuffer tile = PixelOp::CopyPixelsRegion(image, sprite.ImportOffsetX, sprite.ImportOffsetY,
+                                                     sprite.ImportWidth, sprite.ImportHeight);
         if (tile)
         {
             PixelBuffer conv_tile;
@@ -237,14 +242,16 @@ HError CutSpritesAndWrite(const String &src_file, const std::vector<SpriteData> 
         else
         {
             writer.WriteSprite({}, sprite.Slot); // write empty slot to spritefile
-            printf("Error: failed to cut the sprite's %d tile (%d,%d,%d,%d)\n", sprite.Slot, sprite.ImportOffsetX, sprite.ImportOffsetY, sprite.ImportWidth, sprite.ImportHeight);
+            printf("Error: failed to cut the sprite's %d tile (%d,%d,%d,%d)\n", sprite.Slot, sprite.ImportOffsetX,
+                   sprite.ImportOffsetY, sprite.ImportWidth, sprite.ImportHeight);
         }
     }
     return HError::None();
 }
 
-HError ImportSpritesImpl(const std::multimap<String, SpriteData> &source_to_sprite, const GameColorSettings &game_color_opts,
-    const RoomPaletteCache &room_cache, SpriteWriter &writer, std::map<sprkey_t, sprkey_t> *out_sprite_order, bool verbose)
+HError ImportSpritesImpl(const std::multimap<String, SpriteData> &source_to_sprite,
+                         const GameColorSettings &game_color_opts, const RoomPaletteCache &room_cache,
+                         SpriteWriter &writer, std::map<sprkey_t, sprkey_t> *out_sprite_order, bool verbose)
 {
     writer.Begin(source_to_sprite.size() > 0 ? source_to_sprite.size() - 1 : -1);
     // Multimap stores items ordered by keys, meaning the duplicates will be together.
@@ -276,8 +283,9 @@ HError ImportSpritesImpl(const std::multimap<String, SpriteData> &source_to_spri
     return HError::None();
 }
 
-HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_sprite, const GameColorSettings &game_color_opts,
-    const RoomPaletteCache &room_cache, const String &dst_path, const CommandOptions &opts, bool verbose)
+HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_sprite,
+                         const GameColorSettings &game_color_opts, const RoomPaletteCache &room_cache,
+                         const String &dst_path, const CommandOptions &opts, bool verbose)
 {
     // The strategy: because we sort sprites by sources, we might end up having them
     // in the non-sequential order. While spritefile is supposed to have them strictly
@@ -300,7 +308,8 @@ HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_spri
         auto proxy_out = AsStream<StreamSection>(temp_s->GetStreamBase(), 0, temp_s->GetStreamBase()->GetLength());
         std::unique_ptr<SpriteFileWriter> sf_writer(new SpriteFileWriter(std::move(proxy_out)));
         SpriteWriter writer(std::move(sf_writer), opts.StorageFlags, opts.Compress, true);
-        HError err = ImportSpritesImpl(source_to_sprite, game_color_opts, room_cache, writer, &out_sprite_order, verbose);
+        HError err =
+            ImportSpritesImpl(source_to_sprite, game_color_opts, room_cache, writer, &out_sprite_order, verbose);
         if (!err)
             return err;
     }
@@ -351,8 +360,9 @@ HError ImportToSpritePak(const std::multimap<String, SpriteData> &source_to_spri
     return HError::None();
 }
 
-HError ImportToDirectory(const std::multimap<String, SpriteData> &source_to_sprite, const GameColorSettings &game_color_opts,
-    const RoomPaletteCache &room_cache, const String &dst_path, const CommandOptions &opts, bool verbose)
+HError ImportToDirectory(const std::multimap<String, SpriteData> &source_to_sprite,
+                         const GameColorSettings &game_color_opts, const RoomPaletteCache &room_cache,
+                         const String &dst_path, const CommandOptions &opts, bool verbose)
 {
     if (!File::IsDirectory(dst_path))
         return new Error("Not a valid directory: %s", dst_path.GetCStr());
@@ -390,7 +400,8 @@ int Command_Import(const String &src_agf, const String &dst_path, const CommandO
         CacheRoomPalettes(room_cache, room_dir, room_list, sprites, verbose);
         if (room_cache.size() < room_list.size())
         {
-            printf("Warning: failed to precache all the room palettes needed for this 8-bit game. "
+            printf(
+                "Warning: failed to precache all the room palettes needed for this 8-bit game. "
                 "The imported 8-bit sprites may have incorrect colors if they were refering room background palette slots.\n");
         }
     }

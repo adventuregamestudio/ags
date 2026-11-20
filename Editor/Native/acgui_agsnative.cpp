@@ -40,7 +40,8 @@ bool ShouldAntiAliasText()
 }
 
 // Draw outline that is calculated from the text font, not derived from an outline font
-static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, BlendMode blend_mode, const char *text, int &x, int &y)
+static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, BlendMode blend_mode, const char *text,
+                                   int &x, int &y)
 {
     const FontInfo &finfo = get_fontinfo(font);
     int const thickness = finfo.AutoOutlineThickness;
@@ -51,10 +52,11 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
     // We use 32-bit stencils in any case when alpha-blending is required
     // because blending works correctly if there's an actual color
     // on the destination bitmap (and our intermediate bitmaps are transparent).
-    int const  ds_cd = ds->GetColorDepth();
-    bool const alpha_blend = (ds_cd == 32) && !is_bitmap_font(font) &&
+    int const ds_cd = ds->GetColorDepth();
+    bool const alpha_blend =
+        (ds_cd == 32) && !is_bitmap_font(font) &&
         ((thisgame.options[OPT_ANTIALIASFONTS] != 0) || (geta32(color) < 255) || (blend_mode != kBlend_Normal));
-    int const  stencil_cd = alpha_blend ? 32 : ds_cd;
+    int const stencil_cd = alpha_blend ? 32 : ds_cd;
 
     const int t_width = get_text_width(text, font);
     // Horizontal extent lets us know if any glyphs have negative horizontal offset
@@ -67,8 +69,7 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
     const int t_xoff = (t_extent_hor.first < 0 ? t_extent_hor.first : 0);
     const int t_yoff = t_extent_ver.first;
     Bitmap *texx_stencil, *outline_stencil;
-    alloc_font_outline_buffers(font, &texx_stencil, &outline_stencil,
-                               t_width + (-t_xoff) * 2, t_height, stencil_cd);
+    alloc_font_outline_buffers(font, &texx_stencil, &outline_stencil, t_width + (-t_xoff) * 2, t_height, stencil_cd);
     texx_stencil->ClearTransparent();
     outline_stencil->ClearTransparent();
     // Ready text stencil
@@ -82,7 +83,7 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
 
     // Anti-aliased TTFs require to be alpha-blended, not blit,
     // or the alpha values will be plain copied and final image will be broken.
-    void(Bitmap::*pfn_drawstencil)(const Bitmap * src, int dst_x, int dst_y);
+    void (Bitmap::*pfn_drawstencil)(const Bitmap *src, int dst_x, int dst_y);
     if (alpha_blend)
     { // NOTE: we must set out blender AFTER wouttextxy, or it will be overidden
         SetBlender(blend_mode, 0xFF);
@@ -111,8 +112,7 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
             y_term_limit -= x_diff * x_diff;
 
         // extend the outline stencil to the top and bottom
-        for (int y_diff = largest_y_diff_reached_so_far + 1;
-             y_diff <= thickness && y_diff * y_diff <= y_term_limit;
+        for (int y_diff = largest_y_diff_reached_so_far + 1; y_diff <= thickness && y_diff * y_diff <= y_term_limit;
              y_diff++)
         {
             (outline_stencil->*pfn_drawstencil)(texx_stencil, 0, thickness - y_diff);
@@ -130,7 +130,8 @@ static void wouttextxy_AutoOutline(Bitmap *ds, size_t font, int32_t color, Blend
     x -= t_xoff; // remove glyph offset from the final text position (keep std text pos)
 }
 
-void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_color, color_t outline_color, BlendMode blend_mode, const char *text)
+void wouttext_outline(Common::Bitmap *ds, int x, int y, int font, color_t text_color, color_t outline_color,
+                      BlendMode blend_mode, const char *text)
 {
     size_t const text_font = static_cast<size_t>(font);
     // Draw outline (a backdrop) if requested
@@ -183,7 +184,8 @@ String GUI::TransformTextForDrawing(const String &text, bool /*translate*/, bool
     return text;
 }
 
-size_t GUI::SplitLinesForDrawing(const String &text, bool /*apply_direction*/, SplitLines &lines, int font, int width, size_t max_lines)
+size_t GUI::SplitLinesForDrawing(const String &text, bool /*apply_direction*/, SplitLines &lines, int font, int width,
+                                 size_t max_lines)
 {
     return split_lines(text.GetCStr(), lines, width, font, max_lines);
 }
@@ -219,7 +221,8 @@ void GUITextBox::DrawTextBoxContents(Bitmap *ds, int x, int y)
     _textToDraw = _text;
     const int text_color = ds->GetCompatibleColor(_textColor);
     const int outline_color = ds->GetCompatibleColor(_textOutlineColor);
-    GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, outline_color, Rect::MoveBy(_innerRect, x, y), _textAlignment);
+    GUI::DrawTextAligned(ds, _textToDraw, _font, text_color, outline_color, Rect::MoveBy(_innerRect, x, y),
+                         _textAlignment);
 }
 
 void GUIListBox::PrepareTextToDraw(const String &text)
@@ -227,7 +230,7 @@ void GUIListBox::PrepareTextToDraw(const String &text)
     _textToDraw = text;
 }
 
-int  GUIInvWindow::GetCharacterID() const
+int GUIInvWindow::GetCharacterID() const
 {
     return -1;
 }

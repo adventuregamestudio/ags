@@ -41,7 +41,7 @@ int CCDynamicArray::Dispose(void *address, bool force)
         TraverseRefs(address, [](int handle) { pool.SubRefNoCheck(handle); });
     }
 
-    delete[] (static_cast<uint8_t*>(address) - MemHeaderSz);
+    delete[] (static_cast<uint8_t *>(address) - MemHeaderSz);
     return 1;
 }
 
@@ -57,13 +57,13 @@ void CCDynamicArray::Serialize(const void *address, Stream *out)
     out->WriteInt32(hdr.TypeID);
     out->WriteInt32(hdr.ElemCount);
     out->WriteInt32(hdr.ElemCount > 0 ? (hdr.TotalSize / hdr.ElemCount) : 0); // elem size
-    out->Write(address, hdr.TotalSize); // elements
+    out->Write(address, hdr.TotalSize);                                       // elements
 }
 
 void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
 {
     uint8_t *new_arr = new uint8_t[(data_sz - FileHeaderSz) + MemHeaderSz];
-    Header &hdr = reinterpret_cast<Header&>(*new_arr);
+    Header &hdr = reinterpret_cast<Header &>(*new_arr);
     hdr.TypeID = in->ReadInt32();
     hdr.ElemCount = in->ReadInt32();
     hdr.TotalSize = hdr.ElemCount * in->ReadInt32(); // elem size
@@ -71,7 +71,8 @@ void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
     ccRegisterUnserializedObject(index, &new_arr[MemHeaderSz], this);
 }
 
-/* static */ DynObjectRef CCDynamicArray::CreateImpl(uint32_t type_id, bool is_managed, uint32_t elem_count, uint32_t elem_size)
+/* static */ DynObjectRef CCDynamicArray::CreateImpl(uint32_t type_id, bool is_managed, uint32_t elem_count,
+                                                     uint32_t elem_size)
 {
     assert(elem_count <= INT32_MAX);
     assert(!is_managed || elem_size == sizeof(int32_t));
@@ -80,7 +81,7 @@ void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
 
     uint8_t *new_arr = new uint8_t[elem_count * elem_size + MemHeaderSz];
     memset(new_arr, 0, elem_count * elem_size + MemHeaderSz);
-    Header &hdr = reinterpret_cast<Header&>(*new_arr);
+    Header &hdr = reinterpret_cast<Header &>(*new_arr);
     if (type_id > 0)
     {
         assert(RuntimeScript::GetJointRTTI()->GetTypes().size() > type_id);
@@ -99,8 +100,7 @@ void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
     return DynObjectRef(handle, obj_ptr, &globalDynamicArray);
 }
 
-void CCDynamicArray::RemapTypeids(void *address,
-    const std::unordered_map<uint32_t, uint32_t> &typeid_map)
+void CCDynamicArray::RemapTypeids(void *address, const std::unordered_map<uint32_t, uint32_t> &typeid_map)
 {
     Header &hdr = GetHeaderW(address);
     const uint32_t type_id = hdr.TypeID & (~ARRAY_MANAGED_TYPE_FLAG);
@@ -129,7 +129,7 @@ void CCDynamicArray::TraverseRefs(void *address, PfnTraverseRefOp traverse_op)
     // Dynamic array of managed pointers: subref them directly
     if (is_managed)
     {
-        const uint32_t *handles = reinterpret_cast<const uint32_t*>(address);
+        const uint32_t *handles = reinterpret_cast<const uint32_t *>(address);
         for (uint32_t i = 0; i < hdr.ElemCount; ++i)
         {
             traverse_op(handles[i]);
@@ -141,7 +141,7 @@ void CCDynamicArray::TraverseRefs(void *address, PfnTraverseRefOp traverse_op)
         const auto fref = RuntimeScript::GetRTTIHelper()->GetManagedOffsetsForType(type_id);
         if (fref.second > fref.first)
         { // there are managed pointers inside!
-            const uint8_t *elem_ptr = static_cast<const uint8_t*>(address);
+            const uint8_t *elem_ptr = static_cast<const uint8_t *>(address);
             // For each array element...
             const uint32_t el_size = hdr.ElemCount > 0 ? (hdr.TotalSize / hdr.ElemCount) : 0;
             for (uint32_t i = 0; i < hdr.ElemCount; ++i, elem_ptr += el_size)
@@ -149,7 +149,7 @@ void CCDynamicArray::TraverseRefs(void *address, PfnTraverseRefOp traverse_op)
                 // ..subref each managed pointer found inside
                 for (auto it = fref.first; it < fref.second; ++it)
                 {
-                    traverse_op(*(int32_t*)(elem_ptr + *it));
+                    traverse_op(*(int32_t *)(elem_ptr + *it));
                 }
             }
         }
@@ -175,19 +175,19 @@ DynObjectRef DynamicArrayHelpers::CreateArray(const std::vector<uint8_t> &data)
     DynObjectRef arr = globalDynamicArray.CreateOld(data.size(), sizeof(uint8_t), false);
     if (arr.Obj())
     {
-        std::copy(data.begin(), data.end(), static_cast<uint8_t*>(arr.Obj()));
+        std::copy(data.begin(), data.end(), static_cast<uint8_t *>(arr.Obj()));
     }
     return arr;
 }
 
-DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char*> &items)
+DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char *> &items)
 {
     // FIXME: create using CreateNew, but need to pass String's type id somehow! (just lookup for "String" in rtti?)
     DynObjectRef arr = globalDynamicArray.CreateOld(items.size(), sizeof(int32_t), true);
     if (!arr.Obj())
         return arr;
     // Create script strings and put handles into array
-    int32_t *slots = static_cast<int32_t*>(arr.Obj());
+    int32_t *slots = static_cast<int32_t *>(arr.Obj());
     for (auto s : items)
     {
         DynObjectRef str = ScriptString::Create(s);
@@ -206,7 +206,7 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<String> &i
     if (!arr.Obj())
         return arr;
     // Create script strings and put handles into array
-    int32_t *slots = static_cast<int32_t*>(arr.Obj());
+    int32_t *slots = static_cast<int32_t *>(arr.Obj());
     for (auto s : items)
     {
         DynObjectRef str = ScriptString::Create(s.GetCStr());
@@ -224,7 +224,7 @@ DynObjectRef DynamicArrayHelpers::CreateStringArrayFromBuffers(std::vector<Scrip
     if (!arr.Obj())
         return arr;
     // Create script strings and put handles into array
-    int32_t *slots = static_cast<int32_t*>(arr.Obj());
+    int32_t *slots = static_cast<int32_t *>(arr.Obj());
     for (auto &buf : items)
     {
         DynObjectRef str = ScriptString::Create(std::move(buf));
@@ -242,8 +242,8 @@ DynObjectRef DynamicArrayHelpers::CreateScriptArray(std::vector<DynObjectRef> &&
     if (!arr.Obj())
         return arr;
 
-    int32_t *slots = static_cast<int32_t*>(arr.Obj());
-    for (auto const& obj : items)
+    int32_t *slots = static_cast<int32_t *>(arr.Obj());
+    for (auto const &obj : items)
     {
         ccAddObjectReference(obj.Handle());
         *(slots++) = obj.Handle();
@@ -259,7 +259,7 @@ bool DynamicArrayHelpers::ResolveIntArray(const void *arrobj, std::vector<int> &
 
     ints.clear();
     const auto &header = CCDynamicArray::GetHeader(arrobj);
-    const int *data = static_cast<const int*>(arrobj);
+    const int *data = static_cast<const int *>(arrobj);
     ints.reserve(header.GetElemCount());
     for (uint32_t i = 0; i < header.GetElemCount(); ++i)
     {
@@ -276,7 +276,7 @@ bool DynamicArrayHelpers::ResolveFloatArray(const void *arrobj, std::vector<floa
 
     floats.clear();
     const auto &header = CCDynamicArray::GetHeader(arrobj);
-    const float *data = static_cast<const float*>(arrobj);
+    const float *data = static_cast<const float *>(arrobj);
     floats.reserve(header.GetElemCount());
     for (uint32_t i = 0; i < header.GetElemCount(); ++i)
     {
@@ -285,7 +285,7 @@ bool DynamicArrayHelpers::ResolveFloatArray(const void *arrobj, std::vector<floa
     return true;
 }
 
-bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<void*> &objects)
+bool DynamicArrayHelpers::ResolvePointerArray(const void *arrobj, std::vector<void *> &objects)
 {
     assert(arrobj);
     if (!arrobj)
@@ -297,7 +297,7 @@ bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<vo
     if (!header.IsPointerArray())
         return false;
 
-    const uint32_t *handles = static_cast<const uint32_t*>(arrobj);
+    const uint32_t *handles = static_cast<const uint32_t *>(arrobj);
     objects.reserve(header.GetElemCount());
     for (uint32_t i = 0; i < header.GetElemCount(); ++i)
     {
@@ -306,7 +306,7 @@ bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<vo
     return true;
 }
 
-bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<DynObjectRef> &objects)
+bool DynamicArrayHelpers::ResolvePointerArray(const void *arrobj, std::vector<DynObjectRef> &objects)
 {
     assert(arrobj);
     if (!arrobj)
@@ -318,7 +318,7 @@ bool DynamicArrayHelpers::ResolvePointerArray(const void* arrobj, std::vector<Dy
     if (!header.IsPointerArray())
         return false;
 
-    const uint32_t *handles = static_cast<const uint32_t*>(arrobj);
+    const uint32_t *handles = static_cast<const uint32_t *>(arrobj);
     objects.reserve(header.GetElemCount());
     for (uint32_t i = 0; i < header.GetElemCount(); ++i)
     {

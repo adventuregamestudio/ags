@@ -21,18 +21,18 @@
 // Max old-style script string length
 #define MAX_MAXSTRLEN 200
 
-#define INVALID_X  30000
+#define INVALID_X                 30000
 #define LEGACY_MAX_CHAR_INVENTORY 500
 // Max character inventory capacity is limited by SCR_NO_VALUE,
 // because that was AddInventory's index parameter's default value.
 // May up to INT32_MAX in AGS 4.x, but keep here for backwards compatibility.
 #define MAX_CHAR_INVENTORY 31998
-#define LEGACY_MAX_TIMERS 21
-#define MAX_PARSED_WORDS 15
+#define LEGACY_MAX_TIMERS  21
+#define MAX_PARSED_WORDS   15
 
 #define MAX_QUEUED_MUSIC 10
 #define GLED_INTERACTION 1
-#define GLED_EFFECTS     2 
+#define GLED_EFFECTS     2
 
 // Common command arguments
 // HISTORICAL NOTE: These numbers were chosen arbitrarily -- the idea is
@@ -41,33 +41,33 @@
 #define ANYWHERE       304
 #define WALKABLE_AREAS 305
 // Blocking / non-blocking action
-#define BLOCKING       919
-#define IN_BACKGROUND  920
+#define BLOCKING      919
+#define IN_BACKGROUND 920
 // Direction of animation
-#define FORWARDS       1062
-#define BACKWARDS      1063
+#define FORWARDS  1062
+#define BACKWARDS 1063
 // Stop / don't stop when changing a view
-#define STOP_MOVING    1
-#define KEEP_MOVING    0
+#define STOP_MOVING 1
+#define KEEP_MOVING 0
 
-#define SCR_NO_VALUE   31998
+#define SCR_NO_VALUE          31998
 #define SCR_COLOR_TRANSPARENT 0
 
-#define FONT_STATUSBAR  0
-#define FONT_NORMAL     play.normal_font
-#define FONT_SPEECH     play.speech_font
+#define FONT_STATUSBAR 0
+#define FONT_NORMAL    play.normal_font
+#define FONT_SPEECH    play.speech_font
 
 // Fixed Overlay IDs
 // Standard message box (see Display command)
-#define OVER_TEXTMSG  1
+#define OVER_TEXTMSG 1
 // Complete speech overlay (QFG4 speech style)
 #define OVER_COMPLETE 2
 // Speech portrait
-#define OVER_PICTURE  3
+#define OVER_PICTURE 3
 // Speech text (in textwindow or not)
 #define OVER_TEXTSPEECH 4
-#define OVER_FIRSTFREE 5
-#define OVER_CUSTOM   -1
+#define OVER_FIRSTFREE  5
+#define OVER_CUSTOM     -1
 // FIXME: this constant is assigned to the Overlay's x coordinate,
 // which is ugly and prone to mistakes, store as Overlay's flag instead
 
@@ -90,11 +90,11 @@
 
 // Values for GameState::stop_dialog_at_end;
 // tell what to do with the current Dialog after returning from the option script
-#define DIALOG_NONE      0
-#define DIALOG_RUNNING   1
-#define DIALOG_STOP      2
-#define DIALOG_NEWROOM   100
-#define DIALOG_NEWTOPIC  12000
+#define DIALOG_NONE     0
+#define DIALOG_RUNNING  1
+#define DIALOG_STOP     2
+#define DIALOG_NEWROOM  100
+#define DIALOG_NEWTOPIC 12000
 
 // Internal skip style flags, for speech/display, wait;
 // theoretically correspond to InputType in script (with a 24-bit shift)
@@ -107,7 +107,7 @@
 // Bit shift for packing skip type into result
 #define SKIP_RESULT_TYPE_SHIFT 24
 // Bit mask for packing skip key/button data into result
-#define SKIP_RESULT_DATA_MASK  0x00FFFFFF
+#define SKIP_RESULT_DATA_MASK 0x00FFFFFF
 
 #define LOCTYPE_NOTHING 0
 #define LOCTYPE_HOTSPOT 1
@@ -131,15 +131,15 @@
 // Script API SortStyle
 enum ScriptSortStyle
 {
-    kScNotSorted     = 0,
-    kScSorted        = 1,
+    kScNotSorted = 0,
+    kScSorted = 1,
 };
 
 // Script API SortDirection
 enum ScriptSortDirection
 {
-    kScSortNone       = 0,
-    kScSortAscending  = 1,
+    kScSortNone = 0,
+    kScSortAscending = 1,
     kScSortDescending = 2,
 };
 
@@ -149,10 +149,10 @@ enum ScriptStringComparison
     // NOTE: these constants are made as a combination of flags,
     // for easier comparison mode selection
     kScCaseSensitiveFlag = 0x1,
-    kScLocaleAwareFlag   = 0x2,
+    kScLocaleAwareFlag = 0x2,
 
     kScCaseInsensitive = 0,
-    kScCaseSensitive   = 1,
+    kScCaseSensitive = 1,
     kScCaseInsensitiveLocaleAware = 2,
     kScCaseSensitiveLocaleAware = 3,
 };
@@ -203,10 +203,11 @@ struct AnimFlowParams
     AnimFlowDirection Direction = kAnimDirForward;
 
     AnimFlowParams() = default;
-    AnimFlowParams(AnimFlowStyle flow, AnimFlowDirection dir)
-        : Flow(flow), InitialDirection(dir), Direction(dir) {}
+    AnimFlowParams(AnimFlowStyle flow, AnimFlowDirection dir) : Flow(flow), InitialDirection(dir), Direction(dir) {}
     AnimFlowParams(AnimFlowStyle flow, AnimFlowDirection init_dir, AnimFlowDirection cur_dir)
-        : Flow(flow), InitialDirection(init_dir), Direction(cur_dir) {}
+        : Flow(flow), InitialDirection(init_dir), Direction(cur_dir)
+    {
+    }
 
     static AnimFlowParams DefaultOnce() { return AnimFlowParams(kAnimFlow_Once, kAnimDirForward); }
 
@@ -245,21 +246,15 @@ struct ViewAnimateParams : public AnimFlowParams
 
     ViewAnimateParams() = default;
     ViewAnimateParams(AnimFlowStyle flow, AnimFlowDirection dir, int delay, int avolume)
-        : AnimFlowParams(flow, dir)
-        , Delay(delay)
-        , AudioVolume(avolume)
+        : AnimFlowParams(flow, dir), Delay(delay), AudioVolume(avolume)
     {
     }
     ViewAnimateParams(AnimFlowStyle flow, AnimFlowDirection init_dir, AnimFlowDirection cur_dir, int delay, int avolume)
-        : AnimFlowParams(flow, init_dir, cur_dir)
-        , Delay(delay)
-        , AudioVolume(avolume)
+        : AnimFlowParams(flow, init_dir, cur_dir), Delay(delay), AudioVolume(avolume)
     {
     }
     ViewAnimateParams(const AnimFlowParams &flow_params, int delay, int avolume)
-        : AnimFlowParams(flow_params)
-        , Delay(delay)
-        , AudioVolume(avolume)
+        : AnimFlowParams(flow_params), Delay(delay), AudioVolume(avolume)
     {
     }
 };
@@ -267,47 +262,47 @@ struct ViewAnimateParams : public AnimFlowParams
 // Script API SaveGameSortStyle
 enum ScriptSaveGameSortStyle
 {
-    kScSaveGameSort_None        = 0, // undefined order
-    kScSaveGameSort_Number      = 1, // by slot number
-    kScSaveGameSort_Time        = 2, // by last write time
+    kScSaveGameSort_None = 0,        // undefined order
+    kScSaveGameSort_Number = 1,      // by slot number
+    kScSaveGameSort_Time = 2,        // by last write time
     kScSaveGameSort_Description = 3, // by save description
 };
 
 // Script API GUIButtonColorStyle
 enum ScriptButtonColorStyle
 {
-    eGUIButtonDefault           = 0,
-    eGUIButtonDynamic           = 1,
-    eGUIButtonDynamicFlat       = 2
+    eGUIButtonDefault = 0,
+    eGUIButtonDynamic = 1,
+    eGUIButtonDynamicFlat = 2
 };
 
 // Determines a set of bit-flags for hit-test functions, such as
 // GetAtScreenXY and GetAtRoomXY.
 enum ScriptHitTestOptions
 {
-    kHit_Any                    = 0,
-    kHit_Interactable           = 0x0001
+    kHit_Any = 0,
+    kHit_Interactable = 0x0001
 };
 
 // Determines which order of character turning is chosen when
 // both clockwise and counter-clockwise directions are equally short
 enum ScriptTurnOrderPriority
 {
-    kScTurnOrder_Clockwise          = 0, // historically is default
-    kScTurnOrder_CounterClockwise   = 1,
-    kScTurnOrder_Random             = 2, // cw or ccw, chosen random each time
-    kScTurnOrder_FaceDown           = 3, // try to face down (towards player) more
+    kScTurnOrder_Clockwise = 0, // historically is default
+    kScTurnOrder_CounterClockwise = 1,
+    kScTurnOrder_Random = 2,   // cw or ccw, chosen random each time
+    kScTurnOrder_FaceDown = 3, // try to face down (towards player) more
 };
 
 // Determines which of the key and text input events are claimed by the active TextBox control
 enum ScriptTextBoxClaimStyle
 {
     // Any text char, any key code from 32 to 255, Enter/Return and Backspace
-    kScTextBoxClaim_Classic         = 0,
+    kScTextBoxClaim_Classic = 0,
     // Only keys that text box handles itself
-    kScTextBoxClaim_Handled         = 1,
+    kScTextBoxClaim_Handled = 1,
     // Only text chars that text box handles itself
-    kScTextBoxClaim_TextOnly        = 2,
+    kScTextBoxClaim_TextOnly = 2,
 };
 
 enum eScriptSystemOSID
@@ -331,26 +326,26 @@ enum eScriptSystemOSID
 // a flag set when subscribing for events.
 enum PluginEventID
 {
-    kPluginEvt_KeyPress         = 0x00000001,
-    kPluginEvt_MouseClick       = 0x00000002,
-    kPluginEvt_PostScreenDraw   = 0x00000004,
-    kPluginEvt_PreScreenDraw    = 0x00000008,
-    kPluginEvt_SaveGame         = 0x00000010,
-    kPluginEvt_RestoreGame      = 0x00000020,
-    kPluginEvt_PreGUIDraw       = 0x00000040,
-    kPluginEvt_LeaveRoom        = 0x00000080,
-    kPluginEvt_EnterRoom        = 0x00000100,
-    kPluginEvt_TransitionIn     = 0x00000200,
-    kPluginEvt_TransitionOut    = 0x00000400,
-    kPluginEvt_FinalScreenDraw  = 0x00000800,
-    kPluginEvt_TranslateText    = 0x00001000,
-    kPluginEvt_ScriptDebug      = 0x00002000,
+    kPluginEvt_KeyPress = 0x00000001,
+    kPluginEvt_MouseClick = 0x00000002,
+    kPluginEvt_PostScreenDraw = 0x00000004,
+    kPluginEvt_PreScreenDraw = 0x00000008,
+    kPluginEvt_SaveGame = 0x00000010,
+    kPluginEvt_RestoreGame = 0x00000020,
+    kPluginEvt_PreGUIDraw = 0x00000040,
+    kPluginEvt_LeaveRoom = 0x00000080,
+    kPluginEvt_EnterRoom = 0x00000100,
+    kPluginEvt_TransitionIn = 0x00000200,
+    kPluginEvt_TransitionOut = 0x00000400,
+    kPluginEvt_FinalScreenDraw = 0x00000800,
+    kPluginEvt_TranslateText = 0x00001000,
+    kPluginEvt_ScriptDebug = 0x00002000,
     // 0x00004000 - unused, was AUDIODECODE, no longer supported
-    kPluginEvt_SpriteLoad       = 0x00008000,
-    kPluginEvt_PreRender        = 0x00010000,
-    kPluginEvt_PreSaveGame      = 0x00020000,
-    kPluginEvt_PostRestoreGame  = 0x00040000,
-    kPluginEvt_PostRoomDraw     = 0x00080000,
+    kPluginEvt_SpriteLoad = 0x00008000,
+    kPluginEvt_PreRender = 0x00010000,
+    kPluginEvt_PreSaveGame = 0x00020000,
+    kPluginEvt_PostRestoreGame = 0x00040000,
+    kPluginEvt_PostRoomDraw = 0x00080000,
 };
 
 // Runtime behavior switches.
@@ -372,7 +367,7 @@ enum RuntimeBehaviorSwitch
     kNum_RBS
 };
 
-extern std::array<const char*, kNum_RBS> RBSwitchNames;
+extern std::array<const char *, kNum_RBS> RBSwitchNames;
 
 // Data format version of the loaded game
 // TODO: get rid of this global variable, use one from GameSetupStruct

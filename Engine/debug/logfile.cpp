@@ -25,10 +25,7 @@ namespace Engine
 
 using namespace Common;
 
-LogFile::LogFile()
-    : _openMode(kLogFile_Overwrite)
-{
-}
+LogFile::LogFile() : _openMode(kLogFile_Overwrite) {}
 
 void LogFile::OnRegister()
 {
@@ -43,8 +40,8 @@ void LogFile::PrintMessage(const DebugMessage &msg)
         if (_filePath.IsEmpty())
             return; // was disabled
 
-        _file = File::OpenFile(_filePath, _openMode == kLogFile_Append ? kFile_Create : kFile_CreateAlways,
-            kStream_Write);
+        _file =
+            File::OpenFile(_filePath, _openMode == kLogFile_Append ? kFile_Create : kFile_CreateAlways, kStream_Write);
         if (!_file)
         {
             // TODO: find a method to disable an output in DebugManager
@@ -80,9 +77,8 @@ bool LogFile::OpenFile(const String &file_path, OpenMode open_mode)
     }
     else
     {
-        _file = File::OpenFile(file_path,
-                           open_mode == kLogFile_Append ? kFile_Create : kFile_CreateAlways,
-                           kStream_Write);
+        _file =
+            File::OpenFile(file_path, open_mode == kLogFile_Append ? kFile_Create : kFile_CreateAlways, kStream_Write);
         return _file != nullptr;
     }
 }

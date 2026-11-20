@@ -43,86 +43,103 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern std::vector<ScriptInvItem> scrInv;
 extern SpriteCache spriteset;
-extern CharacterInfo*playerchar;
+extern CharacterInfo *playerchar;
 extern AGSPlatformDriver *platform;
 extern CCCharacter ccDynamicCharacter;
 extern CCInventory ccDynamicInv;
 
 // *** INV WINDOW FUNCTIONS
 
-void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa) {
-  if (chaa == nullptr)
-    guii->SetCharacterID(-1);
-  else
-    guii->SetCharacterID(chaa->index_id);
-  // reset to top of list
-  guii->SetTopItem(0);
+void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa)
+{
+    if (chaa == nullptr)
+        guii->SetCharacterID(-1);
+    else
+        guii->SetCharacterID(chaa->index_id);
+    // reset to top of list
+    guii->SetTopItem(0);
 }
 
-CharacterInfo* InvWindow_GetCharacterToUse(GUIInvWindow *guii) {
-  if (guii->GetCharacterID() < 0)
-    return nullptr;
+CharacterInfo *InvWindow_GetCharacterToUse(GUIInvWindow *guii)
+{
+    if (guii->GetCharacterID() < 0)
+        return nullptr;
 
-  return &game.chars[guii->GetCharacterID()];
+    return &game.chars[guii->GetCharacterID()];
 }
 
-void InvWindow_SetItemWidth(GUIInvWindow *guii, int newwidth) {
-  guii->SetItemWidth(newwidth);
-  guii->OnResized();
+void InvWindow_SetItemWidth(GUIInvWindow *guii, int newwidth)
+{
+    guii->SetItemWidth(newwidth);
+    guii->OnResized();
 }
 
-int InvWindow_GetItemWidth(GUIInvWindow *guii) {
-  return guii->GetItemWidth();
+int InvWindow_GetItemWidth(GUIInvWindow *guii)
+{
+    return guii->GetItemWidth();
 }
 
-void InvWindow_SetItemHeight(GUIInvWindow *guii, int newhit) {
-  guii->SetItemHeight(newhit);
-  guii->OnResized();
+void InvWindow_SetItemHeight(GUIInvWindow *guii, int newhit)
+{
+    guii->SetItemHeight(newhit);
+    guii->OnResized();
 }
 
-int InvWindow_GetItemHeight(GUIInvWindow *guii) {
-  return guii->GetItemHeight();
+int InvWindow_GetItemHeight(GUIInvWindow *guii)
+{
+    return guii->GetItemHeight();
 }
 
-void InvWindow_SetTopItem(GUIInvWindow *guii, int topitem) {
-  if (guii->GetTopItem() != topitem) {
-    guii->SetTopItem(topitem);
-  }
+void InvWindow_SetTopItem(GUIInvWindow *guii, int topitem)
+{
+    if (guii->GetTopItem() != topitem)
+    {
+        guii->SetTopItem(topitem);
+    }
 }
 
-int InvWindow_GetTopItem(GUIInvWindow *guii) {
-  return guii->GetTopItem();
+int InvWindow_GetTopItem(GUIInvWindow *guii)
+{
+    return guii->GetTopItem();
 }
 
-int InvWindow_GetItemsPerRow(GUIInvWindow *guii) {
-  return guii->GetColCount();
+int InvWindow_GetItemsPerRow(GUIInvWindow *guii)
+{
+    return guii->GetColCount();
 }
 
-int InvWindow_GetItemCount(GUIInvWindow *guii) {
-  return charextra[guii->GetCharacterID()].inventory.size();
+int InvWindow_GetItemCount(GUIInvWindow *guii)
+{
+    return charextra[guii->GetCharacterID()].inventory.size();
 }
 
-int InvWindow_GetRowCount(GUIInvWindow *guii) {
-  return guii->GetRowCount();
+int InvWindow_GetRowCount(GUIInvWindow *guii)
+{
+    return guii->GetRowCount();
 }
 
-void InvWindow_ScrollDown(GUIInvWindow *guii) {
-  if ((charextra[guii->GetCharacterID()].inventory.size()) >
-      (guii->GetTopItem() + (guii->GetColCount() * guii->GetRowCount()))) { 
-    guii->SetTopItem(guii->GetTopItem() + guii->GetColCount());
-  }
+void InvWindow_ScrollDown(GUIInvWindow *guii)
+{
+    if ((charextra[guii->GetCharacterID()].inventory.size()) >
+        (guii->GetTopItem() + (guii->GetColCount() * guii->GetRowCount())))
+    {
+        guii->SetTopItem(guii->GetTopItem() + guii->GetColCount());
+    }
 }
 
-void InvWindow_ScrollUp(GUIInvWindow *guii) {
-  if (guii->GetTopItem() > 0) {
-    guii->SetTopItem(std::max(0, guii->GetTopItem() - guii->GetColCount()));
-  }
+void InvWindow_ScrollUp(GUIInvWindow *guii)
+{
+    if (guii->GetTopItem() > 0)
+    {
+        guii->SetTopItem(std::max(0, guii->GetTopItem() - guii->GetColCount()));
+    }
 }
 
-ScriptInvItem* InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index) {
-  if ((index < 0) || (index >= charextra[guii->GetCharacterID()].inventory.size()))
-    return nullptr;
-  return &scrInv[charextra[guii->GetCharacterID()].inventory[index]];
+ScriptInvItem *InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index)
+{
+    if ((index < 0) || (index >= charextra[guii->GetCharacterID()].inventory.size()))
+        return nullptr;
+    return &scrInv[charextra[guii->GetCharacterID()].inventory[index]];
 }
 
 int InvWindow_GetItemAtXY(GUIInvWindow *inv, int at_x, int at_y)
@@ -229,24 +246,23 @@ RuntimeScriptValue Sc_InvWindow_SetTopItem(void *self, const RuntimeScriptValue 
 }
 
 
-
 void RegisterInventoryWindowAPI()
 {
     ScFnRegister invwindow_api[] = {
-        { "InvWindow::ScrollDown^0",          API_FN_PAIR(InvWindow_ScrollDown) },
-        { "InvWindow::ScrollUp^0",            API_FN_PAIR(InvWindow_ScrollUp) },
-        { "InvWindow::get_CharacterToUse",    API_FN_PAIR(InvWindow_GetCharacterToUse) },
-        { "InvWindow::set_CharacterToUse",    API_FN_PAIR(InvWindow_SetCharacterToUse) },
-        { "InvWindow::geti_ItemAtIndex",      API_FN_PAIR(InvWindow_GetItemAtIndex) },
-        { "InvWindow::get_ItemCount",         API_FN_PAIR(InvWindow_GetItemCount) },
-        { "InvWindow::get_ItemHeight",        API_FN_PAIR(InvWindow_GetItemHeight) },
-        { "InvWindow::set_ItemHeight",        API_FN_PAIR(InvWindow_SetItemHeight) },
-        { "InvWindow::get_ItemWidth",         API_FN_PAIR(InvWindow_GetItemWidth) },
-        { "InvWindow::set_ItemWidth",         API_FN_PAIR(InvWindow_SetItemWidth) },
-        { "InvWindow::get_ItemsPerRow",       API_FN_PAIR(InvWindow_GetItemsPerRow) },
-        { "InvWindow::get_RowCount",          API_FN_PAIR(InvWindow_GetRowCount) },
-        { "InvWindow::get_TopItem",           API_FN_PAIR(InvWindow_GetTopItem) },
-        { "InvWindow::set_TopItem",           API_FN_PAIR(InvWindow_SetTopItem) },
+        {"InvWindow::ScrollDown^0", API_FN_PAIR(InvWindow_ScrollDown)},
+        {"InvWindow::ScrollUp^0", API_FN_PAIR(InvWindow_ScrollUp)},
+        {"InvWindow::get_CharacterToUse", API_FN_PAIR(InvWindow_GetCharacterToUse)},
+        {"InvWindow::set_CharacterToUse", API_FN_PAIR(InvWindow_SetCharacterToUse)},
+        {"InvWindow::geti_ItemAtIndex", API_FN_PAIR(InvWindow_GetItemAtIndex)},
+        {"InvWindow::get_ItemCount", API_FN_PAIR(InvWindow_GetItemCount)},
+        {"InvWindow::get_ItemHeight", API_FN_PAIR(InvWindow_GetItemHeight)},
+        {"InvWindow::set_ItemHeight", API_FN_PAIR(InvWindow_SetItemHeight)},
+        {"InvWindow::get_ItemWidth", API_FN_PAIR(InvWindow_GetItemWidth)},
+        {"InvWindow::set_ItemWidth", API_FN_PAIR(InvWindow_SetItemWidth)},
+        {"InvWindow::get_ItemsPerRow", API_FN_PAIR(InvWindow_GetItemsPerRow)},
+        {"InvWindow::get_RowCount", API_FN_PAIR(InvWindow_GetRowCount)},
+        {"InvWindow::get_TopItem", API_FN_PAIR(InvWindow_GetTopItem)},
+        {"InvWindow::set_TopItem", API_FN_PAIR(InvWindow_SetTopItem)},
     };
 
     ccAddExternalFunctions(invwindow_api);

@@ -24,12 +24,11 @@ using namespace AGS; // FIXME later
 
 struct SaveListItem
 {
-    int    Slot;
+    int Slot;
     Common::String Description;
     time_t FileTime = 0;
 
-    SaveListItem(int slot, const Common::String &desc, time_t ft)
-        : Slot(slot), Description(desc), FileTime(ft) {}
+    SaveListItem(int slot, const Common::String &desc, time_t ft) : Slot(slot), Description(desc), FileTime(ft) {}
 };
 
 //
@@ -37,10 +36,7 @@ struct SaveListItem
 //
 struct SaveItemCmpByNumber
 {
-    bool operator()(const SaveListItem &item1, const SaveListItem &item2) const
-    {
-        return item1.Slot < item2.Slot;
-    }
+    bool operator()(const SaveListItem &item1, const SaveListItem &item2) const { return item1.Slot < item2.Slot; }
 };
 
 struct SaveItemCmpByTime
@@ -53,10 +49,7 @@ struct SaveItemCmpByTime
 
 struct SaveItemCmpByDesc
 {
-    SaveItemCmpByDesc(std::unique_ptr<AGS::Common::IStrCmp> &&cmp_impl)
-        : _cmpImpl(std::move(cmp_impl))
-    {
-    }
+    SaveItemCmpByDesc(std::unique_ptr<AGS::Common::IStrCmp> &&cmp_impl) : _cmpImpl(std::move(cmp_impl)) {}
 
     bool operator()(const SaveListItem &item1, const SaveListItem &item2) const
     {
@@ -75,29 +68,31 @@ void restart_game();
 void CopySaveSlot(int old_slot, int new_slot);
 void MoveSaveSlot(int old_slot, int new_slot);
 void RestoreGameSlot(int slnum);
-void MoveSaveSlot (int old_slot, int new_slot);
+void MoveSaveSlot(int old_slot, int new_slot);
 void SaveGameSlot(int slnum, const char *descript, int spritenum);
 void SaveGameSlot2(int slnum, const char *descript);
-void DeleteSaveSlot (int slnum);
+void DeleteSaveSlot(int slnum);
 // Fills a list of SaveListItems by any save files found within the given range
 void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description);
 // Fills a list of SaveListItems by any save files found within the given range; sorts the resulting list
-void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description, ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir);
+void FillSaveList(std::vector<SaveListItem> &saves, unsigned bot_index, unsigned top_index, bool get_description,
+                  ScriptSaveGameSortStyle save_sort, ScriptSortDirection sort_dir);
 // Fills a list of SaveListItems by any save files found in the source list of slots;
 // slots may be listed in any order, and post-sorting is only optional
-void FillSaveList(const std::vector<int> &slots, std::vector<SaveListItem> &saves, bool get_description, ScriptSaveGameSortStyle save_sort = kScSaveGameSort_None, ScriptSortDirection sort_dir = kScSortNone);
+void FillSaveList(const std::vector<int> &slots, std::vector<SaveListItem> &saves, bool get_description,
+                  ScriptSaveGameSortStyle save_sort = kScSaveGameSort_None, ScriptSortDirection sort_dir = kScSortNone);
 // Find the latest save slot, returns the slot index or -1 at failure
-int  GetLastSaveSlot();
+int GetLastSaveSlot();
 void PauseGame();
 void UnPauseGame();
-int  IsGamePaused();
-int  RunAGSGame(const Common::String &newgame, unsigned int mode, int data);
+int IsGamePaused();
+int RunAGSGame(const Common::String &newgame, unsigned int mode, int data);
 void QuitGame(int dialog);
 void SetRestartPoint();
 void SetGameSpeed(int newspd);
-int  GetGameSpeed();
-int  SetGameOption (int opt, int setting);
-int  GetGameOption (int opt);
+int GetGameSpeed();
+int SetGameOption(int opt, int setting);
+int GetGameOption(int opt);
 
 void SkipUntilCharacterStops(int cc);
 void EndSkippingUntilCharStops();
@@ -107,8 +102,8 @@ void EndSkippingUntilCharStops();
 // 3 = mouse button
 // 4 = mouse button or any key
 // 5 = right click or ESC only
-void StartCutscene (int skipwith);
-int EndCutscene ();
+void StartCutscene(int skipwith);
+int EndCutscene();
 // Tell the game to skip current cutscene
 void SkipCutscene();
 
@@ -122,18 +117,18 @@ int GetLocationType2(int x, int y);
 // if nothing found, returns an empty string.
 const char *GetLocationName(int x, int y, int hit_options);
 
-int IsKeyPressed (int keycode);
+int IsKeyPressed(int keycode);
 bool IsAnyKeyPressed();
 void *GetPressedKeys();
 
-int SaveScreenShot1(const char*namm);
+int SaveScreenShot1(const char *namm);
 int SaveScreenShot4(const char *namm, int width, int height, int layers);
-void SetMultitasking (int mode);
+void SetMultitasking(int mode);
 
-void RoomProcessClick(int xx,int yy,int mood);
-int IsInteractionAvailable (int xx,int yy,int mood);
+void RoomProcessClick(int xx, int yy, int mood);
+int IsInteractionAvailable(int xx, int yy, int mood);
 
-void _sc_AbortGame(const char* text);
+void _sc_AbortGame(const char *text);
 
 void scrWait(int nloops);
 int WaitKey(int nloops);

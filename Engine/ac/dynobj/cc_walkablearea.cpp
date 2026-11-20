@@ -23,21 +23,24 @@ using namespace AGS::Common;
 extern ScriptWalkableArea scrWalkarea[MAX_WALK_AREAS];
 
 // return the type name of the object
-const char *CCWalkableArea::GetType() {
+const char *CCWalkableArea::GetType()
+{
     return "WalkableArea";
 }
 
-size_t CCWalkableArea::CalcSerializeSize(const void* /*address*/)
+size_t CCWalkableArea::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCWalkableArea::Serialize(const void *address, Stream *out) {
-    const ScriptWalkableArea *shh = static_cast<const ScriptWalkableArea*>(address);
+void CCWalkableArea::Serialize(const void *address, Stream *out)
+{
+    const ScriptWalkableArea *shh = static_cast<const ScriptWalkableArea *>(address);
     out->WriteInt32(shh->id);
 }
 
-void CCWalkableArea::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void CCWalkableArea::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
     int num = in->ReadInt32();
     ccRegisterUnserializedPersistentObject(index, &scrWalkarea[num], this);
 }

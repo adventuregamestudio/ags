@@ -76,7 +76,7 @@ void AudioClip_Stop(ScriptAudioClip *clip)
 {
     for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
     {
-        auto* ch = AudioChans::GetChannelIfPlaying(i);
+        auto *ch = AudioChans::GetChannelIfPlaying(i);
         if ((ch != nullptr) && (ch->sourceClipID == clip->id))
         {
             AudioChannel_Stop(&scrAudioChannel[i]);
@@ -84,26 +84,26 @@ void AudioClip_Stop(ScriptAudioClip *clip)
     }
 }
 
-ScriptAudioChannel* AudioClip_Play(ScriptAudioClip *clip, int priority, int repeat)
+ScriptAudioChannel *AudioClip_Play(ScriptAudioClip *clip, int priority, int repeat)
 {
     return play_audio_clip(clip, priority, repeat, 0, false);
 }
 
-ScriptAudioChannel* AudioClip_PlayFrom(ScriptAudioClip *clip, int position, int priority, int repeat)
+ScriptAudioChannel *AudioClip_PlayFrom(ScriptAudioClip *clip, int position, int priority, int repeat)
 {
     return play_audio_clip(clip, priority, repeat, position, false);
 }
 
-ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, int repeat)
+ScriptAudioChannel *AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, int repeat)
 {
     return play_audio_clip(clip, priority, repeat, 0, true);
 }
 
-ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int priority, int repeat)
+ScriptAudioChannel *AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int priority, int repeat)
 {
     if (chan < NUM_SPEECH_CHANS || chan >= game.numGameChannels)
-        quitprintf("!AudioClip.PlayOnChannel: invalid channel %d, the range is %d - %d",
-            chan, NUM_SPEECH_CHANS, game.numGameChannels - 1);
+        quitprintf("!AudioClip.PlayOnChannel: invalid channel %d, the range is %d - %d", chan, NUM_SPEECH_CHANS,
+                   game.numGameChannels - 1);
     if (priority == SCR_NO_VALUE)
         priority = clip->defaultPriority;
     if (repeat == SCR_NO_VALUE)
@@ -114,11 +114,11 @@ ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int
 ScriptAudioChannel *AudioClip_PlayAsType(ScriptAudioClip *clip, int type, int chan, int priority, int repeat)
 {
     if (type <= AUDIOTYPE_SPEECH || static_cast<uint32_t>(type) >= game.audioClipTypes.size())
-        quitprintf("!AudioClip.PlayAsType: invalid audio type %d, the range is %u - %u",
-            type, AUDIOTYPE_SPEECH + 1, static_cast<uint32_t>(game.audioClipTypes.size() - 1));
+        quitprintf("!AudioClip.PlayAsType: invalid audio type %d, the range is %u - %u", type, AUDIOTYPE_SPEECH + 1,
+                   static_cast<uint32_t>(game.audioClipTypes.size() - 1));
     if (chan != SCR_NO_VALUE && (chan < NUM_SPEECH_CHANS || chan >= game.numGameChannels))
-        quitprintf("!AudioClip.PlayAsType: invalid channel %d, the range is %d - %d",
-            chan, NUM_SPEECH_CHANS, game.numGameChannels - 1);
+        quitprintf("!AudioClip.PlayAsType: invalid channel %d, the range is %d - %d", chan, NUM_SPEECH_CHANS,
+                   game.numGameChannels - 1);
     if (chan == SCR_NO_VALUE)
         chan = -1;
     if (priority == SCR_NO_VALUE)
@@ -133,7 +133,7 @@ int AudioClip_GetProperty(ScriptAudioClip *clip, const char *property)
     return get_int_property(game.audioclipProps[clip->id], play.audioclipProps[clip->id], property);
 }
 
-const char* AudioClip_GetTextProperty(ScriptAudioClip *clip, const char *property)
+const char *AudioClip_GetTextProperty(ScriptAudioClip *clip, const char *property)
 {
     return get_text_property_dynamic_string(game.audioclipProps[clip->id], play.audioclipProps[clip->id], property);
 }
@@ -161,7 +161,7 @@ bool AudioClip_SetTextProperty(ScriptAudioClip *clip, const char *property, cons
 
 ScriptAudioClip *AudioClip_GetByName(const char *name)
 {
-    return static_cast<ScriptAudioClip*>(ccGetScriptObjectAddress(name, ccDynamicAudioClip.GetType()));
+    return static_cast<ScriptAudioClip *>(ccGetScriptObjectAddress(name, ccDynamicAudioClip.GetType()));
 }
 
 
@@ -271,26 +271,26 @@ void RegisterAudioClipAPI()
 {
     ScFnRegister audioclip_api[] = {
         // [OBSOLETE] GetByName => GetByScriptName
-        { "AudioClip::GetByName",         API_FN_PAIR(AudioClip_GetByName) },
-        { "AudioClip::GetByScriptName",   API_FN_PAIR(AudioClip_GetByName) },
-        { "AudioClip::Play^2",            API_FN_PAIR(AudioClip_Play) },
-        { "AudioClip::PlayFrom^3",        API_FN_PAIR(AudioClip_PlayFrom) },
-        { "AudioClip::PlayQueued^2",      API_FN_PAIR(AudioClip_PlayQueued) },
-        { "AudioClip::PlayOnChannel^3",   API_FN_PAIR(AudioClip_PlayOnChannel) },
-        { "AudioClip::PlayAsType^4",      API_FN_PAIR(AudioClip_PlayAsType) },
-        { "AudioClip::Stop^0",            API_FN_PAIR(AudioClip_Stop) },
-        { "AudioClip::GetProperty^1",     API_FN_PAIR(AudioClip_GetProperty) },
-        { "AudioClip::GetTextProperty^1", API_FN_PAIR(AudioClip_GetTextProperty) },
-        { "AudioClip::SetProperty^2",     API_FN_PAIR(AudioClip_SetProperty) },
-        { "AudioClip::SetTextProperty^2", API_FN_PAIR(AudioClip_SetTextProperty) },
-        { "AudioClip::get_ID",            API_FN_PAIR(AudioClip_GetID) },
-        { "AudioClip::get_DefaultPriority", API_FN_PAIR(AudioClip_GetDefaultPriority) },
-        { "AudioClip::get_DefaultRepeat", API_FN_PAIR(AudioClip_GetDefaultRepeat) },
-        { "AudioClip::get_DefaultVolume", API_FN_PAIR(AudioClip_GetDefaultVolume) },
-        { "AudioClip::get_FileType",      API_FN_PAIR(AudioClip_GetFileType) },
-        { "AudioClip::get_IsAvailable",   API_FN_PAIR(AudioClip_GetIsAvailable) },
-        { "AudioClip::get_ScriptName",    API_FN_PAIR(AudioClip_GetScriptName) },
-        { "AudioClip::get_Type",          API_FN_PAIR(AudioClip_GetType) },
+        {"AudioClip::GetByName", API_FN_PAIR(AudioClip_GetByName)},
+        {"AudioClip::GetByScriptName", API_FN_PAIR(AudioClip_GetByName)},
+        {"AudioClip::Play^2", API_FN_PAIR(AudioClip_Play)},
+        {"AudioClip::PlayFrom^3", API_FN_PAIR(AudioClip_PlayFrom)},
+        {"AudioClip::PlayQueued^2", API_FN_PAIR(AudioClip_PlayQueued)},
+        {"AudioClip::PlayOnChannel^3", API_FN_PAIR(AudioClip_PlayOnChannel)},
+        {"AudioClip::PlayAsType^4", API_FN_PAIR(AudioClip_PlayAsType)},
+        {"AudioClip::Stop^0", API_FN_PAIR(AudioClip_Stop)},
+        {"AudioClip::GetProperty^1", API_FN_PAIR(AudioClip_GetProperty)},
+        {"AudioClip::GetTextProperty^1", API_FN_PAIR(AudioClip_GetTextProperty)},
+        {"AudioClip::SetProperty^2", API_FN_PAIR(AudioClip_SetProperty)},
+        {"AudioClip::SetTextProperty^2", API_FN_PAIR(AudioClip_SetTextProperty)},
+        {"AudioClip::get_ID", API_FN_PAIR(AudioClip_GetID)},
+        {"AudioClip::get_DefaultPriority", API_FN_PAIR(AudioClip_GetDefaultPriority)},
+        {"AudioClip::get_DefaultRepeat", API_FN_PAIR(AudioClip_GetDefaultRepeat)},
+        {"AudioClip::get_DefaultVolume", API_FN_PAIR(AudioClip_GetDefaultVolume)},
+        {"AudioClip::get_FileType", API_FN_PAIR(AudioClip_GetFileType)},
+        {"AudioClip::get_IsAvailable", API_FN_PAIR(AudioClip_GetIsAvailable)},
+        {"AudioClip::get_ScriptName", API_FN_PAIR(AudioClip_GetScriptName)},
+        {"AudioClip::get_Type", API_FN_PAIR(AudioClip_GetType)},
     };
 
     ccAddExternalFunctions(audioclip_api);

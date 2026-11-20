@@ -21,15 +21,17 @@
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/agsplatform_xdg_unix.h"
 
-struct AGSLinux : AGSPlatformXDGUnix {
-  eScriptSystemOSID GetSystemOSID() override;
+struct AGSLinux : AGSPlatformXDGUnix
+{
+    eScriptSystemOSID GetSystemOSID() override;
 };
 
-eScriptSystemOSID AGSLinux::GetSystemOSID() {
-  return eOS_Linux;
+eScriptSystemOSID AGSLinux::GetSystemOSID()
+{
+    return eOS_Linux;
 }
 
-AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
+AGSPlatformDriver *AGSPlatformDriver::CreateDriver()
 {
     return new AGSLinux();
 }

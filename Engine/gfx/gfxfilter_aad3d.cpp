@@ -41,7 +41,7 @@ int AAD3DGfxFilter::GetSamplerStateForStandardSprite()
 
 void AAD3DGfxFilter::SetSamplerStateForStandardSprite(void *direct3ddevice9)
 {
-    IDirect3DDevice9* d3d9 = ((IDirect3DDevice9*)direct3ddevice9);
+    IDirect3DDevice9 *d3d9 = ((IDirect3DDevice9 *)direct3ddevice9);
     d3d9->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
     d3d9->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 }

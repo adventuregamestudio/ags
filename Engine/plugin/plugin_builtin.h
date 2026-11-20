@@ -20,14 +20,21 @@
 
 class IAGSEngine;
 
-namespace AGS { namespace Common { class String; }}
-struct InbuiltPluginDetails {
-    AGS::Common::String    filename;
-    void      (*engineStartup) (IAGSEngine *);
-    void      (*engineShutdown) ();
-    intptr_t  (*onEvent) (int evt, intptr_t param);
-    void      (*initGfxHook) (const char *driverName, void *data);
-    int       (*debugHook) (const char * whichscript, int lineNumber, int reserved);
+namespace AGS
+{
+namespace Common
+{
+class String;
+}
+} // namespace AGS
+struct InbuiltPluginDetails
+{
+    AGS::Common::String filename;
+    void (*engineStartup)(IAGSEngine *);
+    void (*engineShutdown)();
+    intptr_t (*onEvent)(int evt, intptr_t param);
+    void (*initGfxHook)(const char *driverName, void *data);
+    int (*debugHook)(const char *whichscript, int lineNumber, int reserved);
 };
 
 // Register a builtin plugin.

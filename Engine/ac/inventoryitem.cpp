@@ -37,7 +37,7 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern std::vector<ScriptInvItem> scrInv;
 extern int cur_cursor;
-extern CharacterInfo*playerchar;
+extern CharacterInfo *playerchar;
 extern CCInventory ccDynamicInv;
 
 
@@ -81,7 +81,7 @@ void set_inv_item_pic(int invi, int piccy)
     GUIE::MarkInventoryForUpdate(-1, false);
 }
 
-void set_inv_item_cursorpic(int invItemId, int piccy) 
+void set_inv_item_cursorpic(int invItemId, int piccy)
 {
     game.invinfo[invItemId].cursorPic = piccy;
 
@@ -121,12 +121,12 @@ bool AssertInvItem(const char *apiname, int item_index)
     return false;
 }
 
-void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite) 
+void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite)
 {
     set_inv_item_cursorpic(iitem->id, newSprite);
 }
 
-int InventoryItem_GetCursorGraphic(ScriptInvItem *iitem) 
+int InventoryItem_GetCursorGraphic(ScriptInvItem *iitem)
 {
     return game.invinfo[iitem->id].cursorPic;
 }
@@ -138,7 +138,8 @@ int InventoryItem_GetCursorHotspotAlignment(ScriptInvItem *iitem)
 
 void InventoryItem_SetCursorHotspotAlignment(ScriptInvItem *iitem, int align)
 {
-    set_inv_item_cursorhotspot(iitem->id, game.invinfo[iitem->id].hotx, game.invinfo[iitem->id].hoty, static_cast<FrameAlignment>(align));
+    set_inv_item_cursorhotspot(iitem->id, game.invinfo[iitem->id].hotx, game.invinfo[iitem->id].hoty,
+                               static_cast<FrameAlignment>(align));
 }
 
 int InventoryItem_GetCursorHotspotX(ScriptInvItem *iitem)
@@ -161,11 +162,13 @@ void InventoryItem_SetCursorHotspotY(ScriptInvItem *iitem, int hotspoty)
     set_inv_item_cursorhotspot(iitem->id, game.invinfo[iitem->id].hotx, hotspoty, game.invinfo[iitem->id].hotAlign);
 }
 
-void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy) {
+void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy)
+{
     set_inv_item_pic(iitem->id, piccy);
 }
 
-void SetInvItemName(int invi, const char *newName) {
+void SetInvItemName(int invi, const char *newName)
+{
     if ((invi < 0) || (invi >= game.numinvitems))
         quit("!SetInvName: invalid inventory item specified");
 
@@ -174,11 +177,13 @@ void SetInvItemName(int invi, const char *newName) {
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
-void InventoryItem_SetName(ScriptInvItem *scii, const char *newname) {
+void InventoryItem_SetName(ScriptInvItem *scii, const char *newname)
+{
     SetInvItemName(scii->id, newname);
 }
 
-int InventoryItem_GetID(ScriptInvItem *scii) {
+int InventoryItem_GetID(ScriptInvItem *scii)
+{
     return scii->id;
 }
 
@@ -217,15 +222,18 @@ ScriptInvItem *InventoryItem_GetAtScreenXY2(int x, int y)
     return InventoryItem_GetAtScreenXY(x, y, kHit_Interactable, kHit_Interactable);
 }
 
-const char* InventoryItem_GetName_New(ScriptInvItem *invitem) {
-  return CreateNewScriptString(game.invinfo[invitem->id].name);
+const char *InventoryItem_GetName_New(ScriptInvItem *invitem)
+{
+    return CreateNewScriptString(game.invinfo[invitem->id].name);
 }
 
-int InventoryItem_GetGraphic(ScriptInvItem *iitem) {
-  return game.invinfo[iitem->id].pic;
+int InventoryItem_GetGraphic(ScriptInvItem *iitem)
+{
+    return game.invinfo[iitem->id].pic;
 }
 
-void RunInventoryInteraction(int iit, int mood) {
+void RunInventoryInteraction(int iit, int mood)
+{
     if ((iit < 0) || (iit >= game.numinvitems))
         quit("!RunInventoryInteraction: invalid inventory number");
     if (!AssertCursorValidForEvent("InventoryItem.RunInteraction", mood))
@@ -243,15 +251,15 @@ void RunInventoryInteraction(int iit, int mood) {
 
     const auto obj_evt = ObjectEvent(kScTypeGame, LOCTYPE_INVITEM, iit,
                                      RuntimeScriptValue().SetScriptObject(&scrInv[iit], &ccDynamicInv), mood);
-    if ((evnt >= 0) &&
-        run_event_script(obj_evt, &game.invinfo[iit].interactions, evnt,
-                         &game.invinfo[iit].GetEvents(), anyclick_evt, true /* do unhandled event */) < 0)
+    if ((evnt >= 0) && run_event_script(obj_evt, &game.invinfo[iit].interactions, evnt, &game.invinfo[iit].GetEvents(),
+                                        anyclick_evt, true /* do unhandled event */) < 0)
         return; // game state changed, don't do "any click"
     // any click on inv item
     run_event_script(obj_evt, &game.invinfo[iit].GetEvents(), anyclick_evt);
 }
 
-int IsInventoryInteractionAvailable(int item, int mood) {
+int IsInventoryInteractionAvailable(int item, int mood)
+{
     if ((item < 0) || (item >= game.numinvitems))
         quit("!IsInventoryInteractionAvailable: invalid inventory number");
 
@@ -268,23 +276,28 @@ int IsInventoryInteractionAvailable(int item, int mood) {
     return 0;
 }
 
-void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood) {
+void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood)
+{
     RunInventoryInteraction(iitem->id, mood);
 }
 
-int InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood) {
-  return IsInventoryInteractionAvailable(iitem->id, mood);
+int InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood)
+{
+    return IsInventoryInteractionAvailable(iitem->id, mood);
 }
 
-int InventoryItem_GetProperty(ScriptInvItem *scii, const char *property) {
-    return get_int_property (game.invProps[scii->id], play.invProps[scii->id], property);
+int InventoryItem_GetProperty(ScriptInvItem *scii, const char *property)
+{
+    return get_int_property(game.invProps[scii->id], play.invProps[scii->id], property);
 }
 
-void InventoryItem_GetPropertyText(ScriptInvItem *scii, const char *property, char *bufer) {
+void InventoryItem_GetPropertyText(ScriptInvItem *scii, const char *property, char *bufer)
+{
     get_text_property(game.invProps[scii->id], play.invProps[scii->id], property, bufer);
 }
 
-const char* InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *property) {
+const char *InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *property)
+{
     return get_text_property_dynamic_string(game.invProps[scii->id], play.invProps[scii->id], property);
 }
 
@@ -312,7 +325,7 @@ bool InventoryItem_SetTextProperty(ScriptInvItem *scii, const char *property, co
 
 ScriptInvItem *InventoryItem_GetByName(const char *name)
 {
-    return static_cast<ScriptInvItem*>(ccGetScriptObjectAddress(name, ccDynamicInv.GetType()));
+    return static_cast<ScriptInvItem *>(ccGetScriptObjectAddress(name, ccDynamicInv.GetType()));
 }
 
 RuntimeScriptValue Sc_InventoryItem_GetByName(const RuntimeScriptValue *params, int32_t param_count)
@@ -331,7 +344,8 @@ RuntimeScriptValue Sc_InventoryItem_GetAtScreenXY2(const RuntimeScriptValue *par
 }
 
 // int (ScriptInvItem *iitem, int mood)
-RuntimeScriptValue Sc_InventoryItem_CheckInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_InventoryItem_CheckInteractionAvailable(void *self, const RuntimeScriptValue *params,
+                                                              int32_t param_count)
 {
     API_OBJCALL_INT_PINT(ScriptInvItem, InventoryItem_CheckInteractionAvailable);
 }
@@ -376,24 +390,26 @@ RuntimeScriptValue Sc_InventoryItem_SetName(void *self, const RuntimeScriptValue
     API_OBJCALL_VOID_POBJ(ScriptInvItem, InventoryItem_SetName, const char);
 }
 
-// int (ScriptInvItem *iitem) 
+// int (ScriptInvItem *iitem)
 RuntimeScriptValue Sc_InventoryItem_GetCursorGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_INT(ScriptInvItem, InventoryItem_GetCursorGraphic);
 }
 
-// void (ScriptInvItem *iitem, int newSprite) 
+// void (ScriptInvItem *iitem, int newSprite)
 RuntimeScriptValue Sc_InventoryItem_SetCursorGraphic(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptInvItem, InventoryItem_SetCursorGraphic);
 }
 
-RuntimeScriptValue Sc_InventoryItem_GetCursorHotspotAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_InventoryItem_GetCursorHotspotAlignment(void *self, const RuntimeScriptValue *params,
+                                                              int32_t param_count)
 {
     API_OBJCALL_INT(ScriptInvItem, InventoryItem_GetCursorHotspotAlignment);
 }
 
-RuntimeScriptValue Sc_InventoryItem_SetCursorHotspotAlignment(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_InventoryItem_SetCursorHotspotAlignment(void *self, const RuntimeScriptValue *params,
+                                                              int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptInvItem, InventoryItem_SetCursorHotspotAlignment);
 }
@@ -448,41 +464,40 @@ RuntimeScriptValue Sc_InventoryItem_GetName_New(void *self, const RuntimeScriptV
 }
 
 
-
 void RegisterInventoryItemAPI()
 {
     ScFnRegister invitem_api[] = {
-        { "InventoryItem::GetAtScreenXY^2",           API_FN_PAIR(InventoryItem_GetAtScreenXY2) },
-        { "InventoryItem::GetAtScreenXY^4",           API_FN_PAIR(InventoryItem_GetAtScreenXY) },
+        {"InventoryItem::GetAtScreenXY^2", API_FN_PAIR(InventoryItem_GetAtScreenXY2)},
+        {"InventoryItem::GetAtScreenXY^4", API_FN_PAIR(InventoryItem_GetAtScreenXY)},
         // [OBSOLETE] GetByName => GetByScriptName
-        { "InventoryItem::GetByName",                 API_FN_PAIR(InventoryItem_GetByName) },
-        { "InventoryItem::GetByScriptName",           API_FN_PAIR(InventoryItem_GetByName) },
+        {"InventoryItem::GetByName", API_FN_PAIR(InventoryItem_GetByName)},
+        {"InventoryItem::GetByScriptName", API_FN_PAIR(InventoryItem_GetByName)},
 
-        { "InventoryItem::IsInteractionAvailable^1",  API_FN_PAIR(InventoryItem_CheckInteractionAvailable) },
-        { "InventoryItem::GetProperty^1",             API_FN_PAIR(InventoryItem_GetProperty) },
-        { "InventoryItem::GetPropertyText^2",         API_FN_PAIR(InventoryItem_GetPropertyText) },
-        { "InventoryItem::GetTextProperty^1",         API_FN_PAIR(InventoryItem_GetTextProperty) },
-        { "InventoryItem::SetProperty^2",             API_FN_PAIR(InventoryItem_SetProperty) },
-        { "InventoryItem::SetTextProperty^2",         API_FN_PAIR(InventoryItem_SetTextProperty) },
-        { "InventoryItem::RunInteraction^1",          API_FN_PAIR(InventoryItem_RunInteraction) },
-        { "InventoryItem::SetName^1",                 API_FN_PAIR(InventoryItem_SetName) },
-        { "InventoryItem::get_CursorGraphic",         API_FN_PAIR(InventoryItem_GetCursorGraphic) },
-        { "InventoryItem::set_CursorGraphic",         API_FN_PAIR(InventoryItem_SetCursorGraphic) },
-        { "InventoryItem::get_CursorHotspotAlignment", API_FN_PAIR(InventoryItem_GetCursorHotspotAlignment) },
-        { "InventoryItem::set_CursorHotspotAlignment", API_FN_PAIR(InventoryItem_SetCursorHotspotAlignment) },
-        { "InventoryItem::get_CursorHotspotX",        API_FN_PAIR(InventoryItem_GetCursorHotspotX) },
-        { "InventoryItem::set_CursorHotspotX",        API_FN_PAIR(InventoryItem_SetCursorHotspotX) },
-        { "InventoryItem::get_CursorHotspotY",        API_FN_PAIR(InventoryItem_GetCursorHotspotY) },
-        { "InventoryItem::set_CursorHotspotY",        API_FN_PAIR(InventoryItem_SetCursorHotspotY) },
-        { "InventoryItem::get_DisplayName",           API_FN_PAIR(InventoryItem_GetName_New) },
-        { "InventoryItem::set_DisplayName",           API_FN_PAIR(InventoryItem_SetName) },
-        { "InventoryItem::get_Graphic",               API_FN_PAIR(InventoryItem_GetGraphic) },
-        { "InventoryItem::set_Graphic",               API_FN_PAIR(InventoryItem_SetGraphic) },
-        { "InventoryItem::get_ID",                    API_FN_PAIR(InventoryItem_GetID) },
+        {"InventoryItem::IsInteractionAvailable^1", API_FN_PAIR(InventoryItem_CheckInteractionAvailable)},
+        {"InventoryItem::GetProperty^1", API_FN_PAIR(InventoryItem_GetProperty)},
+        {"InventoryItem::GetPropertyText^2", API_FN_PAIR(InventoryItem_GetPropertyText)},
+        {"InventoryItem::GetTextProperty^1", API_FN_PAIR(InventoryItem_GetTextProperty)},
+        {"InventoryItem::SetProperty^2", API_FN_PAIR(InventoryItem_SetProperty)},
+        {"InventoryItem::SetTextProperty^2", API_FN_PAIR(InventoryItem_SetTextProperty)},
+        {"InventoryItem::RunInteraction^1", API_FN_PAIR(InventoryItem_RunInteraction)},
+        {"InventoryItem::SetName^1", API_FN_PAIR(InventoryItem_SetName)},
+        {"InventoryItem::get_CursorGraphic", API_FN_PAIR(InventoryItem_GetCursorGraphic)},
+        {"InventoryItem::set_CursorGraphic", API_FN_PAIR(InventoryItem_SetCursorGraphic)},
+        {"InventoryItem::get_CursorHotspotAlignment", API_FN_PAIR(InventoryItem_GetCursorHotspotAlignment)},
+        {"InventoryItem::set_CursorHotspotAlignment", API_FN_PAIR(InventoryItem_SetCursorHotspotAlignment)},
+        {"InventoryItem::get_CursorHotspotX", API_FN_PAIR(InventoryItem_GetCursorHotspotX)},
+        {"InventoryItem::set_CursorHotspotX", API_FN_PAIR(InventoryItem_SetCursorHotspotX)},
+        {"InventoryItem::get_CursorHotspotY", API_FN_PAIR(InventoryItem_GetCursorHotspotY)},
+        {"InventoryItem::set_CursorHotspotY", API_FN_PAIR(InventoryItem_SetCursorHotspotY)},
+        {"InventoryItem::get_DisplayName", API_FN_PAIR(InventoryItem_GetName_New)},
+        {"InventoryItem::set_DisplayName", API_FN_PAIR(InventoryItem_SetName)},
+        {"InventoryItem::get_Graphic", API_FN_PAIR(InventoryItem_GetGraphic)},
+        {"InventoryItem::set_Graphic", API_FN_PAIR(InventoryItem_SetGraphic)},
+        {"InventoryItem::get_ID", API_FN_PAIR(InventoryItem_GetID)},
         // [OBSOLETE] Name => DisplayName
-        { "InventoryItem::get_Name",                  API_FN_PAIR(InventoryItem_GetName_New) },
-        { "InventoryItem::set_Name",                  API_FN_PAIR(InventoryItem_SetName) },
-        { "InventoryItem::get_ScriptName",            API_FN_PAIR(InventoryItem_GetScriptName) },
+        {"InventoryItem::get_Name", API_FN_PAIR(InventoryItem_GetName_New)},
+        {"InventoryItem::set_Name", API_FN_PAIR(InventoryItem_SetName)},
+        {"InventoryItem::get_ScriptName", API_FN_PAIR(InventoryItem_GetScriptName)},
     };
 
     ccAddExternalFunctions(invitem_api);

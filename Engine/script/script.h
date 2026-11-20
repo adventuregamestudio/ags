@@ -28,8 +28,8 @@ using AGS::Common::String;
 using AGS::Common::ScriptEventsBase;
 
 #define LATE_REP_EXEC_ALWAYS_NAME "late_repeatedly_execute_always"
-#define REP_EXEC_ALWAYS_NAME "repeatedly_execute_always"
-#define REP_EXEC_NAME "repeatedly_execute"
+#define REP_EXEC_ALWAYS_NAME      "repeatedly_execute_always"
+#define REP_EXEC_NAME             "repeatedly_execute"
 
 // ObjectEvent - a struct holds data of the object's interaction event,
 // such as object's reference and accompanying parameters
@@ -49,29 +49,27 @@ struct ObjectEvent
 
     ObjectEvent() = default;
     // An event without additional parameters
-    ObjectEvent(ScriptType sc_type)
-        : ScType(sc_type) {}
+    ObjectEvent(ScriptType sc_type) : ScType(sc_type) {}
     // An interaction event without additional parameters
     ObjectEvent(ScriptType sc_type, int objtype_id, int obj_id)
-        : ScType(sc_type), ObjectTypeID(objtype_id), ObjectID(obj_id) {}
+        : ScType(sc_type), ObjectTypeID(objtype_id), ObjectID(obj_id)
+    {
+    }
     // An event with a dynamic object reference
-    ObjectEvent(ScriptType sc_type, const RuntimeScriptValue &dyn_obj)
-        : ScType(sc_type)
+    ObjectEvent(ScriptType sc_type, const RuntimeScriptValue &dyn_obj) : ScType(sc_type)
     {
         ParamCount = 1u;
         Params[0] = dyn_obj;
     }
     // An interaction event with a dynamic object reference
-    ObjectEvent(ScriptType sc_type, int objtype_id, int obj_id,
-        const RuntimeScriptValue &dyn_obj)
+    ObjectEvent(ScriptType sc_type, int objtype_id, int obj_id, const RuntimeScriptValue &dyn_obj)
         : ScType(sc_type), ObjectTypeID(objtype_id), ObjectID(obj_id)
     {
         ParamCount = 1u;
         Params[0] = dyn_obj;
     }
     // An event with a dynamic object reference and interaction mode
-    ObjectEvent(ScriptType sc_type, int objtype_id, int obj_id,
-        const RuntimeScriptValue &dyn_obj, int mode)
+    ObjectEvent(ScriptType sc_type, int objtype_id, int obj_id, const RuntimeScriptValue &dyn_obj, int mode)
         : ScType(sc_type), ObjectTypeID(objtype_id), ObjectID(obj_id)
     {
         ParamCount = 2u;
@@ -106,17 +104,17 @@ struct NonBlockingScriptFunction
 };
 
 // Run a script function on a non-blocking script thread
-void    run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun);
+void run_function_on_non_blocking_thread(NonBlockingScriptFunction *funcToRun);
 // Runs new-style interaction event handler in script.
 // Runs the ObjectEvent using a script callback of 'evnt' index,
 // or alternatively of 'any_evt' index, if previous does not exist
 // Returns 0 normally, or -1 telling of a game state change (eg. a room change occured).
-int     run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt,
-                         ScriptEventsBase *chkany_handlers, int any_evt, bool do_unhandled_event);
-int     run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt, bool do_unhandled_event = false);
+int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt,
+                     ScriptEventsBase *chkany_handlers, int any_evt, bool do_unhandled_event);
+int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt, bool do_unhandled_event = false);
 // Runs event handler, optionally choosing to run on a non-blocking thread if the main thread is busy.
-int     run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt);
-void    run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
+int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int evnt);
+void run_unhandled_event(const ObjectEvent &obj_evt, int evnt);
 
 enum RunScFuncResult
 {
@@ -128,79 +126,81 @@ enum RunScFuncResult
 
 AGS::Engine::RuntimeScript *GetScriptInstance(ScriptType sc_type, const String &script_module = {});
 // Tests if a function exists in the given script module
-bool    DoesScriptFunctionExist(const AGS::Engine::RuntimeScript *script, const String &fn_name);
+bool DoesScriptFunctionExist(const AGS::Engine::RuntimeScript *script, const String &fn_name);
 // Tests if a function exists in any of the regular script module, *except* room script
-bool    DoesScriptFunctionExistInModules(const String &fn_name);
+bool DoesScriptFunctionExistInModules(const String &fn_name);
 // Tests if a function exists in a particular script module (except room script)
-bool    DoesScriptFunctionExistInModule(const String &script_module, const String &fn_name);
+bool DoesScriptFunctionExistInModule(const String &script_module, const String &fn_name);
 // Tries to execute a script handler, which is a script function associated with some event.
 // The function is identified by its name and script module, and will be run by RunScriptFunctionAuto().
 // If the handler was disabled for any reason, then skips execution and returns immediately.
-void    TryRunScriptHandler(ScriptType sc_type, const AGS::Common::String &script_module,
-    const AGS::Common::ScriptEventHandler &handler, size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
+void TryRunScriptHandler(ScriptType sc_type, const AGS::Common::String &script_module,
+                         const AGS::Common::ScriptEventHandler &handler, size_t param_count = 0,
+                         const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on the main script thread
-RunScFuncResult RunScriptFunction(const AGS::Engine::RuntimeScript *script, const String &tsname, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr);
+RunScFuncResult RunScriptFunction(const AGS::Engine::RuntimeScript *script, const String &tsname,
+                                  size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
 // Run a script function in all the regular script modules, in order, where available
 // includes globalscript, but not the current room script.
 // returns if at least one instance of a function was run successfully.
-bool    RunScriptFunctionInModules(const String &tsname, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr);
+bool RunScriptFunctionInModules(const String &tsname, size_t param_count = 0,
+                                const RuntimeScriptValue *params = nullptr);
 // Run a script function in the current room script; returns if a function was run successfully.
-bool    RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
+bool RunScriptFunctionInRoom(const String &tsname, size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
 // Try to run a script function, guessing the behavior by its name and script instance type;
 // depending on the type may run a claimable callback chain;
 // returns if at least one instance of a function was run successfully.
-bool   RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr);
+bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count = 0,
+                           const RuntimeScriptValue *params = nullptr);
 // Same as above, but the function is identified by the function name only,
 // uses default script module for the given "script type".
-bool   RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
-    const RuntimeScriptValue *params = nullptr);
+bool RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count = 0,
+                           const RuntimeScriptValue *params = nullptr);
 // Try to run a script function on a non-blocking thread
 RunScFuncResult RunScriptFunctionNonBlocking(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
-    size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
+                                             size_t param_count = 0, const RuntimeScriptValue *params = nullptr);
 
 // Allocates script executor and standard threads
-void    InitScriptExec();
+void InitScriptExec();
 // Frees script executor and all threads
-void    ShutdownScriptExec();
+void ShutdownScriptExec();
 // Create runtime script instances
 // TODO: pick out a struct for holding only game scripts
-HError  CreateRuntimeScripts(const ccScript *glscript, const std::vector<ccScript*> &scmodules, const std::vector<String> &scmodule_names, const ccScript *dlgscript);
+HError CreateRuntimeScripts(const ccScript *glscript, const std::vector<ccScript *> &scmodules,
+                            const std::vector<String> &scmodule_names, const ccScript *dlgscript);
 // Link all script modules into a single program,
 // registers script exports in a global symbol table
-HError  LinkGlobalScripts();
+HError LinkGlobalScripts();
 // Cancel any running scripts
-void    AbortAllScripts();
+void AbortAllScripts();
 // Unlinks scripts, unregister script exports
-void    UnlinkAllScripts();
+void UnlinkAllScripts();
 // Delete only the current room script instance
-void    FreeRoomScript();
+void FreeRoomScript();
 // Deletes all the global scripts and modules;
 // this frees all of the bytecode and runtime script memory.
-void    FreeAllScripts();
+void FreeAllScripts();
 
 //=============================================================================
 
 // Makes a old-style interaction function name (for interaction list "run script" command)
-String  make_interact_func_name(const String &base, int param, int subd);
+String make_interact_func_name(const String &base, int param, int subd);
 // Performs various updates to the game after script interpreter returns control to the engine.
 // Executes scheduled commands and does changes that are not executed immediately during script
 // (either for logical reasons, and for optimization).
-void    post_script_cleanup();
-void    quit_with_script_error(const String &fn_name);
+void post_script_cleanup();
+void quit_with_script_error(const String &fn_name);
 // Assert and abort game if the script is currently inside the rep_exec_always function
-void    can_run_delayed_command();
+void can_run_delayed_command();
 // Tells whether the script is currently NOT inside the rep_exec_always function
-bool    get_can_run_delayed_command();
+bool get_can_run_delayed_command();
 
 // Gets current running script position
-bool    get_script_position(AGS::Engine::ScriptPosition &script_pos);
-String  cc_get_callstack(int max_lines = INT_MAX);
+bool get_script_position(AGS::Engine::ScriptPosition &script_pos);
+String cc_get_callstack(int max_lines = INT_MAX);
 
 // Tells if there's a script running right now
-bool    is_inside_script();
+bool is_inside_script();
 // Gets current ExecutingScript object
 ExecutingScript *get_executingscript();
 

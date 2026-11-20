@@ -65,47 +65,52 @@ GUIObject *GUIControl_GetAtScreenXY2(int x, int y)
 
 int GUIControl_GetVisible(GUIControl *guio)
 {
-  return guio->IsVisible();
+    return guio->IsVisible();
 }
 
-void GUIControl_SetVisible(GUIControl *guio, int visible) 
+void GUIControl_SetVisible(GUIControl *guio, int visible)
 {
-  const bool on = visible != 0;
-  if (on != guio->IsVisible())
-  {
-    guio->SetVisible(on);
-  }
+    const bool on = visible != 0;
+    if (on != guio->IsVisible())
+    {
+        guio->SetVisible(on);
+    }
 }
 
-int GUIControl_GetClickable(GUIControl *guio) {
-  if (guio->IsClickable())
-    return 1;
-  return 0;
+int GUIControl_GetClickable(GUIControl *guio)
+{
+    if (guio->IsClickable())
+        return 1;
+    return 0;
 }
 
-void GUIControl_SetClickable(GUIControl *guio, int enabled) {
-  const bool on = enabled != 0;
-  if (on != guio->IsClickable())
-  {
-    guio->SetClickable(on);
-  }
+void GUIControl_SetClickable(GUIControl *guio, int enabled)
+{
+    const bool on = enabled != 0;
+    if (on != guio->IsClickable())
+    {
+        guio->SetClickable(on);
+    }
 }
 
-int GUIControl_GetEnabled(GUIControl *guio) {
-  return guio->IsEnabled() ? 1 : 0;
+int GUIControl_GetEnabled(GUIControl *guio)
+{
+    return guio->IsEnabled() ? 1 : 0;
 }
 
-void GUIControl_SetEnabled(GUIControl *guio, int enabled) {
-  const bool on = enabled != 0;
-  if (on != guio->IsEnabled())
-  {
-    guio->SetEnabled(on);
-  }
+void GUIControl_SetEnabled(GUIControl *guio, int enabled)
+{
+    const bool on = enabled != 0;
+    if (on != guio->IsEnabled())
+    {
+        guio->SetEnabled(on);
+    }
 }
 
 
-int GUIControl_GetID(GUIControl *guio) {
-  return guio->GetID();
+int GUIControl_GetID(GUIControl *guio)
+{
+    return guio->GetID();
 }
 
 const char *GUIControl_GetScriptName(GUIControl *guio)
@@ -113,93 +118,111 @@ const char *GUIControl_GetScriptName(GUIControl *guio)
     return CreateNewScriptString(guio->GetName());
 }
 
-ScriptGUI* GUIControl_GetOwningGUI(GUIControl *guio) {
-  return &scrGui[guio->GetParentID()];
+ScriptGUI *GUIControl_GetOwningGUI(GUIControl *guio)
+{
+    return &scrGui[guio->GetParentID()];
 }
 
-GUIButton* GUIControl_GetAsButton(GUIControl *guio) {
-  if (guis[guio->GetParentID()].GetControlType(guio->GetID()) != kGUIButton)
-    return nullptr;
+GUIButton *GUIControl_GetAsButton(GUIControl *guio)
+{
+    if (guis[guio->GetParentID()].GetControlType(guio->GetID()) != kGUIButton)
+        return nullptr;
 
-  return (GUIButton*)guio;
+    return (GUIButton *)guio;
 }
 
-GUIInvWindow* GUIControl_GetAsInvWindow(GUIControl *guio) {
-  if (guis[guio->GetParentID()].GetControlType(guio->GetID()) != kGUIInvWindow)
-    return nullptr;
+GUIInvWindow *GUIControl_GetAsInvWindow(GUIControl *guio)
+{
+    if (guis[guio->GetParentID()].GetControlType(guio->GetID()) != kGUIInvWindow)
+        return nullptr;
 
-  return (GUIInvWindow*)guio;
+    return (GUIInvWindow *)guio;
 }
 
-GUILabel* GUIControl_GetAsLabel(GUIControl *guio) {
-  if (guis[guio->GetParentID()].GetControlType(guio->GetID()) != kGUILabel)
-    return nullptr;
+GUILabel *GUIControl_GetAsLabel(GUIControl *guio)
+{
+    if (guis[guio->GetParentID()].GetControlType(guio->GetID()) != kGUILabel)
+        return nullptr;
 
-  return (GUILabel*)guio;
+    return (GUILabel *)guio;
 }
 
-GUIListBox* GUIControl_GetAsListBox(GUIControl *guio) {
-  if (guis[guio->GetParentID()].GetControlType(guio->GetID()) != kGUIListBox)
-    return nullptr;
+GUIListBox *GUIControl_GetAsListBox(GUIControl *guio)
+{
+    if (guis[guio->GetParentID()].GetControlType(guio->GetID()) != kGUIListBox)
+        return nullptr;
 
-  return (GUIListBox*)guio;
+    return (GUIListBox *)guio;
 }
 
-GUISlider* GUIControl_GetAsSlider(GUIControl *guio) {
-  if (guis[guio->GetParentID()].GetControlType(guio->GetID()) != kGUISlider)
-    return nullptr;
+GUISlider *GUIControl_GetAsSlider(GUIControl *guio)
+{
+    if (guis[guio->GetParentID()].GetControlType(guio->GetID()) != kGUISlider)
+        return nullptr;
 
-  return (GUISlider*)guio;
+    return (GUISlider *)guio;
 }
 
-GUITextBox* GUIControl_GetAsTextBox(GUIControl *guio) {
-  if (guis[guio->GetParentID()].GetControlType(guio->GetID()) != kGUITextBox)
-    return nullptr;
+GUITextBox *GUIControl_GetAsTextBox(GUIControl *guio)
+{
+    if (guis[guio->GetParentID()].GetControlType(guio->GetID()) != kGUITextBox)
+        return nullptr;
 
-  return (GUITextBox*)guio;
+    return (GUITextBox *)guio;
 }
 
-int GUIControl_GetX(GUIControl *guio) {
-  return guio->GetX();
+int GUIControl_GetX(GUIControl *guio)
+{
+    return guio->GetX();
 }
 
-void GUIControl_SetX(GUIControl *guio, int xx) {
-  guio->SetX(xx);
+void GUIControl_SetX(GUIControl *guio, int xx)
+{
+    guio->SetX(xx);
 }
 
-int GUIControl_GetY(GUIControl *guio) {
-  return guio->GetY();
+int GUIControl_GetY(GUIControl *guio)
+{
+    return guio->GetY();
 }
 
-void GUIControl_SetY(GUIControl *guio, int yy) {
-  guio->SetY(yy);
+void GUIControl_SetY(GUIControl *guio, int yy)
+{
+    guio->SetY(yy);
 }
 
-float GUIControl_GetRotation(GUIControl *guio) {
+float GUIControl_GetRotation(GUIControl *guio)
+{
     return guio->GetRotation();
 }
 
-void GUIControl_SetRotation(GUIControl *guio, float rotation) {
+void GUIControl_SetRotation(GUIControl *guio, float rotation)
+{
     guio->SetRotation(rotation);
 }
 
-float GUIControl_GetScaleX(GUIControl *guio) {
+float GUIControl_GetScaleX(GUIControl *guio)
+{
     return guio->GetScale().X;
 }
 
-void GUIControl_SetScaleX(GUIControl *guio, float scalex) {
+void GUIControl_SetScaleX(GUIControl *guio, float scalex)
+{
     guio->SetScale(scalex, guio->GetScale().Y);
 }
 
-float GUIControl_GetScaleY(GUIControl *guio) {
+float GUIControl_GetScaleY(GUIControl *guio)
+{
     return guio->GetScale().Y;
 }
 
-void GUIControl_SetScaleY(GUIControl *guio, float scaley) {
+void GUIControl_SetScaleY(GUIControl *guio, float scaley)
+{
     guio->SetScale(guio->GetScale().X, scaley);
 }
 
-void GUIControl_SetScale(GUIControl *guio, float scalex, float scaley) {
+void GUIControl_SetScale(GUIControl *guio, float scalex, float scaley)
+{
     guio->SetScale(scalex, scaley);
 }
 
@@ -213,35 +236,41 @@ void GUIControl_SetZOrder(GUIControl *guio, int zorder)
     guis[guio->GetParentID()].SetControlZOrder(guio->GetID(), zorder);
 }
 
-void GUIControl_SetPosition(GUIControl *guio, int xx, int yy) {
-  GUIControl_SetX(guio, xx);
-  GUIControl_SetY(guio, yy);
+void GUIControl_SetPosition(GUIControl *guio, int xx, int yy)
+{
+    GUIControl_SetX(guio, xx);
+    GUIControl_SetY(guio, yy);
 }
 
 
-int GUIControl_GetWidth(GUIControl *guio) {
-  return guio->GetWidth();
+int GUIControl_GetWidth(GUIControl *guio)
+{
+    return guio->GetWidth();
 }
 
-void GUIControl_SetWidth(GUIControl *guio, int newwid) {
-  guio->SetWidth(newwid);
+void GUIControl_SetWidth(GUIControl *guio, int newwid)
+{
+    guio->SetWidth(newwid);
 }
 
-int GUIControl_GetHeight(GUIControl *guio) {
-  return guio->GetHeight();
+int GUIControl_GetHeight(GUIControl *guio)
+{
+    return guio->GetHeight();
 }
 
-void GUIControl_SetHeight(GUIControl *guio, int newhit) {
-  guio->SetHeight(newhit);
+void GUIControl_SetHeight(GUIControl *guio, int newhit)
+{
+    guio->SetHeight(newhit);
 }
 
-void GUIControl_SetSize(GUIControl *guio, int newwid, int newhit) {
-  if ((newwid < 2) || (newhit < 2))
-    quit("!SetGUIObjectSize: new size is too small (must be at least 2x2)");
+void GUIControl_SetSize(GUIControl *guio, int newwid, int newhit)
+{
+    if ((newwid < 2) || (newhit < 2))
+        quit("!SetGUIObjectSize: new size is too small (must be at least 2x2)");
 
-  debug_script_log("SetGUIObject %d,%d size %d,%d", guio->GetParentID(), guio->GetID(), newwid, newhit);
-  GUIControl_SetWidth(guio, newwid);
-  GUIControl_SetHeight(guio, newhit);
+    debug_script_log("SetGUIObject %d,%d size %d,%d", guio->GetParentID(), guio->GetID(), newwid, newhit);
+    GUIControl_SetWidth(guio, newwid);
+    GUIControl_SetHeight(guio, newhit);
 }
 
 void *GUIControl_GetGraphicPosition(GUIControl *guio)
@@ -260,12 +289,14 @@ void *GUIControl_GetGraphicBoundBox(GUIControl *guio)
     return ScriptStructHelpers::CreateArrayOfPoints(points).Obj();
 }
 
-void GUIControl_SendToBack(GUIControl *guio) {
-  guis[guio->GetParentID()].SendControlToBack(guio->GetID());
+void GUIControl_SendToBack(GUIControl *guio)
+{
+    guis[guio->GetParentID()].SendControlToBack(guio->GetID());
 }
 
-void GUIControl_BringToFront(GUIControl *guio) {
-  guis[guio->GetParentID()].BringControlToFront(guio->GetID());
+void GUIControl_BringToFront(GUIControl *guio)
+{
+    guis[guio->GetParentID()].BringControlToFront(guio->GetID());
 }
 
 int GUIControl_GetBackgroundColor(GUIControl *guio)
@@ -353,17 +384,20 @@ int GUIControl_GetTransparency(GUIControl *guio)
     return GfxDef::LegacyTrans255ToTrans100(guio->GetTransparency());
 }
 
-void GUIControl_SetTransparency(GUIControl *guio, int trans) {
+void GUIControl_SetTransparency(GUIControl *guio, int trans)
+{
     if ((trans < 0) | (trans > 100))
         quit("!SetGUITransparency: transparency value must be between 0 and 100");
     guio->SetTransparency(GfxDef::Trans100ToLegacyTrans255(trans));
 }
 
-int GUIControl_GetBlendMode(GUIControl *guio) {
+int GUIControl_GetBlendMode(GUIControl *guio)
+{
     return guio->GetBlendMode();
 }
 
-void GUIControl_SetBlendMode(GUIControl *guio, int blend_mode) {
+void GUIControl_SetBlendMode(GUIControl *guio, int blend_mode)
+{
     guio->SetBlendMode(ValidateBlendMode("GUIControl.BlendMode", guio->GetName().GetCStr(), blend_mode));
 }
 
@@ -371,14 +405,16 @@ int GUIControl_GetProperty(GUIControl *guio, const char *property)
 {
     int ctrl_type = guis[guio->GetParentID()].GetControlType(guio->GetID());
     int ctrl_id = guis[guio->GetParentID()].GetControlID(guio->GetID());
-    return get_int_property(game.guicontrolProps[ctrl_type][ctrl_id], play.guicontrolProps[ctrl_type][ctrl_id], property);
+    return get_int_property(game.guicontrolProps[ctrl_type][ctrl_id], play.guicontrolProps[ctrl_type][ctrl_id],
+                            property);
 }
 
-const char* GUIControl_GetTextProperty(GUIControl *guio, const char *property)
+const char *GUIControl_GetTextProperty(GUIControl *guio, const char *property)
 {
     int ctrl_type = guis[guio->GetParentID()].GetControlType(guio->GetID());
     int ctrl_id = guis[guio->GetParentID()].GetControlID(guio->GetID());
-    return get_text_property_dynamic_string(game.guicontrolProps[ctrl_type][ctrl_id], play.guicontrolProps[ctrl_type][ctrl_id], property);
+    return get_text_property_dynamic_string(game.guicontrolProps[ctrl_type][ctrl_id],
+                                            play.guicontrolProps[ctrl_type][ctrl_id], property);
 }
 
 bool GUIControl_SetProperty(GUIControl *guio, const char *property, int value)
@@ -397,7 +433,7 @@ bool GUIControl_SetTextProperty(GUIControl *guio, const char *property, const ch
 
 ScriptShaderInstance *GUIControl_GetShader(GUIControl *guio)
 {
-    return static_cast<ScriptShaderInstance*>(ccGetObjectAddressFromHandle(guio->GetShaderHandle()));
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(guio->GetShaderHandle()));
 }
 
 void GUIControl_SetShader(GUIControl *guio, ScriptShaderInstance *shader_inst)
@@ -421,11 +457,10 @@ void GUIControl_SetShader(GUIControl *guio, ScriptShaderInstance *shader_inst)
 GUIControl *GUIControl_GetByName(const char *name)
 {
     // TODO: figure out if this may be simplified
-    const static std::vector<String> typenames = {
-        ccDynamicGUIButton.GetType(), ccDynamicGUIInvWindow.GetType(), ccDynamicGUILabel.GetType(),
-        ccDynamicGUIListBox.GetType(), ccDynamicGUISlider.GetType(), ccDynamicGUITextBox.GetType()
-    };
-    return static_cast<GUIControl*>(ccGetScriptObjectAddress(name, typenames));
+    const static std::vector<String> typenames = {ccDynamicGUIButton.GetType(), ccDynamicGUIInvWindow.GetType(),
+                                                  ccDynamicGUILabel.GetType(),  ccDynamicGUIListBox.GetType(),
+                                                  ccDynamicGUISlider.GetType(), ccDynamicGUITextBox.GetType()};
+    return static_cast<GUIControl *>(ccGetScriptObjectAddress(name, typenames));
 }
 
 
@@ -794,78 +829,78 @@ RuntimeScriptValue Sc_GUIControl_SetTextProperty(void *self, const RuntimeScript
 void RegisterGUIControlAPI()
 {
     ScFnRegister guicontrol_api[] = {
-        { "GUIControl::GetAtScreenXY^2",  API_FN_PAIR(GUIControl_GetAtScreenXY2) },
-        { "GUIControl::GetAtScreenXY^4",  API_FN_PAIR(GUIControl_GetAtScreenXY) },
+        {"GUIControl::GetAtScreenXY^2", API_FN_PAIR(GUIControl_GetAtScreenXY2)},
+        {"GUIControl::GetAtScreenXY^4", API_FN_PAIR(GUIControl_GetAtScreenXY)},
         // [OBSOLETE] GetByName => GetByScriptName
-        { "GUIControl::GetByName",        API_FN_PAIR(GUIControl_GetByName) },
-        { "GUIControl::GetByScriptName",  API_FN_PAIR(GUIControl_GetByName) },
+        {"GUIControl::GetByName", API_FN_PAIR(GUIControl_GetByName)},
+        {"GUIControl::GetByScriptName", API_FN_PAIR(GUIControl_GetByName)},
 
-        { "GUIControl::BringToFront^0",   API_FN_PAIR(GUIControl_BringToFront) },
-        { "GUIControl::SendToBack^0",     API_FN_PAIR(GUIControl_SendToBack) },
-        { "GUIControl::SetPosition^2",    API_FN_PAIR(GUIControl_SetPosition) },
-        { "GUIControl::SetSize^2",        API_FN_PAIR(GUIControl_SetSize) },
-        { "GUIControl::GetGraphicPosition^0", API_FN_PAIR(GUIControl_GetGraphicPosition) },
-        { "GUIControl::GetGraphicBoundBox^0", API_FN_PAIR(GUIControl_GetGraphicBoundBox) },
-        { "GUIControl::GetProperty^1",    API_FN_PAIR(GUIControl_GetProperty) },
-        { "GUIControl::GetTextProperty^1", API_FN_PAIR(GUIControl_GetTextProperty) },
-        { "GUIControl::SetProperty^2",    API_FN_PAIR(GUIControl_SetProperty) },
-        { "GUIControl::SetTextProperty^2", API_FN_PAIR(GUIControl_SetTextProperty) },
-        { "GUIControl::get_AsButton",     API_FN_PAIR(GUIControl_GetAsButton) },
-        { "GUIControl::get_AsInvWindow",  API_FN_PAIR(GUIControl_GetAsInvWindow) },
-        { "GUIControl::get_AsLabel",      API_FN_PAIR(GUIControl_GetAsLabel) },
-        { "GUIControl::get_AsListBox",    API_FN_PAIR(GUIControl_GetAsListBox) },
-        { "GUIControl::get_AsSlider",     API_FN_PAIR(GUIControl_GetAsSlider) },
-        { "GUIControl::get_AsTextBox",    API_FN_PAIR(GUIControl_GetAsTextBox) },
-        { "GUIControl::get_Clickable",    API_FN_PAIR(GUIControl_GetClickable) },
-        { "GUIControl::set_Clickable",    API_FN_PAIR(GUIControl_SetClickable) },
-        { "GUIControl::get_Enabled",      API_FN_PAIR(GUIControl_GetEnabled) },
-        { "GUIControl::set_Enabled",      API_FN_PAIR(GUIControl_SetEnabled) },
-        { "GUIControl::get_Height",       API_FN_PAIR(GUIControl_GetHeight) },
-        { "GUIControl::set_Height",       API_FN_PAIR(GUIControl_SetHeight) },
-        { "GUIControl::get_ID",           API_FN_PAIR(GUIControl_GetID) },
-        { "GUIControl::get_OwningGUI",    API_FN_PAIR(GUIControl_GetOwningGUI) },
-        { "GUIControl::get_ScriptName",   API_FN_PAIR(GUIControl_GetScriptName) },
-        { "GUIControl::get_Visible",      API_FN_PAIR(GUIControl_GetVisible) },
-        { "GUIControl::set_Visible",      API_FN_PAIR(GUIControl_SetVisible) },
-        { "GUIControl::get_Width",        API_FN_PAIR(GUIControl_GetWidth) },
-        { "GUIControl::set_Width",        API_FN_PAIR(GUIControl_SetWidth) },
-        { "GUIControl::get_X",            API_FN_PAIR(GUIControl_GetX) },
-        { "GUIControl::set_X",            API_FN_PAIR(GUIControl_SetX) },
-        { "GUIControl::get_Y",            API_FN_PAIR(GUIControl_GetY) },
-        { "GUIControl::set_Y",            API_FN_PAIR(GUIControl_SetY) },
-        { "GUIControl::get_Rotation",     API_FN_PAIR(GUIControl_GetRotation) },
-        { "GUIControl::set_Rotation",     API_FN_PAIR(GUIControl_SetRotation) },
-        { "GUIControl::get_ScaleX",       API_FN_PAIR(GUIControl_GetScaleX) },
-        { "GUIControl::set_ScaleX",       API_FN_PAIR(GUIControl_SetScaleX) },
-        { "GUIControl::get_ScaleY",       API_FN_PAIR(GUIControl_GetScaleY) },
-        { "GUIControl::set_ScaleY",       API_FN_PAIR(GUIControl_SetScaleY) },
-        { "GUIControl::SetScale",         API_FN_PAIR(GUIControl_SetScale) },
-        { "GUIControl::SetScale",         API_FN_PAIR(GUIControl_SetScale) },
-        { "GUIControl::get_ZOrder",       API_FN_PAIR(GUIControl_GetZOrder) },
-        { "GUIControl::set_ZOrder",       API_FN_PAIR(GUIControl_SetZOrder) },
-        { "GUIControl::get_Translated",   API_FN_PAIR(GUIControl_GetTranslated) },
-        { "GUIControl::set_Translated",   API_FN_PAIR(GUIControl_SetTranslated) },
-        { "GUIControl::get_Transparency", API_FN_PAIR(GUIControl_GetTransparency) },
-        { "GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency) },
+        {"GUIControl::BringToFront^0", API_FN_PAIR(GUIControl_BringToFront)},
+        {"GUIControl::SendToBack^0", API_FN_PAIR(GUIControl_SendToBack)},
+        {"GUIControl::SetPosition^2", API_FN_PAIR(GUIControl_SetPosition)},
+        {"GUIControl::SetSize^2", API_FN_PAIR(GUIControl_SetSize)},
+        {"GUIControl::GetGraphicPosition^0", API_FN_PAIR(GUIControl_GetGraphicPosition)},
+        {"GUIControl::GetGraphicBoundBox^0", API_FN_PAIR(GUIControl_GetGraphicBoundBox)},
+        {"GUIControl::GetProperty^1", API_FN_PAIR(GUIControl_GetProperty)},
+        {"GUIControl::GetTextProperty^1", API_FN_PAIR(GUIControl_GetTextProperty)},
+        {"GUIControl::SetProperty^2", API_FN_PAIR(GUIControl_SetProperty)},
+        {"GUIControl::SetTextProperty^2", API_FN_PAIR(GUIControl_SetTextProperty)},
+        {"GUIControl::get_AsButton", API_FN_PAIR(GUIControl_GetAsButton)},
+        {"GUIControl::get_AsInvWindow", API_FN_PAIR(GUIControl_GetAsInvWindow)},
+        {"GUIControl::get_AsLabel", API_FN_PAIR(GUIControl_GetAsLabel)},
+        {"GUIControl::get_AsListBox", API_FN_PAIR(GUIControl_GetAsListBox)},
+        {"GUIControl::get_AsSlider", API_FN_PAIR(GUIControl_GetAsSlider)},
+        {"GUIControl::get_AsTextBox", API_FN_PAIR(GUIControl_GetAsTextBox)},
+        {"GUIControl::get_Clickable", API_FN_PAIR(GUIControl_GetClickable)},
+        {"GUIControl::set_Clickable", API_FN_PAIR(GUIControl_SetClickable)},
+        {"GUIControl::get_Enabled", API_FN_PAIR(GUIControl_GetEnabled)},
+        {"GUIControl::set_Enabled", API_FN_PAIR(GUIControl_SetEnabled)},
+        {"GUIControl::get_Height", API_FN_PAIR(GUIControl_GetHeight)},
+        {"GUIControl::set_Height", API_FN_PAIR(GUIControl_SetHeight)},
+        {"GUIControl::get_ID", API_FN_PAIR(GUIControl_GetID)},
+        {"GUIControl::get_OwningGUI", API_FN_PAIR(GUIControl_GetOwningGUI)},
+        {"GUIControl::get_ScriptName", API_FN_PAIR(GUIControl_GetScriptName)},
+        {"GUIControl::get_Visible", API_FN_PAIR(GUIControl_GetVisible)},
+        {"GUIControl::set_Visible", API_FN_PAIR(GUIControl_SetVisible)},
+        {"GUIControl::get_Width", API_FN_PAIR(GUIControl_GetWidth)},
+        {"GUIControl::set_Width", API_FN_PAIR(GUIControl_SetWidth)},
+        {"GUIControl::get_X", API_FN_PAIR(GUIControl_GetX)},
+        {"GUIControl::set_X", API_FN_PAIR(GUIControl_SetX)},
+        {"GUIControl::get_Y", API_FN_PAIR(GUIControl_GetY)},
+        {"GUIControl::set_Y", API_FN_PAIR(GUIControl_SetY)},
+        {"GUIControl::get_Rotation", API_FN_PAIR(GUIControl_GetRotation)},
+        {"GUIControl::set_Rotation", API_FN_PAIR(GUIControl_SetRotation)},
+        {"GUIControl::get_ScaleX", API_FN_PAIR(GUIControl_GetScaleX)},
+        {"GUIControl::set_ScaleX", API_FN_PAIR(GUIControl_SetScaleX)},
+        {"GUIControl::get_ScaleY", API_FN_PAIR(GUIControl_GetScaleY)},
+        {"GUIControl::set_ScaleY", API_FN_PAIR(GUIControl_SetScaleY)},
+        {"GUIControl::SetScale", API_FN_PAIR(GUIControl_SetScale)},
+        {"GUIControl::SetScale", API_FN_PAIR(GUIControl_SetScale)},
+        {"GUIControl::get_ZOrder", API_FN_PAIR(GUIControl_GetZOrder)},
+        {"GUIControl::set_ZOrder", API_FN_PAIR(GUIControl_SetZOrder)},
+        {"GUIControl::get_Translated", API_FN_PAIR(GUIControl_GetTranslated)},
+        {"GUIControl::set_Translated", API_FN_PAIR(GUIControl_SetTranslated)},
+        {"GUIControl::get_Transparency", API_FN_PAIR(GUIControl_GetTransparency)},
+        {"GUIControl::set_Transparency", API_FN_PAIR(GUIControl_SetTransparency)},
 
-        { "GUIControl::get_BackgroundColor", API_FN_PAIR(GUIControl_GetBackgroundColor) },
-        { "GUIControl::set_BackgroundColor", API_FN_PAIR(GUIControl_SetBackgroundColor) },
-        { "GUIControl::get_BorderColor",  API_FN_PAIR(GUIControl_GetBorderColor) },
-        { "GUIControl::set_BorderColor",  API_FN_PAIR(GUIControl_SetBorderColor) },
-        { "GUIControl::get_BorderWidth",  API_FN_PAIR(GUIControl_GetBorderWidth) },
-        { "GUIControl::set_BorderWidth",  API_FN_PAIR(GUIControl_SetBorderWidth) },
-        { "GUIControl::get_PaddingX",     API_FN_PAIR(GUIControl_GetPaddingX) },
-        { "GUIControl::set_PaddingX",     API_FN_PAIR(GUIControl_SetPaddingX) },
-        { "GUIControl::get_PaddingY",     API_FN_PAIR(GUIControl_GetPaddingY) },
-        { "GUIControl::set_PaddingY",     API_FN_PAIR(GUIControl_SetPaddingY) },
-        { "GUIControl::get_ShowBorder",   API_FN_PAIR(GUIControl_GetShowBorder) },
-        { "GUIControl::set_ShowBorder",   API_FN_PAIR(GUIControl_SetShowBorder) },
-        { "GUIControl::get_SolidBackground",  API_FN_PAIR(GUIControl_GetSolidBackground) },
-        { "GUIControl::set_SolidBackground",  API_FN_PAIR(GUIControl_SetSolidBackground) },
-        { "GUIControl::get_BlendMode",    API_FN_PAIR(GUIControl_GetBlendMode) },
-        { "GUIControl::set_BlendMode",    API_FN_PAIR(GUIControl_SetBlendMode) },
-        { "GUIControl::get_Shader",       API_FN_PAIR(GUIControl_GetShader) },
-        { "GUIControl::set_Shader",       API_FN_PAIR(GUIControl_SetShader) },
+        {"GUIControl::get_BackgroundColor", API_FN_PAIR(GUIControl_GetBackgroundColor)},
+        {"GUIControl::set_BackgroundColor", API_FN_PAIR(GUIControl_SetBackgroundColor)},
+        {"GUIControl::get_BorderColor", API_FN_PAIR(GUIControl_GetBorderColor)},
+        {"GUIControl::set_BorderColor", API_FN_PAIR(GUIControl_SetBorderColor)},
+        {"GUIControl::get_BorderWidth", API_FN_PAIR(GUIControl_GetBorderWidth)},
+        {"GUIControl::set_BorderWidth", API_FN_PAIR(GUIControl_SetBorderWidth)},
+        {"GUIControl::get_PaddingX", API_FN_PAIR(GUIControl_GetPaddingX)},
+        {"GUIControl::set_PaddingX", API_FN_PAIR(GUIControl_SetPaddingX)},
+        {"GUIControl::get_PaddingY", API_FN_PAIR(GUIControl_GetPaddingY)},
+        {"GUIControl::set_PaddingY", API_FN_PAIR(GUIControl_SetPaddingY)},
+        {"GUIControl::get_ShowBorder", API_FN_PAIR(GUIControl_GetShowBorder)},
+        {"GUIControl::set_ShowBorder", API_FN_PAIR(GUIControl_SetShowBorder)},
+        {"GUIControl::get_SolidBackground", API_FN_PAIR(GUIControl_GetSolidBackground)},
+        {"GUIControl::set_SolidBackground", API_FN_PAIR(GUIControl_SetSolidBackground)},
+        {"GUIControl::get_BlendMode", API_FN_PAIR(GUIControl_GetBlendMode)},
+        {"GUIControl::set_BlendMode", API_FN_PAIR(GUIControl_SetBlendMode)},
+        {"GUIControl::get_Shader", API_FN_PAIR(GUIControl_GetShader)},
+        {"GUIControl::set_Shader", API_FN_PAIR(GUIControl_SetShader)},
     };
 
     ccAddExternalFunctions(guicontrol_api);

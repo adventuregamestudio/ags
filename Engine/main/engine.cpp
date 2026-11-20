@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdexcept>
 #if AGS_PLATFORM_OS_WINDOWS
-#include <process.h>  // _spawnl
+#include <process.h> // _spawnl
 #endif
 #include <allegro.h> // allegro_install and _exit
 
@@ -97,7 +97,7 @@ extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScriptSystem scsystem;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
-extern CharacterInfo*playerchar;
+extern CharacterInfo *playerchar;
 
 ResourcePaths ResPaths;
 
@@ -114,8 +114,8 @@ bool engine_init_backend()
         const char *err = SDL_GetError();
         const char *user_hint = platform->GetBackendFailUserHint();
         platform->DisplayAlert("Unable to initialize SDL library.\n%s\n\n%s",
-            (err && err[0]) ? err : "SDL provided no further information on the problem.",
-            user_hint);
+                               (err && err[0]) ? err : "SDL provided no further information on the problem.",
+                               user_hint);
         return false;
     }
     sys_evt_register_ags_events();
@@ -165,9 +165,10 @@ static void fill_game_properties(StringOrderMap &map)
     map["resolution_width"] = StrUtil::IntToString(game.GetGameRes().Width);
     map["resolution_height"] = StrUtil::IntToString(game.GetGameRes().Height);
     map["resolution_bpp"] = StrUtil::IntToString(game.GetColorDepth());
-    map["render_at_screenres"] = StrUtil::IntToString(
-        game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined ? -1 :
-        (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled ? 1 : 0));
+    map["render_at_screenres"] =
+        StrUtil::IntToString(game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined
+                                 ? -1
+                                 : (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled ? 1 : 0));
 }
 
 // Starts up setup application, if capable.
@@ -176,33 +177,35 @@ bool engine_run_setup(const ConfigTree &cfg, const ConfigTree &def_cfg)
 {
 #if AGS_PLATFORM_OS_WINDOWS
     {
-            Debug::Printf(kDbgMsg_Info, "Running Setup");
+        Debug::Printf(kDbgMsg_Info, "Running Setup");
 
-            ConfigTree def_cfg_with_meta = def_cfg;
-            fill_game_properties(def_cfg_with_meta["gameproperties"]);
-            ConfigTree cfg_out;
-            SetupReturnValue res = platform->RunSetup(cfg, def_cfg_with_meta, cfg_out);
-            if (res != kSetup_Cancel)
+        ConfigTree def_cfg_with_meta = def_cfg;
+        fill_game_properties(def_cfg_with_meta["gameproperties"]);
+        ConfigTree cfg_out;
+        SetupReturnValue res = platform->RunSetup(cfg, def_cfg_with_meta, cfg_out);
+        if (res != kSetup_Cancel)
+        {
+            String cfg_file = PreparePathForWriting(GetGameUserConfigDir(), DefaultConfigFileName);
+            if (cfg_file.IsEmpty())
             {
-                String cfg_file = PreparePathForWriting(GetGameUserConfigDir(), DefaultConfigFileName);
-                if (cfg_file.IsEmpty())
-                {
-                    platform->DisplayAlert("Unable to write into directory '%s'.\n%s",
-                        GetGameUserConfigDir().FullDir.GetCStr(), platform->GetDiskWriteAccessTroubleshootingText());
-                }
-                else if (!IniUtil::Merge(cfg_file, cfg_out))
-                {
-                    platform->DisplayAlert("Unable to write to the configuration file (error code 0x%08X).\n%s",
-                        platform->GetLastSystemError(), platform->GetDiskWriteAccessTroubleshootingText());
-                }
+                platform->DisplayAlert("Unable to write into directory '%s'.\n%s",
+                                       GetGameUserConfigDir().FullDir.GetCStr(),
+                                       platform->GetDiskWriteAccessTroubleshootingText());
             }
-            if (res != kSetup_RunGame)
-                return false;
-
-            // Start the game in the new process, and close the current one afterwards
-            String args = String::FromFormat("\"%s\"", appPath.GetCStr());
-            _spawnl(_P_NOWAIT, appPath.GetCStr(), args.GetCStr(), NULL);
+            else if (!IniUtil::Merge(cfg_file, cfg_out))
+            {
+                platform->DisplayAlert("Unable to write to the configuration file (error code 0x%08X).\n%s",
+                                       platform->GetLastSystemError(),
+                                       platform->GetDiskWriteAccessTroubleshootingText());
+            }
+        }
+        if (res != kSetup_RunGame)
             return false;
+
+        // Start the game in the new process, and close the current one afterwards
+        String args = String::FromFormat("\"%s\"", appPath.GetCStr());
+        _spawnl(_P_NOWAIT, appPath.GetCStr(), args.GetCStr(), NULL);
+        return false;
     }
 #else
     (void)cfg;
@@ -237,9 +240,8 @@ static String find_game_data_in_config(const String &path)
 // If such config is not found, it scans same location for *any* game data instead.
 String search_for_game_data_file(String &was_searching_in)
 {
-    Debug::Printf("Looking for the game data.\n Cwd: %s\n Path arg: %s",
-        Directory::GetCurrentDirectory().GetCStr(),
-        cmdGameDataPath.GetCStr());
+    Debug::Printf("Looking for the game data.\n Cwd: %s\n Path arg: %s", Directory::GetCurrentDirectory().GetCStr(),
+                  cmdGameDataPath.GetCStr());
     // 1. From command line argument, which may be a directory or actual file
     if (!cmdGameDataPath.IsEmpty())
     {
@@ -328,7 +330,8 @@ void engine_locate_audio_pak()
         }
         else
         {
-            platform->DisplayAlert("Unable to initialize digital audio pack '%s', file could be corrupt or of unsupported format.",
+            platform->DisplayAlert(
+                "Unable to initialize digital audio pack '%s', file could be corrupt or of unsupported format.",
                 music_file.GetCStr());
         }
         return;
@@ -396,17 +399,19 @@ void engine_init_audio()
         bool res = sys_audio_init(usetup.AudioDriverID);
         if (res)
         {
-            try {
+            try
+            {
                 audio_core_init(); // audio core system
             }
-            catch (std::runtime_error& ex) {
+            catch (std::runtime_error &ex)
+            {
                 Debug::Printf(kDbgMsg_Error, "Failed to initialize audio system: %s", ex.what());
                 res = false;
             }
         }
         usetup.AudioEnabled = res;
     }
-    
+
     if (usetup.AudioEnabled)
     {
         soundcache_set_rules(usetup.SoundLoadAtOnceSize * 1024, usetup.SoundCacheSize * 1024);
@@ -425,20 +430,23 @@ void engine_init_debug()
     if ((debug_flags & (~(DBG_DEBUGMODE | DBG_DBGSCRIPT))) > 0)
     {
         platform->DisplayAlert("Engine debugging mode enabled.\n"
-            "\nNOTE: You have selected to enable one or more engine debugging options. "
-            "These options cause many parts of the game to behave abnormally, and you "
-            "may not see the game as you are used to it. The point is to test whether "
-            "the engine passes a point where it is crashing on you normally.\n"
-            "[Debug flags enabled: 0x%02X]", debug_flags);
+                               "\nNOTE: You have selected to enable one or more engine debugging options. "
+                               "These options cause many parts of the game to behave abnormally, and you "
+                               "may not see the game as you are used to it. The point is to test whether "
+                               "the engine passes a point where it is crashing on you normally.\n"
+                               "[Debug flags enabled: 0x%02X]",
+                               debug_flags);
     }
 }
 
-void atexit_handler() {
-    if (proper_exit==0) {
+void atexit_handler()
+{
+    if (proper_exit == 0)
+    {
         platform->DisplayAlert("Error: the program has exited without requesting it.\n"
-            "Program pointer: %+03d  (write this number down), engine version %s\n"
-            "If you see a list of numbers above, please write them down and contact\n"
-            "developers. Otherwise, note down any other information displayed.",
+                               "Program pointer: %+03d  (write this number down), engine version %s\n"
+                               "If you see a list of numbers above, please write them down and contact\n"
+                               "developers. Otherwise, note down any other information displayed.",
                                get_our_eip(), EngineVersion.LongString.GetCStr());
     }
 }
@@ -457,7 +465,7 @@ int engine_load_game_data()
     HError err = load_game_file();
     if (!err)
     {
-        proper_exit=1;
+        proper_exit = 1;
         display_game_file_error(err);
         return EXIT_ERROR;
     }
@@ -467,7 +475,9 @@ int engine_load_game_data()
     // Checks and warnings
     if (!is_any_font_loaded())
     {
-        Debug::Printf(kDbgMsg_Warn, "WARNING: No game fonts were loaded on startup. The game won't be able to display any text unless fonts are initialized at runtime later (e.g. by a plugin).");
+        Debug::Printf(
+            kDbgMsg_Warn,
+            "WARNING: No game fonts were loaded on startup. The game won't be able to display any text unless fonts are initialized at runtime later (e.g. by a plugin).");
     }
     return 0;
 }
@@ -495,40 +505,44 @@ void engine_init_user_directories()
 }
 
 // TODO: remake/remove this nonsense
-int check_write_access() {
+int check_write_access()
+{
+    set_our_eip(-1895);
 
-  set_our_eip(-1895);
+    // The Save Game Dir is the only place that we should write to
+    String svg_dir = get_save_game_directory();
+    if (platform->GetDiskFreeSpaceMB(svg_dir) < 2)
+        return 0;
+    String tempPath = String::FromFormat("%s"
+                                         "tmptest.tmp",
+                                         svg_dir.GetCStr());
+    auto temp_s = File::CreateFile(tempPath);
+    if (!temp_s)
+        return 0;
 
-  // The Save Game Dir is the only place that we should write to
-  String svg_dir = get_save_game_directory();
-  if (platform->GetDiskFreeSpaceMB(svg_dir) < 2)
-    return 0;
-  String tempPath = String::FromFormat("%s""tmptest.tmp", svg_dir.GetCStr());
-  auto temp_s = File::CreateFile(tempPath);
-  if (!temp_s)
-    return 0;
+    set_our_eip(-1896);
 
-  set_our_eip(-1896);
+    temp_s->Write("just to test the drive free space", 30);
+    temp_s.reset();
 
-  temp_s->Write("just to test the drive free space", 30);
-  temp_s.reset();
+    set_our_eip(-1897);
 
-  set_our_eip(-1897);
+    if (!File::DeleteFile(tempPath))
+        return 0;
 
-  if (!File::DeleteFile(tempPath))
-    return 0;
-
-  return 1;
+    return 1;
 }
 
 int engine_check_disk_space()
 {
     Debug::Printf(kDbgMsg_Info, "Checking for disk space");
 
-    if (check_write_access()==0) {
-        platform->DisplayAlert("Unable to write in the savegame directory.\n%s", platform->GetDiskWriteAccessTroubleshootingText());
+    if (check_write_access() == 0)
+    {
+        platform->DisplayAlert("Unable to write in the savegame directory.\n%s",
+                               platform->GetDiskWriteAccessTroubleshootingText());
         proper_exit = 1;
-        return EXIT_ERROR; 
+        return EXIT_ERROR;
     }
 
     return 0;
@@ -590,8 +604,7 @@ HError engine_init_sprites()
     auto sprite_file = AssetMgr->OpenAsset(SpriteFile::DefaultSpriteFileName);
     if (!sprite_file)
     {
-        return new Error("Failed to open spriteset file '%s'.",
-            SpriteFile::DefaultSpriteFileName.GetCStr());
+        return new Error("Failed to open spriteset file '%s'.", SpriteFile::DefaultSpriteFileName.GetCStr());
     }
     auto index_file = AssetMgr->OpenAsset(SpriteFile::DefaultSpriteIndexName);
     HError err = spriteset.InitFile(std::move(sprite_file), std::move(index_file));
@@ -601,10 +614,9 @@ HError engine_init_sprites()
     }
 
     const char *compress_desc = StrUtil::SelectCStr<kNumSprCompressTypes>(
-        CstrArr<kNumSprCompressTypes>{"none", "rle", "lzw", "deflate"},
-        spriteset.GetSpriteCompression(), "unknown");
-    Debug::Printf("Sprite file info: compression: %s, storage flags: 0x%08x, total sprites: %zu",
-        compress_desc, spriteset.GetStoreFlags(), spriteset.GetSpriteSlotCount());
+        CstrArr<kNumSprCompressTypes>{"none", "rle", "lzw", "deflate"}, spriteset.GetSpriteCompression(), "unknown");
+    Debug::Printf("Sprite file info: compression: %s, storage flags: 0x%08x, total sprites: %zu", compress_desc,
+                  spriteset.GetStoreFlags(), spriteset.GetSpriteSlotCount());
     if (usetup.SpriteCacheSize > 0)
         spriteset.SetMaxCacheSize(usetup.SpriteCacheSize * 1024);
     Debug::Printf("Sprite cache set: %zu KB", spriteset.GetMaxCacheSize() / 1024);
@@ -640,20 +652,20 @@ void engine_init_game_settings()
         game_encoding = "UTF-8";
     else
         game_encoding = "ASCII";
-    Debug::Printf("Game text encoding: %s, text language: %s",
-        game_encoding.GetCStr(),
-        game.GameTextLanguage.IsEmpty() ? "not set" : game.GameTextLanguage.GetCStr());
+    Debug::Printf("Game text encoding: %s, text language: %s", game_encoding.GetCStr(),
+                  game.GameTextLanguage.IsEmpty() ? "not set" : game.GameTextLanguage.GetCStr());
     if (game.options[OPT_GAMETEXTENCODING] != 65001)
         Debug::Printf(kDbgMsg_Warn, "WARNING: game's text encoding is not UTF-8, and may be displayed incorrectly");
 
     int ee;
 
-    for (ee=0;ee<256;ee++) {
-        if (game.paluses[ee]!=PAL_BACKGROUND)
-            palette[ee]=game.defpal[ee];
+    for (ee = 0; ee < 256; ee++)
+    {
+        if (game.paluses[ee] != PAL_BACKGROUND)
+            palette[ee] = game.defpal[ee];
     }
 
-    for (ee = 0; ee < game.numcursors; ee++) 
+    for (ee = 0; ee < game.numcursors; ee++)
     {
         // The cursor graphics are assigned to mousecurs[] and so cannot
         // be removed from memory
@@ -665,7 +677,7 @@ void engine_init_game_settings()
             game.mcurs[ee].view = -1;
 
         if (game.mcurs[ee].view >= 0)
-            precache_view (game.mcurs[ee].view);
+            precache_view(game.mcurs[ee].view);
     }
     // may as well preload the character gfx
     if (playerchar->view >= 0)
@@ -673,18 +685,21 @@ void engine_init_game_settings()
 
     set_our_eip(-6);
 
-    for (ee = 0; ee < MAX_ROOM_OBJECTS; ee++) {
+    for (ee = 0; ee < MAX_ROOM_OBJECTS; ee++)
+    {
         scrObj[ee].id = ee;
     }
 
-    for (ee=0;ee<game.numcharacters;ee++) {
-        game.chars[ee].activeinv=-1;
-        game.chars[ee].idleleft=game.chars[ee].idledelay;
+    for (ee = 0; ee < game.numcharacters; ee++)
+    {
+        game.chars[ee].activeinv = -1;
+        game.chars[ee].idleleft = game.chars[ee].idledelay;
         game.chars[ee].walkwaitcounter = 0;
         game.chars[ee].z = 0;
         charextra[ee].xwas = INVALID_X;
         charextra[ee].zoom = 100;
-        if (game.chars[ee].view >= 0) {
+        if (game.chars[ee].view >= 0)
+        {
             // set initial loop to 0
             game.chars[ee].loop = 0;
             // or to 1 if they don't have up/down frames
@@ -698,7 +713,7 @@ void engine_init_game_settings()
 
     set_our_eip(-5);
     // Add all inventory items with "starts with" flag to the player character
-    for (ee=0;ee<game.numinvitems;ee++)
+    for (ee = 0; ee < game.numinvitems; ee++)
     {
         if (game.invinfo[ee].flags & IFLG_STARTWITH)
             playerchar->set_item_quantity(ee, 1);
@@ -719,11 +734,11 @@ void engine_init_game_settings()
     }
     play.inv_item_wid = 40;
     play.inv_item_hit = 22;
-    play.messagetime=-1;
-    play.disabled_user_interface=0;
-    play.gscript_timer=-1;
-    play.debug_mode=game.options[OPT_DEBUGMODE];
-    play.text_speed=15;
+    play.messagetime = -1;
+    play.disabled_user_interface = 0;
+    play.gscript_timer = -1;
+    play.debug_mode = game.options[OPT_DEBUGMODE];
+    play.text_speed = 15;
     play.text_min_display_time_ms = 1000;
     play.ignore_user_input_after_text_timeout_ms = 500;
     play.ClearIgnoreInput();
@@ -747,9 +762,9 @@ void engine_init_game_settings()
     }
 
     play.speech_bubble_width = 100;
-    play.bg_frame=0;
-    play.bg_frame_locked=0;
-    play.bg_anim_delay=0;
+    play.bg_frame = 0;
+    play.bg_frame_locked = 0;
+    play.bg_anim_delay = 0;
     play.anim_background_speed = 0;
     play.mouse_input_enabled = true;
     play.mouse_cursor_shown = true;
@@ -763,11 +778,11 @@ void engine_init_game_settings()
     play.temporarily_turned_off_character = -1;
     play.gamma_adjustment = 100;
     play.shakesc_length = 0;
-    play.wait_counter=0;
+    play.wait_counter = 0;
     play.SetWaitSkipResult(SKIP_NONE);
     play.key_skip_wait = SKIP_NONE;
     play.audio_master_volume = 100;
-    play.screen_flipped=0;
+    play.screen_flipped = 0;
     play.speech_mode = kSpeech_VoiceText;
     play.speech_skip_style = user_to_internal_skip_speech((SkipSpeechStyle)game.options[OPT_NOSKIPTEXT]);
     play.speech_volume = 255;
@@ -794,10 +809,11 @@ void engine_init_game_settings()
     play.speech_music_drop = 60;
     play.room_changes = 0;
     play.check_interaction_only = 0;
-    play.replay_hotkey_unused = -1;  // StartRecording: not supported.
-    play.dialog_options_pad_x = (loaded_game_file_version >= kGameVersion_363) ?
-        TEXTWINDOW_PADDING_DEFAULT : 0; // use TEXTWINDOW_PADDING_DEFAULT in 3.6.3+
-    play.dialog_options_pad_y = 0; // no Y padding by default
+    play.replay_hotkey_unused = -1; // StartRecording: not supported.
+    play.dialog_options_pad_x = (loaded_game_file_version >= kGameVersion_363)
+                                    ? TEXTWINDOW_PADDING_DEFAULT
+                                    : 0; // use TEXTWINDOW_PADDING_DEFAULT in 3.6.3+
+    play.dialog_options_pad_y = 0;       // no Y padding by default
     play.dialog_options_font = FONT_UNDEFINED;
     play.min_dialogoption_width = 0;
     play.disable_dialog_parser = 0;
@@ -813,7 +829,7 @@ void engine_init_game_settings()
     play.screenshot_height = 100;
     play.inventory_greys_out = 0;
     play.skip_speech_specific_key = 0;
-    play.abort_key = 324;  // Alt+X
+    play.abort_key = 324; // Alt+X
     play.fade_to_red = 0;
     play.fade_to_green = 0;
     play.fade_to_blue = 0;
@@ -851,7 +867,7 @@ void engine_init_game_settings()
     // Force GUI metrics recalculation, accomodating for loaded fonts
     GUIE::MarkForFontUpdate(-1);
 
-    memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS);
+    memset(&play.walkable_areas_on[0], 1, MAX_WALK_AREAS);
     play.default_audio_type_volumes.resize(game.audioClipTypes.size(), -1);
 
     if (!usetup.Translation.IsEmpty())
@@ -861,15 +877,15 @@ void engine_init_game_settings()
     displayed_room = -10;
 
     set_our_eip(-4);
-    mousey=100;  // stop icon bar popping up
+    mousey = 100; // stop icon bar popping up
 
     set_game_speed(game.options[OPT_GAMEFPS]);
 
     // We use same variable to read config and be used at runtime for now,
     // so update it here with regards to game design option
-    usetup.RenderAtScreenRes = 
+    usetup.RenderAtScreenRes =
         (game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_UserDefined && usetup.RenderAtScreenRes) ||
-         game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled;
+        game.options[OPT_RENDERATSCREENRES] == kRenderAtScreenRes_Enabled;
 
     // FIXME: this should be done once in InitGameState, but the code for default game settings
     // is spread across 2 or more functions; keep this extra call here until this nonsense is fixed.
@@ -920,8 +936,7 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
         // If not a valid path - bail out
         if (!File::IsFileOrDir(cmdGameDataPath))
             return new Error("Provided game location is not a valid path.\n Cwd: %s\n Path: %s",
-                Directory::GetCurrentDirectory().GetCStr(),
-                cmdGameDataPath.GetCStr());
+                             Directory::GetCurrentDirectory().GetCStr(), cmdGameDataPath.GetCStr());
         // If it's a file, then keep it and proceed
         if (File::IsFile(cmdGameDataPath))
         {
@@ -940,7 +955,8 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
         if (startup_dir.IsEmpty())
             return new Error("Engine was not able to find any compatible game data.");
         else
-            return new Error("Engine was not able to find any compatible game data.\nSearched in: %s", startup_dir.GetCStr());
+            return new Error("Engine was not able to find any compatible game data.\nSearched in: %s",
+                             startup_dir.GetCStr());
     }
     data_path = Path::MakeAbsolutePath(data_path);
     Debug::Printf(kDbgMsg_Info, "Located game data pak: %s", data_path.GetCStr());
@@ -986,7 +1002,8 @@ bool engine_init_gamedata()
     AssetError asset_err = AssetMgr->AddLibrary(usetup.MainDataFile);
     if (asset_err != kAssetNoError)
     {
-        platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'", usetup.MainDataFile.GetCStr());
+        platform->DisplayAlert("ERROR: The game data is missing, is of unsupported format or corrupt.\nFile: '%s'",
+                               usetup.MainDataFile.GetCStr());
         return false;
     }
 
@@ -1004,20 +1021,19 @@ bool engine_init_gamedata()
     // Setup ResPaths, so that we know out main locations further
     ResPaths.GamePak.Path = usetup.MainDataFile;
     ResPaths.GamePak.Name = Path::GetFilename(usetup.MainDataFile);
-    ResPaths.DataDir = usetup.OptInstallDir.IsEmpty() ? usetup.MainDataDir : Path::MakeAbsolutePath(usetup.OptInstallDir);
+    ResPaths.DataDir =
+        usetup.OptInstallDir.IsEmpty() ? usetup.MainDataDir : Path::MakeAbsolutePath(usetup.OptInstallDir);
     for (const auto &opt_dir : usetup.OptDataDirs)
     {
-        ResPaths.OptDataDirs.push_back(std::make_pair(
-            Path::MakeAbsolutePath(opt_dir.first),
-            opt_dir.second
-            ));
+        ResPaths.OptDataDirs.push_back(std::make_pair(Path::MakeAbsolutePath(opt_dir.first), opt_dir.second));
     }
 
     Debug::Printf(kDbgMsg_Info, "Startup directory: %s", usetup.StartupDir.GetCStr());
     Debug::Printf(kDbgMsg_Info, "Data directory: %s", ResPaths.DataDir.GetCStr());
     for (const auto &opt_dir : ResPaths.OptDataDirs)
     {
-        Debug::Printf(kDbgMsg_Info, "Opt data directory: %s\n\tasset filter: %s", opt_dir.first.GetCStr(), opt_dir.second.GetCStr());
+        Debug::Printf(kDbgMsg_Info, "Opt data directory: %s\n\tasset filter: %s", opt_dir.first.GetCStr(),
+                      opt_dir.second.GetCStr());
     }
     return true;
 }
@@ -1062,7 +1078,7 @@ void engine_read_config(ConfigTree &cfg, ConfigTree *def_cfg)
             !File::TestWriteFile(Path::ConcatPaths(usetup.UserConfDir, DefaultConfigFileName)))
         {
             Debug::Printf(kDbgMsg_Warn, "Write test failed at user config dir '%s', using default path.",
-                usetup.UserConfDir.GetCStr());
+                          usetup.UserConfDir.GetCStr());
             usetup.UserConfDir = "";
         }
     }
@@ -1105,7 +1121,7 @@ extern std::set<String> tellInfoKeys;
 static bool print_info_needs_game(const std::set<String> &keys)
 {
     return keys.count("all") > 0 || keys.count("config") > 0 || keys.count("configpath") > 0 ||
-        keys.count("data") > 0 || keys.count("filepath") > 0 || keys.count("gameproperties") > 0;
+           keys.count("data") > 0 || keys.count("filepath") > 0 || keys.count("gameproperties") > 0;
 }
 
 static void engine_print_info(const std::set<String> &keys, ConfigTree *user_cfg)
@@ -1195,7 +1211,8 @@ void engine_init_editor_debugging(const ConfigTree &cfg)
 // data init into either InitGameState() or other game method as appropriate.
 int initialize_engine(const ConfigTree &startup_opts)
 {
-    if (engine_pre_init_callback) {
+    if (engine_pre_init_callback)
+    {
         engine_pre_init_callback();
     }
 
@@ -1208,8 +1225,7 @@ int initialize_engine(const ConfigTree &startup_opts)
     // Connect to the external debugger, if required;
     // use only startup options here, the full config will be available
     // only after game files location is found
-    if (editor_debugging_enabled &&
-        !(justTellInfo || justRunSetup))
+    if (editor_debugging_enabled && !(justTellInfo || justRunSetup))
     {
         engine_init_editor_debugging(startup_opts);
     }
@@ -1348,8 +1364,8 @@ bool engine_try_set_gfxmode_any(const DisplayModeSetup &setup)
     sys_renderer_set_output(usetup.SoftwareRenderDriver);
 
     Size init_desktop;
-    bool res = graphics_mode_init_any(GraphicResolution(game.GetGameRes(), game.color_depth * 8),
-        setup, ColorDepthOption(game.GetColorDepth()), &init_desktop);
+    bool res = graphics_mode_init_any(GraphicResolution(game.GetGameRes(), game.color_depth * 8), setup,
+                                      ColorDepthOption(game.GetColorDepth()), &init_desktop);
 
     if (res)
         engine_post_gfxmode_setup(init_desktop, old_dm);
@@ -1392,8 +1408,9 @@ bool engine_try_switch_windowed_gfxmode()
     {
         WindowSetup ws = windowed ? usetup.Display.WinSetup : usetup.Display.FsSetup;
         frame = windowed ? usetup.Display.WinGameFrame : usetup.Display.FsGameFrame;
-        res = graphics_mode_set_dm_any(game.GetGameRes(), ws, old_dm.ColorDepth,
-            frame, DisplayParamsEx(use_display_index, usetup.Display.RefreshRate, usetup.Display.VSync));
+        res = graphics_mode_set_dm_any(
+            game.GetGameRes(), ws, old_dm.ColorDepth, frame,
+            DisplayParamsEx(use_display_index, usetup.Display.RefreshRate, usetup.Display.VSync));
     }
 
     // Apply corresponding frame render method
@@ -1403,8 +1420,7 @@ bool engine_try_switch_windowed_gfxmode()
     if (!res)
     {
         // If failed, try switching back to previous gfx mode
-        res = graphics_mode_set_dm(old_dm) &&
-              graphics_mode_set_render_frame(old_frame);
+        res = graphics_mode_set_dm(old_dm) && graphics_mode_set_render_frame(old_frame);
         if (!res)
             quitprintf("Failed to restore graphics mode.");
     }
@@ -1450,13 +1466,10 @@ String get_engine_version_and_build()
     const char *bit = (AGS_PLATFORM_64BIT) ? "64-bit" : "32-bit";
     const char *end = (AGS_PLATFORM_ENDIAN_LITTLE) ? "LE" : "BE";
 #ifdef BUILD_STR
-    return String::FromFormat("%s (Build: %s), %s %s",
-        EngineVersion.LongString.GetCStr(), EngineVersion.BuildInfo.GetCStr(),
-        bit, end);
+    return String::FromFormat("%s (Build: %s), %s %s", EngineVersion.LongString.GetCStr(),
+                              EngineVersion.BuildInfo.GetCStr(), bit, end);
 #else
-    return String::FromFormat("%s, %s %s",
-        EngineVersion.LongString.GetCStr(),
-        bit, end);
+    return String::FromFormat("%s, %s %s", EngineVersion.LongString.GetCStr(), bit, end);
 #endif
 }
 

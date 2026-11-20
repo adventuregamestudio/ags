@@ -39,8 +39,8 @@ using namespace AGS::Engine;
 
 
 #ifndef CSIDL_LOCAL_APPDATA
-#define CSIDL_LOCAL_APPDATA        0x001C
-#define CSIDL_COMMON_APPDATA       0x0023
+#define CSIDL_LOCAL_APPDATA  0x001C
+#define CSIDL_COMMON_APPDATA 0x0023
 #endif
 
 FSLocation win32SavedGamesDirectory;
@@ -49,198 +49,199 @@ FSLocation win32OutputDirectory;
 
 const unsigned int win32TimerPeriod = 1;
 
-struct AGSWin32 : AGSPlatformDriver {
-  AGSWin32();
-  ~AGSWin32();
+struct AGSWin32 : AGSPlatformDriver
+{
+    AGSWin32();
+    ~AGSWin32();
 
-  void AttachToParentConsole() override;
-  int  GetLastSystemError() override;
-  FSLocation GetAllUsersDataDirectory() override;
-  FSLocation GetUserSavedgamesDirectory() override;
-  FSLocation GetUserConfigDirectory() override;
-  FSLocation GetUserGlobalConfigDirectory() override;
-  FSLocation GetAppOutputDirectory() override;
-  bool IsLocalDirRestricted() override;
-  const char *GetIllegalFileChars() override;
-  const char *GetGraphicsTroubleshootingText() override;
-  uint64_t GetDiskFreeSpaceMB(const String &path) override;
-  const char* GetBackendFailUserHint() override;
-  eScriptSystemOSID GetSystemOSID() override;
-  void PostBackendInit() override;
-  void PostBackendExit() override;
-  SetupReturnValue RunSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out) override;
-  void WriteStdOut(AGS_FORMAT_STRING_ARG const char *fmt, ...) override AGS_FORMAT_STRING_OBJECT(1);
-  void WriteStdErr(AGS_FORMAT_STRING_ARG const char *fmt, ...) override AGS_FORMAT_STRING_OBJECT(1);
-  void DisplayMessageBox(const char *text) override;
-  void PauseApplication() override;
-  void ResumeApplication() override;
-  Size ValidateWindowSize(int display_index, const Size &sz, bool borderless) const override;
-  SDL_Surface *CreateWindowIcon() override;
+    void AttachToParentConsole() override;
+    int GetLastSystemError() override;
+    FSLocation GetAllUsersDataDirectory() override;
+    FSLocation GetUserSavedgamesDirectory() override;
+    FSLocation GetUserConfigDirectory() override;
+    FSLocation GetUserGlobalConfigDirectory() override;
+    FSLocation GetAppOutputDirectory() override;
+    bool IsLocalDirRestricted() override;
+    const char *GetIllegalFileChars() override;
+    const char *GetGraphicsTroubleshootingText() override;
+    uint64_t GetDiskFreeSpaceMB(const String &path) override;
+    const char *GetBackendFailUserHint() override;
+    eScriptSystemOSID GetSystemOSID() override;
+    void PostBackendInit() override;
+    void PostBackendExit() override;
+    SetupReturnValue RunSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out) override;
+    void WriteStdOut(AGS_FORMAT_STRING_ARG const char *fmt, ...) override AGS_FORMAT_STRING_OBJECT(1);
+    void WriteStdErr(AGS_FORMAT_STRING_ARG const char *fmt, ...) override AGS_FORMAT_STRING_OBJECT(1);
+    void DisplayMessageBox(const char *text) override;
+    void PauseApplication() override;
+    void ResumeApplication() override;
+    Size ValidateWindowSize(int display_index, const Size &sz, bool borderless) const override;
+    SDL_Surface *CreateWindowIcon() override;
 
-  // Returns command line argument in a UTF-8 format
-  String GetCommandArg(size_t arg_index) override;
+    // Returns command line argument in a UTF-8 format
+    String GetCommandArg(size_t arg_index) override;
 
 private:
-  void WriteStdOutImpl(FILE *file, const char *prefix, AGS_FORMAT_STRING_ARG const char *fmt, va_list args) AGS_FORMAT_STRING_OBJECT_V(3);
+    void WriteStdOutImpl(FILE *file, const char *prefix, AGS_FORMAT_STRING_ARG const char *fmt, va_list args)
+        AGS_FORMAT_STRING_OBJECT_V(3);
 
-  bool _isDebuggerPresent; // indicates if the win app is running in the context of a debugger
-  bool _isAttachedToParentConsole; // indicates if the win app is attached to the parent console
+    bool _isDebuggerPresent;         // indicates if the win app is running in the context of a debugger
+    bool _isAttachedToParentConsole; // indicates if the win app is attached to the parent console
 };
 
-AGSWin32::AGSWin32() :
-    _isDebuggerPresent(::IsDebuggerPresent() != FALSE),
-    _isAttachedToParentConsole(false)
+AGSWin32::AGSWin32() : _isDebuggerPresent(::IsDebuggerPresent() != FALSE), _isAttachedToParentConsole(false)
 {
     // Do nothing.
 }
 
-AGSWin32::~AGSWin32() {
+AGSWin32::~AGSWin32()
+{
     if (_isAttachedToParentConsole)
     {
         ::FreeConsole();
     }
 }
 
-void AGSWin32::PostBackendInit() 
+void AGSWin32::PostBackendInit()
 {
-  // Set the Windows timer resolution to 1 ms so that calls to
-  // Sleep() don't take more time than specified
-  MMRESULT result = timeBeginPeriod(win32TimerPeriod);
-  if (result != TIMERR_NOERROR)
-    Debug::Printf(kDbgMsg_Error, "Failed to set the timer resolution to %d ms", win32TimerPeriod);
+    // Set the Windows timer resolution to 1 ms so that calls to
+    // Sleep() don't take more time than specified
+    MMRESULT result = timeBeginPeriod(win32TimerPeriod);
+    if (result != TIMERR_NOERROR)
+        Debug::Printf(kDbgMsg_Error, "Failed to set the timer resolution to %d ms", win32TimerPeriod);
 }
 
-typedef UINT (CALLBACK* Dynamic_SHGetKnownFolderPathType) (GUID& rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath); 
-GUID FOLDERID_SAVEDGAMES = {0x4C5C32FF, 0xBB9D, 0x43b0, {0xB5, 0xB4, 0x2D, 0x72, 0xE5, 0x4E, 0xAA, 0xA4}}; 
-#define _WIN32_WINNT_VISTA              0x0600
-#define VER_MINORVERSION                0x0000001
-#define VER_MAJORVERSION                0x0000002
-#define VER_SERVICEPACKMAJOR            0x0000020
-#define VER_GREATER_EQUAL               3
+typedef UINT(CALLBACK *Dynamic_SHGetKnownFolderPathType)(GUID &rfid, DWORD dwFlags, HANDLE hToken, PWSTR *ppszPath);
+GUID FOLDERID_SAVEDGAMES = {0x4C5C32FF, 0xBB9D, 0x43b0, {0xB5, 0xB4, 0x2D, 0x72, 0xE5, 0x4E, 0xAA, 0xA4}};
+#define _WIN32_WINNT_VISTA   0x0600
+#define VER_MINORVERSION     0x0000001
+#define VER_MAJORVERSION     0x0000002
+#define VER_SERVICEPACKMAJOR 0x0000020
+#define VER_GREATER_EQUAL    3
 
 // These helpers copied from VersionHelpers.h in the Windows 8.1 SDK
 bool IsWindowsVersionOrGreater(WORD wMajorVersion, WORD wMinorVersion, WORD wServicePackMajor)
 {
-  OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0,{ 0 }, 0, 0 };
-  DWORDLONG        const dwlConditionMask = VerSetConditionMask(
-    VerSetConditionMask(
-      VerSetConditionMask(
-        0, VER_MAJORVERSION, VER_GREATER_EQUAL),
-      VER_MINORVERSION, VER_GREATER_EQUAL),
-    VER_SERVICEPACKMAJOR, VER_GREATER_EQUAL);
+    OSVERSIONINFOEXW osvi = {sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0};
+    DWORDLONG const dwlConditionMask =
+        VerSetConditionMask(VerSetConditionMask(VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL),
+                                                VER_MINORVERSION, VER_GREATER_EQUAL),
+                            VER_SERVICEPACKMAJOR, VER_GREATER_EQUAL);
 
-  osvi.dwMajorVersion = wMajorVersion;
-  osvi.dwMinorVersion = wMinorVersion;
-  osvi.wServicePackMajor = wServicePackMajor;
+    osvi.dwMajorVersion = wMajorVersion;
+    osvi.dwMinorVersion = wMinorVersion;
+    osvi.wServicePackMajor = wServicePackMajor;
 
-  return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR, dwlConditionMask) != FALSE;
+    return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR, dwlConditionMask) !=
+           FALSE;
 }
 
-bool IsWindowsVistaOrGreater() {
-  return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0);
+bool IsWindowsVistaOrGreater()
+{
+    return IsWindowsVersionOrGreater(HIBYTE(_WIN32_WINNT_VISTA), LOBYTE(_WIN32_WINNT_VISTA), 0);
 }
 
 static void DetermineAppDataFolder()
 {
-  if (win32AppDataDirectory.IsValid()) 
-    return; // already set
-  WCHAR unicodePath[MAX_PATH_SZ];
-  SHGetSpecialFolderPathW(NULL, unicodePath, CSIDL_COMMON_APPDATA, FALSE);
-  win32AppDataDirectory =
-      FSLocation(Path::WidePathToUTF8(unicodePath), "Adventure Game Studio");
+    if (win32AppDataDirectory.IsValid())
+        return; // already set
+    WCHAR unicodePath[MAX_PATH_SZ];
+    SHGetSpecialFolderPathW(NULL, unicodePath, CSIDL_COMMON_APPDATA, FALSE);
+    win32AppDataDirectory = FSLocation(Path::WidePathToUTF8(unicodePath), "Adventure Game Studio");
 }
 
 static void DetermineSavedGamesFolder()
 {
-  if (win32SavedGamesDirectory.IsValid())
-    return; // already discovered
+    if (win32SavedGamesDirectory.IsValid())
+        return; // already discovered
 
-  String parentDir, agsDir;
-  if (IsWindowsVistaOrGreater())
-  {
-    HINSTANCE hShellDLL = LoadLibrary("shell32.dll");
-    Dynamic_SHGetKnownFolderPathType Dynamic_SHGetKnownFolderPath = (Dynamic_SHGetKnownFolderPathType)GetProcAddress(hShellDLL, "SHGetKnownFolderPath");
-
-    if (Dynamic_SHGetKnownFolderPath != NULL)
+    String parentDir, agsDir;
+    if (IsWindowsVistaOrGreater())
     {
-      PWSTR path = NULL;
-      if (SUCCEEDED(Dynamic_SHGetKnownFolderPath(FOLDERID_SAVEDGAMES, 0, NULL, &path)))
-      {
-        parentDir = Path::WidePathToUTF8(path);
-        CoTaskMemFree(path);
-      }
+        HINSTANCE hShellDLL = LoadLibrary("shell32.dll");
+        Dynamic_SHGetKnownFolderPathType Dynamic_SHGetKnownFolderPath =
+            (Dynamic_SHGetKnownFolderPathType)GetProcAddress(hShellDLL, "SHGetKnownFolderPath");
+
+        if (Dynamic_SHGetKnownFolderPath != NULL)
+        {
+            PWSTR path = NULL;
+            if (SUCCEEDED(Dynamic_SHGetKnownFolderPath(FOLDERID_SAVEDGAMES, 0, NULL, &path)))
+            {
+                parentDir = Path::WidePathToUTF8(path);
+                CoTaskMemFree(path);
+            }
+        }
+
+        FreeLibrary(hShellDLL);
+    }
+    else
+    {
+        WCHAR unicodeSaveGameDir[MAX_PATH_SZ] = L"";
+        // Windows XP didn't have a "My Saved Games" folder, so create one under "My Documents"
+        SHGetSpecialFolderPathW(NULL, unicodeSaveGameDir, CSIDL_PERSONAL, FALSE);
+        parentDir = Path::WidePathToUTF8(unicodeSaveGameDir);
+        parentDir = Path::ConcatPaths(parentDir, "My Saved Games");
     }
 
-    FreeLibrary(hShellDLL);
-  }
-  else
-  {
-    WCHAR unicodeSaveGameDir[MAX_PATH_SZ] = L"";
-    // Windows XP didn't have a "My Saved Games" folder, so create one under "My Documents"
-    SHGetSpecialFolderPathW(NULL, unicodeSaveGameDir, CSIDL_PERSONAL, FALSE);
-    parentDir = Path::WidePathToUTF8(unicodeSaveGameDir);
-    parentDir = Path::ConcatPaths(parentDir, "My Saved Games");
-  }
-
-  win32SavedGamesDirectory = FSLocation(parentDir, agsDir);
+    win32SavedGamesDirectory = FSLocation(parentDir, agsDir);
 }
 
 static void DetermineAppOutputDirectory()
 {
-  if (win32OutputDirectory.IsValid())
-    return; // already set
+    if (win32OutputDirectory.IsValid())
+        return; // already set
 
-  DetermineSavedGamesFolder();
-  // Use system save dir if it's found
-  if (win32SavedGamesDirectory.IsValid())
-  {
-    // Use "AGS" subdir inside a standard save directory
-    win32OutputDirectory = win32SavedGamesDirectory.Concat("Adventure Game Studio");
-  }
-  // ...otherwise try local exe's dir, hoping that it's writeable
-  else
-  {
-    WCHAR theexename[MAX_PATH_SZ];
-    GetModuleFileNameW(NULL, theexename, MAX_PATH_SZ);
-    PathRemoveFileSpecW(theexename);
-    win32OutputDirectory = FSLocation(Path::WidePathToUTF8(theexename));
-  }
+    DetermineSavedGamesFolder();
+    // Use system save dir if it's found
+    if (win32SavedGamesDirectory.IsValid())
+    {
+        // Use "AGS" subdir inside a standard save directory
+        win32OutputDirectory = win32SavedGamesDirectory.Concat("Adventure Game Studio");
+    }
+    // ...otherwise try local exe's dir, hoping that it's writeable
+    else
+    {
+        WCHAR theexename[MAX_PATH_SZ];
+        GetModuleFileNameW(NULL, theexename, MAX_PATH_SZ);
+        PathRemoveFileSpecW(theexename);
+        win32OutputDirectory = FSLocation(Path::WidePathToUTF8(theexename));
+    }
 }
 
 FSLocation AGSWin32::GetAllUsersDataDirectory()
 {
-  DetermineAppDataFolder();
-  return win32AppDataDirectory;
+    DetermineAppDataFolder();
+    return win32AppDataDirectory;
 }
 
 FSLocation AGSWin32::GetUserSavedgamesDirectory()
 {
-  DetermineSavedGamesFolder();
-  return win32SavedGamesDirectory;
+    DetermineSavedGamesFolder();
+    return win32SavedGamesDirectory;
 }
 
 FSLocation AGSWin32::GetUserConfigDirectory()
 {
-  DetermineSavedGamesFolder();
-  return win32SavedGamesDirectory;
+    DetermineSavedGamesFolder();
+    return win32SavedGamesDirectory;
 }
 
 FSLocation AGSWin32::GetUserGlobalConfigDirectory()
 {
-  DetermineAppOutputDirectory();
-  return win32OutputDirectory;
+    DetermineAppOutputDirectory();
+    return win32OutputDirectory;
 }
 
 FSLocation AGSWin32::GetAppOutputDirectory()
 {
-  DetermineAppOutputDirectory();
-  return win32OutputDirectory;
+    DetermineAppOutputDirectory();
+    return win32OutputDirectory;
 }
 
 bool AGSWin32::IsLocalDirRestricted()
 {
-  // Let them to create temp files in the current working dir
-  return false;
+    // Let them to create temp files in the current working dir
+    return false;
 }
 
 const char *AGSWin32::GetIllegalFileChars()
@@ -250,26 +251,23 @@ const char *AGSWin32::GetIllegalFileChars()
 
 const char *AGSWin32::GetGraphicsTroubleshootingText()
 {
-  return "\n\nPossible causes:\n"
-    "* your graphics card drivers do not support requested resolution. "
-    "Run the game setup program and try another resolution.\n"
-    "* the graphics driver you have selected does not work. Try switching to another graphics driver.\n"
-    "* the graphics filter you have selected does not work. Try another filter.\n"
-    "* your graphics card drivers are out of date. "
-    "Try downloading updated graphics card drivers from your manufacturer's website.\n"
-    "* there is a problem with your graphics card driver configuration. "
-    "Run DXDiag using the Run command (Start->Run, type \"dxdiag.exe\") and correct any problems reported there.";
+    return "\n\nPossible causes:\n"
+           "* your graphics card drivers do not support requested resolution. "
+           "Run the game setup program and try another resolution.\n"
+           "* the graphics driver you have selected does not work. Try switching to another graphics driver.\n"
+           "* the graphics filter you have selected does not work. Try another filter.\n"
+           "* your graphics card drivers are out of date. "
+           "Try downloading updated graphics card drivers from your manufacturer's website.\n"
+           "* there is a problem with your graphics card driver configuration. "
+           "Run DXDiag using the Run command (Start->Run, type \"dxdiag.exe\") and correct any problems reported there.";
 }
 
-void AGSWin32::PauseApplication()
+void AGSWin32::PauseApplication() {}
+
+void AGSWin32::ResumeApplication() {}
+
+void AGSWin32::AttachToParentConsole()
 {
-}
-
-void AGSWin32::ResumeApplication()
-{
-}
-
-void AGSWin32::AttachToParentConsole() {
     if (_isAttachedToParentConsole)
         return;
 
@@ -281,7 +279,7 @@ void AGSWin32::AttachToParentConsole() {
             ::GetStdHandle(STD_ERROR_HANDLE) != INVALID_HANDLE_VALUE)
         {
             // Re-open STDOUT and STDERR to the parent's.
-            FILE* fp = NULL;
+            FILE *fp = NULL;
             freopen_s(&fp, "CONOUT$", "w", stdout);
             setvbuf(stdout, NULL, _IONBF, 0);
 
@@ -298,46 +296,46 @@ void AGSWin32::AttachToParentConsole() {
 
 int AGSWin32::GetLastSystemError()
 {
-  return ::GetLastError();
+    return ::GetLastError();
 }
 
 uint64_t AGSWin32::GetDiskFreeSpaceMB(const String &path)
 {
-  // On Win9x, the last 3 params cannot be null, so need to supply values for all
-  __int64 i64FreeBytesToCaller, i64Unused1, i64Unused2;
+    // On Win9x, the last 3 params cannot be null, so need to supply values for all
+    __int64 i64FreeBytesToCaller, i64Unused1, i64Unused2;
 
-  // Win95 OSR2 or higher - use GetDiskFreeSpaceEx, since the
-  // normal GetDiskFreeSpace returns erroneous values if the
-  // free space is > 2 GB
-  WCHAR wstr[MAX_PATH_SZ] = L"";
-  StrUtil::ConvertUtf8ToWstr(path.GetCStr(), wstr, MAX_PATH_SZ);
-  BOOL fResult = GetDiskFreeSpaceExW(wstr,
-             (PULARGE_INTEGER)&i64FreeBytesToCaller,
-             (PULARGE_INTEGER)&i64Unused1,
-             (PULARGE_INTEGER)&i64Unused2);
+    // Win95 OSR2 or higher - use GetDiskFreeSpaceEx, since the
+    // normal GetDiskFreeSpace returns erroneous values if the
+    // free space is > 2 GB
+    WCHAR wstr[MAX_PATH_SZ] = L"";
+    StrUtil::ConvertUtf8ToWstr(path.GetCStr(), wstr, MAX_PATH_SZ);
+    BOOL fResult = GetDiskFreeSpaceExW(wstr, (PULARGE_INTEGER)&i64FreeBytesToCaller, (PULARGE_INTEGER)&i64Unused1,
+                                       (PULARGE_INTEGER)&i64Unused2);
 
-  i64FreeBytesToCaller /= 1000000;
-  return static_cast<uint64_t>(i64FreeBytesToCaller);
+    i64FreeBytesToCaller /= 1000000;
+    return static_cast<uint64_t>(i64FreeBytesToCaller);
 }
 
-const char* AGSWin32::GetBackendFailUserHint()
+const char *AGSWin32::GetBackendFailUserHint()
 {
-  return "Make sure you have DirectX 5 or above installed.";
+    return "Make sure you have DirectX 5 or above installed.";
 }
 
-eScriptSystemOSID AGSWin32::GetSystemOSID() {
-  return eOS_Win;
+eScriptSystemOSID AGSWin32::GetSystemOSID()
+{
+    return eOS_Win;
 }
 
-void AGSWin32::PostBackendExit() {
-  // Release the timer setting
-  timeEndPeriod(win32TimerPeriod);
+void AGSWin32::PostBackendExit()
+{
+    // Release the timer setting
+    timeEndPeriod(win32TimerPeriod);
 }
 
 SetupReturnValue AGSWin32::RunSetup(const ConfigTree &cfg_in, const ConfigTree &def_cfg_in, ConfigTree &cfg_out)
 {
-  String version_str = String::FromFormat("Adventure Game Studio v%s setup", get_engine_version());
-  return AGS::Engine::WinSetup(cfg_in, def_cfg_in, cfg_out, usetup.MainDataDir, version_str);
+    String version_str = String::FromFormat("Adventure Game Studio v%s setup", get_engine_version());
+    return AGS::Engine::WinSetup(cfg_in, def_cfg_in, cfg_out, usetup.MainDataDir, version_str);
 }
 
 void AGSWin32::WriteStdOut(AGS_FORMAT_STRING_ARG const char *fmt, ...)
@@ -408,8 +406,7 @@ Size AGSWin32::ValidateWindowSize(int display_index, const Size &sz, bool border
     SetRectEmpty(&nc_rc);
     AdjustWindowRect(&nc_rc, winstyle, FALSE);
     // Calculate the clamped size
-    Size win_ceil(std::min(bounds_rc.w, (max_win.Width)),
-                  std::min(bounds_rc.h, (max_win.Height)));
+    Size win_ceil(std::min(bounds_rc.w, (max_win.Width)), std::min(bounds_rc.h, (max_win.Height)));
     win_ceil = win_ceil - Size(nc_rc.right - nc_rc.left, nc_rc.bottom - nc_rc.top);
     return Size::Clamp(sz, Size(1, 1), win_ceil);
 }
@@ -417,7 +414,8 @@ Size AGSWin32::ValidateWindowSize(int display_index, const Size &sz, bool border
 SDL_Surface *AGSWin32::CreateWindowIcon()
 {
     // Don't mess with SDL surface, and set an icon simply using WinAPI
-    SetClassLongPtr((HWND)sys_win_get_window(), GCLP_HICON,
+    SetClassLongPtr(
+        (HWND)sys_win_get_window(), GCLP_HICON,
         (LONG_PTR)LoadImage(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE));
     return nullptr;
 }
@@ -437,7 +435,7 @@ String AGSWin32::GetCommandArg(size_t arg_index)
     return arg;
 }
 
-AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
+AGSPlatformDriver *AGSPlatformDriver::CreateDriver()
 {
     return new AGSWin32();
 }
@@ -445,32 +443,37 @@ AGSPlatformDriver* AGSPlatformDriver::CreateDriver()
 
 // *********** WINDOWS-SPECIFIC PLUGIN API FUNCTIONS *************
 
-HWND IAGSEngine::GetWindowHandle () {
-  return (HWND)sys_win_get_window();
-}
-LPDIRECTDRAW2 IAGSEngine::GetDirectDraw2 () {
-  quit("!IAGSEngine::GetDirectDraw2() is deprecated and not supported anymore.");
-  return nullptr;
-}
-LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface (BITMAP* /*bmp*/) 
+HWND IAGSEngine::GetWindowHandle()
 {
-  quit("!IAGSEngine::GetBitmapSurface() is deprecated and not supported anymore.");
-  return nullptr;
+    return (HWND)sys_win_get_window();
+}
+LPDIRECTDRAW2 IAGSEngine::GetDirectDraw2()
+{
+    quit("!IAGSEngine::GetDirectDraw2() is deprecated and not supported anymore.");
+    return nullptr;
+}
+LPDIRECTDRAWSURFACE2 IAGSEngine::GetBitmapSurface(BITMAP * /*bmp*/)
+{
+    quit("!IAGSEngine::GetBitmapSurface() is deprecated and not supported anymore.");
+    return nullptr;
 }
 
-LPDIRECTSOUND IAGSEngine::GetDirectSound() {
-  quit("!IAGSEngine::GetDirectSound() is deprecated and not supported anymore.");
-  return nullptr;
+LPDIRECTSOUND IAGSEngine::GetDirectSound()
+{
+    quit("!IAGSEngine::GetDirectSound() is deprecated and not supported anymore.");
+    return nullptr;
 }
 
-LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputKeyboard() {
-  quit("!IAGSEngine::GetDirectInputKeyboard() is deprecated and not supported anymore.");
-  return nullptr;
+LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputKeyboard()
+{
+    quit("!IAGSEngine::GetDirectInputKeyboard() is deprecated and not supported anymore.");
+    return nullptr;
 }
 
-LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputMouse() {
-  quit("!IAGSEngine::GetDirectInputMouse() is deprecated and not supported anymore.");
-  return nullptr;
+LPDIRECTINPUTDEVICE IAGSEngine::GetDirectInputMouse()
+{
+    quit("!IAGSEngine::GetDirectInputMouse() is deprecated and not supported anymore.");
+    return nullptr;
 }
 
 #endif

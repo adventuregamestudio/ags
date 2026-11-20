@@ -35,8 +35,7 @@ struct DynObjectRef
 {
 public:
     DynObjectRef() = default;
-    DynObjectRef(int handle, void *obj, IScriptObject *mgr)
-        : _handle(handle), _obj(obj), _mgr(mgr) {}
+    DynObjectRef(int handle, void *obj, IScriptObject *mgr) : _handle(handle), _obj(obj), _mgr(mgr) {}
 
     inline int Handle() const { return _handle; }
     inline void *Obj() const { return _obj; }
@@ -80,8 +79,7 @@ struct IScriptObject
     virtual uint32_t GetTypeID(const void *address) = 0;
     // Interface of a managed object that contains typeid fields.
     // Remap typeid fields using the provided map
-    virtual void RemapTypeids(void *address,
-        const std::unordered_map<uint32_t, uint32_t> &typeid_map) = 0;
+    virtual void RemapTypeids(void *address, const std::unordered_map<uint32_t, uint32_t> &typeid_map) = 0;
 
     //
     // Inteface of a managed object that contains references to other objects.
@@ -108,18 +106,18 @@ struct IScriptObject
     // necessary, because byte-code does not contain any distinct operation for this case.
     // The worst thing here is that with the current byte-code structure we can never tell whether
     // offset 0 means getting pointer to whole object or a pointer to its first field.
-    virtual void   *GetFieldPtr(void *address, intptr_t offset)               = 0;
-    virtual const void *GetFieldPtr(const void *address, intptr_t offset)     = 0;
-    virtual void    Read(const void *address, intptr_t offset, uint8_t *dest, size_t size) = 0;
-    virtual uint8_t ReadInt8(const void *address, intptr_t offset)            = 0;
-    virtual int16_t ReadInt16(const void *address, intptr_t offset)           = 0;
-    virtual int32_t ReadInt32(const void *address, intptr_t offset)           = 0;
-    virtual float   ReadFloat(const void *address, intptr_t offset)           = 0;
-    virtual void    Write(void *address, intptr_t offset, const uint8_t *src, size_t size) = 0;
-    virtual void    WriteInt8(void *address, intptr_t offset, uint8_t val)    = 0;
-    virtual void    WriteInt16(void *address, intptr_t offset, int16_t val)   = 0;
-    virtual void    WriteInt32(void *address, intptr_t offset, int32_t val)   = 0;
-    virtual void    WriteFloat(void *address, intptr_t offset, float val)     = 0;
+    virtual void *GetFieldPtr(void *address, intptr_t offset) = 0;
+    virtual const void *GetFieldPtr(const void *address, intptr_t offset) = 0;
+    virtual void Read(const void *address, intptr_t offset, uint8_t *dest, size_t size) = 0;
+    virtual uint8_t ReadInt8(const void *address, intptr_t offset) = 0;
+    virtual int16_t ReadInt16(const void *address, intptr_t offset) = 0;
+    virtual int32_t ReadInt32(const void *address, intptr_t offset) = 0;
+    virtual float ReadFloat(const void *address, intptr_t offset) = 0;
+    virtual void Write(void *address, intptr_t offset, const uint8_t *src, size_t size) = 0;
+    virtual void WriteInt8(void *address, intptr_t offset, uint8_t val) = 0;
+    virtual void WriteInt16(void *address, intptr_t offset, int16_t val) = 0;
+    virtual void WriteInt32(void *address, intptr_t offset, int32_t val) = 0;
+    virtual void WriteFloat(void *address, intptr_t offset, float val) = 0;
 
 protected:
     IScriptObject() = default;

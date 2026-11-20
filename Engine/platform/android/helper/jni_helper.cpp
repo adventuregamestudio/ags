@@ -20,10 +20,8 @@
 
 using namespace AGS::Common;
 
-extern "C"
-JNIEXPORT jstring JNICALL
-Java_uk_co_adventuregamestudio_runtime_NativeHelper_findGameDataInDirectory(
-    JNIEnv* env, jobject object, jstring path)
+extern "C" JNIEXPORT jstring JNICALL
+Java_uk_co_adventuregamestudio_runtime_NativeHelper_findGameDataInDirectory(JNIEnv *env, jobject object, jstring path)
 {
     auto cpath = env->GetStringUTFChars(path, nullptr);
     // We have to configure parts of allegro lib because
@@ -39,7 +37,8 @@ Java_uk_co_adventuregamestudio_runtime_NativeHelper_findGameDataInDirectory(
     allegro_errno = orig_allegro_errno;
     env->ReleaseStringUTFChars(path, cpath);
 
-    if (result_str.IsEmpty()) return nullptr;
+    if (result_str.IsEmpty())
+        return nullptr;
     return env->NewStringUTF(result_str.GetCStr());
 }
 

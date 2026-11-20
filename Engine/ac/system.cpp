@@ -58,7 +58,8 @@ bool System_GetHasInputFocus()
     return !switched_away;
 }
 
-int System_GetColorDepth() {
+int System_GetColorDepth()
+{
     return scsystem.coldepth;
 }
 
@@ -68,15 +69,17 @@ int System_GetFPS()
     return std::isnan(fps) ? -1 : static_cast<int>(std::round(fps));
 }
 
-int System_GetOS() {
+int System_GetOS()
+{
     return scsystem.os;
 }
 
-const char *System_GetVersion() {
+const char *System_GetVersion()
+{
     return CreateNewScriptString(EngineVersion.LongString);
 }
 
-int System_GetHardwareAcceleration() 
+int System_GetHardwareAcceleration()
 {
     return gfxDriver->HasAcceleratedTransform() ? 1 : 0;
 }
@@ -104,22 +107,27 @@ int System_GetScrollLock()
     return (state[SDL_SCANCODE_SCROLLLOCK]) ? 1 : 0;
 }
 
-int System_GetVsync() {
+int System_GetVsync()
+{
     return scsystem.vsync;
 }
 
-void System_SetVsync(int newValue) {
-    if (gfxDriver->DoesSupportVsyncToggle()) {
+void System_SetVsync(int newValue)
+{
+    if (gfxDriver->DoesSupportVsyncToggle())
+    {
         System_SetVSyncInternal(newValue != 0);
     }
 }
 
-void System_SetVSyncInternal(bool vsync) {
+void System_SetVSyncInternal(bool vsync)
+{
     scsystem.vsync = vsync;
     usetup.Display.VSync = vsync;
 }
 
-int System_GetWindowed() {
+int System_GetWindowed()
+{
     return scsystem.windowed;
 }
 
@@ -129,19 +137,23 @@ void System_SetWindowed(int windowed)
         engine_try_switch_windowed_gfxmode();
 }
 
-int System_GetSupportsGammaControl() {
+int System_GetSupportsGammaControl()
+{
     return gfxDriver->SupportsGammaControl();
 }
 
-int System_GetGamma() {
+int System_GetGamma()
+{
     return play.gamma_adjustment;
 }
 
-void System_SetGamma(int newValue) {
+void System_SetGamma(int newValue)
+{
     if ((newValue < 0) || (newValue > 200))
         quitprintf("!System.Gamma: value must be between 0-200 (not %d)", newValue);
 
-    if (play.gamma_adjustment != newValue) {
+    if (play.gamma_adjustment != newValue)
+    {
         debug_script_log("Gamma control set to %d", newValue);
         play.gamma_adjustment = newValue;
 
@@ -155,20 +167,21 @@ int System_GetAudioChannelCount()
     return game.numGameChannels;
 }
 
-ScriptAudioChannel* System_GetAudioChannels(int index)
+ScriptAudioChannel *System_GetAudioChannels(int index)
 {
     if ((index < 0) || (index >= game.numGameChannels))
-        quitprintf("!System.AudioChannels: invalid sound channel index %d, supported %d - %d", index, 0, game.numGameChannels - 1);
+        quitprintf("!System.AudioChannels: invalid sound channel index %d, supported %d - %d", index, 0,
+                   game.numGameChannels - 1);
 
     return &scrAudioChannel[index];
 }
 
-int System_GetVolume() 
+int System_GetVolume()
 {
     return play.audio_master_volume;
 }
 
-void System_SetVolume(int newvol) 
+void System_SetVolume(int newvol)
 {
     if ((newvol < 0) || (newvol > 100))
         quit("!System.Volume: invalid volume - must be from 0-100");
@@ -181,7 +194,7 @@ void System_SetVolume(int newvol)
     audio_core_set_master_volume(newvol_f);
 }
 
-const char* System_GetRuntimeInfo()
+const char *System_GetRuntimeInfo()
 {
     String runtimeInfo = GetRuntimeInfo();
 
@@ -202,11 +215,12 @@ int System_GetEngineInteger(int value_id, int index)
 {
     int value = 0;
     if (!GetEngineInteger(value, static_cast<EngineValueID>(value_id), index))
-        debug_script_error("System.GetEngineInteger: undefined engine value %d (#%d), or not an integer value", value_id, index);
+        debug_script_error("System.GetEngineInteger: undefined engine value %d (#%d), or not an integer value",
+                           value_id, index);
     return value;
 }
 
-const char* System_GetEngineString(int value_id, int index)
+const char *System_GetEngineString(int value_id, int index)
 {
     String value;
     if (!GetEngineString(value, static_cast<EngineValueID>(value_id), index))
@@ -218,14 +232,10 @@ bool GetEngineInteger(int &value, EngineValueID value_id, int index)
 {
     switch (value_id)
     {
-    case ENGINE_VALUE_I_SPRCACHE_MAXNORMAL:
-        value = static_cast<int>(spriteset.GetMaxCacheSize() / 1024u); return true;
-    case ENGINE_VALUE_I_SPRCACHE_NORMAL:
-        value = static_cast<int>(spriteset.GetCacheSize() / 1024u); return true;
-    case ENGINE_VALUE_I_SPRCACHE_LOCKED:
-        value = static_cast<int>(spriteset.GetLockedSize() / 1024u); return true;
-    case ENGINE_VALUE_I_SPRCACHE_EXTERNAL:
-        value = static_cast<int>(spriteset.GetExternalSize() / 1024u); return true;
+    case ENGINE_VALUE_I_SPRCACHE_MAXNORMAL: value = static_cast<int>(spriteset.GetMaxCacheSize() / 1024u); return true;
+    case ENGINE_VALUE_I_SPRCACHE_NORMAL: value = static_cast<int>(spriteset.GetCacheSize() / 1024u); return true;
+    case ENGINE_VALUE_I_SPRCACHE_LOCKED: value = static_cast<int>(spriteset.GetLockedSize() / 1024u); return true;
+    case ENGINE_VALUE_I_SPRCACHE_EXTERNAL: value = static_cast<int>(spriteset.GetExternalSize() / 1024u); return true;
     case ENGINE_VALUE_I_TEXCACHE_MAXNORMAL: /* fall-through */
     case ENGINE_VALUE_I_TEXCACHE_NORMAL:
     {
@@ -238,8 +248,7 @@ bool GetEngineInteger(int &value, EngineValueID value_id, int index)
         default: return false; // should not happen...
         }
     }
-    case ENGINE_VALUE_I_FPS_MAX:
-        value = isTimerFpsMaxed() ? -1 : frames_per_second; return true;
+    case ENGINE_VALUE_I_FPS_MAX: value = isTimerFpsMaxed() ? -1 : frames_per_second; return true;
     case ENGINE_VALUE_I_FPS:
     {
         float fps = get_real_fps();
@@ -264,7 +273,7 @@ bool GetEngineString(AGS::Common::String &value, EngineValueID value_id, int ind
         {
             DisplayMode mode = gfxDriver->GetDisplayMode();
             value = String::FromFormat("%d x %d %d-bit %s", mode.Width, mode.Height, mode.ColorDepth,
-                (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")));
+                                       (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")));
         }
         return true;
     case ENGINE_VALUE_S_GFXRENDERER: value = (gfxDriver ? gfxDriver->GetDriverName() : ""); return true;
@@ -314,7 +323,8 @@ String GetEngineValueName(EngineValueID value_id)
     }
 }
 
-bool System_GetDisplayFPS() {
+bool System_GetDisplayFPS()
+{
     return display_fps != kFPS_Hide;
 }
 
@@ -376,7 +386,7 @@ RuntimeScriptValue Sc_System_SetGamma(const RuntimeScriptValue *params, int32_t 
     API_SCALL_VOID_PINT(System_SetGamma);
 }
 
-// int () 
+// int ()
 RuntimeScriptValue Sc_System_GetHardwareAcceleration(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(System_GetHardwareAcceleration);
@@ -494,12 +504,12 @@ RuntimeScriptValue Sc_System_GetEngineString(const RuntimeScriptValue *params, i
     API_SCALL_OBJ_PINT2(const char, myScriptStringImpl, System_GetEngineString);
 }
 
-RuntimeScriptValue Sc_System_GetDisplayFPS(const RuntimeScriptValue* params, int32_t param_count)
+RuntimeScriptValue Sc_System_GetDisplayFPS(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_BOOL(System_GetDisplayFPS);
 }
 
-RuntimeScriptValue Sc_System_SetDisplayFPS(const RuntimeScriptValue* params, int32_t param_count)
+RuntimeScriptValue Sc_System_SetDisplayFPS(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID_PBOOL(System_SetDisplayFPS);
 }
@@ -520,38 +530,38 @@ void ScPl_System_Log(int message_type, const char *texx, ...)
 void RegisterSystemAPI()
 {
     ScFnRegister system_api[] = {
-        { "System::get_AudioChannelCount",    API_FN_PAIR(System_GetAudioChannelCount) },
-        { "System::geti_AudioChannels",       API_FN_PAIR(System_GetAudioChannels) },
-        { "System::get_CapsLock",             API_FN_PAIR(System_GetCapsLock) },
-        { "System::get_ColorDepth",           API_FN_PAIR(System_GetColorDepth) },
-        { "System::get_FPS",                  API_FN_PAIR(System_GetFPS) },
-        { "System::get_Gamma",                API_FN_PAIR(System_GetGamma) },
-        { "System::set_Gamma",                API_FN_PAIR(System_SetGamma) },
-        { "System::get_HardwareAcceleration", API_FN_PAIR(System_GetHardwareAcceleration) },
-        { "System::get_HasInputFocus",        API_FN_PAIR(System_GetHasInputFocus) },
-        { "System::get_LocaleName",           API_FN_PAIR(System_GetLocaleName) },
-        { "System::get_NumLock",              API_FN_PAIR(System_GetNumLock) },
-        { "System::get_OperatingSystem",      API_FN_PAIR(System_GetOS) },
-        { "System::get_RenderAtScreenResolution", API_FN_PAIR(System_GetRenderAtScreenResolution) },
-        { "System::set_RenderAtScreenResolution", API_FN_PAIR(System_SetRenderAtScreenResolution) },
-        { "System::get_RuntimeInfo",          API_FN_PAIR(System_GetRuntimeInfo) },
-        { "System::get_ScrollLock",           API_FN_PAIR(System_GetScrollLock) },
-        { "System::get_SupportsGammaControl", API_FN_PAIR(System_GetSupportsGammaControl) },
-        { "System::get_Version",              API_FN_PAIR(System_GetVersion) },
-        { "SystemInfo::get_Version",          API_FN_PAIR(System_GetVersion) },
-        { "System::get_Volume",               API_FN_PAIR(System_GetVolume) },
-        { "System::set_Volume",               API_FN_PAIR(System_SetVolume) },
-        { "System::get_VSync",                API_FN_PAIR(System_GetVsync) },
-        { "System::set_VSync",                API_FN_PAIR(System_SetVsync) },
-        { "System::get_Windowed",             API_FN_PAIR(System_GetWindowed) },
-        { "System::set_Windowed",             API_FN_PAIR(System_SetWindowed) },
-        
-        { "System::SaveConfigToFile",         Sc_System_SaveConfigToFile, save_runtime_config_file },
-        { "System::Log^102",                  Sc_System_Log, ScPl_System_Log },
-        { "System::GetEngineInteger^2",       API_FN_PAIR(System_GetEngineInteger) },
-        { "System::GetEngineString^2",        API_FN_PAIR(System_GetEngineString) },
-        { "System::get_DisplayFPS",           API_FN_PAIR(System_GetDisplayFPS) },
-        { "System::set_DisplayFPS",           API_FN_PAIR(System_SetDisplayFPS) },
+        {"System::get_AudioChannelCount", API_FN_PAIR(System_GetAudioChannelCount)},
+        {"System::geti_AudioChannels", API_FN_PAIR(System_GetAudioChannels)},
+        {"System::get_CapsLock", API_FN_PAIR(System_GetCapsLock)},
+        {"System::get_ColorDepth", API_FN_PAIR(System_GetColorDepth)},
+        {"System::get_FPS", API_FN_PAIR(System_GetFPS)},
+        {"System::get_Gamma", API_FN_PAIR(System_GetGamma)},
+        {"System::set_Gamma", API_FN_PAIR(System_SetGamma)},
+        {"System::get_HardwareAcceleration", API_FN_PAIR(System_GetHardwareAcceleration)},
+        {"System::get_HasInputFocus", API_FN_PAIR(System_GetHasInputFocus)},
+        {"System::get_LocaleName", API_FN_PAIR(System_GetLocaleName)},
+        {"System::get_NumLock", API_FN_PAIR(System_GetNumLock)},
+        {"System::get_OperatingSystem", API_FN_PAIR(System_GetOS)},
+        {"System::get_RenderAtScreenResolution", API_FN_PAIR(System_GetRenderAtScreenResolution)},
+        {"System::set_RenderAtScreenResolution", API_FN_PAIR(System_SetRenderAtScreenResolution)},
+        {"System::get_RuntimeInfo", API_FN_PAIR(System_GetRuntimeInfo)},
+        {"System::get_ScrollLock", API_FN_PAIR(System_GetScrollLock)},
+        {"System::get_SupportsGammaControl", API_FN_PAIR(System_GetSupportsGammaControl)},
+        {"System::get_Version", API_FN_PAIR(System_GetVersion)},
+        {"SystemInfo::get_Version", API_FN_PAIR(System_GetVersion)},
+        {"System::get_Volume", API_FN_PAIR(System_GetVolume)},
+        {"System::set_Volume", API_FN_PAIR(System_SetVolume)},
+        {"System::get_VSync", API_FN_PAIR(System_GetVsync)},
+        {"System::set_VSync", API_FN_PAIR(System_SetVsync)},
+        {"System::get_Windowed", API_FN_PAIR(System_GetWindowed)},
+        {"System::set_Windowed", API_FN_PAIR(System_SetWindowed)},
+
+        {"System::SaveConfigToFile", Sc_System_SaveConfigToFile, save_runtime_config_file},
+        {"System::Log^102", Sc_System_Log, ScPl_System_Log},
+        {"System::GetEngineInteger^2", API_FN_PAIR(System_GetEngineInteger)},
+        {"System::GetEngineString^2", API_FN_PAIR(System_GetEngineString)},
+        {"System::get_DisplayFPS", API_FN_PAIR(System_GetDisplayFPS)},
+        {"System::set_DisplayFPS", API_FN_PAIR(System_SetDisplayFPS)},
     };
 
     ccAddExternalFunctions(system_api);

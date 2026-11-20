@@ -26,7 +26,7 @@ public:
     void SetID(int id) { _id = id; }
     // Reset gamepad index to indicate that this reference is no longer valid
     void Invalidate() { _id = -1; }
-    inline bool IsInvalid() const {return _id == -1; }
+    inline bool IsInvalid() const { return _id == -1; }
 
     int Dispose(void *address, bool force) override;
     const char *GetType() override;

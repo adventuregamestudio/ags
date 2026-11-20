@@ -24,6 +24,7 @@ struct ScriptDrawingSurface final : AGSCCDynamicObject
 {
     using Bitmap = AGS::Common::Bitmap;
     using BlendMode = AGS::Common::BlendMode;
+
 public:
     // These numbers and types are used to determine the source of this drawing surface;
     // only one of them can be valid for this surface.

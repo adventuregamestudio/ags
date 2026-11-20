@@ -38,13 +38,13 @@ extern CCWalkbehind ccDynamicWalkbehind;
 struct WalkBehindColumn
 {
     bool Exists = false; // whether any WB area is in this column
-    int Y1 = 0, Y2 = 0; // WB top and bottom Y coords
+    int Y1 = 0, Y2 = 0;  // WB top and bottom Y coords
 };
 
 std::vector<WalkBehindColumn> walkBehindCols; // precalculated WB positions
-Rect walkBehindAABB[MAX_WALK_BEHINDS]; // WB bounding box
-int walkBehindsCachedForBgNum = -1; // WB textures are for this background
-bool noWalkBehindsAtAll = false; // quick report that no WBs in this room
+Rect walkBehindAABB[MAX_WALK_BEHINDS];        // WB bounding box
+int walkBehindsCachedForBgNum = -1;           // WB textures are for this background
+bool noWalkBehindsAtAll = false;              // quick report that no WBs in this room
 bool walk_behind_baselines_changed = false;
 
 
@@ -53,7 +53,7 @@ void walkbehinds_generate_sprites()
 {
     const Bitmap *mask = thisroom.WalkBehindMask.get();
     const Bitmap *bg = thisroom.BgImages[play.bg_frame].get();
-    
+
     const int coldepth = bg->GetColorDepth();
     Bitmap wbbmp; // temp buffer
     // Iterate through walk-behinds and generate a texture for each of them
@@ -72,19 +72,18 @@ void walkbehinds_generate_sprites()
                 uint8_t *dst_line = wbbmp.GetScanLineForWriting(y - sy);
                 for (int x = sx; x <= ex; ++x)
                 {
-                    if (check_line[x] != wb) continue;
+                    if (check_line[x] != wb)
+                        continue;
                     switch (coldepth)
                     {
-                    case 8:
-                        dst_line[(x - sx)] = src_line[x];
-                        break;
+                    case 8: dst_line[(x - sx)] = src_line[x]; break;
                     case 16:
-                        reinterpret_cast<uint16_t*>(dst_line)[(x - sx)] =
-                            reinterpret_cast<const uint16_t*>(src_line)[x];
+                        reinterpret_cast<uint16_t *>(dst_line)[(x - sx)] =
+                            reinterpret_cast<const uint16_t *>(src_line)[x];
                         break;
                     case 32:
-                        reinterpret_cast<uint32_t*>(dst_line)[(x - sx)] =
-                            reinterpret_cast<const uint32_t*>(src_line)[x];
+                        reinterpret_cast<uint32_t *>(dst_line)[(x - sx)] =
+                            reinterpret_cast<const uint32_t *>(src_line)[x];
                         break;
                     default: assert(0); break;
                     }
@@ -110,42 +109,33 @@ bool walkbehinds_cropout(Bitmap *sprit, int sprx, int spry, int basel)
 
     bool pixels_changed = false;
     // pass along the sprite's pixels, but skip those that lie outside the mask
-    for (int x = std::max(0, 0 - sprx);
-        (x < sprit->GetWidth()) && (x + sprx < thisroom.WalkBehindMask->GetWidth()); ++x)
+    for (int x = std::max(0, 0 - sprx); (x < sprit->GetWidth()) && (x + sprx < thisroom.WalkBehindMask->GetWidth());
+         ++x)
     {
         // select the WB column at this x
         const auto &wbcol = walkBehindCols[x + sprx];
         // skip if no area, or sprite lies outside of all areas in this column
-        if ((!wbcol.Exists) ||
-            (wbcol.Y2 <= spry) ||
-            (wbcol.Y1 > spry + sprit->GetHeight()))
+        if ((!wbcol.Exists) || (wbcol.Y2 <= spry) || (wbcol.Y1 > spry + sprit->GetHeight()))
             continue;
 
         // ensure we only check within the valid areas (between Y1 and Y2)
         // we assume that Y1 and Y2 are always within the mask
-        for (int y = std::max(0, wbcol.Y1 - spry);
-            (y < sprit->GetHeight()) && (y + spry < wbcol.Y2); ++y)
+        for (int y = std::max(0, wbcol.Y1 - spry); (y < sprit->GetHeight()) && (y + spry < wbcol.Y2); ++y)
         {
             const int wb = thisroom.WalkBehindMask->GetScanLine(y + spry)[x + sprx];
-            if (wb < 1) continue; // "no area"
-            if (croom->walkbehind_base[wb] <= basel) continue;
+            if (wb < 1)
+                continue; // "no area"
+            if (croom->walkbehind_base[wb] <= basel)
+                continue;
 
             pixels_changed = true;
             uint8_t *dst_line = sprit->GetScanLineForWriting(y);
             switch (spcoldep)
             {
-            case 8:
-                dst_line[x] = maskcol;
-                break;
-            case 16:
-                reinterpret_cast<uint16_t*>(dst_line)[x] = maskcol;
-                break;
-            case 32:
-                reinterpret_cast<uint32_t*>(dst_line)[x] = maskcol;
-                break;
-            default:
-                assert(0);
-                break;
+            case 8: dst_line[x] = maskcol; break;
+            case 16: reinterpret_cast<uint16_t *>(dst_line)[x] = maskcol; break;
+            case 32: reinterpret_cast<uint32_t *>(dst_line)[x] = maskcol; break;
+            default: assert(0); break;
             }
         }
     }
@@ -215,7 +205,7 @@ ScriptWalkbehind *Walkbehind_GetAtScreenXY(int x, int y)
 
 ScriptWalkbehind *Walkbehind_GetByName(const char *name)
 {
-    return static_cast<ScriptWalkbehind*>(ccGetScriptObjectAddress(name, ccDynamicWalkbehind.GetType()));
+    return static_cast<ScriptWalkbehind *>(ccGetScriptObjectAddress(name, ccDynamicWalkbehind.GetType()));
 }
 
 int Walkbehind_GetID(ScriptWalkbehind *wb)
@@ -298,15 +288,15 @@ RuntimeScriptValue Sc_Walkbehind_GetScriptName(void *self, const RuntimeScriptVa
 void RegisterWalkbehindAPI()
 {
     ScFnRegister walkbehind_api[] = {
-        { "Walkbehind::GetAtRoomXY^2",       API_FN_PAIR(Walkbehind_GetAtRoomXY) },
-        { "Walkbehind::GetAtScreenXY^2",     API_FN_PAIR(Walkbehind_GetAtScreenXY) },
-        { "Walkbehind::GetByScriptName^1",   API_FN_PAIR(Walkbehind_GetByName) },
-        { "Walkbehind::GetDrawingSurface",   API_FN_PAIR(GetDrawingSurfaceForWalkbehind) },
+        {"Walkbehind::GetAtRoomXY^2", API_FN_PAIR(Walkbehind_GetAtRoomXY)},
+        {"Walkbehind::GetAtScreenXY^2", API_FN_PAIR(Walkbehind_GetAtScreenXY)},
+        {"Walkbehind::GetByScriptName^1", API_FN_PAIR(Walkbehind_GetByName)},
+        {"Walkbehind::GetDrawingSurface", API_FN_PAIR(GetDrawingSurfaceForWalkbehind)},
 
-        { "Walkbehind::get_Baseline",        API_FN_PAIR(Walkbehind_GetBaseline) },
-        { "Walkbehind::set_Baseline",        API_FN_PAIR(Walkbehind_SetBaseline) },
-        { "Walkbehind::get_ID",              API_FN_PAIR(Walkbehind_GetID) },
-        { "Walkbehind::get_ScriptName",      API_FN_PAIR(Walkbehind_GetScriptName) },
+        {"Walkbehind::get_Baseline", API_FN_PAIR(Walkbehind_GetBaseline)},
+        {"Walkbehind::set_Baseline", API_FN_PAIR(Walkbehind_SetBaseline)},
+        {"Walkbehind::get_ID", API_FN_PAIR(Walkbehind_GetID)},
+        {"Walkbehind::get_ScriptName", API_FN_PAIR(Walkbehind_GetScriptName)},
     };
 
     ccAddExternalFunctions(walkbehind_api);

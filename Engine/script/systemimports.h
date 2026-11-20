@@ -32,6 +32,7 @@
 class ScriptSymbolsMap
 {
     using String = AGS::Common::String;
+
 public:
     const char ImportSeparator = '^';
     const char ScriptExportSeparator = '$';
@@ -59,7 +60,13 @@ private:
     std::map<String, uint32_t> _lookup;
 };
 
-namespace AGS { namespace Engine { class RuntimeScript; } }
+namespace AGS
+{
+namespace Engine
+{
+class RuntimeScript;
+}
+} // namespace AGS
 
 struct ScriptImport
 {
@@ -67,13 +74,14 @@ struct ScriptImport
     using RuntimeScript = AGS::Engine::RuntimeScript;
 
     ScriptImport() = default;
-    ScriptImport(const String &name, const RuntimeScriptValue &rval, const RuntimeScript *script, ScriptValueHint val_hint = kScValHint_Unknown);
+    ScriptImport(const String &name, const RuntimeScriptValue &rval, const RuntimeScript *script,
+                 ScriptValueHint val_hint = kScValHint_Unknown);
 
-    String              Name;
-    RuntimeScriptValue  Value;
+    String Name;
+    RuntimeScriptValue Value;
     // Numeric index of a runtime script to which this import belongs
-    int32_t             ScriptID = -1;
-    ScriptValueHint     ValueHint = kScValHint_Unknown;
+    int32_t ScriptID = -1;
+    ScriptValueHint ValueHint = kScValHint_Unknown;
     // Fast access reference to the script
     const RuntimeScript *ScriptPtr = nullptr;
 };
@@ -82,11 +90,13 @@ class SystemImports
 {
     using String = AGS::Common::String;
     using RuntimeScript = AGS::Engine::RuntimeScript;
+
 public:
     SystemImports() = default;
 
     // Adds a resolved import under given name
-    uint32_t Add(const String &name, const RuntimeScriptValue &value, const RuntimeScript *script, ScriptValueHint val_hint = kScValHint_Unknown);
+    uint32_t Add(const String &name, const RuntimeScriptValue &value, const RuntimeScript *script,
+                 ScriptValueHint val_hint = kScValHint_Unknown);
     // Removes an import
     void Remove(const String &name);
     // Removes all imports registered for the given script instance
@@ -113,4 +123,4 @@ private:
     ScriptSymbolsMap _lookup;
 };
 
-#endif  // __CC_SYSTEMIMPORTS_H
+#endif // __CC_SYSTEMIMPORTS_H

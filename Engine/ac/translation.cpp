@@ -91,24 +91,29 @@ void init_font_overrides(const Translation &trans)
         {
             if (static_cast<uint32_t>(use_font_id) < game.fonts.size())
             {
-                Debug::Printf("Init font's %d override using replacement font %d and provided parameters", font_id, use_font_id);
+                Debug::Printf("Init font's %d override using replacement font %d and provided parameters", font_id,
+                              use_font_id);
                 FontInfo use_finfo = construct_font_override(&game.fonts[use_font_id], finfo, fields);
                 load_game_font(font_id, use_finfo, loaded_game_file_version);
             }
             else
             {
-                Debug::Printf(kDbgMsg_Error, "ERROR: can't init font's %d override: replacement font %d does not exist", font_id, use_font_id);
+                Debug::Printf(kDbgMsg_Error, "ERROR: can't init font's %d override: replacement font %d does not exist",
+                              font_id, use_font_id);
             }
         }
         else if (!finfo.FileName.IsEmpty())
         {
-            Debug::Printf("Init font's %d override using file %s and provided parameters", font_id, finfo.FileName.GetCStr());
+            Debug::Printf("Init font's %d override using file %s and provided parameters", font_id,
+                          finfo.FileName.GetCStr());
             FontInfo use_finfo = construct_font_override(nullptr, finfo, fields);
             load_game_font(font_id, use_finfo, loaded_game_file_version);
         }
         else
         {
-            Debug::Printf(kDbgMsg_Error, "ERROR: can't init font's %d override: neither replacement font ID nor filename provided", font_id);
+            Debug::Printf(kDbgMsg_Error,
+                          "ERROR: can't init font's %d override: neither replacement font ID nor filename provided",
+                          font_id);
         }
     }
 
@@ -173,9 +178,8 @@ bool init_translation(const String &lang, const String &fallback_lang)
     // Process errors
     if (!err)
     {
-        Debug::Printf(kDbgMsg_Error, "Failed to read translation file %s:\n\t%s",
-            trans_filename.GetCStr(),
-            err->FullMessage().GetCStr());
+        Debug::Printf(kDbgMsg_Error, "Failed to read translation file %s:\n\t%s", trans_filename.GetCStr(),
+                      err->FullMessage().GetCStr());
         close_translation();
         if (!fallback_lang.IsEmpty())
         {
@@ -215,7 +219,8 @@ bool init_translation(const String &lang, const String &fallback_lang)
     String encoding_msg = !encoding.IsEmpty() ? encoding : "presume ASCII";
     Debug::Printf("Translation's encoding: %s, language: %s", encoding_msg.GetCStr(), language.GetCStr());
     if (encoding.CompareNoCase("utf-8") != 0)
-        Debug::Printf(kDbgMsg_Warn, "WARNING: translation's text encoding is not UTF-8, and may be displayed incorrectly");
+        Debug::Printf(kDbgMsg_Warn,
+                      "WARNING: translation's text encoding is not UTF-8, and may be displayed incorrectly");
 
     play.SetGameTextLanguage(language);
     if (trans.ParserDict.GetWords().size() > 0)
@@ -231,7 +236,8 @@ bool init_translation(const String &lang, const String &fallback_lang)
         SetTranslationTextParser(CreateTextParser(game.dict.get(), true, play.GetTextLocaleName()));
     }
 
-    Debug::Printf(kDbgMsg_Info, "Translation initialized: %s (format: %s)", trans_name.GetCStr(), encoding_msg.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Translation initialized: %s (format: %s)", trans_name.GetCStr(),
+                  encoding_msg.GetCStr());
     return true;
 }
 
@@ -245,7 +251,7 @@ String get_translation_path()
     return trans_filename;
 }
 
-const StringMap& get_translation_tree()
+const StringMap &get_translation_tree()
 {
     return trans.Dict;
 }

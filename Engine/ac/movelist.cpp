@@ -46,12 +46,8 @@ void MoveList::Complete()
     switch (run_params.Flow)
     {
     case kAnimFlow_Once:
-    case kAnimFlow_OnceAndBack:
-        from = run_params.IsForward() ? pos[GetNumStages() - 1] : pos[0];
-        break;
-    case kAnimFlow_OnceAndReset:
-        from = run_params.IsForward() ? pos[0] : pos[GetNumStages() - 1];
-        break;
+    case kAnimFlow_OnceAndBack: from = run_params.IsForward() ? pos[GetNumStages() - 1] : pos[0]; break;
+    case kAnimFlow_OnceAndReset: from = run_params.IsForward() ? pos[0] : pos[GetNumStages() - 1]; break;
     }
 
     curpos = from;
@@ -98,7 +94,7 @@ bool MoveList::Forward(bool do_step)
 {
     // Safety fix, in case onpart became invalid
     if (std::isnan(onpart) || onpart < 0.f)
-       onpart = 0.f;
+        onpart = 0.f;
 
     if (do_step)
     {
@@ -141,8 +137,7 @@ bool MoveList::Backward(bool do_step)
 bool MoveList::NextStage()
 {
     run_params.IsForward() ? onstage++ : onstage--;
-    if (((onstage < 0) || (onstage >= GetNumStages() - 1))
-        && OnPathCompleted())
+    if (((onstage < 0) || (onstage >= GetNumStages() - 1)) && OnPathCompleted())
     {
         Complete();
         return false;
@@ -185,9 +180,7 @@ Pointf MoveList::CalcCurrentPos() const
     const float move_dir_factor = run_params.IsForward() ? 1.f : -1.f;
     const float xpermove = permove[onstage].X * move_dir_factor;
     const float ypermove = permove[onstage].Y * move_dir_factor;
-    return Pointf(
-        from.X + (xpermove * onpart),
-        from.Y + (ypermove * onpart));
+    return Pointf(from.X + (xpermove * onpart), from.Y + (ypermove * onpart));
 }
 
 float MoveList::CalcStagePartsNum(uint32_t stage) const
@@ -205,8 +198,10 @@ float MoveList::CalcPartsFromProgress(uint32_t stage, float progress) const
     const Point &stage_end = pos[stage + 1];
 
     progress = Math::Clamp(progress, 0.f, 1.f);
-    const float xparts = (permove[stage].X != 0.f) ? std::fabs(((stage_end.X - pos[stage].X) * progress) / permove[stage].X) : 0.f;
-    const float yparts = (permove[stage].Y != 0.f) ? std::fabs(((stage_end.Y - pos[stage].Y) * progress) / permove[stage].Y) : 0.f;
+    const float xparts =
+        (permove[stage].X != 0.f) ? std::fabs(((stage_end.X - pos[stage].X) * progress) / permove[stage].X) : 0.f;
+    const float yparts =
+        (permove[stage].Y != 0.f) ? std::fabs(((stage_end.Y - pos[stage].Y) * progress) / permove[stage].Y) : 0.f;
     return std::max(xparts, yparts);
 }
 
@@ -299,9 +294,7 @@ void MoveList::OnPathRevertedBack()
     switch (run_params.Flow)
     {
     case kAnimFlow_Once:
-    case kAnimFlow_OnceAndReset:
-        ResetToBegin();
-        break;
+    case kAnimFlow_OnceAndReset: ResetToBegin(); break;
     case kAnimFlow_OnceAndBack:
         if (run_params.Direction == run_params.InitialDirection)
         {
@@ -313,9 +306,7 @@ void MoveList::OnPathRevertedBack()
             run_params.Direction = run_params.IsForward() ? kAnimDirBackward : kAnimDirForward;
         }
         break;
-    case kAnimFlow_Repeat:
-        ResetToEnd();
-        break;
+    case kAnimFlow_Repeat: ResetToEnd(); break;
     case kAnimFlow_RepeatAlternate:
         ResetToBegin();
         run_params.Direction = run_params.IsForward() ? kAnimDirBackward : kAnimDirForward;
@@ -359,8 +350,7 @@ HSaveError MoveList::ReadFromSavegame(Stream *in, int32_t cmp_ver)
     }
 
     // Stage flags
-    if ((cmp_ver >= kMoveSvgVersion_36208 && cmp_ver < kMoveSvgVersion_400) ||
-        cmp_ver >= kMoveSvgVersion_40016)
+    if ((cmp_ver >= kMoveSvgVersion_36208 && cmp_ver < kMoveSvgVersion_400) || cmp_ver >= kMoveSvgVersion_40016)
     {
         for (uint32_t i = 0; i < numstage; ++i)
         {
@@ -563,9 +553,9 @@ static void CalculateMoveStage(MoveList &mls, uint32_t index, float move_speed_x
     mls.permove[index].Y = newymove;
 }
 
-static bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path,
-    float move_speed_x, float move_speed_y, const std::vector<Pointf> &move_speeds,
-    uint8_t stage_flag, const RunPathParams &run_params)
+static bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, float move_speed_x, float move_speed_y,
+                              const std::vector<Pointf> &move_speeds, uint8_t stage_flag,
+                              const RunPathParams &run_params)
 {
     MoveList mlist;
     mlist.pos = path;
@@ -599,7 +589,7 @@ static bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path,
 }
 
 bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, float move_speed_x, float move_speed_y,
-    uint8_t stage_flag, const RunPathParams &run_params)
+                       uint8_t stage_flag, const RunPathParams &run_params)
 {
     assert(!path.empty());
     assert(move_speed_x != 0.f || move_speed_y != 0.f);
@@ -609,8 +599,8 @@ bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, float move
     return CalculateMoveList(mls, path, move_speed_x, move_speed_y, std::vector<Pointf>(), stage_flag, run_params);
 }
 
-bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path,
-    const std::vector<Pointf> &move_speeds, uint8_t stage_flag, const RunPathParams &run_params)
+bool CalculateMoveList(MoveList &mls, const std::vector<Point> &path, const std::vector<Pointf> &move_speeds,
+                       uint8_t stage_flag, const RunPathParams &run_params)
 {
     assert(!path.empty());
     assert(move_speeds.size() >= path.size() - 1);
@@ -631,7 +621,7 @@ bool AddWaypointDirect(MoveList &mls, int x, int y, float move_speed_x, float mo
     const float fspeed_x = InputSpeedToVelocity(move_speed_x);
     const float fspeed_y = InputSpeedToVelocity(move_speed_y);
 
-    mls.pos.emplace_back( x, y );
+    mls.pos.emplace_back(x, y);
     mls.permove.resize(mls.pos.size());
     mls.stageflags.resize(mls.pos.size(), stage_flag);
     mls.stageflags[mls.GetNumStages() - 2] = stage_flag;
@@ -653,9 +643,10 @@ void RecalculateMoveSpeeds(MoveList &mls, float old_speed_x, float old_speed_y, 
     {
         // First three cases where the speed is a plain factor, therefore
         // we may simply divide on old one and multiple on a new one
-        if ((old_movspeed_x == old_movspeed_y) && (new_movspeed_x == new_movspeed_y) // diagonal move at straight 45 degrees
-            || (mls.permove[i].X == 0) // straight vertical move
-            || (mls.permove[i].Y == 0)) // straight horizontal move
+        if ((old_movspeed_x == old_movspeed_y) &&
+                (new_movspeed_x == new_movspeed_y) // diagonal move at straight 45 degrees
+            || (mls.permove[i].X == 0)             // straight vertical move
+            || (mls.permove[i].Y == 0))            // straight horizontal move
         {
             mls.permove[i].X = (mls.permove[i].X * new_movspeed_x) / old_movspeed_x;
             mls.permove[i].Y = (mls.permove[i].Y * new_movspeed_y) / old_movspeed_y;

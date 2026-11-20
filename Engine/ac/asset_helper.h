@@ -21,15 +21,22 @@
 #include <utility>
 #include "data/assetmanager.h"
 
-namespace AGS { namespace Common {class Stream;} }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using AGS::Common::AssetPath;
 using AGS::Common::Stream;
 using AGS::Common::String;
 
 // Looks for valid asset library everywhere and returns path, or empty string if failed
-String  find_assetlib(const String &filename);
+String find_assetlib(const String &filename);
 
-extern "C" {
+extern "C"
+{
     struct PACKFILE; // Allegro 4's own stream type
 }
 

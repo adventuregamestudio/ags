@@ -22,9 +22,9 @@
 
 enum MoveResult
 {
-    kMoveResult_Abort     = -1,
-    kMoveResult_Continue  = 0,
-    kMoveResult_Done      = 1,
+    kMoveResult_Abort = -1,
+    kMoveResult_Continue = 0,
+    kMoveResult_Done = 1,
     kMoveResult_NextStage = 2
 };
 

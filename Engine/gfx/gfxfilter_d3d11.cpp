@@ -10,8 +10,7 @@ namespace Engine
 namespace D3D11
 {
 
-const GfxFilterInfo D3D11GfxFilter::FilterInfo =
-    GfxFilterInfo("StdScale", "Nearest-neighbour");
+const GfxFilterInfo D3D11GfxFilter::FilterInfo = GfxFilterInfo("StdScale", "Nearest-neighbour");
 
 const GfxFilterInfo &D3D11GfxFilter::GetInfo() const
 {
@@ -25,7 +24,7 @@ int D3D11GfxFilter::GetSamplerStateForStandardSprite()
     return 0; // D3D11_FILTER_MIN_MAG_MIP_POINT
 }
 
-void D3D11GfxFilter::SetSamplerStateForStandardSprite(void* direct3dcontext)
+void D3D11GfxFilter::SetSamplerStateForStandardSprite(void *direct3dcontext)
 {
     // The D3D11 backend creates/binds the actual sampler in its driver.
     // This hook is intentionally a no-op unless the caller passes a
@@ -40,9 +39,7 @@ bool D3D11GfxFilter::NeedToColourEdgeLines()
 
 D3D11_FILTER D3D11GfxFilter::GetD3D11Filter(bool linear)
 {
-    return linear
-        ? D3D11_FILTER_MIN_MAG_MIP_LINEAR
-        : D3D11_FILTER_MIN_MAG_MIP_POINT;
+    return linear ? D3D11_FILTER_MIN_MAG_MIP_LINEAR : D3D11_FILTER_MIN_MAG_MIP_POINT;
 }
 
 } // namespace D3D11

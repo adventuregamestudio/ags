@@ -21,9 +21,9 @@
 #include "ac/wordsdictionary.h"
 
 int Parser_FindWordID(const char *wordToFind);
-const char* Parser_SaidUnknownWord();
+const char *Parser_SaidUnknownWord();
 void ParseText(const char *text);
-int Parser_Said(const char*checkwords);
+int Parser_Said(const char *checkwords);
 int SaidUnknownWord(char *buffer);
 
 //=============================================================================
@@ -33,9 +33,9 @@ class ITextParser
 public:
     enum PatternItemFlags
     {
-        kPatternItemOptional     = 0x1, // non-strict match expected
-        kPatternItemAltFirst     = 0x2, // first item of the alternatives sequence
-        kPatternItemAltNext      = 0x4  // next of the alternatives sequence
+        kPatternItemOptional = 0x1, // non-strict match expected
+        kPatternItemAltFirst = 0x2, // first item of the alternatives sequence
+        kPatternItemAltNext = 0x4   // next of the alternatives sequence
     };
 
     typedef std::vector<uint16_t> ParsedSentence;
@@ -44,14 +44,17 @@ public:
     virtual ~ITextParser() = default;
     virtual uint16_t FindWordInDictionary(const String &lookfor) const = 0;
     // Parses a simple sentence, e.g. a user input, and converts it to the word ID list
-    virtual bool ParseSentence(const String &src_text, ParsedSentence &words, size_t max_words, String *bad_parsed_word) = 0;
+    virtual bool ParseSentence(const String &src_text, ParsedSentence &words, size_t max_words,
+                               String *bad_parsed_word) = 0;
     // Parses input text and converts it into a pattern sequence, that may be matched with a user input
-    virtual bool ParsePattern(const String &src_text, ParsedPattern &pattern, size_t max_words, String *bad_parsed_word) = 0;
+    virtual bool ParsePattern(const String &src_text, ParsedPattern &pattern, size_t max_words,
+                              String *bad_parsed_word) = 0;
     // Matches the given pattern with the input sentence
     virtual bool MatchPattern(const ParsedSentence &input, const ParsedPattern &pattern) = 0;
 };
 
-std::unique_ptr<ITextParser> CreateTextParser(AGS::Common::WordsDictionary *dict, bool is_unicode, const String &locale_name);
+std::unique_ptr<ITextParser> CreateTextParser(AGS::Common::WordsDictionary *dict, bool is_unicode,
+                                              const String &locale_name);
 void SetBaseTextParser(std::unique_ptr<ITextParser> parser);
 void SetTranslationTextParser(std::unique_ptr<ITextParser> parser);
 ITextParser *GetBaseTextParser();

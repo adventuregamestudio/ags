@@ -45,27 +45,25 @@ void UpdateButtonState(const AnimatingGUIButton &abtn)
 {
     // Assign view frame as normal image and reset all the rest
     const auto &vf = views[abtn.view].loops[abtn.loop].frames[abtn.frame];
-    guibuts[abtn.buttonid].SetImages(
-        vf.pic, 0, 0, vf.flags, vf.xoffs, vf.yoffs);
+    guibuts[abtn.buttonid].SetImages(vf.pic, 0, 0, vf.flags, vf.xoffs, vf.yoffs);
 }
 
 void ABut_CheckViewFrame(AnimatingGUIButton &abtn)
 {
     ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(&guibuts[abtn.buttonid], &ccDynamicGUIButton));
-    CheckViewFrame(abtn.view, abtn.loop, abtn.frame, abtn.anim.AudioVolume, 0, 1000,
-        objevt, &guibuts[abtn.buttonid].GetEvents(), kButtonEvent_OnFrameEvent);
+    CheckViewFrame(abtn.view, abtn.loop, abtn.frame, abtn.anim.AudioVolume, 0, 1000, objevt,
+                   &guibuts[abtn.buttonid].GetEvents(), kButtonEvent_OnFrameEvent);
     UpdateButtonState(abtn);
 }
 
 bool Button_RunFrameEventImpl(GUIButton &btn, int view, int loop, int frame)
 {
     ObjectEvent objevt(kScTypeGame, RuntimeScriptValue().SetScriptObject(&btn, &ccDynamicGUIButton));
-    return RunViewFrameEvent(view, loop, frame,
-        objevt, &btn.GetEvents(), kButtonEvent_OnFrameEvent);
+    return RunViewFrameEvent(view, loop, frame, objevt, &btn.GetEvents(), kButtonEvent_OnFrameEvent);
 }
 
-void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
-    int blocking, int direction, int sframe, int volume)
+void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat, int blocking, int direction, int sframe,
+                    int volume)
 {
     int guin = butt->GetParentID();
     int objn = butt->GetID();
@@ -86,7 +84,8 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
     abtn.buttonid = but_id;
     abtn.view = view;
     abtn.loop = loop;
-    abtn.anim = ViewAnimateParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction), speed, volume);
+    abtn.anim =
+        ViewAnimateParams(static_cast<AnimFlowStyle>(repeat), static_cast<AnimFlowDirection>(direction), speed, volume);
     abtn.frame = SetFirstAnimFrame(view, loop, sframe, static_cast<AnimFlowDirection>(direction));
     abtn.wait = abtn.anim.Delay + views[abtn.view].loops[abtn.loop].frames[abtn.frame].speed;
     // launch into the first frame, and play the first frame's sound
@@ -104,35 +103,43 @@ void Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat,
     }
 }
 
-void Button_Animate4(GUIButton *butt, int view, int loop, int speed, int repeat) {
+void Button_Animate4(GUIButton *butt, int view, int loop, int speed, int repeat)
+{
     Button_Animate(butt, view, loop, speed, repeat, IN_BACKGROUND, FORWARDS, 0, 100 /* full volume */);
 }
 
-void Button_Animate7(GUIButton *butt, int view, int loop, int speed, int repeat,
-    int blocking, int direction, int sframe) {
+void Button_Animate7(GUIButton *butt, int view, int loop, int speed, int repeat, int blocking, int direction,
+                     int sframe)
+{
     Button_Animate(butt, view, loop, speed, repeat, blocking, direction, sframe, 100 /* full volume */);
 }
 
-const char* Button_GetText_New(GUIButton *butt) {
+const char *Button_GetText_New(GUIButton *butt)
+{
     return CreateNewScriptString(butt->GetText());
 }
 
-void Button_GetText(GUIButton *butt, char *buffer) {
+void Button_GetText(GUIButton *butt, char *buffer)
+{
     snprintf(buffer, MAX_MAXSTRLEN, "%s", butt->GetText().GetCStr());
 }
 
-void Button_SetText(GUIButton *butt, const char *newtx) {
-    if (butt->GetText() != newtx) {
+void Button_SetText(GUIButton *butt, const char *newtx)
+{
+    if (butt->GetText() != newtx)
+    {
         butt->SetText(newtx);
     }
 }
 
-void Button_SetFont(GUIButton *butt, int newFont) {
+void Button_SetFont(GUIButton *butt, int newFont)
+{
     newFont = ValidateFontNumber("Button.Font", newFont);
     butt->SetFont(newFont);
 }
 
-int Button_GetFont(GUIButton *butt) {
+int Button_GetFont(GUIButton *butt)
+{
     return butt->GetFont();
 }
 
@@ -174,18 +181,21 @@ void Button_SetColorStyle(GUIButton *butt, int style)
     }
 }
 
-int Button_GetClipImage(GUIButton *butt) {
+int Button_GetClipImage(GUIButton *butt)
+{
     return butt->IsClippingImage() ? 1 : 0;
 }
 
-void Button_SetClipImage(GUIButton *butt, int newval) {
+void Button_SetClipImage(GUIButton *butt, int newval)
+{
     if (butt->IsClippingImage() != (newval != 0))
     {
         butt->SetClipImage(newval != 0);
     }
 }
 
-int Button_GetGraphic(GUIButton *butt) {
+int Button_GetGraphic(GUIButton *butt)
+{
     // return currently displayed pic
     if (butt->GetCurrentImage() < 0)
         return butt->GetNormalImage();
@@ -252,7 +262,8 @@ void Button_SetPushedBorderColor(GUIButton *butt, int color)
     butt->SetPushedBorderColor(color);
 }
 
-int Button_GetMouseOverGraphic(GUIButton *butt) {
+int Button_GetMouseOverGraphic(GUIButton *butt)
+{
     return butt->GetMouseOverImage();
 }
 
@@ -270,7 +281,8 @@ void Button_SetMouseOverGraphic(GUIButton *butt, int slotn)
     FindAndRemoveButtonAnimation(butt->GetParentID(), butt->GetID());
 }
 
-int Button_GetNormalGraphic(GUIButton *butt) {
+int Button_GetNormalGraphic(GUIButton *butt)
+{
     return butt->GetNormalImage();
 }
 
@@ -301,7 +313,8 @@ void Button_SetNormalGraphic(GUIButton *butt, int slotn)
     FindAndRemoveButtonAnimation(butt->GetParentID(), butt->GetID());
 }
 
-int Button_GetPushedGraphic(GUIButton *butt) {
+int Button_GetPushedGraphic(GUIButton *butt)
+{
     return butt->GetPushedImage();
 }
 
@@ -378,8 +391,7 @@ size_t GetAnimatingButtonCount()
 
 AnimatingGUIButton *GetAnimatingButtonByIndex(int idxn)
 {
-    return idxn >= 0 && (size_t)idxn < animbuts.size() ?
-        &animbuts[idxn] : nullptr;
+    return idxn >= 0 && (size_t)idxn < animbuts.size() ? &animbuts[idxn] : nullptr;
 }
 
 void AddButtonAnimation(const AnimatingGUIButton &abtn)
@@ -391,7 +403,8 @@ void AddButtonAnimation(const AnimatingGUIButton &abtn)
 bool UpdateAnimatingButton(int bu)
 {
     AnimatingGUIButton &abtn = animbuts[bu];
-    if (abtn.wait > 0) {
+    if (abtn.wait > 0)
+    {
         abtn.wait--;
         return true;
     }
@@ -403,7 +416,8 @@ bool UpdateAnimatingButton(int bu)
     return true;
 }
 
-void StopButtonAnimation(int idxn) {
+void StopButtonAnimation(int idxn)
+{
     animbuts.erase(animbuts.begin() + idxn);
 }
 
@@ -627,12 +641,14 @@ RuntimeScriptValue Sc_Button_GetIsPushed(void *self, const RuntimeScriptValue *p
     API_OBJCALL_BOOL(GUIButton, Button_GetIsPushed);
 }
 
-RuntimeScriptValue Sc_Button_GetMouseOverBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Button_GetMouseOverBackgroundColor(void *self, const RuntimeScriptValue *params,
+                                                         int32_t param_count)
 {
     API_OBJCALL_INT(GUIButton, Button_GetMouseOverBackgroundColor);
 }
 
-RuntimeScriptValue Sc_Button_SetMouseOverBackgroundColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_Button_SetMouseOverBackgroundColor(void *self, const RuntimeScriptValue *params,
+                                                         int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(GUIButton, Button_SetMouseOverBackgroundColor);
 }
@@ -826,62 +842,62 @@ RuntimeScriptValue Sc_Button_GetAnimView(void *self, const RuntimeScriptValue *p
 void RegisterButtonAPI()
 {
     ScFnRegister button_api[] = {
-        { "Button::Animate^4",            API_FN_PAIR(Button_Animate4) },
-        { "Button::Animate^7",            API_FN_PAIR(Button_Animate7) },
-        { "Button::Animate^8",            API_FN_PAIR(Button_Animate) },
-        { "Button::Click^1",              API_FN_PAIR(Button_Click) },
-        { "Button::RunFrameEvent^3",      API_FN_PAIR(Button_RunFrameEvent) },
-        { "Button::GetText^1",            API_FN_PAIR(Button_GetText) },
-        { "Button::SetText^1",            API_FN_PAIR(Button_SetText) },
-        { "Button::get_TextAlignment",    API_FN_PAIR(Button_GetTextAlignment) },
-        { "Button::set_TextAlignment",    API_FN_PAIR(Button_SetTextAlignment) },
-        { "Button::get_TextPaddingHorizontal", API_FN_PAIR(Button_GetTextPaddingHorizontal) },
-        { "Button::set_TextPaddingHorizontal", API_FN_PAIR(Button_SetTextPaddingHorizontal) },
-        { "Button::get_TextPaddingVertical", API_FN_PAIR(Button_GetTextPaddingVertical) },
-        { "Button::set_TextPaddingVertical", API_FN_PAIR(Button_SetTextPaddingVertical) },
-        { "Button::get_WrapText",         API_FN_PAIR(Button_GetWrapText) },
-        { "Button::set_WrapText",         API_FN_PAIR(Button_SetWrapText) },
-        { "Button::get_Animating",        API_FN_PAIR(Button_IsAnimating) },
-        { "Button::get_ColorStyle",       API_FN_PAIR(Button_GetColorStyle) },
-        { "Button::set_ColorStyle",       API_FN_PAIR(Button_SetColorStyle) },
-        { "Button::get_ClipImage",        API_FN_PAIR(Button_GetClipImage) },
-        { "Button::set_ClipImage",        API_FN_PAIR(Button_SetClipImage) },
-        { "Button::get_Font",             API_FN_PAIR(Button_GetFont) },
-        { "Button::set_Font",             API_FN_PAIR(Button_SetFont) },
-        { "Button::get_Frame",            API_FN_PAIR(Button_GetAnimFrame) },
-        { "Button::get_Graphic",          API_FN_PAIR(Button_GetGraphic) },
-        { "Button::get_GraphicFlip",      API_FN_PAIR(Button_GetGraphicFlip) },
-        { "Button::set_GraphicFlip",      API_FN_PAIR(Button_SetGraphicFlip) },
-        { "Button::get_IsHighlighted",    API_FN_PAIR(Button_GetIsHighlighted) },
-        { "Button::get_IsPushed",         API_FN_PAIR(Button_GetIsPushed) },
-        { "Button::get_Loop",             API_FN_PAIR(Button_GetAnimLoop) },
-        { "Button::get_BorderShadeColor", API_FN_PAIR(Button_GetBorderShadeColor) },
-        { "Button::set_BorderShadeColor", API_FN_PAIR(Button_SetBorderShadeColor) },
-        { "Button::get_MouseOverBackgroundColor", API_FN_PAIR(Button_GetMouseOverBackgroundColor) },
-        { "Button::set_MouseOverBackgroundColor", API_FN_PAIR(Button_SetMouseOverBackgroundColor) },
-        { "Button::get_PushedBackgroundColor", API_FN_PAIR(Button_GetPushedBackgroundColor) },
-        { "Button::set_PushedBackgroundColor", API_FN_PAIR(Button_SetPushedBackgroundColor) },
-        { "Button::get_MouseOverBorderColor", API_FN_PAIR(Button_GetMouseOverBorderColor) },
-        { "Button::set_MouseOverBorderColor", API_FN_PAIR(Button_SetMouseOverBorderColor) },
-        { "Button::get_PushedBorderColor", API_FN_PAIR(Button_GetPushedBorderColor) },
-        { "Button::set_PushedBorderColor", API_FN_PAIR(Button_SetPushedBorderColor) },
-        { "Button::get_MouseOverGraphic", API_FN_PAIR(Button_GetMouseOverGraphic) },
-        { "Button::set_MouseOverGraphic", API_FN_PAIR(Button_SetMouseOverGraphic) },
-        { "Button::get_NormalGraphic",    API_FN_PAIR(Button_GetNormalGraphic) },
-        { "Button::set_NormalGraphic",    API_FN_PAIR(Button_SetNormalGraphic) },
-        { "Button::get_PushedGraphic",    API_FN_PAIR(Button_GetPushedGraphic) },
-        { "Button::set_PushedGraphic",    API_FN_PAIR(Button_SetPushedGraphic) },
-        { "Button::get_Text",             API_FN_PAIR(Button_GetText_New) },
-        { "Button::set_Text",             API_FN_PAIR(Button_SetText) },
-        { "Button::get_TextColor",        API_FN_PAIR(Button_GetTextColor) },
-        { "Button::set_TextColor",        API_FN_PAIR(Button_SetTextColor) },
-        { "Button::get_TextOutlineColor", API_FN_PAIR(Button_GetTextOutlineColor) },
-        { "Button::set_TextOutlineColor", API_FN_PAIR(Button_SetTextOutlineColor) },
-        { "Button::get_MouseOverTextColor", API_FN_PAIR(Button_GetMouseOverTextColor) },
-        { "Button::set_MouseOverTextColor", API_FN_PAIR(Button_SetMouseOverTextColor) },
-        { "Button::get_PushedTextColor",  API_FN_PAIR(Button_GetPushedTextColor) },
-        { "Button::set_PushedTextColor",  API_FN_PAIR(Button_SetPushedTextColor) },
-        { "Button::get_View",             API_FN_PAIR(Button_GetAnimView) },
+        {"Button::Animate^4", API_FN_PAIR(Button_Animate4)},
+        {"Button::Animate^7", API_FN_PAIR(Button_Animate7)},
+        {"Button::Animate^8", API_FN_PAIR(Button_Animate)},
+        {"Button::Click^1", API_FN_PAIR(Button_Click)},
+        {"Button::RunFrameEvent^3", API_FN_PAIR(Button_RunFrameEvent)},
+        {"Button::GetText^1", API_FN_PAIR(Button_GetText)},
+        {"Button::SetText^1", API_FN_PAIR(Button_SetText)},
+        {"Button::get_TextAlignment", API_FN_PAIR(Button_GetTextAlignment)},
+        {"Button::set_TextAlignment", API_FN_PAIR(Button_SetTextAlignment)},
+        {"Button::get_TextPaddingHorizontal", API_FN_PAIR(Button_GetTextPaddingHorizontal)},
+        {"Button::set_TextPaddingHorizontal", API_FN_PAIR(Button_SetTextPaddingHorizontal)},
+        {"Button::get_TextPaddingVertical", API_FN_PAIR(Button_GetTextPaddingVertical)},
+        {"Button::set_TextPaddingVertical", API_FN_PAIR(Button_SetTextPaddingVertical)},
+        {"Button::get_WrapText", API_FN_PAIR(Button_GetWrapText)},
+        {"Button::set_WrapText", API_FN_PAIR(Button_SetWrapText)},
+        {"Button::get_Animating", API_FN_PAIR(Button_IsAnimating)},
+        {"Button::get_ColorStyle", API_FN_PAIR(Button_GetColorStyle)},
+        {"Button::set_ColorStyle", API_FN_PAIR(Button_SetColorStyle)},
+        {"Button::get_ClipImage", API_FN_PAIR(Button_GetClipImage)},
+        {"Button::set_ClipImage", API_FN_PAIR(Button_SetClipImage)},
+        {"Button::get_Font", API_FN_PAIR(Button_GetFont)},
+        {"Button::set_Font", API_FN_PAIR(Button_SetFont)},
+        {"Button::get_Frame", API_FN_PAIR(Button_GetAnimFrame)},
+        {"Button::get_Graphic", API_FN_PAIR(Button_GetGraphic)},
+        {"Button::get_GraphicFlip", API_FN_PAIR(Button_GetGraphicFlip)},
+        {"Button::set_GraphicFlip", API_FN_PAIR(Button_SetGraphicFlip)},
+        {"Button::get_IsHighlighted", API_FN_PAIR(Button_GetIsHighlighted)},
+        {"Button::get_IsPushed", API_FN_PAIR(Button_GetIsPushed)},
+        {"Button::get_Loop", API_FN_PAIR(Button_GetAnimLoop)},
+        {"Button::get_BorderShadeColor", API_FN_PAIR(Button_GetBorderShadeColor)},
+        {"Button::set_BorderShadeColor", API_FN_PAIR(Button_SetBorderShadeColor)},
+        {"Button::get_MouseOverBackgroundColor", API_FN_PAIR(Button_GetMouseOverBackgroundColor)},
+        {"Button::set_MouseOverBackgroundColor", API_FN_PAIR(Button_SetMouseOverBackgroundColor)},
+        {"Button::get_PushedBackgroundColor", API_FN_PAIR(Button_GetPushedBackgroundColor)},
+        {"Button::set_PushedBackgroundColor", API_FN_PAIR(Button_SetPushedBackgroundColor)},
+        {"Button::get_MouseOverBorderColor", API_FN_PAIR(Button_GetMouseOverBorderColor)},
+        {"Button::set_MouseOverBorderColor", API_FN_PAIR(Button_SetMouseOverBorderColor)},
+        {"Button::get_PushedBorderColor", API_FN_PAIR(Button_GetPushedBorderColor)},
+        {"Button::set_PushedBorderColor", API_FN_PAIR(Button_SetPushedBorderColor)},
+        {"Button::get_MouseOverGraphic", API_FN_PAIR(Button_GetMouseOverGraphic)},
+        {"Button::set_MouseOverGraphic", API_FN_PAIR(Button_SetMouseOverGraphic)},
+        {"Button::get_NormalGraphic", API_FN_PAIR(Button_GetNormalGraphic)},
+        {"Button::set_NormalGraphic", API_FN_PAIR(Button_SetNormalGraphic)},
+        {"Button::get_PushedGraphic", API_FN_PAIR(Button_GetPushedGraphic)},
+        {"Button::set_PushedGraphic", API_FN_PAIR(Button_SetPushedGraphic)},
+        {"Button::get_Text", API_FN_PAIR(Button_GetText_New)},
+        {"Button::set_Text", API_FN_PAIR(Button_SetText)},
+        {"Button::get_TextColor", API_FN_PAIR(Button_GetTextColor)},
+        {"Button::set_TextColor", API_FN_PAIR(Button_SetTextColor)},
+        {"Button::get_TextOutlineColor", API_FN_PAIR(Button_GetTextOutlineColor)},
+        {"Button::set_TextOutlineColor", API_FN_PAIR(Button_SetTextOutlineColor)},
+        {"Button::get_MouseOverTextColor", API_FN_PAIR(Button_GetMouseOverTextColor)},
+        {"Button::set_MouseOverTextColor", API_FN_PAIR(Button_SetMouseOverTextColor)},
+        {"Button::get_PushedTextColor", API_FN_PAIR(Button_GetPushedTextColor)},
+        {"Button::set_PushedTextColor", API_FN_PAIR(Button_SetPushedTextColor)},
+        {"Button::get_View", API_FN_PAIR(Button_GetAnimView)},
     };
 
     ccAddExternalFunctions(button_api);

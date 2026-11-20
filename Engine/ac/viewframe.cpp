@@ -66,7 +66,7 @@ void ViewFrame_SetGraphic(ScriptViewFrame *svf, int newPic)
     views[svf->view].loops[svf->loop].frames[svf->frame].pic = newPic;
 }
 
-ScriptAudioClip* ViewFrame_GetLinkedAudio(ScriptViewFrame *svf) 
+ScriptAudioClip *ViewFrame_GetLinkedAudio(ScriptViewFrame *svf)
 {
     int soundIndex = views[svf->view].loops[svf->loop].frames[svf->frame].sound;
     if (soundIndex < 0)
@@ -75,12 +75,12 @@ ScriptAudioClip* ViewFrame_GetLinkedAudio(ScriptViewFrame *svf)
     return &game.audioClips[soundIndex];
 }
 
-void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip* clip) 
+void ViewFrame_SetLinkedAudio(ScriptViewFrame *svf, ScriptAudioClip *clip)
 {
     int newSoundIndex = -1;
     if (clip != nullptr)
         newSoundIndex = clip->id;
-    
+
     views[svf->view].loops[svf->loop].frames[svf->frame].sound = newSoundIndex;
 }
 
@@ -169,11 +169,10 @@ bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume, int sou
     return false;
 }
 
-bool RunViewFrameEvent(int view, int loop, int frame,
-    const ObjectEvent &obj_evt, Common::ScriptEventsBase *handlers, int evnt)
+bool RunViewFrameEvent(int view, int loop, int frame, const ObjectEvent &obj_evt, Common::ScriptEventsBase *handlers,
+                       int evnt)
 {
-    if (!views[view].loops[loop].frames[frame].event_name.IsEmpty()
-        && obj_evt && handlers->HasHandler(evnt))
+    if (!views[view].loops[loop].frames[frame].event_name.IsEmpty() && obj_evt && handlers->HasHandler(evnt))
     {
         ObjectEvent evt_ext = obj_evt;
         evt_ext.Params[1] = RuntimeScriptValue().SetInt32(view);
@@ -336,23 +335,23 @@ RuntimeScriptValue Sc_ViewFrame_SetYOffset(void *self, const RuntimeScriptValue 
 void RegisterViewFrameAPI()
 {
     ScFnRegister viewframe_api[] = {
-        { "ViewFrame::get_EventName",     API_FN_PAIR(ViewFrame_GetEventName) },
-        { "ViewFrame::set_EventName",     API_FN_PAIR(ViewFrame_SetEventName) },
-        { "ViewFrame::get_Flipped",       API_FN_PAIR(ViewFrame_GetFlipped) },
-        { "ViewFrame::set_Flipped",       API_FN_PAIR(ViewFrame_SetFlipped) },
-        { "ViewFrame::get_Frame",         API_FN_PAIR(ViewFrame_GetFrame) },
-        { "ViewFrame::get_Graphic",       API_FN_PAIR(ViewFrame_GetGraphic) },
-        { "ViewFrame::set_Graphic",       API_FN_PAIR(ViewFrame_SetGraphic) },
-        { "ViewFrame::get_LinkedAudio",   API_FN_PAIR(ViewFrame_GetLinkedAudio) },
-        { "ViewFrame::set_LinkedAudio",   API_FN_PAIR(ViewFrame_SetLinkedAudio) },
-        { "ViewFrame::get_Loop",          API_FN_PAIR(ViewFrame_GetLoop) },
-        { "ViewFrame::get_Speed",         API_FN_PAIR(ViewFrame_GetSpeed) },
-        { "ViewFrame::set_Speed",         API_FN_PAIR(ViewFrame_SetSpeed) },
-        { "ViewFrame::get_View",          API_FN_PAIR(ViewFrame_GetView) },
-        { "ViewFrame::get_XOffset",       API_FN_PAIR(ViewFrame_GetXOffset) },
-        { "ViewFrame::set_XOffset",       API_FN_PAIR(ViewFrame_SetXOffset) },
-        { "ViewFrame::get_YOffset",       API_FN_PAIR(ViewFrame_GetYOffset) },
-        { "ViewFrame::set_YOffset",       API_FN_PAIR(ViewFrame_SetYOffset) },
+        {"ViewFrame::get_EventName", API_FN_PAIR(ViewFrame_GetEventName)},
+        {"ViewFrame::set_EventName", API_FN_PAIR(ViewFrame_SetEventName)},
+        {"ViewFrame::get_Flipped", API_FN_PAIR(ViewFrame_GetFlipped)},
+        {"ViewFrame::set_Flipped", API_FN_PAIR(ViewFrame_SetFlipped)},
+        {"ViewFrame::get_Frame", API_FN_PAIR(ViewFrame_GetFrame)},
+        {"ViewFrame::get_Graphic", API_FN_PAIR(ViewFrame_GetGraphic)},
+        {"ViewFrame::set_Graphic", API_FN_PAIR(ViewFrame_SetGraphic)},
+        {"ViewFrame::get_LinkedAudio", API_FN_PAIR(ViewFrame_GetLinkedAudio)},
+        {"ViewFrame::set_LinkedAudio", API_FN_PAIR(ViewFrame_SetLinkedAudio)},
+        {"ViewFrame::get_Loop", API_FN_PAIR(ViewFrame_GetLoop)},
+        {"ViewFrame::get_Speed", API_FN_PAIR(ViewFrame_GetSpeed)},
+        {"ViewFrame::set_Speed", API_FN_PAIR(ViewFrame_SetSpeed)},
+        {"ViewFrame::get_View", API_FN_PAIR(ViewFrame_GetView)},
+        {"ViewFrame::get_XOffset", API_FN_PAIR(ViewFrame_GetXOffset)},
+        {"ViewFrame::set_XOffset", API_FN_PAIR(ViewFrame_SetXOffset)},
+        {"ViewFrame::get_YOffset", API_FN_PAIR(ViewFrame_GetYOffset)},
+        {"ViewFrame::set_YOffset", API_FN_PAIR(ViewFrame_SetYOffset)},
     };
 
     ccAddExternalFunctions(viewframe_api);

@@ -28,131 +28,124 @@ namespace Engine
 class PSPLibrary : BaseLibrary
 {
 public:
-  PSPLibrary()
-    : _library(-1)
-  {
-  };
+    PSPLibrary() : _library(-1) {};
 
-  virtual ~PSPLibrary()
-  {
-    Unload();
-  };
+    virtual ~PSPLibrary() { Unload(); };
 
-  AGS::Common::String BuildPath(char *path, AGS::Common::String libraryName)
-  {
-    AGS::Common::String platformLibraryName = path;
-    platformLibraryName.Append(libraryName);
-    platformLibraryName.Append(".prx");
-
-    AGS::Common::Debug::Printf("Built library path: %s", platformLibraryName.GetCStr());
-
-    return platformLibraryName;
-  }
-
-  bool Load(AGS::Common::String libraryName)
-  {
-    Unload();
-
-    // Try current path
-    _library = pspSdkLoadStartModule(BuildPath("./", libraryName).GetCStr(), PSP_MEMORY_PARTITION_USER);
-
-    if (_library < 0)
+    AGS::Common::String BuildPath(char *path, AGS::Common::String libraryName)
     {
-      // Try one directory higher, usually the AGS base directory
-      _library = pspSdkLoadStartModule(BuildPath("../", libraryName).GetCStr(), PSP_MEMORY_PARTITION_USER);
+        AGS::Common::String platformLibraryName = path;
+        platformLibraryName.Append(libraryName);
+        platformLibraryName.Append(".prx");
+
+        AGS::Common::Debug::Printf("Built library path: %s", platformLibraryName.GetCStr());
+
+        return platformLibraryName;
     }
 
-    // The PSP module and PSP library name are assumed to be the same as the file name
-    _moduleName = libraryName;
-    _moduleName.MakeLower();
-
-    AGS::Common::Debug::Printf("Result is %s %d", _moduleName.GetCStr(), _library);
-
-    return (_library > -1);
-  }
-
-  bool Unload()
-  {
-    if (_library > -1)
+    bool Load(AGS::Common::String libraryName)
     {
-      return (sceKernelUnloadModule(_library) > -1);
+        Unload();
+
+        // Try current path
+        _library = pspSdkLoadStartModule(BuildPath("./", libraryName).GetCStr(), PSP_MEMORY_PARTITION_USER);
+
+        if (_library < 0)
+        {
+            // Try one directory higher, usually the AGS base directory
+            _library = pspSdkLoadStartModule(BuildPath("../", libraryName).GetCStr(), PSP_MEMORY_PARTITION_USER);
+        }
+
+        // The PSP module and PSP library name are assumed to be the same as the file name
+        _moduleName = libraryName;
+        _moduleName.MakeLower();
+
+        AGS::Common::Debug::Printf("Result is %s %d", _moduleName.GetCStr(), _library);
+
+        return (_library > -1);
     }
-    else
-    {
-      return true;
-    }
-  }
 
-  void *GetFunctionAddress(AGS::Common::String functionName)
-  {
-    if (_library > -1)
+    bool Unload()
     {
-      // On the PSP functions are identified by an ID that is the first 4 byte of the SHA1 of the name.
-      int functionId;
+        if (_library > -1)
+        {
+            return (sceKernelUnloadModule(_library) > -1);
+        }
+        else
+        {
+            return true;
+        }
+    }
+
+    void *GetFunctionAddress(AGS::Common::String functionName)
+    {
+        if (_library > -1)
+        {
+            // On the PSP functions are identified by an ID that is the first 4 byte of the SHA1 of the name.
+            int functionId;
 
 #if 1
-      // Hardcoded values for plugin loading.
-      if (functionName == "AGS_PluginV2")
-      {
-        functionId = 0x960C49BD;
-      }
-      else if (functionName == "AGS_EngineStartup")
-      {
-        functionId = 0x0F13D9E8;
-      }
-      else if (functionName == "AGS_EngineShutdown")
-      {
-        functionId = 0x2F131C76;
-      }
-      else if (functionName == "AGS_EngineOnEvent")
-      {
-        functionId = 0xE3DFFC5A;
-      }
-      else if (functionName == "AGS_EngineDebugHook")
-      {
-        functionId = 0xC37D6879;
-      }
-      else if (functionName == "AGS_EngineInitGfx")
-      {
-        functionId = 0xA428D254;
-      }
-      else
-      {
-        AGS::Common::Debug::Printf("Function ID not found: %s", functionName.GetCStr());
-        functionId = -1;
-      }
+            // Hardcoded values for plugin loading.
+            if (functionName == "AGS_PluginV2")
+            {
+                functionId = 0x960C49BD;
+            }
+            else if (functionName == "AGS_EngineStartup")
+            {
+                functionId = 0x0F13D9E8;
+            }
+            else if (functionName == "AGS_EngineShutdown")
+            {
+                functionId = 0x2F131C76;
+            }
+            else if (functionName == "AGS_EngineOnEvent")
+            {
+                functionId = 0xE3DFFC5A;
+            }
+            else if (functionName == "AGS_EngineDebugHook")
+            {
+                functionId = 0xC37D6879;
+            }
+            else if (functionName == "AGS_EngineInitGfx")
+            {
+                functionId = 0xA428D254;
+            }
+            else
+            {
+                AGS::Common::Debug::Printf("Function ID not found: %s", functionName.GetCStr());
+                functionId = -1;
+            }
 #else
-      // This is a possible SHA1 implementation.
-      SceKernelUtilsSha1Context ctx;
-      uint8_t digest[20];
-      sceKernelUtilsSha1BlockInit(&ctx);
-      sceKernelUtilsSha1BlockUpdate(&ctx, (uint8_t *)functionName.GetCStr(), functionName.GetLength());
-      sceKernelUtilsSha1BlockResult(&ctx, digest);
+            // This is a possible SHA1 implementation.
+            SceKernelUtilsSha1Context ctx;
+            uint8_t digest[20];
+            sceKernelUtilsSha1BlockInit(&ctx);
+            sceKernelUtilsSha1BlockUpdate(&ctx, (uint8_t *)functionName.GetCStr(), functionName.GetLength());
+            sceKernelUtilsSha1BlockResult(&ctx, digest);
 
-      functionId = strtol(digest, NULL, 8);
+            functionId = strtol(digest, NULL, 8);
 #endif
 
-      return (void *)kernel_sctrlHENFindFunction((char *)_moduleName.GetCStr(), (char *)_moduleName.GetCStr(), functionId);
+            return (void *)kernel_sctrlHENFindFunction((char *)_moduleName.GetCStr(), (char *)_moduleName.GetCStr(),
+                                                       functionId);
+        }
+        else
+        {
+            return NULL;
+        }
     }
-    else
-    {
-      return NULL;
-    }
-  }
 
 private:
-  SceUID _library;
-  AGS::Common::String _moduleName;
+    SceUID _library;
+    AGS::Common::String _moduleName;
 };
 
 
 typedef PSPLibrary Library;
 
 
-
 } // namespace Engine
 } // namespace AGS
-
 
 
 #endif // __AGS_EE_UTIL__LIBRARY_PSP_H

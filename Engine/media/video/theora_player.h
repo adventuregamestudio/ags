@@ -40,8 +40,8 @@ public:
     bool IsValid() override { return _apegStream != nullptr; }
 
 private:
-    Common::HError OpenImpl(std::unique_ptr<Common::Stream> data_stream,
-        const String &name, int &flags, int target_depth) override;
+    Common::HError OpenImpl(std::unique_ptr<Common::Stream> data_stream, const String &name, int &flags,
+                            int target_depth) override;
     void CloseImpl() override;
     bool RewindImpl() override;
     // Retrieves next video frame, implementation-specific
@@ -64,9 +64,9 @@ private:
     // Wrapper over portion of theora frame which we want to use
     std::unique_ptr<Common::Bitmap> _theoraSrcFrame;
     uint64_t _videoFramesDecodedTotal = 0u; // how many frames loaded and decoded total (includes rewinds!)
-    uint64_t _videoFramesDecoded = 0u; // sequential count of video frames since the video beginning
-    float _nextFrameTs = 0.f; // next frame presentation time
-                              // this is based on previous frame's end pos granule in Ogg stream
+    uint64_t _videoFramesDecoded = 0u;      // sequential count of video frames since the video beginning
+    float _nextFrameTs = 0.f;               // next frame presentation time
+                                            // this is based on previous frame's end pos granule in Ogg stream
 };
 
 } // namespace Engine

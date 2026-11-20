@@ -27,7 +27,7 @@ using namespace AGS::Engine;
 #ifndef AGS_NO_VIDEO_PLAYER
 
 // Global audio core state and resources
-static struct 
+static struct
 {
     // Audio thread: polls sound decoders, feeds OpenAL sources
     std::thread video_core_thread;
@@ -103,8 +103,7 @@ static std::unique_ptr<VideoPlayer> create_video_player(const String &ext_hint)
 {
     std::unique_ptr<VideoPlayer> player;
     // Table of video format detection
-    if (ext_hint.CompareNoCase("flc") == 0 ||
-        ext_hint.CompareNoCase("fli") == 0)
+    if (ext_hint.CompareNoCase("flc") == 0 || ext_hint.CompareNoCase("fli") == 0)
         player.reset(new FlicPlayer());
     else if (ext_hint.CompareNoCase("ogv") == 0)
         player.reset(new TheoraPlayer());
@@ -115,14 +114,13 @@ static std::unique_ptr<VideoPlayer> create_video_player(const String &ext_hint)
     return player;
 }
 
-int video_core_slot_init(std::unique_ptr<Stream> in,
-    const String &name, const String &ext_hint, const VideoInitParams &params)
+int video_core_slot_init(std::unique_ptr<Stream> in, const String &name, const String &ext_hint,
+                         const VideoInitParams &params)
 {
     auto player = create_video_player(ext_hint);
     if (!player)
         return -1;
-    if (!player->Open(std::move(in), name,
-            params.Flags, params.TargetSize, params.TargetColorDepth, params.FPS))
+    if (!player->Open(std::move(in), name, params.Flags, params.TargetSize, params.TargetColorDepth, params.FPS))
         return -1;
     return video_core_slot_init(std::move(player));
 }
@@ -150,12 +148,16 @@ void video_core_slot_stop(int slot_handle)
 
 void video_core_entry_poll()
 {
-    for (auto &entry : g_vcore.slots_) {
+    for (auto &entry : g_vcore.slots_)
+    {
         auto &slot = entry.second;
 
-        try {
+        try
+        {
             slot->Poll();
-        } catch (const std::exception& e) {
+        }
+        catch (const std::exception &e)
+        {
             Debug::Printf(kDbgMsg_Error, "VideoCore poll exception: %s", e.what());
         }
     }
@@ -166,8 +168,8 @@ static void video_core_entry()
 {
     std::unique_lock<std::mutex> lk(g_vcore.poll_mutex_m);
 
-    while (g_vcore.video_core_thread_running) {
-
+    while (g_vcore.video_core_thread_running)
+    {
         video_core_entry_poll();
 
         g_vcore.poll_cv.wait_for(lk, std::chrono::milliseconds(8));
@@ -181,9 +183,8 @@ void video_core_init(/*config*/)
 {
     Debug::Printf(kDbgMsg_Warn, "VideoCore: video playback is not supported in this engine build.");
 }
-void video_core_shutdown() { }
-int video_core_slot_init(std::unique_ptr<Stream>,
-    const String &, const String &, const VideoInitParams &)
+void video_core_shutdown() {}
+int video_core_slot_init(std::unique_ptr<Stream>, const String &, const String &, const VideoInitParams &)
 {
     return -1;
 }

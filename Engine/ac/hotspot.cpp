@@ -36,7 +36,7 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
-extern RoomStatus*croom;
+extern RoomStatus *croom;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern CCHotspot ccDynamicHotspot;
 extern CharacterInfo *playerchar;
@@ -49,32 +49,37 @@ bool AssertHotspot(const char *apiname, int hot_id)
     return false;
 }
 
-void DisableHotspot(int hsnum) {
+void DisableHotspot(int hsnum)
+{
     if ((hsnum < 1) | (hsnum >= MAX_ROOM_HOTSPOTS))
         quit("!DisableHotspot: invalid hotspot specified");
     croom->hotspot[hsnum].Enabled = false;
     debug_script_log("Hotspot %d disabled", hsnum);
 }
 
-void EnableHotspot(int hsnum) {
+void EnableHotspot(int hsnum)
+{
     if ((hsnum < 1) | (hsnum >= MAX_ROOM_HOTSPOTS))
         quit("!EnableHotspot: invalid hotspot specified");
     croom->hotspot[hsnum].Enabled = true;
     debug_script_log("Hotspot %d re-enabled", hsnum);
 }
 
-void Hotspot_SetEnabled(ScriptHotspot *hss, int newval) {
+void Hotspot_SetEnabled(ScriptHotspot *hss, int newval)
+{
     if (newval)
         EnableHotspot(hss->id);
     else
         DisableHotspot(hss->id);
 }
 
-int Hotspot_GetEnabled(ScriptHotspot *hss) {
+int Hotspot_GetEnabled(ScriptHotspot *hss)
+{
     return croom->hotspot[hss->id].Enabled ? 1 : 0;
 }
 
-int Hotspot_GetID(ScriptHotspot *hss) {
+int Hotspot_GetID(ScriptHotspot *hss)
+{
     return hss->id;
 }
 
@@ -83,7 +88,8 @@ const char *Hotspot_GetScriptName(ScriptHotspot *hss)
     return CreateNewScriptString(thisroom.Hotspots[hss->id].ScriptName);
 }
 
-int GetHotspotPointX(int hotspot) {
+int GetHotspotPointX(int hotspot)
+{
     if ((hotspot < 0) || (hotspot >= MAX_ROOM_HOTSPOTS))
         quit("!GetHotspotPointX: invalid hotspot");
 
@@ -93,7 +99,8 @@ int GetHotspotPointX(int hotspot) {
     return thisroom.Hotspots[hotspot].WalkTo.X;
 }
 
-int GetHotspotPointY(int hotspot) {
+int GetHotspotPointY(int hotspot)
+{
     if ((hotspot < 0) || (hotspot >= MAX_ROOM_HOTSPOTS))
         quit("!GetHotspotPointY: invalid hotspot");
 
@@ -103,11 +110,13 @@ int GetHotspotPointY(int hotspot) {
     return thisroom.Hotspots[hotspot].WalkTo.Y;
 }
 
-int Hotspot_GetWalkToX(ScriptHotspot *hss) {
+int Hotspot_GetWalkToX(ScriptHotspot *hss)
+{
     return GetHotspotPointX(hss->id);
 }
 
-int Hotspot_GetWalkToY(ScriptHotspot *hss) {
+int Hotspot_GetWalkToY(ScriptHotspot *hss)
+{
     return GetHotspotPointY(hss->id);
 }
 
@@ -136,16 +145,18 @@ ScriptHotspot *Hotspot_GetAtScreenXY2(int x, int y)
 
 ScriptHotspot *Hotspot_GetByName(const char *name)
 {
-    return static_cast<ScriptHotspot*>(ccGetScriptObjectAddress(name, ccDynamicHotspot.GetType()));
+    return static_cast<ScriptHotspot *>(ccGetScriptObjectAddress(name, ccDynamicHotspot.GetType()));
 }
 
-const char* Hotspot_GetName_New(ScriptHotspot *hss) {
+const char *Hotspot_GetName_New(ScriptHotspot *hss)
+{
     if ((hss->id < 0) || (hss->id >= MAX_ROOM_HOTSPOTS))
         quit("!Hotspot.Name: invalid hotspot number");
     return CreateNewScriptString(croom->hotspot[hss->id].Name);
 }
 
-void Hotspot_SetName(ScriptHotspot *hss, const char *newName) {
+void Hotspot_SetName(ScriptHotspot *hss, const char *newName)
+{
     if ((hss->id < 0) || (hss->id >= MAX_ROOM_HOTSPOTS))
         quit("!Hotspot.Name: invalid hotspot number");
     croom->hotspot[hss->id].Name = newName;
@@ -167,8 +178,9 @@ void RunHotspotInteraction(int hotspothere, int mood)
         play.usedinv = playerchar->activeinv;
     }
 
-    const auto obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_HOTSPOT, hotspothere,
-                                     RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspothere], &ccDynamicHotspot), mood);
+    const auto obj_evt =
+        ObjectEvent(kScTypeRoom, LOCTYPE_HOTSPOT, hotspothere,
+                    RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspothere], &ccDynamicHotspot), mood);
     if ((evnt >= 0) &&
         run_event_script(obj_evt, &thisroom.Hotspots[hotspothere].Interactions, evnt,
                          &thisroom.Hotspots[hotspothere].GetEvents(), anyclick_evt, true /* do unhandled event */) < 0)
@@ -177,8 +189,8 @@ void RunHotspotInteraction(int hotspothere, int mood)
     run_event_script(obj_evt, &thisroom.Hotspots[hotspothere].GetEvents(), anyclick_evt);
 }
 
-bool Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood) {
-
+bool Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood)
+{
     play.check_interaction_only = 1;
     RunHotspotInteraction(hhot->id, mood);
     int ciwas = play.check_interaction_only;
@@ -186,7 +198,8 @@ bool Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood) {
     return (ciwas == 2);
 }
 
-void Hotspot_RunInteraction (ScriptHotspot *hss, int mood) {
+void Hotspot_RunInteraction(ScriptHotspot *hss, int mood)
+{
     RunHotspotInteraction(hss->id, mood);
 }
 
@@ -200,7 +213,7 @@ void Hotspot_GetPropertyText(ScriptHotspot *hss, const char *property, char *buf
     get_text_property(thisroom.Hotspots[hss->id].Properties, croom->hsProps[hss->id], property, bufer);
 }
 
-const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property)
+const char *Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property)
 {
     return get_text_property_dynamic_string(thisroom.Hotspots[hss->id].Properties, croom->hsProps[hss->id], property);
 }
@@ -218,9 +231,11 @@ bool Hotspot_SetTextProperty(ScriptHotspot *hss, const char *property, const cha
 int GetHotspotIDAtRoom(int xpp, int ypp, int hit_options)
 {
     const bool only_clickable = (hit_options & kHit_Interactable) != 0;
-    int onhs=thisroom.HotspotMask->GetPixel(room_to_mask_coord(xpp), room_to_mask_coord(ypp));
-    if (onhs <= 0 || onhs >= MAX_ROOM_HOTSPOTS) return 0;
-    if (only_clickable && !croom->hotspot[onhs].Enabled) return 0;
+    int onhs = thisroom.HotspotMask->GetPixel(room_to_mask_coord(xpp), room_to_mask_coord(ypp));
+    if (onhs <= 0 || onhs >= MAX_ROOM_HOTSPOTS)
+        return 0;
+    if (only_clickable && !croom->hotspot[onhs].Enabled)
+        return 0;
     return onhs;
 }
 
@@ -350,37 +365,36 @@ RuntimeScriptValue Sc_Hotspot_GetWalkToY(void *self, const RuntimeScriptValue *p
 }
 
 
-
 void RegisterHotspotAPI()
 {
     ScFnRegister hotspot_api[] = {
-        { "Hotspot::GetAtRoomXY^2",       API_FN_PAIR(Hotspot_GetAtRoomXY2) },
-        { "Hotspot::GetAtScreenXY^2",     API_FN_PAIR(Hotspot_GetAtScreenXY2) },
-        { "Hotspot::GetAtRoomXY^3",       API_FN_PAIR(Hotspot_GetAtRoomXY) },
-        { "Hotspot::GetAtScreenXY^3",     API_FN_PAIR(Hotspot_GetAtScreenXY) },
+        {"Hotspot::GetAtRoomXY^2", API_FN_PAIR(Hotspot_GetAtRoomXY2)},
+        {"Hotspot::GetAtScreenXY^2", API_FN_PAIR(Hotspot_GetAtScreenXY2)},
+        {"Hotspot::GetAtRoomXY^3", API_FN_PAIR(Hotspot_GetAtRoomXY)},
+        {"Hotspot::GetAtScreenXY^3", API_FN_PAIR(Hotspot_GetAtScreenXY)},
         // [OBSOLETE] GetByName => GetByScriptName
-        { "Hotspot::GetByName",           API_FN_PAIR(Hotspot_GetByName) },
-        { "Hotspot::GetByScriptName",     API_FN_PAIR(Hotspot_GetByName) },
-        { "Hotspot::GetDrawingSurface",   API_FN_PAIR(Hotspot_GetDrawingSurface) },
+        {"Hotspot::GetByName", API_FN_PAIR(Hotspot_GetByName)},
+        {"Hotspot::GetByScriptName", API_FN_PAIR(Hotspot_GetByName)},
+        {"Hotspot::GetDrawingSurface", API_FN_PAIR(Hotspot_GetDrawingSurface)},
 
-        { "Hotspot::GetProperty^1",       API_FN_PAIR(Hotspot_GetProperty) },
-        { "Hotspot::GetPropertyText^2",   API_FN_PAIR(Hotspot_GetPropertyText) },
-        { "Hotspot::GetTextProperty^1",   API_FN_PAIR(Hotspot_GetTextProperty) },
-        { "Hotspot::SetProperty^2",       API_FN_PAIR(Hotspot_SetProperty) },
-        { "Hotspot::SetTextProperty^2",   API_FN_PAIR(Hotspot_SetTextProperty) },
-        { "Hotspot::IsInteractionAvailable^1", API_FN_PAIR(Hotspot_IsInteractionAvailable) },
-        { "Hotspot::RunInteraction^1",    API_FN_PAIR(Hotspot_RunInteraction) },
-        { "Hotspot::get_DisplayName",     API_FN_PAIR(Hotspot_GetName_New) },
-        { "Hotspot::set_DisplayName",     API_FN_PAIR(Hotspot_SetName) },
-        { "Hotspot::get_Enabled",         API_FN_PAIR(Hotspot_GetEnabled) },
-        { "Hotspot::set_Enabled",         API_FN_PAIR(Hotspot_SetEnabled) },
-        { "Hotspot::get_ID",              API_FN_PAIR(Hotspot_GetID) },
+        {"Hotspot::GetProperty^1", API_FN_PAIR(Hotspot_GetProperty)},
+        {"Hotspot::GetPropertyText^2", API_FN_PAIR(Hotspot_GetPropertyText)},
+        {"Hotspot::GetTextProperty^1", API_FN_PAIR(Hotspot_GetTextProperty)},
+        {"Hotspot::SetProperty^2", API_FN_PAIR(Hotspot_SetProperty)},
+        {"Hotspot::SetTextProperty^2", API_FN_PAIR(Hotspot_SetTextProperty)},
+        {"Hotspot::IsInteractionAvailable^1", API_FN_PAIR(Hotspot_IsInteractionAvailable)},
+        {"Hotspot::RunInteraction^1", API_FN_PAIR(Hotspot_RunInteraction)},
+        {"Hotspot::get_DisplayName", API_FN_PAIR(Hotspot_GetName_New)},
+        {"Hotspot::set_DisplayName", API_FN_PAIR(Hotspot_SetName)},
+        {"Hotspot::get_Enabled", API_FN_PAIR(Hotspot_GetEnabled)},
+        {"Hotspot::set_Enabled", API_FN_PAIR(Hotspot_SetEnabled)},
+        {"Hotspot::get_ID", API_FN_PAIR(Hotspot_GetID)},
         // [OBSOLETE] Name => DisplayName
-        { "Hotspot::get_Name",            API_FN_PAIR(Hotspot_GetName_New) },
-        { "Hotspot::set_Name",            API_FN_PAIR(Hotspot_SetName) },
-        { "Hotspot::get_ScriptName",      API_FN_PAIR(Hotspot_GetScriptName) },
-        { "Hotspot::get_WalkToX",         API_FN_PAIR(Hotspot_GetWalkToX) },
-        { "Hotspot::get_WalkToY",         API_FN_PAIR(Hotspot_GetWalkToY) },
+        {"Hotspot::get_Name", API_FN_PAIR(Hotspot_GetName_New)},
+        {"Hotspot::set_Name", API_FN_PAIR(Hotspot_SetName)},
+        {"Hotspot::get_ScriptName", API_FN_PAIR(Hotspot_GetScriptName)},
+        {"Hotspot::get_WalkToX", API_FN_PAIR(Hotspot_GetWalkToX)},
+        {"Hotspot::get_WalkToY", API_FN_PAIR(Hotspot_GetWalkToY)},
     };
 
     ccAddExternalFunctions(hotspot_api);

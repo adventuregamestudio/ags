@@ -32,7 +32,13 @@
 
 #include "ac/dynobj/cc_scriptobject.h"
 
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 
 
 // CCBasicObject: basic implementation of the script object interface,
@@ -54,18 +60,17 @@ public:
     int Dispose(void *address, bool force) override;
     // Serialize the object into BUFFER (which is BUFSIZE bytes)
     // return number of bytes used
-    int Serialize(void *address, uint8_t* buffer, int bufsize) override;
+    int Serialize(void *address, uint8_t *buffer, int bufsize) override;
     // Remap typeid fields using the provided map
-    void RemapTypeids(void *address,
-        const std::unordered_map<uint32_t, uint32_t>& typeid_map) override;
+    void RemapTypeids(void *address, const std::unordered_map<uint32_t, uint32_t> &typeid_map) override;
     // Traverse all managed references in this object, and run callback for each of them
     void TraverseRefs(void *address, PfnTraverseRefOp traverse_op) override;
 
     //
     // Legacy support for reading and writing object fields by their relative offset
     //
-    void *GetFieldPtr(void* address, intptr_t offset) override;
-    const void *GetFieldPtr(const void* address, intptr_t offset) override;
+    void *GetFieldPtr(void *address, intptr_t offset) override;
+    const void *GetFieldPtr(const void *address, intptr_t offset) override;
     void Read(const void *address, intptr_t offset, uint8_t *dest, size_t size) override;
     uint8_t ReadInt8(const void *address, intptr_t offset) override;
     int16_t ReadInt16(const void *address, intptr_t offset) override;

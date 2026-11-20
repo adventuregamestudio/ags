@@ -38,8 +38,22 @@
 #include "util/string.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Bitmap; class Stream; class GraphicSpace; } }
-namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
+namespace AGS
+{
+namespace Common
+{
+class Bitmap;
+class Stream;
+class GraphicSpace;
+} // namespace Common
+} // namespace AGS
+namespace AGS
+{
+namespace Engine
+{
+class IDriverDependantBitmap;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 // Overlay behavior flags
@@ -49,31 +63,31 @@ enum OverlayFlags
     // kOver_PositionAtRoomXY is now redundant, but is kept for safety and backwards compat;
     // must be set strictly along with kOver_RoomLayer
     kOver_PositionAtRoomXY = 0x0002, // room-relative position
-    kOver_RoomLayer        = 0x0004, // work in room layer (as opposed to UI)
-    kOver_SpriteShared     = 0x0008, // reference shared sprite (as opposed to exclusive)
-    kOver_AutoPosition     = 0x0010, // autoposition over a linked Character (speech)
-    kOver_HasTint          = 0x0020,
-    kOver_HasLightLevel    = 0x0040,
-    kOver_Visible          = 0x0100,
-    kOver_AutoSize         = 0x0200  // autoresize whenever the graphic changes
+    kOver_RoomLayer = 0x0004,        // work in room layer (as opposed to UI)
+    kOver_SpriteShared = 0x0008,     // reference shared sprite (as opposed to exclusive)
+    kOver_AutoPosition = 0x0010,     // autoposition over a linked Character (speech)
+    kOver_HasTint = 0x0020,
+    kOver_HasLightLevel = 0x0040,
+    kOver_Visible = 0x0100,
+    kOver_AutoSize = 0x0200 // autoresize whenever the graphic changes
 };
 
 enum OverlaySvgVersion
 {
     kOverSvgVersion_Initial = 0,
-    kOverSvgVersion_35028   = 1, // offset x,y
-    kOverSvgVersion_36008   = 2, // z, transparency
-    kOverSvgVersion_36025   = 3, // merged options into flags
-    kOverSvgVersion_36108   = 4, // don't save owned sprites (use dynamic sprites)
-    kOverSvgVersion_36303   = 3060303, // visible flag must be on by default
-    kOverSvgVersion_36304   = 3060304, // text property
-    kOverSvgVersion_400     = 4000000, // blend mode, etc
-    kOverSvgVersion_40005   = 4000005, // no magic values stored in x,y
-    kOverSvgVersion_40018   = 4000018, // shaders
-    kOverSvgVersion_40024   = 4000024, // sync with kOverSvgVersion_36303
-    kOverSvgVersion_40026   = 4000026, // sync with kOverSvgVersion_36304
-    kOverSvgVersion_40028   = 4000028, // autosize flag, scale field is valid
-    kOverSvgVersion_40029   = 4000029, // rotation pivot
+    kOverSvgVersion_35028 = 1,       // offset x,y
+    kOverSvgVersion_36008 = 2,       // z, transparency
+    kOverSvgVersion_36025 = 3,       // merged options into flags
+    kOverSvgVersion_36108 = 4,       // don't save owned sprites (use dynamic sprites)
+    kOverSvgVersion_36303 = 3060303, // visible flag must be on by default
+    kOverSvgVersion_36304 = 3060304, // text property
+    kOverSvgVersion_400 = 4000000,   // blend mode, etc
+    kOverSvgVersion_40005 = 4000005, // no magic values stored in x,y
+    kOverSvgVersion_40018 = 4000018, // shaders
+    kOverSvgVersion_40024 = 4000024, // sync with kOverSvgVersion_36303
+    kOverSvgVersion_40026 = 4000026, // sync with kOverSvgVersion_36304
+    kOverSvgVersion_40028 = 4000028, // autosize flag, scale field is valid
+    kOverSvgVersion_40029 = 4000029, // rotation pivot
     kOverSvgVersion_Current = kOverSvgVersion_40029
 };
 
@@ -84,64 +98,64 @@ public:
 
     ScreenOverlay() = default;
     ScreenOverlay(int id) : _id(id) {}
-    ScreenOverlay(ScreenOverlay&&);
+    ScreenOverlay(ScreenOverlay &&);
     ~ScreenOverlay();
 
-    ScreenOverlay &operator =(ScreenOverlay&&);
+    ScreenOverlay &operator=(ScreenOverlay &&);
 
-    int  GetID() const { return _id; }
-    int  GetX() const { return _x; }
-    int  GetY() const { return _y; }
+    int GetID() const { return _id; }
+    int GetX() const { return _x; }
+    int GetY() const { return _y; }
     // Get position of a overlay's sprite (may be displayed with an offset relative to overlay's pos)
     // FIXME: rethink this method's purpose, as this does not account for full transform (scaling, rotate)
     Point GetDrawPos() const { return Point(_x + _sprOffset.X, _y + _sprOffset.Y); }
     const Pointf &GetSpriteAnchor() const { return _sprAnchor; }
     const Point &GetSpriteOffset() const { return _sprOffset; }
     const Size &GetDestinationSize() const { return _destSize; }
-    int  GetDestinationWidth() const { return _destSize.Width; }
-    int  GetDestinationHeight() const { return _destSize.Height; }
+    int GetDestinationWidth() const { return _destSize.Width; }
+    int GetDestinationHeight() const { return _destSize.Height; }
     Pointf GetScale() const { return _scale; }
     const Size &GetScaledSize() const { return _scaledSize; }
-    int  GetScaledWidth() const { return _scaledSize.Width; }
-    int  GetScaledHeight() const { return _scaledSize.Height; }
+    int GetScaledWidth() const { return _scaledSize.Width; }
+    int GetScaledHeight() const { return _scaledSize.Height; }
     float GetRotation() const { return _rotation; }
     const Pointf &GetPivot() const { return _pivot; }
-    const Point &GetPivotOffset() const { return _pivotOff;}
+    const Point &GetPivotOffset() const { return _pivotOff; }
     Pointf GetEffectivePivot() const;
     bool IsSpriteShared() const { return (_flags & kOver_SpriteShared) != 0; }
     bool IsAutoPosition() const { return (_flags & kOver_AutoPosition) != 0; }
-    bool IsAutoSize() const  { return (_flags & kOver_AutoSize) != 0; }
+    bool IsAutoSize() const { return (_flags & kOver_AutoSize) != 0; }
     bool IsRoomLayer() const { return (_flags & kOver_RoomLayer) != 0; }
     bool IsVisible() const { return (_flags & kOver_Visible) != 0; }
-    int  GetTransparency() const { return _transparency; }
+    int GetTransparency() const { return _transparency; }
     Common::BlendMode GetBlendMode() const { return _blendMode; }
     Common::GraphicFlip GetFlip() const { return Common::GfxDef::GetFlipFromFlags(_spritetf); }
     bool HasTint() const { return (_flags & kOver_HasTint) != 0; }
     bool HasLightLevel() const { return (_flags & kOver_HasLightLevel) != 0; }
-    int  GetTintLevel() const { return _tintLevel; }
-    int  GetTintR() const { return _tintR; }
-    int  GetTintG() const { return _tintG; }
-    int  GetTintB() const { return _tintB; }
-    int  GetTintLight() const { return _tintLight; }
-    int  GetZOrder() const { return _zorder; }
+    int GetTintLevel() const { return _tintLevel; }
+    int GetTintR() const { return _tintR; }
+    int GetTintG() const { return _tintG; }
+    int GetTintB() const { return _tintB; }
+    int GetTintLight() const { return _tintLight; }
+    int GetZOrder() const { return _zorder; }
     // Gets actual overlay's image
     Common::Bitmap *GetImage() const;
     // Get this overlay's sprite id
-    int  GetSpriteNum() const { return _sprnum; }
+    int GetSpriteNum() const { return _sprnum; }
     // Get this overlay's graphic's dimensions (unscaled)
     Size GetGraphicSize() const;
     const Common::String &GetText() const { return _text; }
     // Gets shader id
-    int  GetShaderID() const { return _shaderID; }
+    int GetShaderID() const { return _shaderID; }
     // Gets script shader's managed handle
-    int  GetShaderHandle() const { return _shaderHandle; }
-    int  GetTimeout() const { return _timeout; }
-    int  GetCharacterRef() const { return _speechForChar; }
-    int  GetScriptHandle() const { return _scriptHandle; }
+    int GetShaderHandle() const { return _shaderHandle; }
+    int GetTimeout() const { return _timeout; }
+    int GetCharacterRef() const { return _speechForChar; }
+    int GetScriptHandle() const { return _scriptHandle; }
     void SetRoomLayer(bool on)
     {
-        on ? _flags |= (kOver_RoomLayer | kOver_PositionAtRoomXY) :
-             _flags &= ~(kOver_RoomLayer | kOver_PositionAtRoomXY);
+        on ? _flags |= (kOver_RoomLayer | kOver_PositionAtRoomXY)
+           : _flags &= ~(kOver_RoomLayer | kOver_PositionAtRoomXY);
     }
     void SetVisible(bool on) { on ? _flags |= kOver_Visible : _flags &= ~kOver_Visible; }
     // Assigns an automatic alignment to the given character's pos
@@ -204,7 +218,7 @@ public:
     // Recalculates overlay's transform matrix and AABB
     void UpdateGraphicSpace();
     // Decrements timeout by one tick
-    int  UpdateTimeout();
+    int UpdateTimeout();
 
     // Returns Overlay's graphic space params
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
@@ -230,7 +244,7 @@ private:
     void DisposeScriptObject();
 
     ScreenOverlay(const ScreenOverlay &) = default;
-    ScreenOverlay &operator =(const ScreenOverlay&) = default;
+    ScreenOverlay &operator=(const ScreenOverlay &) = default;
 
     // Overlay's ID
     int _id = -1;
@@ -301,9 +315,7 @@ class AnimatedOverlay
 {
 public:
     AnimatedOverlay() = default;
-    AnimatedOverlay(int over_id, uint32_t flags)
-        : _overid(over_id), _flags(flags)
-    {}
+    AnimatedOverlay(int over_id, uint32_t flags) : _overid(over_id), _flags(flags) {}
 
     int GetOverID() const { return _overid; }
     bool IsAnimating() const { return _anim.IsValid(); }

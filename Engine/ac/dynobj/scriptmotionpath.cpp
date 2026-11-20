@@ -20,10 +20,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-ScriptMotionPath::ScriptMotionPath(uint32_t mlist_id)
-    : _moveListID(mlist_id)
-{
-}
+ScriptMotionPath::ScriptMotionPath(uint32_t mlist_id) : _moveListID(mlist_id) {}
 
 bool ScriptMotionPath::IsValid() const
 {
@@ -32,9 +29,7 @@ bool ScriptMotionPath::IsValid() const
 
 MoveList *ScriptMotionPath::GetMoveList() const
 {
-    return _moveListID == 0 ?
-        nullptr :
-        get_movelist(_moveListID);
+    return _moveListID == 0 ? nullptr : get_movelist(_moveListID);
 }
 
 void ScriptMotionPath::Invalidate()

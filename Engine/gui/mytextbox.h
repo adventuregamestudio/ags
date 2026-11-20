@@ -18,15 +18,15 @@
 #include "gui/newcontrol.h"
 
 #define TEXTBOX_MAXLEN 49
-struct MyTextBox:public NewControl
+struct MyTextBox : public NewControl
 {
-  char text[TEXTBOX_MAXLEN + 1];
-  int textheight; // TODO: use font instead
+    char text[TEXTBOX_MAXLEN + 1];
+    int textheight; // TODO: use font instead
 
-  MyTextBox(int xx, int yy, int wii, const char *tee, int textheight);
-  void draw(Common::Bitmap *ds) override;
-  int pressedon(int mx, int my) override;
-  int processmessage(int mcode, int wParam, intptr_t ipParam) override;
+    MyTextBox(int xx, int yy, int wii, const char *tee, int textheight);
+    void draw(Common::Bitmap *ds) override;
+    int pressedon(int mx, int my) override;
+    int processmessage(int mcode, int wParam, intptr_t ipParam) override;
 };
 
 #endif // __AC_MYTEXTBOX_H

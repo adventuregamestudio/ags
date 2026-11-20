@@ -105,12 +105,12 @@ void DialogOptionsRendering_SetParserTextboxWidth(ScriptDialogOptionsRendering *
     dlgOptRender->parserTextboxWidth = newWidth;
 }
 
-ScriptDialog* DialogOptionsRendering_GetDialogToRender(ScriptDialogOptionsRendering *dlgOptRender)
+ScriptDialog *DialogOptionsRendering_GetDialogToRender(ScriptDialogOptionsRendering *dlgOptRender)
 {
     return &scrDialog[dlgOptRender->dialogID];
 }
 
-ScriptDrawingSurface* DialogOptionsRendering_GetSurface(ScriptDialogOptionsRendering *dlgOptRender)
+ScriptDrawingSurface *DialogOptionsRendering_GetSurface(ScriptDialogOptionsRendering *dlgOptRender)
 {
     // Enforce that we only return a drawing surface inside "draw" callback;
     // but still let it in older games (even though it's pointless)
@@ -132,7 +132,9 @@ void DialogOptionsRendering_SetActiveOptionID(ScriptDialogOptionsRendering *dlgO
 {
     int optionCount = dialog[scrDialog[dlgOptRender->dialogID].id].GetOptionCount();
     if ((activeOptionID < 0) || (activeOptionID > optionCount))
-        quitprintf("DialogOptionsRenderingInfo.ActiveOptionID: invalid ID specified for this dialog (specified %d, valid range: 1..%d)", activeOptionID, optionCount);
+        quitprintf(
+            "DialogOptionsRenderingInfo.ActiveOptionID: invalid ID specified for this dialog (specified %d, valid range: 1..%d)",
+            activeOptionID, optionCount);
 
     if (dlgOptRender->activeOptionID != activeOptionID - 1)
     {
@@ -156,79 +158,93 @@ RuntimeScriptValue Sc_DialogOptionsRendering_Update(void *self, const RuntimeScr
     API_OBJCALL_VOID(ScriptDialogOptionsRendering, DialogOptionsRendering_Update);
 }
 
-RuntimeScriptValue Sc_DialogOptionsRendering_RunActiveOption(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_RunActiveOption(void *self, const RuntimeScriptValue *params,
+                                                             int32_t param_count)
 {
     API_OBJCALL_BOOL(ScriptDialogOptionsRendering, DialogOptionsRendering_RunActiveOption);
 }
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetActiveOptionID(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetActiveOptionID(void *self, const RuntimeScriptValue *params,
+                                                               int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetActiveOptionID);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int activeOptionID)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetActiveOptionID(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetActiveOptionID(void *self, const RuntimeScriptValue *params,
+                                                               int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetActiveOptionID);
 }
 
 // ScriptDialog* (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetDialogToRender(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetDialogToRender(void *self, const RuntimeScriptValue *params,
+                                                               int32_t param_count)
 {
-    API_OBJCALL_OBJ(ScriptDialogOptionsRendering, ScriptDialog, ccDynamicDialog, DialogOptionsRendering_GetDialogToRender);
+    API_OBJCALL_OBJ(ScriptDialogOptionsRendering, ScriptDialog, ccDynamicDialog,
+                    DialogOptionsRendering_GetDialogToRender);
 }
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetHeight(void *self, const RuntimeScriptValue *params,
+                                                       int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetHeight);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int newHeight)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetHeight(void *self, const RuntimeScriptValue *params,
+                                                       int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetHeight);
 }
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetParserTextboxX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetParserTextboxX(void *self, const RuntimeScriptValue *params,
+                                                               int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetParserTextboxX);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int newX)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetParserTextboxX(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetParserTextboxX(void *self, const RuntimeScriptValue *params,
+                                                               int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetParserTextboxX);
 }
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetParserTextboxY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetParserTextboxY(void *self, const RuntimeScriptValue *params,
+                                                               int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetParserTextboxY);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int newY)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetParserTextboxY(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetParserTextboxY(void *self, const RuntimeScriptValue *params,
+                                                               int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetParserTextboxY);
 }
 
 // int (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetParserTextboxWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetParserTextboxWidth(void *self, const RuntimeScriptValue *params,
+                                                                   int32_t param_count)
 {
     API_OBJCALL_INT(ScriptDialogOptionsRendering, DialogOptionsRendering_GetParserTextboxWidth);
 }
 
 // void (ScriptDialogOptionsRendering *dlgOptRender, int newWidth)
-RuntimeScriptValue Sc_DialogOptionsRendering_SetParserTextboxWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_SetParserTextboxWidth(void *self, const RuntimeScriptValue *params,
+                                                                   int32_t param_count)
 {
     API_OBJCALL_VOID_PINT(ScriptDialogOptionsRendering, DialogOptionsRendering_SetParserTextboxWidth);
 }
 
 // ScriptDrawingSurface* (ScriptDialogOptionsRendering *dlgOptRender)
-RuntimeScriptValue Sc_DialogOptionsRendering_GetSurface(void *self, const RuntimeScriptValue *params, int32_t param_count)
+RuntimeScriptValue Sc_DialogOptionsRendering_GetSurface(void *self, const RuntimeScriptValue *params,
+                                                        int32_t param_count)
 {
     API_OBJCALL_OBJAUTO(ScriptDialogOptionsRendering, ScriptDrawingSurface, DialogOptionsRendering_GetSurface);
 }
@@ -273,26 +289,28 @@ RuntimeScriptValue Sc_DialogOptionsRendering_SetY(void *self, const RuntimeScrip
 void RegisterDialogOptionsRenderingAPI()
 {
     ScFnRegister dialogopt_api[] = {
-        { "DialogOptionsRenderingInfo::Update^0",             API_FN_PAIR(DialogOptionsRendering_Update) },
-        { "DialogOptionsRenderingInfo::RunActiveOption^0",    API_FN_PAIR(DialogOptionsRendering_RunActiveOption) },
-        { "DialogOptionsRenderingInfo::get_ActiveOptionID",   API_FN_PAIR(DialogOptionsRendering_GetActiveOptionID) },
-        { "DialogOptionsRenderingInfo::set_ActiveOptionID",   API_FN_PAIR(DialogOptionsRendering_SetActiveOptionID) },
-        { "DialogOptionsRenderingInfo::get_DialogToRender",   API_FN_PAIR(DialogOptionsRendering_GetDialogToRender) },
-        { "DialogOptionsRenderingInfo::get_Height",           API_FN_PAIR(DialogOptionsRendering_GetHeight) },
-        { "DialogOptionsRenderingInfo::set_Height",           API_FN_PAIR(DialogOptionsRendering_SetHeight) },
-        { "DialogOptionsRenderingInfo::get_ParserTextBoxX",   API_FN_PAIR(DialogOptionsRendering_GetParserTextboxX) },
-        { "DialogOptionsRenderingInfo::set_ParserTextBoxX",   API_FN_PAIR(DialogOptionsRendering_SetParserTextboxX) },
-        { "DialogOptionsRenderingInfo::get_ParserTextBoxY",   API_FN_PAIR(DialogOptionsRendering_GetParserTextboxY) },
-        { "DialogOptionsRenderingInfo::set_ParserTextBoxY",   API_FN_PAIR(DialogOptionsRendering_SetParserTextboxY) },
-        { "DialogOptionsRenderingInfo::get_ParserTextBoxWidth", API_FN_PAIR(DialogOptionsRendering_GetParserTextboxWidth) },
-        { "DialogOptionsRenderingInfo::set_ParserTextBoxWidth", API_FN_PAIR(DialogOptionsRendering_SetParserTextboxWidth) },
-        { "DialogOptionsRenderingInfo::get_Surface",          API_FN_PAIR(DialogOptionsRendering_GetSurface) },
-        { "DialogOptionsRenderingInfo::get_Width",            API_FN_PAIR(DialogOptionsRendering_GetWidth) },
-        { "DialogOptionsRenderingInfo::set_Width",            API_FN_PAIR(DialogOptionsRendering_SetWidth) },
-        { "DialogOptionsRenderingInfo::get_X",                API_FN_PAIR(DialogOptionsRendering_GetX) },
-        { "DialogOptionsRenderingInfo::set_X",                API_FN_PAIR(DialogOptionsRendering_SetX) },
-        { "DialogOptionsRenderingInfo::get_Y",                API_FN_PAIR(DialogOptionsRendering_GetY) },
-        { "DialogOptionsRenderingInfo::set_Y",                API_FN_PAIR(DialogOptionsRendering_SetY) },
+        {"DialogOptionsRenderingInfo::Update^0", API_FN_PAIR(DialogOptionsRendering_Update)},
+        {"DialogOptionsRenderingInfo::RunActiveOption^0", API_FN_PAIR(DialogOptionsRendering_RunActiveOption)},
+        {"DialogOptionsRenderingInfo::get_ActiveOptionID", API_FN_PAIR(DialogOptionsRendering_GetActiveOptionID)},
+        {"DialogOptionsRenderingInfo::set_ActiveOptionID", API_FN_PAIR(DialogOptionsRendering_SetActiveOptionID)},
+        {"DialogOptionsRenderingInfo::get_DialogToRender", API_FN_PAIR(DialogOptionsRendering_GetDialogToRender)},
+        {"DialogOptionsRenderingInfo::get_Height", API_FN_PAIR(DialogOptionsRendering_GetHeight)},
+        {"DialogOptionsRenderingInfo::set_Height", API_FN_PAIR(DialogOptionsRendering_SetHeight)},
+        {"DialogOptionsRenderingInfo::get_ParserTextBoxX", API_FN_PAIR(DialogOptionsRendering_GetParserTextboxX)},
+        {"DialogOptionsRenderingInfo::set_ParserTextBoxX", API_FN_PAIR(DialogOptionsRendering_SetParserTextboxX)},
+        {"DialogOptionsRenderingInfo::get_ParserTextBoxY", API_FN_PAIR(DialogOptionsRendering_GetParserTextboxY)},
+        {"DialogOptionsRenderingInfo::set_ParserTextBoxY", API_FN_PAIR(DialogOptionsRendering_SetParserTextboxY)},
+        {"DialogOptionsRenderingInfo::get_ParserTextBoxWidth",
+         API_FN_PAIR(DialogOptionsRendering_GetParserTextboxWidth)},
+        {"DialogOptionsRenderingInfo::set_ParserTextBoxWidth",
+         API_FN_PAIR(DialogOptionsRendering_SetParserTextboxWidth)},
+        {"DialogOptionsRenderingInfo::get_Surface", API_FN_PAIR(DialogOptionsRendering_GetSurface)},
+        {"DialogOptionsRenderingInfo::get_Width", API_FN_PAIR(DialogOptionsRendering_GetWidth)},
+        {"DialogOptionsRenderingInfo::set_Width", API_FN_PAIR(DialogOptionsRendering_SetWidth)},
+        {"DialogOptionsRenderingInfo::get_X", API_FN_PAIR(DialogOptionsRendering_GetX)},
+        {"DialogOptionsRenderingInfo::set_X", API_FN_PAIR(DialogOptionsRendering_SetX)},
+        {"DialogOptionsRenderingInfo::get_Y", API_FN_PAIR(DialogOptionsRendering_GetY)},
+        {"DialogOptionsRenderingInfo::set_Y", API_FN_PAIR(DialogOptionsRendering_SetY)},
     };
 
     ccAddExternalFunctions(dialogopt_api);

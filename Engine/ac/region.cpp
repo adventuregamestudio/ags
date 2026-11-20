@@ -33,7 +33,7 @@ using namespace AGS::Common;
 
 extern ScriptRegion scrRegion[MAX_ROOM_REGIONS];
 extern RoomStruct thisroom;
-extern RoomStatus*croom;
+extern RoomStatus *croom;
 extern GameSetupStruct game;
 extern COLOR_MAP maincoltable;
 extern RGB palette[256];
@@ -58,8 +58,10 @@ int GetRegionIDAtRoom(int x, int y, int hit_options)
         y = 0;
 
     int hsthere = thisroom.RegionMask->GetPixel(x, y);
-    if (hsthere <= 0 || hsthere >= MAX_ROOM_REGIONS) return 0;
-    if (((hit_options & kHit_Interactable) != 0) && (croom->region_enabled[hsthere] == 0)) return 0;
+    if (hsthere <= 0 || hsthere >= MAX_ROOM_REGIONS)
+        return 0;
+    if (((hit_options & kHit_Interactable) != 0) && (croom->region_enabled[hsthere] == 0))
+        return 0;
     return hsthere;
 }
 
@@ -88,14 +90,17 @@ ScriptRegion *Region_GetAtScreenXY2(int x, int y)
 
 ScriptRegion *Region_GetByName(const char *name)
 {
-    return static_cast<ScriptRegion*>(ccGetScriptObjectAddress(name, ccDynamicRegion.GetType()));
+    return static_cast<ScriptRegion *>(ccGetScriptObjectAddress(name, ccDynamicRegion.GetType()));
 }
 
-void SetAreaLightLevel(int area, int brightness) {
+void SetAreaLightLevel(int area, int brightness)
+{
     if ((area < 0) || (area > MAX_ROOM_REGIONS))
         quit("!SetAreaLightLevel: invalid region");
-    if (brightness < -100) brightness = -100;
-    if (brightness > 100) brightness = 100;
+    if (brightness < -100)
+        brightness = -100;
+    if (brightness > 100)
+        brightness = 100;
     // Set light level and disable RGB tint for this area
     if (thisroom.Regions[area].Light != brightness || thisroom.Regions[area].Tint != 0)
     {
@@ -105,11 +110,13 @@ void SetAreaLightLevel(int area, int brightness) {
     }
 }
 
-void Region_SetLightLevel(ScriptRegion *ssr, int brightness) {
+void Region_SetLightLevel(ScriptRegion *ssr, int brightness)
+{
     SetAreaLightLevel(ssr->id, brightness);
 }
 
-int Region_GetLightLevel(ScriptRegion *ssr) {
+int Region_GetLightLevel(ScriptRegion *ssr)
+{
     return thisroom.GetRegionLightLevel(ssr->id);
 }
 
@@ -118,29 +125,30 @@ const char *Region_GetScriptName(ScriptRegion *ssr)
     return CreateNewScriptString(thisroom.Regions[ssr->id].ScriptName);
 }
 
-int Region_GetTintEnabled(ScriptRegion *srr) {
+int Region_GetTintEnabled(ScriptRegion *srr)
+{
     if (thisroom.Regions[srr->id].Tint & 0xFF000000)
         return 1;
     return 0;
 }
 
-int Region_GetTintRed(ScriptRegion *srr) {
-
+int Region_GetTintRed(ScriptRegion *srr)
+{
     return thisroom.Regions[srr->id].Tint & 0x000000ff;
 }
 
-int Region_GetTintGreen(ScriptRegion *srr) {
-
+int Region_GetTintGreen(ScriptRegion *srr)
+{
     return (thisroom.Regions[srr->id].Tint >> 8) & 0x000000ff;
 }
 
-int Region_GetTintBlue(ScriptRegion *srr) {
-
+int Region_GetTintBlue(ScriptRegion *srr)
+{
     return (thisroom.Regions[srr->id].Tint >> 16) & 0x000000ff;
 }
 
-int Region_GetTintSaturation(ScriptRegion *srr) {
-
+int Region_GetTintSaturation(ScriptRegion *srr)
+{
     return (thisroom.Regions[srr->id].Tint >> 24) & 0xFF;
 }
 
@@ -154,8 +162,8 @@ void SetRegionTint(int area, int red, int green, int blue, int amount, int lumin
     if ((area < 0) || (area >= MAX_ROOM_REGIONS))
         quit("!SetRegionTint: invalid region");
 
-    if ((red < 0) || (red > 255) || (green < 0) || (green > 255) ||
-        (blue < 0) || (blue > 255)) {
+    if ((red < 0) || (red > 255) || (green < 0) || (green > 255) || (blue < 0) || (blue > 255))
+    {
         quit("!SetRegionTint: RGB values must be 0-255");
     }
 
@@ -164,7 +172,8 @@ void SetRegionTint(int area, int red, int green, int blue, int amount, int lumin
     if ((luminance < 0) || (luminance > 100))
         quit("!SetRegionTint: luminance must be 0-100");
 
-    const int tint = (amount > 0) ? (red & 0xFF) | ((green & 0xFF) << 8) | ((blue & 0XFF) << 16) | ((amount & 0xFF) << 24) : 0;
+    const int tint =
+        (amount > 0) ? (red & 0xFF) | ((green & 0xFF) << 8) | ((blue & 0XFF) << 16) | ((amount & 0xFF) << 24) : 0;
     const int light = (amount > 0) ? GfxDef::Value100ToValue250(luminance) : 0;
 
     if ((thisroom.Regions[area].Tint != tint) || (thisroom.Regions[area].Light != light))
@@ -203,22 +212,26 @@ void EnableRegion(int hsnum)
     debug_script_log("Region %d enabled", hsnum);
 }
 
-void Region_SetEnabled(ScriptRegion *ssr, int enable) {
+void Region_SetEnabled(ScriptRegion *ssr, int enable)
+{
     if (enable)
         EnableRegion(ssr->id);
     else
         DisableRegion(ssr->id);
 }
 
-int Region_GetEnabled(ScriptRegion *ssr) {
+int Region_GetEnabled(ScriptRegion *ssr)
+{
     return croom->region_enabled[ssr->id];
 }
 
-int Region_GetID(ScriptRegion *ssr) {
+int Region_GetID(ScriptRegion *ssr)
+{
     return ssr->id;
 }
 
-void RunRegionInteraction(int regnum, int mood) {
+void RunRegionInteraction(int regnum, int mood)
+{
     if ((regnum < 0) || (regnum >= MAX_ROOM_REGIONS))
         quit("!RunRegionInteraction: invalid region specified");
     if ((mood < kRegionEvent_Standing) || (mood > kRegionEvent_WalkOff))
@@ -226,11 +239,13 @@ void RunRegionInteraction(int regnum, int mood) {
 
     // Regions do not react to cursor modes, but this function
     // was historically executing special region events (see RegionEventID)
-    const auto obj_evt = ObjectEvent(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrRegion[regnum], &ccDynamicRegion));
+    const auto obj_evt =
+        ObjectEvent(kScTypeRoom, RuntimeScriptValue().SetScriptObject(&scrRegion[regnum], &ccDynamicRegion));
     run_event_script(obj_evt, &thisroom.Regions[regnum].GetEvents(), mood);
 }
 
-void Region_RunInteraction(ScriptRegion *ssr, int mood) {
+void Region_RunInteraction(ScriptRegion *ssr, int mood)
+{
     RunRegionInteraction(ssr->id, mood);
 }
 
@@ -239,7 +254,7 @@ int Region_GetProperty(ScriptRegion *ssr, const char *property)
     return get_int_property(thisroom.Regions[ssr->id].Properties, croom->regProps[ssr->id], property);
 }
 
-const char* Region_GetTextProperty(ScriptRegion *ssr, const char *property)
+const char *Region_GetTextProperty(ScriptRegion *ssr, const char *property)
 {
     return get_text_property_dynamic_string(thisroom.Regions[ssr->id].Properties, croom->regProps[ssr->id], property);
 }
@@ -433,36 +448,35 @@ RuntimeScriptValue Sc_Region_SetTextProperty(void *self, const RuntimeScriptValu
 }
 
 
-
 void RegisterRegionAPI()
 {
     ScFnRegister region_api[] = {
-        { "Region::GetAtRoomXY^2",        API_FN_PAIR(Region_GetAtRoomXY2) },
-        { "Region::GetAtRoomXY^3",        API_FN_PAIR(Region_GetAtRoomXY) },
-        { "Region::GetAtScreenXY^2",      API_FN_PAIR(Region_GetAtScreenXY2) },
-        { "Region::GetAtScreenXY^3",      API_FN_PAIR(Region_GetAtScreenXY) },
-        { "Region::GetByScriptName^1",    API_FN_PAIR(Region_GetByName) },
-        { "Region::GetDrawingSurface",    API_FN_PAIR(Region_GetDrawingSurface) },
+        {"Region::GetAtRoomXY^2", API_FN_PAIR(Region_GetAtRoomXY2)},
+        {"Region::GetAtRoomXY^3", API_FN_PAIR(Region_GetAtRoomXY)},
+        {"Region::GetAtScreenXY^2", API_FN_PAIR(Region_GetAtScreenXY2)},
+        {"Region::GetAtScreenXY^3", API_FN_PAIR(Region_GetAtScreenXY)},
+        {"Region::GetByScriptName^1", API_FN_PAIR(Region_GetByName)},
+        {"Region::GetDrawingSurface", API_FN_PAIR(Region_GetDrawingSurface)},
 
-        { "Region::Tint^4",               API_FN_PAIR(Region_TintNoLum) },
-        { "Region::Tint^5",               API_FN_PAIR(Region_Tint) },
-        { "Region::RunInteraction^1",     API_FN_PAIR(Region_RunInteraction) },
-        { "Region::GetProperty^1",        API_FN_PAIR(Region_GetProperty) },
-        { "Region::GetTextProperty^1",    API_FN_PAIR(Region_GetTextProperty) },
-        { "Region::SetProperty^2",        API_FN_PAIR(Region_SetProperty) },
-        { "Region::SetTextProperty^2",    API_FN_PAIR(Region_SetTextProperty) },
-        { "Region::get_Enabled",          API_FN_PAIR(Region_GetEnabled) },
-        { "Region::set_Enabled",          API_FN_PAIR(Region_SetEnabled) },
-        { "Region::get_ID",               API_FN_PAIR(Region_GetID) },
-        { "Region::get_LightLevel",       API_FN_PAIR(Region_GetLightLevel) },
-        { "Region::set_LightLevel",       API_FN_PAIR(Region_SetLightLevel) },
-        { "Region::get_ScriptName",       API_FN_PAIR(Region_GetScriptName) },
-        { "Region::get_TintEnabled",      API_FN_PAIR(Region_GetTintEnabled) },
-        { "Region::get_TintBlue",         API_FN_PAIR(Region_GetTintBlue) },
-        { "Region::get_TintGreen",        API_FN_PAIR(Region_GetTintGreen) },
-        { "Region::get_TintRed",          API_FN_PAIR(Region_GetTintRed) },
-        { "Region::get_TintSaturation",   API_FN_PAIR(Region_GetTintSaturation) },
-        { "Region::get_TintLuminance",    API_FN_PAIR(Region_GetTintLuminance) },
+        {"Region::Tint^4", API_FN_PAIR(Region_TintNoLum)},
+        {"Region::Tint^5", API_FN_PAIR(Region_Tint)},
+        {"Region::RunInteraction^1", API_FN_PAIR(Region_RunInteraction)},
+        {"Region::GetProperty^1", API_FN_PAIR(Region_GetProperty)},
+        {"Region::GetTextProperty^1", API_FN_PAIR(Region_GetTextProperty)},
+        {"Region::SetProperty^2", API_FN_PAIR(Region_SetProperty)},
+        {"Region::SetTextProperty^2", API_FN_PAIR(Region_SetTextProperty)},
+        {"Region::get_Enabled", API_FN_PAIR(Region_GetEnabled)},
+        {"Region::set_Enabled", API_FN_PAIR(Region_SetEnabled)},
+        {"Region::get_ID", API_FN_PAIR(Region_GetID)},
+        {"Region::get_LightLevel", API_FN_PAIR(Region_GetLightLevel)},
+        {"Region::set_LightLevel", API_FN_PAIR(Region_SetLightLevel)},
+        {"Region::get_ScriptName", API_FN_PAIR(Region_GetScriptName)},
+        {"Region::get_TintEnabled", API_FN_PAIR(Region_GetTintEnabled)},
+        {"Region::get_TintBlue", API_FN_PAIR(Region_GetTintBlue)},
+        {"Region::get_TintGreen", API_FN_PAIR(Region_GetTintGreen)},
+        {"Region::get_TintRed", API_FN_PAIR(Region_GetTintRed)},
+        {"Region::get_TintSaturation", API_FN_PAIR(Region_GetTintSaturation)},
+        {"Region::get_TintLuminance", API_FN_PAIR(Region_GetTintLuminance)},
     };
 
     ccAddExternalFunctions(region_api);

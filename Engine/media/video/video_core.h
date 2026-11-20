@@ -29,8 +29,7 @@
 
 // AudioPlayerLock wraps a AudioPlayer pointer guarded by a mutex lock.
 // Unlocks the mutex on destruction (e.g. when going out of scope).
-typedef AGS::Engine::LockedObjectPtr<AGS::Engine::VideoPlayer>
-    VideoPlayerLock;
+typedef AGS::Engine::LockedObjectPtr<AGS::Engine::VideoPlayer> VideoPlayerLock;
 
 // Initializes video core system;
 // starts polling on a background thread.
@@ -52,8 +51,8 @@ struct VideoInitParams
 // Initializes video playback on a free playback slot, uses provided
 // stream for data streaming.
 // TODO: return HError on error?
-int video_core_slot_init(std::unique_ptr<AGS::Common::Stream> in,
-    const AGS::Common::String &name, const AGS::Common::String &ext_hint, const VideoInitParams &params);
+int video_core_slot_init(std::unique_ptr<AGS::Common::Stream> in, const AGS::Common::String &name,
+                         const AGS::Common::String &ext_hint, const VideoInitParams &params);
 // Returns a VideoPlayer from the given slot, wrapped in a auto-locking struct.
 VideoPlayerLock video_core_get_player(int slot_handle);
 // Stop and release the video player at the given slot

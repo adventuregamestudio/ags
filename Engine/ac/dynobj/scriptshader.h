@@ -25,6 +25,7 @@ class ScriptShaderInstance;
 class ScriptShaderProgram final : public AGSCCDynamicObject
 {
     using String = AGS::Common::String;
+
 public:
     const static uint32_t NullShaderID = 0u;
     const static uint32_t SecondaryTextureCount = 4u;
@@ -63,7 +64,7 @@ public:
 
 private:
     size_t CalcSerializeSize(const void *address) override;
-    void   Serialize(const void *address, AGS::Common::Stream *out) override;
+    void Serialize(const void *address, AGS::Common::Stream *out) override;
 
     String _name;
     String _filename;
@@ -95,6 +96,7 @@ private:
 class ScriptShaderInstance final : public AGSCCDynamicObject
 {
     using String = AGS::Common::String;
+
 public:
     const static uint32_t NullInstanceID = 0u;
     static const char *TypeID;
@@ -113,7 +115,7 @@ public:
     struct Constant
     {
         uint32_t Size = 0u; // size of the constant, in floats
-        float Val[4] = { 0.f };
+        float Val[4] = {0.f};
     };
 
     uint32_t GetConstantCount() const { return _constData.size(); }
@@ -130,7 +132,7 @@ public:
 
 private:
     size_t CalcSerializeSize(const void *address) override;
-    void   Serialize(const void *address, AGS::Common::Stream *out) override;
+    void Serialize(const void *address, AGS::Common::Stream *out) override;
 
     String _name;
     uint32_t _id = NullInstanceID;

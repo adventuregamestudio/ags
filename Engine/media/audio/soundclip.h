@@ -80,15 +80,9 @@ public:
     bool update();
 
     // Gets if the clip is valid (playing or ready to play)
-    inline bool is_ready() const
-    {
-        return IsPlaybackReady(state);
-    }
+    inline bool is_ready() const { return IsPlaybackReady(state); }
     // Gets if the clip is currently paused
-    inline bool is_paused() const
-    {
-        return state == PlayStatePaused;
-    }
+    inline bool is_paused() const { return state == PlayStatePaused; }
 
     // Get legacy sound format type (MUS_*)
     inline AudioFileType get_sound_type() const { return soundType; }
@@ -176,7 +170,8 @@ private:
     // helper function for calculating volume with applied modifiers
     inline int get_final_volume() const
     {
-        if (muted) return 0;
+        if (muted)
+            return 0;
         int final_vol = vol255 + volModifier + directionalVolModifier;
         return final_vol >= 0 ? final_vol : 0;
     }

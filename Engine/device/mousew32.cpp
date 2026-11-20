@@ -43,26 +43,26 @@ extern volatile bool switched_away;
 
 namespace Mouse
 {
-    // Tells whether mouse was locked to the game window
-    bool LockedToWindow = false;
+// Tells whether mouse was locked to the game window
+bool LockedToWindow = false;
 
-    // Screen rectangle, in which the mouse movement is controlled by engine
-    Rect  ControlRect;
-    // Mouse control enabled flag
-    bool  ControlEnabled = false;
-    // Mouse speed value provided by user
-    float SpeedVal = 1.f;
-    // Mouse speed unit
-    float SpeedUnit = 1.f;
-    // Actual speed factor (cached)
-    float Speed = 1.f;
+// Screen rectangle, in which the mouse movement is controlled by engine
+Rect ControlRect;
+// Mouse control enabled flag
+bool ControlEnabled = false;
+// Mouse speed value provided by user
+float SpeedVal = 1.f;
+// Mouse speed unit
+float SpeedUnit = 1.f;
+// Actual speed factor (cached)
+float Speed = 1.f;
 
-    // Converts real window coordinates to native game coords
-    void WindowToGame(int &x, int &y);
-    // Sets mouse position in system coordinates, syncs with the real mouse cursor
-    // NOTE: real cursor will be updated only if the game window has focus
-    void SetSysPosition(int x, int y);
-}
+// Converts real window coordinates to native game coords
+void WindowToGame(int &x, int &y);
+// Sets mouse position in system coordinates, syncs with the real mouse cursor
+// NOTE: real cursor will be updated only if the game window has focus
+void SetSysPosition(int x, int y);
+} // namespace Mouse
 
 Point Mouse::SysToGamePos(int sys_mx, int sys_my)
 {
@@ -87,7 +87,7 @@ void Mouse::Poll()
     // CHECKME: disabled, to let Poll work with emulated mouse movement,
     // which might also run in background while the window does not has a focus.
     //if (switched_away)
-        //return;
+    //return;
 
     // Save absolute cursor coordinates provided by system
     // NOTE: relative motion and the speed factor should already be applied by SDL2 or our custom devices.
@@ -136,9 +136,9 @@ void Mouse::WindowToGame(int &x, int &y)
 void Mouse::UpdateGraphicArea()
 {
     Mouse::ControlRect = GameScaling.ScaleRange(play.GetMainViewport());
-    Debug::Printf("Mouse cursor graphic area: (%d,%d)-(%d,%d) (%dx%d)",
-        Mouse::ControlRect.Left, Mouse::ControlRect.Top, Mouse::ControlRect.Right, Mouse::ControlRect.Bottom,
-        Mouse::ControlRect.GetWidth(), Mouse::ControlRect.GetHeight());
+    Debug::Printf("Mouse cursor graphic area: (%d,%d)-(%d,%d) (%dx%d)", Mouse::ControlRect.Left, Mouse::ControlRect.Top,
+                  Mouse::ControlRect.Right, Mouse::ControlRect.Bottom, Mouse::ControlRect.GetWidth(),
+                  Mouse::ControlRect.GetHeight());
 }
 
 void Mouse::SetMoveLimit(const Rect &r)
@@ -149,9 +149,8 @@ void Mouse::SetMoveLimit(const Rect &r)
 
 void Mouse::SetPosition(const Point &p)
 {
-    Mouse::SetSysPosition(
-        GameScaling.X.ScalePt(p.X + play.GetMainViewport().Left),
-        GameScaling.Y.ScalePt(p.Y + play.GetMainViewport().Top));
+    Mouse::SetSysPosition(GameScaling.X.ScalePt(p.X + play.GetMainViewport().Left),
+                          GameScaling.Y.ScalePt(p.Y + play.GetMainViewport().Top));
 }
 
 bool Mouse::IsLockedToWindow()
@@ -174,7 +173,7 @@ void Mouse::UnlockFromWindow()
 
 void Mouse::SetMovementControl(bool on)
 {
-#if defined (SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE)
+#if defined(SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE)
     ControlEnabled = on;
     SDL_SetRelativeMouseMode(static_cast<SDL_bool>(on));
     if (on)
@@ -184,7 +183,8 @@ void Mouse::SetMovementControl(bool on)
 #else
     ControlEnabled = false;
     if (on)
-        Debug::Printf(kDbgMsg_Warn, "WARNING: SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE not supported, mouse control can't be enabled");
+        Debug::Printf(kDbgMsg_Warn,
+                      "WARNING: SDL_HINT_MOUSE_RELATIVE_SPEED_SCALE not supported, mouse control can't be enabled");
 #endif
     ags_clear_mouse_movement();
 }

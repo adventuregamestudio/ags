@@ -39,7 +39,8 @@ size_t ScriptVSprintf__(char *buffer, size_t buf_length, const char *format, ...
 
 const size_t STD_BUFFER_SIZE = 1024;
 
-TEST(ScSprintf, ScSprintf) {
+TEST(ScSprintf, ScSprintf)
+{
     const int argi = 123;
     const float argf = 0.456F;
     const char *argcc = "string literal";
@@ -53,11 +54,15 @@ TEST(ScSprintf, ScSprintf) {
     // Called-from-script variant
     //
     // Correct format, extra placeholder
-    size_t result =
-        ScriptSprintf(ScSfBuffer, STD_BUFFER_SIZE,
-            "testing ScriptSprintf:\nThis is int: %10d\nThis is float: %.4f\nThis is string: '%s'\nThis placeholder will be ignored: %d",
-            params, 3);
-    ASSERT_TRUE(strcmp(ScSfBuffer, "testing ScriptSprintf:\nThis is int:        123\nThis is float: 0.4560\nThis is string: 'string literal'\nThis placeholder will be ignored: %d") == 0);
+    size_t result = ScriptSprintf(
+        ScSfBuffer, STD_BUFFER_SIZE,
+        "testing ScriptSprintf:\nThis is int: %10d\nThis is float: %.4f\nThis is string: '%s'\nThis placeholder will be ignored: %d",
+        params, 3);
+    ASSERT_TRUE(
+        strcmp(
+            ScSfBuffer,
+            "testing ScriptSprintf:\nThis is int:        123\nThis is float: 0.4560\nThis is string: 'string literal'\nThis placeholder will be ignored: %d") ==
+        0);
     ASSERT_EQ(result, 138);
 
     // Literal percent sign
@@ -117,11 +122,14 @@ TEST(ScSprintf, ScSprintf) {
     // always be equal or higher than number of placeholders in buffer string.
     //
     // Correct format, matching number of arguments
-    result =
-        ScriptVSprintf__(ScSfBuffer, STD_BUFFER_SIZE,
-            "testing ScriptVSprintf:\nThis is int: %10d\nThis is float: %.4f\nThis is string: '%s'\n",
-            argi, argf, argcc);
-    ASSERT_TRUE(strcmp(ScSfBuffer, "testing ScriptVSprintf:\nThis is int:        123\nThis is float: 0.4560\nThis is string: 'string literal'\n") == 0);
+    result = ScriptVSprintf__(ScSfBuffer, STD_BUFFER_SIZE,
+                              "testing ScriptVSprintf:\nThis is int: %10d\nThis is float: %.4f\nThis is string: '%s'\n",
+                              argi, argf, argcc);
+    ASSERT_TRUE(
+        strcmp(
+            ScSfBuffer,
+            "testing ScriptVSprintf:\nThis is int:        123\nThis is float: 0.4560\nThis is string: 'string literal'\n") ==
+        0);
     ASSERT_EQ(result, 103);
 
     // Literal percent sign

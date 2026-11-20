@@ -45,8 +45,7 @@ public:
 class GenericPageDialog : public WinPageDialog
 {
 public:
-    GenericPageDialog(UINT template_id)
-        : _templateID(template_id) {}
+    GenericPageDialog(UINT template_id) : _templateID(template_id) {}
 
 protected:
     virtual UINT GetTemplateID() const { return _templateID; }
@@ -63,7 +62,10 @@ public:
     void AddPage(std::shared_ptr<WinPageDialog> dlg);
     void AddPage(std::shared_ptr<WinPageDialog> dlg, const String &title);
     size_t GetPageCount() const { return _pages.size(); }
-    std::shared_ptr<WinPageDialog> GetPage(size_t index) const { return index < _pages.size() ? _pages[index] : nullptr; }
+    std::shared_ptr<WinPageDialog> GetPage(size_t index) const
+    {
+        return index < _pages.size() ? _pages[index] : nullptr;
+    }
     void SelectPage(size_t index);
 
 private:

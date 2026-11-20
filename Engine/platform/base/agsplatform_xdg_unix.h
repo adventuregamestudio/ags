@@ -25,7 +25,8 @@
 
 #include "platform/base/agsplatformdriver.h"
 
-struct AGSPlatformXDGUnix : AGSPlatformDriver {
+struct AGSPlatformXDGUnix : AGSPlatformDriver
+{
     FSLocation GetAllUsersDataDirectory() override;
     FSLocation GetUserSavedgamesDirectory() override;
     FSLocation GetUserConfigDirectory() override;
@@ -33,7 +34,7 @@ struct AGSPlatformXDGUnix : AGSPlatformDriver {
     FSLocation GetAppOutputDirectory() override;
     bool IsLocalDirRestricted() override;
     uint64_t GetDiskFreeSpaceMB(const AGS::Common::String &path) override;
-    const char* GetBackendFailUserHint() override;
+    const char *GetBackendFailUserHint() override;
 };
 
 #endif // AGS_PLATFORM_IS_XDG_UNIX

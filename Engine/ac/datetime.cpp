@@ -17,19 +17,23 @@
 #include "platform/base/agsplatformdriver.h"
 
 
-ScriptDateTime* DateTime_Now() {
+ScriptDateTime *DateTime_Now()
+{
     ScriptDateTime *sdt = new ScriptDateTime(ScriptDateTime::SystemClock::now());
     ccRegisterManagedObject(sdt, sdt);
     return sdt;
 }
 
-ScriptDateTime* DateTime_CreateFromDate(int year, int month, int day, int hour, int minute, int second) {
+ScriptDateTime *DateTime_CreateFromDate(int year, int month, int day, int hour, int minute, int second)
+{
     // NOTE: implementation cannot handle years before 1970,
     // and since DateTime.RawTime is int32, years from 2038 and above cause overflow.
     ScriptDateTime *sdt;
-    if (year < 1970 || year >= 2038 || month < 1 || month > 12 || day < 1 || day > 31 || hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 59)
+    if (year < 1970 || year >= 2038 || month < 1 || month > 12 || day < 1 || day > 31 || hour < 0 || hour > 23 ||
+        minute < 0 || minute > 59 || second < 0 || second > 59)
     {
-        debug_script_warn("DateTime.CreateFromDate: requested date or time is not in a supported range: %dy,%dm,%dd %dh:%dm:%ds",
+        debug_script_warn(
+            "DateTime.CreateFromDate: requested date or time is not in a supported range: %dy,%dm,%dd %dh:%dm:%ds",
             year, month, day, hour, minute, second);
         sdt = new ScriptDateTime();
     }
@@ -41,7 +45,8 @@ ScriptDateTime* DateTime_CreateFromDate(int year, int month, int day, int hour, 
     return sdt;
 }
 
-ScriptDateTime* DateTime_CreateFromRawTime(int raw_time) {
+ScriptDateTime *DateTime_CreateFromRawTime(int raw_time)
+{
     ScriptDateTime *sdt;
     if (raw_time < 0)
     {
@@ -56,35 +61,43 @@ ScriptDateTime* DateTime_CreateFromRawTime(int raw_time) {
     return sdt;
 }
 
-int DateTime_GetYear(ScriptDateTime *sdt) {
+int DateTime_GetYear(ScriptDateTime *sdt)
+{
     return sdt->Year();
 }
 
-int DateTime_GetMonth(ScriptDateTime *sdt) {
+int DateTime_GetMonth(ScriptDateTime *sdt)
+{
     return sdt->Month();
 }
 
-int DateTime_GetDayOfMonth(ScriptDateTime *sdt) {
+int DateTime_GetDayOfMonth(ScriptDateTime *sdt)
+{
     return sdt->Day();
 }
 
-int DateTime_GetHour(ScriptDateTime *sdt) {
+int DateTime_GetHour(ScriptDateTime *sdt)
+{
     return sdt->Hour();
 }
 
-int DateTime_GetMinute(ScriptDateTime *sdt) {
+int DateTime_GetMinute(ScriptDateTime *sdt)
+{
     return sdt->Minute();
 }
 
-int DateTime_GetSecond(ScriptDateTime *sdt) {
+int DateTime_GetSecond(ScriptDateTime *sdt)
+{
     return sdt->Second();
 }
 
-int DateTime_GetMillisecond(ScriptDateTime *sdt) {
+int DateTime_GetMillisecond(ScriptDateTime *sdt)
+{
     return sdt->Millisecond();
 }
 
-int DateTime_GetRawTime(ScriptDateTime *sdt) {
+int DateTime_GetRawTime(ScriptDateTime *sdt)
+{
     return sdt->RawTime();
 }
 
@@ -165,18 +178,18 @@ RuntimeScriptValue Sc_DateTime_GetRawTime(void *self, const RuntimeScriptValue *
 void RegisterDateTimeAPI()
 {
     ScFnRegister datetime_api[] = {
-        { "DateTime::get_Now",        API_FN_PAIR(DateTime_Now) },
-        { "DateTime::CreateFromDate", API_FN_PAIR(DateTime_CreateFromDate) },
-        { "DateTime::CreateFromRawTime", API_FN_PAIR(DateTime_CreateFromRawTime) },
+        {"DateTime::get_Now", API_FN_PAIR(DateTime_Now)},
+        {"DateTime::CreateFromDate", API_FN_PAIR(DateTime_CreateFromDate)},
+        {"DateTime::CreateFromRawTime", API_FN_PAIR(DateTime_CreateFromRawTime)},
 
-        { "DateTime::get_DayOfMonth", API_FN_PAIR(DateTime_GetDayOfMonth) },
-        { "DateTime::get_Hour",       API_FN_PAIR(DateTime_GetHour) },
-        { "DateTime::get_Millisecond", API_FN_PAIR(DateTime_GetMillisecond) },
-        { "DateTime::get_Minute",     API_FN_PAIR(DateTime_GetMinute) },
-        { "DateTime::get_Month",      API_FN_PAIR(DateTime_GetMonth) },
-        { "DateTime::get_RawTime",    API_FN_PAIR(DateTime_GetRawTime) },
-        { "DateTime::get_Second",     API_FN_PAIR(DateTime_GetSecond) },
-        { "DateTime::get_Year",       API_FN_PAIR(DateTime_GetYear) },
+        {"DateTime::get_DayOfMonth", API_FN_PAIR(DateTime_GetDayOfMonth)},
+        {"DateTime::get_Hour", API_FN_PAIR(DateTime_GetHour)},
+        {"DateTime::get_Millisecond", API_FN_PAIR(DateTime_GetMillisecond)},
+        {"DateTime::get_Minute", API_FN_PAIR(DateTime_GetMinute)},
+        {"DateTime::get_Month", API_FN_PAIR(DateTime_GetMonth)},
+        {"DateTime::get_RawTime", API_FN_PAIR(DateTime_GetRawTime)},
+        {"DateTime::get_Second", API_FN_PAIR(DateTime_GetSecond)},
+        {"DateTime::get_Year", API_FN_PAIR(DateTime_GetYear)},
     };
 
     ccAddExternalFunctions(datetime_api);

@@ -43,7 +43,7 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
-extern RoomStatus*croom;
+extern RoomStatus *croom;
 extern int displayed_room;
 extern RGB palette[256];
 extern IGraphicsDriver *gfxDriver;
@@ -59,32 +59,33 @@ extern std::unique_ptr<Bitmap> saved_viewport_bitmap;
 
 // FIXME: change these from global variables into e.g. GamePlayState members
 // TODO: replace these with "current transition state" enum?
-bool in_enters_screen = false; // while running "before fade-in" script event
-bool done_as_error = false;    // used to report a mistake in "enter room" event
-int in_leaves_screen = -1; // while running "before fade-out" script event, stores a next room number
-                           // CHECKME: in_leaves_screen seems to be not used for anything?
+bool in_enters_screen = false;   // while running "before fade-in" script event
+bool done_as_error = false;      // used to report a mistake in "enter room" event
+int in_leaves_screen = -1;       // while running "before fade-out" script event, stores a next room number
+                                 // CHECKME: in_leaves_screen seems to be not used for anything?
 bool in_room_transition = false; // between previous "before fade-out" and next "after fade-in";
     // used to define a period during which the cursor and "@overhotspot@" labels should be hidden
 
 std::vector<AGSEvent> events;
 
-int inside_processevent=0;
+int inside_processevent = 0;
 int eventClaimed = EVENT_NONE;
 
-std::array<ScriptEventCallback, kTS_Num> ScriptEventCb = { {
-    { nullptr, 0u, kScCallback_Direct },
-    { REP_EXEC_NAME, 0u, kScCallback_CommonUnClaimable },
-    { "on_key_press", 2u, kScCallback_CommonClaimable },
-    { "on_mouse_click", 3u, kScCallback_CommonClaimable },
-    { "on_text_input", 1u, kScCallback_CommonClaimable },
-    { "on_event", 5u, kScCallback_CommonClaimable },
-    { "on_pointer_down", 3u, kScCallback_CommonClaimable },
-    { "on_pointer_move", 3u, kScCallback_CommonClaimable },
-    { "on_pointer_up", 3u, kScCallback_CommonClaimable },
-} };
+std::array<ScriptEventCallback, kTS_Num> ScriptEventCb = {{
+    {nullptr, 0u, kScCallback_Direct},
+    {REP_EXEC_NAME, 0u, kScCallback_CommonUnClaimable},
+    {"on_key_press", 2u, kScCallback_CommonClaimable},
+    {"on_mouse_click", 3u, kScCallback_CommonClaimable},
+    {"on_text_input", 1u, kScCallback_CommonClaimable},
+    {"on_event", 5u, kScCallback_CommonClaimable},
+    {"on_pointer_down", 3u, kScCallback_CommonClaimable},
+    {"on_pointer_move", 3u, kScCallback_CommonClaimable},
+    {"on_pointer_up", 3u, kScCallback_CommonClaimable},
+}};
 
 
-void run_claimable_event(const String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params, bool *eventWasClaimed)
+void run_claimable_event(const String &tsname, bool includeRoom, int numParams, const RuntimeScriptValue *params,
+                         bool *eventWasClaimed)
 {
     *eventWasClaimed = true;
     // Run the room script function, and if it is not claimed,
@@ -122,7 +123,7 @@ void run_claimable_event(const String &tsname, bool includeRoom, int numParams, 
 // runs the global script on_event function
 void run_on_event(AGSScriptEventType evtype, int data1, int data2, int data3, int data4)
 {
-    RuntimeScriptValue params[]{ evtype , data1, data2, data3, data4 };
+    RuntimeScriptValue params[]{evtype, data1, data2, data3, data4};
     RunScriptFunctionAuto(kScTypeGame, "on_event", 5, params);
 }
 
@@ -160,7 +161,7 @@ void process_event(const AGSEvent *evp)
             quit("process_event: kAGSEvent_Script: unknown callback type");
             return;
         }
-        RuntimeScriptValue params[3]{ ts.Arg1, ts.Arg2, ts.Arg3 };
+        RuntimeScriptValue params[3]{ts.Arg1, ts.Arg2, ts.Arg3};
         RunScriptFunctionAuto(kScTypeGame, ScriptEventCb[ts.CbType].FnName, ScriptEventCb[ts.CbType].ArgCount, params);
     }
     else if (evp->Type == kAGSEvent_NewRoom)
@@ -180,7 +181,7 @@ void process_event(const AGSEvent *evp)
             const int hotspot_id = obj.ObjID;
             obj_events = &thisroom.Hotspots[hotspot_id].GetEvents();
             obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_HOTSPOT, hotspot_id,
-                RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
+                                  RuntimeScriptValue().SetScriptObject(&scrHotspot[hotspot_id], &ccDynamicHotspot));
             //Debug::Printf("Running hotspot interaction for hotspot %d, event %d", evp->data2, evp->data3);
             break;
         }
@@ -189,7 +190,7 @@ void process_event(const AGSEvent *evp)
             const int region_id = obj.ObjID;
             obj_events = &thisroom.Regions[region_id].GetEvents();
             obj_evt = ObjectEvent(kScTypeRoom, LOCTYPE_NOTHING, region_id,
-                RuntimeScriptValue().SetScriptObject(&scrRegion[region_id], &ccDynamicRegion));
+                                  RuntimeScriptValue().SetScriptObject(&scrRegion[region_id], &ccDynamicRegion));
             break;
         }
         case kObjEventType_Room:
@@ -254,7 +255,8 @@ void process_event(const AGSEvent *evp)
     }
 }
 
-void processallevents() {
+void processallevents()
+{
     if (inside_processevent)
     {
         events.clear(); // flush queued events
@@ -272,12 +274,12 @@ void processallevents() {
 
     inside_processevent++;
 
-    for (size_t i = 0; i < evtcopy.size(); ++i) {
-
+    for (size_t i = 0; i < evtcopy.size(); ++i)
+    {
         process_event(&evtcopy[i]);
 
         if (room_was != play.room_changes)
-            break;  // changed room, so discard other events
+            break; // changed room, so discard other events
     }
 
     events.clear();
@@ -287,7 +289,8 @@ void processallevents() {
 // end event list functions
 
 
-void ClaimEvent() {
+void ClaimEvent()
+{
     if (eventClaimed == EVENT_NONE)
         quit("!ClaimEvent: no event to claim");
 

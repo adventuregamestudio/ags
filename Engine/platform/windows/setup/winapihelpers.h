@@ -34,7 +34,10 @@ namespace Engine
 using namespace AGS::Common;
 
 // Cast AGS::Common::String to LPCSTR
-inline LPCSTR STR(const String &str) { return str.GetCStr(); }
+inline LPCSTR STR(const String &str)
+{
+    return str.GetCStr();
+}
 
 //
 // Common controls

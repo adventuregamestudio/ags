@@ -22,23 +22,24 @@
 
 // Asserts the hotspot ID is valid in the current room,
 // if not then prints a warning to the log; returns assertion result
-bool    AssertHotspot(const char *apiname, int hot_id);
-void    Hotspot_SetEnabled(ScriptHotspot *hss, int newval);
-int     Hotspot_GetEnabled(ScriptHotspot *hss);
-int     Hotspot_GetID(ScriptHotspot *hss);
-int     Hotspot_GetWalkToX(ScriptHotspot *hss);;
-int     Hotspot_GetWalkToY(ScriptHotspot *hss);
-const char* Hotspot_GetName_New(ScriptHotspot *hss);
-bool    Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood);
-void    Hotspot_RunInteraction (ScriptHotspot *hss, int mood);
-void    RunHotspotInteraction(int hotspothere, int mood);
+bool AssertHotspot(const char *apiname, int hot_id);
+void Hotspot_SetEnabled(ScriptHotspot *hss, int newval);
+int Hotspot_GetEnabled(ScriptHotspot *hss);
+int Hotspot_GetID(ScriptHotspot *hss);
+int Hotspot_GetWalkToX(ScriptHotspot *hss);
+;
+int Hotspot_GetWalkToY(ScriptHotspot *hss);
+const char *Hotspot_GetName_New(ScriptHotspot *hss);
+bool Hotspot_IsInteractionAvailable(ScriptHotspot *hhot, int mood);
+void Hotspot_RunInteraction(ScriptHotspot *hss, int mood);
+void RunHotspotInteraction(int hotspothere, int mood);
 
-int     Hotspot_GetProperty (ScriptHotspot *hss, const char *property);
-void    Hotspot_GetPropertyText (ScriptHotspot *hss, const char *property, char *bufer);
-const char* Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property);
+int Hotspot_GetProperty(ScriptHotspot *hss, const char *property);
+void Hotspot_GetPropertyText(ScriptHotspot *hss, const char *property, char *bufer);
+const char *Hotspot_GetTextProperty(ScriptHotspot *hss, const char *property);
 
 // Gets hotspot ID at the given room coordinates;
 // if hotspot is disabled or non-existing, returns 0 (no area)
-int     GetHotspotIDAtRoom(int x, int y, int hit_options);
+int GetHotspotIDAtRoom(int x, int y, int hit_options);
 
 #endif // __AGS_EE_AC__HOTSPOT_H

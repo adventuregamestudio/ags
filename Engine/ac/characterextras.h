@@ -33,16 +33,22 @@
 #include "gfx/graphicspace.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 struct CharacterInfo;
 
 enum CharacterRuntimeFlags
 {
-    kCharf_Turning      = 0x00000001, // is turning
-    kCharf_TurningCCW   = 0x00000002, // turning counter-clockwise
-    kCharf_TurningMask  = (kCharf_Turning | kCharf_TurningCCW),
+    kCharf_Turning = 0x00000001,    // is turning
+    kCharf_TurningCCW = 0x00000002, // turning counter-clockwise
+    kCharf_TurningMask = (kCharf_Turning | kCharf_TurningCCW),
 };
 
 // The CharacterInfo struct size is fixed because it's exposed to script
@@ -55,21 +61,21 @@ class CharacterExtras
 public:
     // FIXME: hide the fields under public interface;
     //        use standard int* types
-    Point spr_offset;    // fixed sprite offset (translation)
-    Pointf spr_anchor    // graphic anchor (relative alignment)
-        = Pointf(0.5f, 1.f); // default: middle-bottom
-    Point view_offset;   // fixed view offset (from locked view)
-    Pointf view_anchor   // view anchor (from locked view)
-        = Pointf(0.5f, 1.f); // default: middle-bottom
-    Point eff_offset;    // effective offset (depends on view state)
-    Pointf eff_anchor;   // effective anchor (depends on view state)
-    Pointf pivot         // relative rotation pivot
+    Point spr_offset;         // fixed sprite offset (translation)
+    Pointf spr_anchor         // graphic anchor (relative alignment)
+        = Pointf(0.5f, 1.f);  // default: middle-bottom
+    Point view_offset;        // fixed view offset (from locked view)
+    Pointf view_anchor        // view anchor (from locked view)
+        = Pointf(0.5f, 1.f);  // default: middle-bottom
+    Point eff_offset;         // effective offset (depends on view state)
+    Pointf eff_anchor;        // effective anchor (depends on view state)
+    Pointf pivot              // relative rotation pivot
         = Pointf(0.5f, 0.5f); // default: center
-    Point pivot_offset;  // relative rotation pivot offset (in pixels)
-    int   spr_width = 0; // current sprite size
-    int   spr_height = 0;
-    int   frame_xoff = 0; // current frame offset
-    int   frame_yoff = 0;
+    Point pivot_offset;       // relative rotation pivot offset (in pixels)
+    int spr_width = 0;        // current sprite size
+    int spr_height = 0;
+    int frame_xoff = 0; // current frame offset
+    int frame_yoff = 0;
     short width = 0; // width/height (includes character scaling!)
     short height = 0;
     short zoom = 100;
@@ -80,35 +86,35 @@ public:
     short tint_b = 0;
     short tint_level = 0;
     short tint_light = 0;
-    char  process_idle_this_time = 0;
-    char  slow_move_counter = 0;
+    char process_idle_this_time = 0;
+    char slow_move_counter = 0;
     ViewAnimateParams anim;
-    short animwait = 0; // current ticks counter, before advancing a animation
-    int   audio_volume = 100; // default animation volume (relative factor)
-    int   cur_audio_volume = 100; // current animation sound volume (relative factor)
-    int   audio_panning = 0;
-    int   audio_speed = 1000;
-    int   following = -1; // whom do we follow (character id)
-    int   follow_dist = 0; // follow distance, in pixels
-    int   follow_eagerness = 0; // follow reaction
+    short animwait = 0;         // current ticks counter, before advancing a animation
+    int audio_volume = 100;     // default animation volume (relative factor)
+    int cur_audio_volume = 100; // current animation sound volume (relative factor)
+    int audio_panning = 0;
+    int audio_speed = 1000;
+    int following = -1;       // whom do we follow (character id)
+    int follow_dist = 0;      // follow distance, in pixels
+    int follow_eagerness = 0; // follow reaction
     // Character's inventory, stores item IDs in the order in which items were added.
     // This may include item duplicates if OPT_DUPLICATEINV is enabled.
     std::vector<int> inventory;
     Common::BlendMode blend_mode = Common::kBlend_Normal;
-    int   shader_id = 0;
-    int   shader_handle = 0; // script shader handle
+    int shader_id = 0;
+    int shader_handle = 0; // script shader handle
     float rotation = 0.f;
     // Optional character face direction ratio, 0 = ignore
     float face_dir_ratio = 0.f;
-    int   movelist_handle = 0; // handle to the script movelist
-    int   flags = 0; // runtime character flags (CharacterRuntimeFlags)
-    int   turns = 0; // turning counter
+    int movelist_handle = 0; // handle to the script movelist
+    int flags = 0;           // runtime character flags (CharacterRuntimeFlags)
+    int turns = 0;           // turning counter
 
     // Following fields are deriatives of the above (calculated from these
     // and other factors), and hence are not serialized.
     //
     // zoom factor of sprite offsets, fixed at 100 in backwards compatible mode
-    int   zoom_offs = 100;
+    int zoom_offs = 100;
 
     bool IsTurning() const { return (flags & kCharf_Turning) != 0; }
     bool IsTurningClockwise() const { return IsTurning() && (flags & kCharf_TurningCCW) == 0; }
@@ -119,7 +125,7 @@ public:
 
     bool IsAnimating() const { return anim.IsValid(); }
     bool IsAnimatingRepeatedly() const { return anim.IsRepeating(); }
-    int  GetAnimDelay() const { return anim.Delay; }
+    int GetAnimDelay() const { return anim.Delay; }
     // NOTE: has to return non-const for CycleViewAnim :/
     // this may be solved by having a base class that handles animation, e.g. ViewBasedObject
     ViewAnimateParams &GetAnimParams() { return anim; }
@@ -137,8 +143,8 @@ public:
     // Calculate wanted frame sound volume based on multiple factors
     int GetFrameSoundVolume(const CharacterInfo *chi) const;
     // Set locked view with anchor and offset
-    void SetLockedView(CharacterInfo *chi, int view, int loop, int frame,
-                       const Pointf &anchor = Pointf(), const Point &off = Point());
+    void SetLockedView(CharacterInfo *chi, int view, int loop, int frame, const Pointf &anchor = Pointf(),
+                       const Point &off = Point());
     // Set unlocked view, revert to common anchor and offset
     void SetUnlockedView(CharacterInfo *chi);
     // Process the current animation frame for the character:
@@ -147,7 +153,8 @@ public:
     // Run the arbitrary frame's event if one is associated and character has a handler
     bool RunFrameEvent(CharacterInfo *chi, int view, int loop, int frame);
     // Setups following another character (follow_who)
-    void SetFollowing(CharacterInfo *chi, int follow_who, int distance = 0, int eagerness = 0, bool sort_behind = false);
+    void SetFollowing(CharacterInfo *chi, int follow_who, int distance = 0, int eagerness = 0,
+                      bool sort_behind = false);
 
     inline const Common::GraphicSpace &GetGraphicSpace() const { return _gs; }
 

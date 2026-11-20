@@ -43,7 +43,7 @@ using namespace AGS::Engine;
 
 extern int displayed_room;
 extern GameSetupStruct game;
-extern CharacterInfo*playerchar;
+extern CharacterInfo *playerchar;
 
 void start_game_load_savegame_on_startup(const String &load_save)
 {
@@ -88,9 +88,10 @@ void start_game()
 
     set_our_eip(-3);
 
-    if (displayed_room < 0) {
+    if (displayed_room < 0)
+    {
         current_fade_out_effect();
-        load_new_room(playerchar->room,playerchar);
+        load_new_room(playerchar->room, playerchar);
     }
 
     first_room_initialization();
@@ -98,7 +99,8 @@ void start_game()
 
 void initialize_start_and_play_game(int override_start_room, const String &load_save)
 {
-    try { // BEGIN try for ALI3DEXception
+    try
+    { // BEGIN try for ALI3DEXception
 
         set_cursor_mode_with_role(kCursorRole_Walk);
 
@@ -115,7 +117,6 @@ void initialize_start_and_play_game(int override_start_room, const String &load_
             start_game();
 
         RunGameUntilAborted();
-
     }
     catch (Ali3DException gfxException)
     {

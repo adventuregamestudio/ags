@@ -29,19 +29,14 @@ namespace AGS
 namespace Engine
 {
 
-JPSRouteFinder::JPSRouteFinder()
-    : nav(*new Navigation())
-{
-}
+JPSRouteFinder::JPSRouteFinder() : nav(*new Navigation()) {}
 
 JPSRouteFinder::~JPSRouteFinder()
 {
     delete &nav;
 }
 
-void JPSRouteFinder::OnSetWalkableArea()
-{
-}
+void JPSRouteFinder::OnSetWalkableArea() {}
 
 void JPSRouteFinder::SyncNavWalkablearea()
 {
@@ -87,21 +82,21 @@ bool JPSRouteFinder::FindRouteJPS(std::vector<Point> &nav_path, int fromx, int f
     {
         int x, y;
         nav.UnpackSquare(cpath[i], x, y);
-        nav_path.emplace_back( x, y );
+        nav_path.emplace_back(x, y);
     }
 
     return true;
 }
 
 bool JPSRouteFinder::FindRouteImpl(std::vector<Point> &nav_path, int srcx, int srcy, int dstx, int dsty,
-    bool exact_dest, bool ignore_walls)
+                                   bool exact_dest, bool ignore_walls)
 {
     nav_path.clear();
 
     if (ignore_walls || CanSeeFromImpl(srcx, srcy, dstx, dsty))
     {
-        nav_path.emplace_back( srcx, srcy );
-        nav_path.emplace_back( dstx, dsty );
+        nav_path.emplace_back(srcx, srcy);
+        nav_path.emplace_back(dstx, dsty);
     }
     else
     {
@@ -119,7 +114,7 @@ bool JPSRouteFinder::FindRouteImpl(std::vector<Point> &nav_path, int srcx, int s
         nav_path.push_back(nav_path[0]);
 
 #ifdef DEBUG_PATHFINDER
-    AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stages", srcx,srcy,xx,yy,(int)nav_path.size());
+    AGS::Common::Debug::Printf("Route from %d,%d to %d,%d - %d stages", srcx, srcy, xx, yy, (int)nav_path.size());
 #endif
     return true;
 }

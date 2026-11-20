@@ -17,8 +17,8 @@
 #include "debug/out.h"
 #include "util/memory_compat.h"
 
-#define VIDEO_DEBUG_VERBOSE     (0)
-#define VIDEO_TEST_DESYNC       (0)
+#define VIDEO_DEBUG_VERBOSE (0)
+#define VIDEO_TEST_DESYNC   (0)
 
 namespace AGS
 {
@@ -32,15 +32,13 @@ VideoPlayer::~VideoPlayer()
     Stop();
 }
 
-HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream,
-    const String &name, int flags)
+HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream, const String &name, int flags)
 {
     return Open(std::move(data_stream), name, flags, Size(), 0);
 }
 
-HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream,
-    const String &name, int flags,
-    const Size &target_sz, int target_depth, float target_fps)
+HError VideoPlayer::Open(std::unique_ptr<Common::Stream> data_stream, const String &name, int flags,
+                         const Size &target_sz, int target_depth, float target_fps)
 {
     // We request a target depth from decoder, but it may ignore our request,
     // so we have to check actual "native" frame's depth after
@@ -78,8 +76,7 @@ void VideoPlayer::SetTargetFrame(const Size &target_sz)
     _targetSize = target_sz.IsNull() ? _frameSize : target_sz;
 
     // Create helper bitmaps in case of stretching or color depth conversion
-    if ((_targetSize != _frameSize) || (_targetDepth != _frameDepth)
-        || ((_flags & kVideo_AccumFrame) != 0))
+    if ((_targetSize != _frameSize) || (_targetDepth != _frameDepth) || ((_flags & kVideo_AccumFrame) != 0))
     {
         _vframeBuf.reset(new Bitmap(_frameSize.Width, _frameSize.Height, _frameDepth));
     }
@@ -100,7 +97,6 @@ void VideoPlayer::SetTargetFrame(const Size &target_sz)
     }
 
     // TODO: resize the buffered queue?
-
 }
 
 void VideoPlayer::Stop()
@@ -149,8 +145,7 @@ void VideoPlayer::Play()
         _playState = PlayStatePlaying;
         _statsReady = true;
         break;
-    default:
-        break; // TODO: support rewind/replay from stop/finished state?
+    default: break; // TODO: support rewind/replay from stop/finished state?
     }
 }
 
@@ -229,8 +224,7 @@ void VideoPlayer::SetSpeed(float speed)
         now = _pauseTs;
         play_dur = now - _startTs;
         break;
-    default:
-        break;
+    default: break;
     }
 
     const auto old_frametime = _targetFrameTime;
@@ -240,8 +234,7 @@ void VideoPlayer::SetSpeed(float speed)
     // Adjust our virtual timestamps by the difference between
     // previous play duration, and new duration calculated from the new speed.
     float ft_rel = _targetFrameTime / old_frametime;
-    Clock::duration virtual_play_dur =
-        Clock::duration((int64_t)(play_dur.count() * ft_rel));
+    Clock::duration virtual_play_dur = Clock::duration((int64_t)(play_dur.count() * ft_rel));
     _startTs = now - virtual_play_dur;
     // Adjust timestamps in video and audio queue
     for (auto &f : _videoFrameQueue)
@@ -263,8 +256,8 @@ void VideoPlayer::SetVolume(float volume)
 std::unique_ptr<Bitmap> VideoPlayer::GetReadyFrame()
 {
 #if (VIDEO_DEBUG_VERBOSE)
-    Debug::Printf("VIDEO READY FRAME: playdur = %.2f, queue: %u, head frame timestamp: %.2f",
-                  _playbackDurationMs, _videoFrameQueue.size(), _videoFrameQueue.empty() ? -1.f : _videoFrameQueue.front()->Timestamp());
+    Debug::Printf("VIDEO READY FRAME: playdur = %.2f, queue: %u, head frame timestamp: %.2f", _playbackDurationMs,
+                  _videoFrameQueue.size(), _videoFrameQueue.empty() ? -1.f : _videoFrameQueue.front()->Timestamp());
 #endif
 
     if (_videoFrameQueue.empty())
@@ -392,8 +385,8 @@ void VideoPlayer::BufferVideo()
         return; // queue limit reached
 
     // Optionally drop late frames, but have at least 1 for display
-    if (((_flags & kVideo_DropFrames) != 0) && ((_flags & kVideo_DropFramesUndecoded) != 0)
-        && _videoFrameQueue.size() > 0)
+    if (((_flags & kVideo_DropFrames) != 0) && ((_flags & kVideo_DropFramesUndecoded) != 0) &&
+        _videoFrameQueue.size() > 0)
     {
         const float drop_time = _playbackDurationMs - _targetFrameTime;
         float frame_ts = PeekVideoFrame();
@@ -402,8 +395,8 @@ void VideoPlayer::BufferVideo()
         {
             DropVideoFrame();
 #if (VIDEO_DEBUG_VERBOSE)
-            Debug::Printf("DROPPED LATE FRAME (UNDECODED), ts: %.2f, drop time: %.2f, queue size now: %u",
-                          frame_ts, drop_time, _videoFrameQueue.size());
+            Debug::Printf("DROPPED LATE FRAME (UNDECODED), ts: %.2f, drop time: %.2f, queue size now: %u", frame_ts,
+                          drop_time, _videoFrameQueue.size());
 #endif
             _stats.VideoOut.Dropped++;
         }
@@ -415,8 +408,8 @@ void VideoPlayer::BufferVideo()
     const auto input_start = Clock::now();
 
     // Try to retrieve one video frame from decoder
-    const bool must_conv = (_targetSize != _frameSize || _targetDepth != _frameDepth
-        || ((_flags & kVideo_AccumFrame) != 0));
+    const bool must_conv =
+        (_targetSize != _frameSize || _targetDepth != _frameDepth || ((_flags & kVideo_AccumFrame) != 0));
     Bitmap *usebuf = must_conv ? _vframeBuf.get() : target_frame.get();
     float frame_ts = -1.f;
     if (!NextVideoFrame(usebuf, frame_ts))
@@ -431,7 +424,8 @@ void VideoPlayer::BufferVideo()
     frame_ts = frame_ts * _targetFrameTime / _frameTime;
 #if (VIDEO_DEBUG_VERBOSE)
     const float expect_frame_ts = _inputFrameCount * _targetFrameTime;
-    Debug::Printf("INPUT VIDEO FRAME: expect ts = %.2f, given ts = %.2f, diff = %.2f", expect_frame_ts, frame_ts, expect_frame_ts - frame_ts);
+    Debug::Printf("INPUT VIDEO FRAME: expect ts = %.2f, given ts = %.2f, diff = %.2f", expect_frame_ts, frame_ts,
+                  expect_frame_ts - frame_ts);
 #endif
     _inputFrameCount++;
 
@@ -444,7 +438,7 @@ void VideoPlayer::BufferVideo()
             _hicolBuf->Blit(usebuf);
             usebuf = _hicolBuf.get();
         }
-        
+
         if (_targetSize == _frameSize)
             target_frame->Blit(usebuf);
         else
@@ -548,16 +542,10 @@ void VideoPlayer::UpdatePlayTime()
     }
 
 #if (VIDEO_TEST_DESYNC)
-    Debug::Printf("VIDEO TIME: playdur %.2f ms, target frametime %.2f ms, video_pos = %.2f ms (%+.2f), audio pos = %.2f ms (%+.2f), video buf = %u, audio buf = %.2f ms",
-        _playbackDurationMs,
-        _targetFrameTime,
-        _videoPosMs,
-        _videoPosMs - _playbackDurationMs,
-        _audioPosMs,
-        _audioPosMs - _playbackDurationMs,
-        _videoFrameQueue.size(),
-        _audioQueueDurMs
-    );
+    Debug::Printf(
+        "VIDEO TIME: playdur %.2f ms, target frametime %.2f ms, video_pos = %.2f ms (%+.2f), audio pos = %.2f ms (%+.2f), video buf = %u, audio buf = %.2f ms",
+        _playbackDurationMs, _targetFrameTime, _videoPosMs, _videoPosMs - _playbackDurationMs, _audioPosMs,
+        _audioPosMs - _playbackDurationMs, _videoFrameQueue.size(), _audioQueueDurMs);
 #endif // VIDEO_TEST_DESYNC
 }
 
@@ -592,9 +580,11 @@ void VideoPlayer::SyncVideoAudio()
         const float adjust_playdur_ms = -std::trunc(av_diff / _targetFrameTime) * _targetFrameTime;
         // Clamp the play duration adjustment to the current video play pos,
         // because we do not want to cause an impression that playback was "rewinded".
-        const Clock::duration min_playdur = std::min(_playbackDuration, // - compare vs playbackdur in case of rounding mistakes
-                Clock::duration(std::chrono::microseconds(static_cast<int64_t>(_videoPosMs * 1000.f))));
-        const Clock::duration adjusted_playdur = _playbackDuration + std::chrono::microseconds(static_cast<int64_t>(adjust_playdur_ms * 1000.f));
+        const Clock::duration min_playdur =
+            std::min(_playbackDuration, // - compare vs playbackdur in case of rounding mistakes
+                     Clock::duration(std::chrono::microseconds(static_cast<int64_t>(_videoPosMs * 1000.f))));
+        const Clock::duration adjusted_playdur =
+            _playbackDuration + std::chrono::microseconds(static_cast<int64_t>(adjust_playdur_ms * 1000.f));
         const Clock::duration new_playdur = std::max(min_playdur, adjusted_playdur);
         const auto new_playdur_diff = ToMillisecondsF(new_playdur - _playbackDuration);
         // Recalculate start time and dependent variables
@@ -606,8 +596,10 @@ void VideoPlayer::SyncVideoAudio()
         _stats.SyncMaxFw = std::max(_stats.SyncMaxFw, new_playdur_diff);
         _stats.SyncMaxBw = std::min(_stats.SyncMaxBw, new_playdur_diff);
 #if (VIDEO_DEBUG_VERBOSE)
-        Debug::Printf("VideoPlayer: sync at frame %u: v-a diff: %+.2f ms, leeway: %.2f ms, adjust play dur by %+.2f ms, video playdur now: %.2f (expect frame: %u)",
-            _frameIndex == UINT32_MAX ? 0u : _frameIndex, av_diff, leeway, new_playdur_diff, _playbackDurationMs, static_cast<uint32_t>(_playbackDurationMs / _targetFrameTime));
+        Debug::Printf(
+            "VideoPlayer: sync at frame %u: v-a diff: %+.2f ms, leeway: %.2f ms, adjust play dur by %+.2f ms, video playdur now: %.2f (expect frame: %u)",
+            _frameIndex == UINT32_MAX ? 0u : _frameIndex, av_diff, leeway, new_playdur_diff, _playbackDurationMs,
+            static_cast<uint32_t>(_playbackDurationMs / _targetFrameTime));
 #endif
     }
 
@@ -651,14 +643,13 @@ bool VideoPlayer::ProcessVideo()
     if ((_flags & kVideo_DropFrames) != 0)
     {
         const float drop_time = _playbackDurationMs - _targetFrameTime;
-        while ((_videoFrameQueue.size() > 1) &&
-            (_videoFrameQueue.front()->Timestamp() < drop_time))
+        while ((_videoFrameQueue.size() > 1) && (_videoFrameQueue.front()->Timestamp() < drop_time))
         {
             auto frame = NextFrameFromQueue();
             assert(frame);
 #if (VIDEO_DEBUG_VERBOSE)
-            Debug::Printf("DROPPED LATE FRAME, ts: %.2f, drop time: %.2f, queue size now: %u",
-                          frame->Timestamp(), drop_time, _videoFrameQueue.size());
+            Debug::Printf("DROPPED LATE FRAME, ts: %.2f, drop time: %.2f, queue size now: %u", frame->Timestamp(),
+                          drop_time, _videoFrameQueue.size());
 #endif
             _videoFramePool.push(std::move(frame->Retrieve()));
             _stats.VideoOut.Dropped++;
@@ -740,107 +731,76 @@ void VideoPlayer::PrintStats(bool close)
 
     _statsPrintTs = now;
     Debug::Printf("VideoPlayer stats: \"%s\""
-        "\n\tresolution: %dx%d, fps: %.2f, frametime: %.2f ms"
-        "\n\taudio: %d Hz, chans: %d"
-        "\n\ttotal time working: %" PRId64 " ms"
-        "\n\ttotal time playing: %" PRId64 " ms"
-        "\n\tplayback position: %.2f ms",
-        _name.GetCStr(),
-        _frameSize.Width, _frameSize.Height, _frameRate, _frameTime,
-        _audioFreq, _audioChannels,
-        ToMilliseconds(_stats.WorkTime),
-        ToMilliseconds(_stats.PlayTime),
-        _posMs
-    );
+                  "\n\tresolution: %dx%d, fps: %.2f, frametime: %.2f ms"
+                  "\n\taudio: %d Hz, chans: %d"
+                  "\n\ttotal time working: %" PRId64 " ms"
+                  "\n\ttotal time playing: %" PRId64 " ms"
+                  "\n\tplayback position: %.2f ms",
+                  _name.GetCStr(), _frameSize.Width, _frameSize.Height, _frameRate, _frameTime, _audioFreq,
+                  _audioChannels, ToMilliseconds(_stats.WorkTime), ToMilliseconds(_stats.PlayTime), _posMs);
     if (HasVideo())
     {
         Debug::Printf(""
-              "\tvideo input frames: %u"
-            "\n\t            total size: %" PRIu64 " bytes"
-            "\n\t            total duration: %.2f ms"
-            "\n\t            frames dropped: %u"
-            "\n\tvideo frame size (raw, decoded): %u bytes"
-            "\n\tvideo frame size (raw, final): %u bytes"
-            "\n\tmax time per input video frame: %.2f ms"
-            "\n\tavg time per input video frame: %.2f ms"
-            "\n\ttotal time on input video frames: %" PRIu64 " ms"
-            "\n\tmax buffered video frames: %u / %u"
-            "\n\tavg buffered video frames: %u"
-            "\n\tvideo output frames: %u"
-            "\n\t            total size: %" PRIu64 " bytes"
-            "\n\t            total duration: %.2f ms"
-            "\n\t            frames dropped: %u"
-            "\n\tmost video timing diff: %+.2f, %+.2f ms"
-            "\n\tavg video timing diff: %+.2f ms",
-            _stats.VideoIn.Frames,
-            _stats.VideoIn.TotalDataSz,
-            _stats.VideoIn.TotalDurMs,
-            _stats.VideoIn.Dropped,
-            _stats.VideoIn.RawDecodedDataSz,
-            _stats.VideoIn.RawDecodedConvDataSz,
-            _stats.VideoIn.MaxTimePerFrame,
-            _stats.VideoIn.AvgTimePerFrame,
-            _stats.VideoIn.TotalTime,
-            _stats.MaxBufferedVideo,
-            _queueMax,
-            _stats.BufferedVideoAccum / _stats.VideoIn.Frames,
-            _stats.VideoOut.Frames,
-            _stats.VideoOut.TotalDataSz,
-            _stats.VideoOut.TotalDurMs,
-            _stats.VideoOut.Dropped,
-            _stats.VideoTimingDiffs.first,
-            _stats.VideoTimingDiffs.second,
-            _stats.VideoTimingDiffAccum / _stats.VideoOut.Frames
-        );
+                      "\tvideo input frames: %u"
+                      "\n\t            total size: %" PRIu64 " bytes"
+                      "\n\t            total duration: %.2f ms"
+                      "\n\t            frames dropped: %u"
+                      "\n\tvideo frame size (raw, decoded): %u bytes"
+                      "\n\tvideo frame size (raw, final): %u bytes"
+                      "\n\tmax time per input video frame: %.2f ms"
+                      "\n\tavg time per input video frame: %.2f ms"
+                      "\n\ttotal time on input video frames: %" PRIu64 " ms"
+                      "\n\tmax buffered video frames: %u / %u"
+                      "\n\tavg buffered video frames: %u"
+                      "\n\tvideo output frames: %u"
+                      "\n\t            total size: %" PRIu64 " bytes"
+                      "\n\t            total duration: %.2f ms"
+                      "\n\t            frames dropped: %u"
+                      "\n\tmost video timing diff: %+.2f, %+.2f ms"
+                      "\n\tavg video timing diff: %+.2f ms",
+                      _stats.VideoIn.Frames, _stats.VideoIn.TotalDataSz, _stats.VideoIn.TotalDurMs,
+                      _stats.VideoIn.Dropped, _stats.VideoIn.RawDecodedDataSz, _stats.VideoIn.RawDecodedConvDataSz,
+                      _stats.VideoIn.MaxTimePerFrame, _stats.VideoIn.AvgTimePerFrame, _stats.VideoIn.TotalTime,
+                      _stats.MaxBufferedVideo, _queueMax, _stats.BufferedVideoAccum / _stats.VideoIn.Frames,
+                      _stats.VideoOut.Frames, _stats.VideoOut.TotalDataSz, _stats.VideoOut.TotalDurMs,
+                      _stats.VideoOut.Dropped, _stats.VideoTimingDiffs.first, _stats.VideoTimingDiffs.second,
+                      _stats.VideoTimingDiffAccum / _stats.VideoOut.Frames);
     }
     if (HasAudio())
     {
         Debug::Printf(""
-              "\taudio input frames: %u"
-            "\n\t            total size: %" PRIu64 " bytes"
-            "\n\t            total duration: %.2f ms"
-            "\n\t            frames dropped: %u"
-            "\n\taverage audio frame: %u bytes, %.2f ms"
-            "\n\tmax time per input audio frame: %.2f ms"
-            "\n\tavg time per input audio frame: %.2f ms"
-            "\n\ttotal time on input audio frames: %" PRIu64 " ms"
-            "\n\tmax buffered audio duration: %.2f / %.2f ms"
-            "\n\tavg buffered audio duration: %.2f ms"
-            "\n\taudio output frames: %u"
-            "\n\t            total size: %" PRIu64 " bytes"
-            "\n\t            total duration: %.2f ms"
-            "\n\t            frames dropped: %u"
-            "\n\tmost audio timing diff: %+.2f, %+.2f"
-            "\n\tavg audio timing diff: %+.2f ms"
-            "\n\tvideo-audio sync:"
-            "\n\t            most desync towards audio: %+.2f ms"
-            "\n\t            most desync towards video: %+.2f ms"
-            "\n\t            avg desync: %+.2f ms"
-            "\n\t            max adjust forward: %+.2f ms"
-            "\n\t            max adjust backward: %+.2f ms",
-            _stats.AudioIn.Frames,
-            _stats.AudioIn.TotalDataSz,
-            _stats.AudioIn.TotalDurMs,
-            _stats.AudioIn.Dropped,
-            static_cast<uint32_t>(_stats.AudioIn.TotalDataSz / _stats.AudioIn.Frames),
-            _stats.AudioIn.TotalDurMs / _stats.AudioIn.Frames,
-            _stats.AudioIn.MaxTimePerFrame,
-            _stats.AudioIn.AvgTimePerFrame,
-            _stats.AudioIn.TotalTime,
-            _stats.MaxBufferedAudioMs,
-            _queueTimeMax,
-            _stats.BufferedAudioAcum / _stats.AudioIn.Frames,
-            _stats.AudioOut.Frames,
-            _stats.AudioOut.TotalDataSz,
-            _stats.AudioOut.TotalDurMs,
-            _stats.AudioOut.Dropped,
-            _stats.AudioTimingDiffs.first,
-            _stats.AudioTimingDiffs.second,
-            _stats.AudioTimingDiffAccum / _stats.AudioOut.Frames,
-            _stats.SyncTimingDiffs.first, _stats.SyncTimingDiffs.second,
-            _stats.SyncTimingDiffAccum / _stats.VideoIn.Frames,
-            _stats.SyncMaxFw, _stats.SyncMaxBw
-        );
+                      "\taudio input frames: %u"
+                      "\n\t            total size: %" PRIu64 " bytes"
+                      "\n\t            total duration: %.2f ms"
+                      "\n\t            frames dropped: %u"
+                      "\n\taverage audio frame: %u bytes, %.2f ms"
+                      "\n\tmax time per input audio frame: %.2f ms"
+                      "\n\tavg time per input audio frame: %.2f ms"
+                      "\n\ttotal time on input audio frames: %" PRIu64 " ms"
+                      "\n\tmax buffered audio duration: %.2f / %.2f ms"
+                      "\n\tavg buffered audio duration: %.2f ms"
+                      "\n\taudio output frames: %u"
+                      "\n\t            total size: %" PRIu64 " bytes"
+                      "\n\t            total duration: %.2f ms"
+                      "\n\t            frames dropped: %u"
+                      "\n\tmost audio timing diff: %+.2f, %+.2f"
+                      "\n\tavg audio timing diff: %+.2f ms"
+                      "\n\tvideo-audio sync:"
+                      "\n\t            most desync towards audio: %+.2f ms"
+                      "\n\t            most desync towards video: %+.2f ms"
+                      "\n\t            avg desync: %+.2f ms"
+                      "\n\t            max adjust forward: %+.2f ms"
+                      "\n\t            max adjust backward: %+.2f ms",
+                      _stats.AudioIn.Frames, _stats.AudioIn.TotalDataSz, _stats.AudioIn.TotalDurMs,
+                      _stats.AudioIn.Dropped, static_cast<uint32_t>(_stats.AudioIn.TotalDataSz / _stats.AudioIn.Frames),
+                      _stats.AudioIn.TotalDurMs / _stats.AudioIn.Frames, _stats.AudioIn.MaxTimePerFrame,
+                      _stats.AudioIn.AvgTimePerFrame, _stats.AudioIn.TotalTime, _stats.MaxBufferedAudioMs,
+                      _queueTimeMax, _stats.BufferedAudioAcum / _stats.AudioIn.Frames, _stats.AudioOut.Frames,
+                      _stats.AudioOut.TotalDataSz, _stats.AudioOut.TotalDurMs, _stats.AudioOut.Dropped,
+                      _stats.AudioTimingDiffs.first, _stats.AudioTimingDiffs.second,
+                      _stats.AudioTimingDiffAccum / _stats.AudioOut.Frames, _stats.SyncTimingDiffs.first,
+                      _stats.SyncTimingDiffs.second, _stats.SyncTimingDiffAccum / _stats.VideoIn.Frames,
+                      _stats.SyncMaxFw, _stats.SyncMaxBw);
     }
 }
 

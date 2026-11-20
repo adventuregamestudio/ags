@@ -18,7 +18,8 @@
 #ifndef __AGS_EE_AC__MATH_H
 #define __AGS_EE_AC__MATH_H
 
-enum RoundDirections {
+enum RoundDirections
+{
     eRoundDown = 0,
     eRoundNearest = 1,
     eRoundUp = 2,
@@ -49,6 +50,6 @@ float Math_GetPi();
 float Math_Sqrt(float value);
 float Math_Round(float value, int roundDirection);
 // Returns a random number from 0 to upto *inclusive*
-int   Random(int upto);
+int Random(int upto);
 
 #endif // __AGS_EE_AC__MATH_H

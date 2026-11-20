@@ -24,19 +24,19 @@ int Mouse_GetModeGraphic(int curs);
 void Mouse_ChangeModeView(int curs, int newview, int delay);
 // The Mouse:: functions are static so the script doesn't pass
 // in an object parameter
-void Mouse_SetPosition (int newx, int newy);
+void Mouse_SetPosition(int newx, int newy);
 int Mouse_GetCursorMode();
-void Mouse_SetNextCursor ();
+void Mouse_SetNextCursor();
 // permanently change cursor graphic
-void Mouse_ChangeCursorGraphic (int curs, int newslot);
-void Mouse_ChangeCursorHotspot (int curs, int x, int y);
-int  Mouse_IsButtonDown(int which);
-void Mouse_SetBounds (int x1, int y1, int x2, int y2);
+void Mouse_ChangeCursorGraphic(int curs, int newslot);
+void Mouse_ChangeCursorHotspot(int curs, int x, int y);
+int Mouse_IsButtonDown(int which);
+void Mouse_SetBounds(int x1, int y1, int x2, int y2);
 void Mouse_Refresh();
 // mouse cursor functions:
 // Mouse_SetCursor: changes visual appearance to specified cursor
 void Mouse_SetCursor(int newcurs);
-int  Mouse_GetCursor();
+int Mouse_GetCursor();
 // set_default_cursor: resets visual appearance to current mode (walk, look, etc);
 void Mouse_SetDefaultCursor();
 // set_cursor_mode: changes mode and appearance
@@ -72,11 +72,17 @@ void set_default_cursor_look();
 
 void update_script_mouse_coords();
 void update_inv_cursor(int invnum);
-void set_new_cursor_graphic (int spriteslot);
+void set_new_cursor_graphic(int spriteslot);
 int find_next_enabled_cursor(int startwith);
 int find_previous_enabled_cursor(int startwith);
 
-namespace AGS { namespace Common { class Bitmap; } }
+namespace AGS
+{
+namespace Common
+{
+class Bitmap;
+}
+} // namespace AGS
 
 // A collection of properties depicting the current mouse cursor look
 // TODO: this looks quite like the limited ScreenOverlay, merge these classes;
@@ -104,7 +110,7 @@ private:
 
     // Current cursor sprite ID, may be a >= 0 for a sprite or -1 for a generated bitmap
     // TODO: refactor, replace these with ObjTexture, and move to draw.cpp
-    int  _sprnum = -1;
+    int _sprnum = -1;
     // Generated cursor image, used to create a modified cursor with
     // hotspot crosshair drawn over it, or when an invalid pic index set.
     // TODO: store this as dynamic sprite instead, see generated sprites for text overlays.

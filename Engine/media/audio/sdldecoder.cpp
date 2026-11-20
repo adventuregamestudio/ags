@@ -24,12 +24,12 @@ namespace Engine
 //-----------------------------------------------------------------------------
 // SDLResampler
 //-----------------------------------------------------------------------------
-bool SDLResampler::Setup(SDL_AudioFormat src_fmt, int src_chans, int src_rate,
-    SDL_AudioFormat dst_fmt, int dst_chans, int dst_rate)
+bool SDLResampler::Setup(SDL_AudioFormat src_fmt, int src_chans, int src_rate, SDL_AudioFormat dst_fmt, int dst_chans,
+                         int dst_rate)
 {
     SDL_zero(_cvt);
-    return SDL_BuildAudioCVT(&_cvt, src_fmt, static_cast<uint8_t>(src_chans), src_rate,
-        dst_fmt, static_cast<uint8_t>(dst_chans), dst_rate) >= 0;
+    return SDL_BuildAudioCVT(&_cvt, src_fmt, static_cast<uint8_t>(src_chans), src_rate, dst_fmt,
+                             static_cast<uint8_t>(dst_chans), dst_rate) >= 0;
 }
 
 const void *SDLResampler::Convert(const void *data, size_t sz, size_t &out_sz)
@@ -59,19 +59,13 @@ const void *SDLResampler::Convert(const void *data, size_t sz, size_t &out_sz)
 //-----------------------------------------------------------------------------
 const auto SampleDefaultBufferSize = 64 * 1024;
 
-SDLDecoder::SDLDecoder(std::shared_ptr<std::vector<uint8_t>> &data,
-    const AGS::Common::String &ext_hint, bool repeat)
-    : _sampleData(data)
-    , _sampleExt(ext_hint)
-    , _repeat(repeat)
+SDLDecoder::SDLDecoder(std::shared_ptr<std::vector<uint8_t>> &data, const AGS::Common::String &ext_hint, bool repeat)
+    : _sampleData(data), _sampleExt(ext_hint), _repeat(repeat)
 {
 }
 
-SDLDecoder::SDLDecoder(std::unique_ptr<Stream> in,
-    const AGS::Common::String &ext_hint, bool repeat)
-    : _rwops(SDL2Util::OpenRWops(std::move(in)))
-    , _sampleExt(ext_hint)
-    , _repeat(repeat)
+SDLDecoder::SDLDecoder(std::unique_ptr<Stream> in, const AGS::Common::String &ext_hint, bool repeat)
+    : _rwops(SDL2Util::OpenRWops(std::move(in))), _sampleExt(ext_hint), _repeat(repeat)
 {
 }
 
@@ -97,13 +91,12 @@ bool SDLDecoder::Open(float pos_ms)
     SoundSampleUniquePtr sample{};
     if (_rwops)
     {
-        sample = SoundSampleUniquePtr(Sound_NewSample(_rwops,
-            _sampleExt.GetCStr(), nullptr, SampleDefaultBufferSize));
+        sample = SoundSampleUniquePtr(Sound_NewSample(_rwops, _sampleExt.GetCStr(), nullptr, SampleDefaultBufferSize));
     }
     else
     {
-        sample = SoundSampleUniquePtr(Sound_NewSampleFromMem(
-            _sampleData->data(), _sampleData->size(), _sampleExt.GetCStr(), nullptr, SampleDefaultBufferSize));
+        sample = SoundSampleUniquePtr(Sound_NewSampleFromMem(_sampleData->data(), _sampleData->size(),
+                                                             _sampleExt.GetCStr(), nullptr, SampleDefaultBufferSize));
     }
     if (!sample)
     {
@@ -117,7 +110,8 @@ bool SDLDecoder::Open(float pos_ms)
     _durationMs = dur > 0 ? static_cast<float>(dur) : 0.f;
     _posBytes = 0u;
     _posMs = 0.f;
-    if (pos_ms > 0.f) {
+    if (pos_ms > 0.f)
+    {
         Seek(pos_ms);
     }
     return true;
@@ -137,8 +131,8 @@ float SDLDecoder::Seek(float pos_ms)
     if (Sound_Seek(_sample.get(), static_cast<uint32_t>(pos_ms)) == 0)
         return _posMs; // old pos on failure (CHECKME?)
     _posMs = pos_ms;
-    _posBytes = SoundHelper::BytesPerMs(_posMs,
-        _sample->desired.format, _sample->desired.channels, _sample->desired.rate);
+    _posBytes =
+        SoundHelper::BytesPerMs(_posMs, _sample->desired.format, _sample->desired.channels, _sample->desired.rate);
     return pos_ms; // new pos on success
 }
 
@@ -152,8 +146,8 @@ SoundBufferPtr SDLDecoder::GetData()
     {
         sz = Sound_Decode(_sample.get());
         _posBytes += sz;
-        _posMs = SoundHelper::MillisecondsFromBytes(_posBytes,
-            _sample->desired.format, _sample->desired.channels, _sample->desired.rate);
+        _posMs = SoundHelper::MillisecondsFromBytes(_posBytes, _sample->desired.format, _sample->desired.channels,
+                                                    _sample->desired.rate);
         // If we reached end of stream, or read less than the buffer size
         // (in which case it may also be decode error), then finish playing
         if ((_sample->flags & SOUND_SAMPLEFLAG_EOF) || (sz < _sample->buffer_size))
@@ -162,7 +156,8 @@ SoundBufferPtr SDLDecoder::GetData()
             if ((_sample->flags & SOUND_SAMPLEFLAG_ERROR) != 0)
                 return SoundBufferPtr();
             // if repeat, then seek to start.
-            else if (_repeat) {
+            else if (_repeat)
+            {
                 _EOS = Sound_Rewind(_sample.get()) == 0;
                 _posBytes = 0u;
                 _posMs = 0.f;
@@ -170,7 +165,8 @@ SoundBufferPtr SDLDecoder::GetData()
         }
     } while (!_EOS && (sz == 0));
     return SoundBufferPtr(_sample->buffer, sz, old_pos,
-        SoundHelper::MillisecondsFromBytes(sz, _sample->desired.format, _sample->desired.channels, _sample->desired.rate));
+                          SoundHelper::MillisecondsFromBytes(sz, _sample->desired.format, _sample->desired.channels,
+                                                             _sample->desired.rate));
 }
 
 } // namespace Engine

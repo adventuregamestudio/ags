@@ -23,15 +23,18 @@ extern GameSetupStruct game;
 
 // ** TEXT BOX FUNCTIONS
 
-const char* TextBox_GetText_New(GUITextBox *texbox) {
+const char *TextBox_GetText_New(GUITextBox *texbox)
+{
     return CreateNewScriptString(texbox->GetText());
 }
 
-void TextBox_GetText(GUITextBox *texbox, char *buffer) {
+void TextBox_GetText(GUITextBox *texbox, char *buffer)
+{
     snprintf(buffer, MAX_MAXSTRLEN, "%s", texbox->GetText().GetCStr());
 }
 
-void TextBox_SetText(GUITextBox *texbox, const char *newtex) {
+void TextBox_SetText(GUITextBox *texbox, const char *newtex)
+{
     texbox->SetText(newtex);
 }
 
@@ -45,7 +48,8 @@ void TextBox_SetTextAlignment(GUITextBox *guit, int align)
     guit->SetTextAlignment(static_cast<FrameAlignment>(align));
 }
 
-int TextBox_GetTextColor(GUITextBox *guit) {
+int TextBox_GetTextColor(GUITextBox *guit)
+{
     return guit->GetTextColor();
 }
 
@@ -67,16 +71,19 @@ void TextBox_SetTextOutlineColor(GUITextBox *guit, int color)
     guit->SetTextOutlineColor(color);
 }
 
-int TextBox_GetFont(GUITextBox *guit) {
+int TextBox_GetFont(GUITextBox *guit)
+{
     return guit->GetFont();
 }
 
-void TextBox_SetFont(GUITextBox *guit, int fontnum) {
+void TextBox_SetFont(GUITextBox *guit, int fontnum)
+{
     fontnum = ValidateFontNumber("TextBox.Font", fontnum);
     guit->SetFont(fontnum);
 }
 
-bool TextBox_GetShowBorder(GUITextBox *guit) {
+bool TextBox_GetShowBorder(GUITextBox *guit)
+{
     return guit->IsShowBorder();
 }
 
@@ -175,20 +182,20 @@ RuntimeScriptValue Sc_TextBox_SetTextOutlineColor(void *self, const RuntimeScrip
 void RegisterTextBoxAPI()
 {
     ScFnRegister textbox_api[] = {
-        { "TextBox::GetText^1",       API_FN_PAIR(TextBox_GetText) },
-        { "TextBox::SetText^1",       API_FN_PAIR(TextBox_SetText) },
-        { "TextBox::get_Font",        API_FN_PAIR(TextBox_GetFont) },
-        { "TextBox::set_Font",        API_FN_PAIR(TextBox_SetFont) },
-        { "TextBox::get_ShowBorder",  API_FN_PAIR(TextBox_GetShowBorder) },
-        { "TextBox::set_ShowBorder",  API_FN_PAIR(TextBox_SetShowBorder) },
-        { "TextBox::get_Text",        API_FN_PAIR(TextBox_GetText_New) },
-        { "TextBox::set_Text",        API_FN_PAIR(TextBox_SetText) },
-        { "TextBox::get_TextAlignment", API_FN_PAIR(TextBox_GetTextAlignment) },
-        { "TextBox::set_TextAlignment", API_FN_PAIR(TextBox_SetTextAlignment) },
-        { "TextBox::get_TextColor",   API_FN_PAIR(TextBox_GetTextColor) },
-        { "TextBox::set_TextColor",   API_FN_PAIR(TextBox_SetTextColor) },
-        { "TextBox::get_TextOutlineColor", API_FN_PAIR(TextBox_GetTextOutlineColor) },
-        { "TextBox::set_TextOutlineColor", API_FN_PAIR(TextBox_SetTextOutlineColor) },
+        {"TextBox::GetText^1", API_FN_PAIR(TextBox_GetText)},
+        {"TextBox::SetText^1", API_FN_PAIR(TextBox_SetText)},
+        {"TextBox::get_Font", API_FN_PAIR(TextBox_GetFont)},
+        {"TextBox::set_Font", API_FN_PAIR(TextBox_SetFont)},
+        {"TextBox::get_ShowBorder", API_FN_PAIR(TextBox_GetShowBorder)},
+        {"TextBox::set_ShowBorder", API_FN_PAIR(TextBox_SetShowBorder)},
+        {"TextBox::get_Text", API_FN_PAIR(TextBox_GetText_New)},
+        {"TextBox::set_Text", API_FN_PAIR(TextBox_SetText)},
+        {"TextBox::get_TextAlignment", API_FN_PAIR(TextBox_GetTextAlignment)},
+        {"TextBox::set_TextAlignment", API_FN_PAIR(TextBox_SetTextAlignment)},
+        {"TextBox::get_TextColor", API_FN_PAIR(TextBox_GetTextColor)},
+        {"TextBox::set_TextColor", API_FN_PAIR(TextBox_SetTextColor)},
+        {"TextBox::get_TextOutlineColor", API_FN_PAIR(TextBox_GetTextOutlineColor)},
+        {"TextBox::set_TextOutlineColor", API_FN_PAIR(TextBox_SetTextOutlineColor)},
     };
 
     ccAddExternalFunctions(textbox_api);

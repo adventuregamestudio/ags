@@ -30,8 +30,8 @@ FlicPlayer::~FlicPlayer()
     CloseImpl();
 }
 
-HError FlicPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
-    const String &/*name*/, int& flags, int /*target_depth*/)
+HError FlicPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream, const String & /*name*/, int &flags,
+                            int /*target_depth*/)
 {
     data_stream->Seek(8);
     const int fliwidth = data_stream->ReadInt16();
@@ -93,9 +93,10 @@ bool FlicPlayer::NextVideoFrame(Bitmap *dst, float &ts)
         set_palette_range(fli_palette, fli_pal_dirty_from, fli_pal_dirty_to, TRUE);
 
     /* blit the changed portion of the frame */
-    if (fli_bmp_dirty_from <= fli_bmp_dirty_to) {
-        blit(fli_bitmap, dst->GetAllegroBitmap(), 0, fli_bmp_dirty_from, 0, fli_bmp_dirty_from,
-            fli_bitmap->w, 1 + fli_bmp_dirty_to - fli_bmp_dirty_from);
+    if (fli_bmp_dirty_from <= fli_bmp_dirty_to)
+    {
+        blit(fli_bitmap, dst->GetAllegroBitmap(), 0, fli_bmp_dirty_from, 0, fli_bmp_dirty_from, fli_bitmap->w,
+             1 + fli_bmp_dirty_to - fli_bmp_dirty_from);
     }
 
     ts = _videoFramesDecoded * _frameTime;

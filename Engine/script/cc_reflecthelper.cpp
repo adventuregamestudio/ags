@@ -19,8 +19,8 @@ namespace Engine
 {
 
 static void ResolvePtrsInStruct(const RTTI::Type &ti, const std::vector<RTTI::Type> &types,
-    const std::vector<RTTIHelper::TypeFieldsRef> &field_refs,
-    std::vector<uint32_t> &offsets, uint32_t start_off)
+                                const std::vector<RTTIHelper::TypeFieldsRef> &field_refs,
+                                std::vector<uint32_t> &offsets, uint32_t start_off)
 {
     for (const auto *fi = ti.first_field; fi; fi = fi->next_field)
     {
@@ -30,7 +30,7 @@ static void ResolvePtrsInStruct(const RTTI::Type &ti, const std::vector<RTTI::Ty
             offsets.push_back(field_off);
             continue;
         }
-        
+
         assert(fi->f_typeid < types.size());
         if (fi->f_typeid >= types.size())
             continue;
@@ -90,7 +90,7 @@ void RTTIHelper::Generate(const RTTI &rtti)
 }
 
 std::pair<std::vector<uint32_t>::const_iterator, std::vector<uint32_t>::const_iterator>
-    RTTIHelper::GetManagedOffsetsForType(uint32_t type_id) const
+RTTIHelper::GetManagedOffsetsForType(uint32_t type_id) const
 {
     assert(!_managedFieldsRef.empty());
     assert(type_id < _managedFieldsRef.size());
@@ -98,7 +98,7 @@ std::pair<std::vector<uint32_t>::const_iterator, std::vector<uint32_t>::const_it
         return std::make_pair(_managedOffsets.end(), _managedOffsets.end());
     const auto &fref = _managedFieldsRef[type_id];
     return std::make_pair(_managedOffsets.begin() + fref.field_index,
-        _managedOffsets.begin() + fref.field_index + fref.field_num);
+                          _managedOffsets.begin() + fref.field_index + fref.field_num);
 }
 
 } // namespace Engine

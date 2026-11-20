@@ -52,8 +52,8 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
-extern RoomObject*objs;
-extern CharacterInfo*playerchar;
+extern RoomObject *objs;
+extern CharacterInfo *playerchar;
 extern bool logScriptTOC;
 
 std::stack<std::unique_ptr<ExecutingScript>> executingScripts;
@@ -89,25 +89,29 @@ std::unique_ptr<ScriptThread> scriptThreadNonBlocking;
 std::stack<std::unique_ptr<ScriptThread>> scriptThreadCallbacks;
 
 // Run a script function on a non-blocking script thread
-static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
+static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScriptFunction *funcToRun,
+                                     bool hasTheFunc);
 
 
-void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
-
+void run_function_on_non_blocking_thread(NonBlockingScriptFunction *funcToRun)
+{
     update_script_mouse_coords();
 
     int room_changes_was = play.room_changes;
     funcToRun->AtLeastOneImplementationExists = false;
 
     // run modules
-    for (size_t i = 0; i < numScriptModules; ++i) {
-        funcToRun->ModuleHasFunction[i] = DoRunScriptFuncCantBlock(scriptModules[i].get(), funcToRun, funcToRun->ModuleHasFunction[i]);
+    for (size_t i = 0; i < numScriptModules; ++i)
+    {
+        funcToRun->ModuleHasFunction[i] =
+            DoRunScriptFuncCantBlock(scriptModules[i].get(), funcToRun, funcToRun->ModuleHasFunction[i]);
 
         if (room_changes_was != play.room_changes)
             return;
     }
 
-    funcToRun->GlobalScriptHasFunction = DoRunScriptFuncCantBlock(gamescript.get(), funcToRun, funcToRun->GlobalScriptHasFunction);
+    funcToRun->GlobalScriptHasFunction =
+        DoRunScriptFuncCantBlock(gamescript.get(), funcToRun, funcToRun->GlobalScriptHasFunction);
 
     if (room_changes_was != play.room_changes)
         return;
@@ -119,8 +123,7 @@ void run_function_on_non_blocking_thread(NonBlockingScriptFunction* funcToRun) {
 // TODO: find a way to pass event's name too, but they are not clearly defined as strings inside the engine atm...
 static void WarnEventFunctionNotFound(const ScriptFunctionRef &fn_ref, bool in_room)
 {
-    String message = String::FromFormat("WARNING: event script function '%s' not found",
-                                        fn_ref.FuncName.GetCStr());
+    String message = String::FromFormat("WARNING: event script function '%s' not found", fn_ref.FuncName.GetCStr());
     if (in_room)
         message.AppendFmt(" (Room %d)", displayed_room);
     else
@@ -161,7 +164,8 @@ int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int
         // No response enabled for this event
         // If there is a response for "Any Click", then abort now so as to
         // run that instead
-        if ((chkany_handlers != nullptr) && test_interaction_handler(chkany_handlers, any_evt, obj_evt.ScType == kScTypeRoom))
+        if ((chkany_handlers != nullptr) &&
+            test_interaction_handler(chkany_handlers, any_evt, obj_evt.ScType == kScTypeRoom))
             return 0;
 
         // Optionally, run unhandled_event
@@ -172,15 +176,17 @@ int run_event_script(const ObjectEvent &obj_evt, ScriptEventsBase *handlers, int
 
     // FIXME: refactor this nonsense! check_interaction_only here is used as
     // both function argument and return value!
-    if (play.check_interaction_only) {
+    if (play.check_interaction_only)
+    {
         play.check_interaction_only = 2; // CHECKME: wth is "2"?
         return -1;
     }
 
     const int room_was = play.room_changes;
 
-    RunScriptFunctionAuto(obj_evt.ScType, ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
-        obj_evt.ParamCount, obj_evt.Params);
+    RunScriptFunctionAuto(obj_evt.ScType,
+                          ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
+                          obj_evt.ParamCount, obj_evt.Params);
 
     // if the room changed within the action
     if (room_was != play.room_changes)
@@ -204,8 +210,9 @@ int run_event_script_always(const ObjectEvent &obj_evt, ScriptEventsBase *handle
 
     const int room_was = play.room_changes;
 
-    RunScriptFunctionAuto(obj_evt.ScType, ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
-        obj_evt.ParamCount, obj_evt.Params);
+    RunScriptFunctionAuto(obj_evt.ScType,
+                          ScriptFunctionRef(handlers->GetScriptModule(), handlers->GetHandler(evnt).FunctionName),
+                          obj_evt.ParamCount, obj_evt.Params);
 
     // if the room changed within the action
     if (room_was != play.room_changes)
@@ -233,7 +240,8 @@ static void AllocScriptFuncRefs()
     }
 }
 
-HError CreateRuntimeScripts(const ccScript *glscript, const std::vector<ccScript*> &scmodules, const std::vector<String> &scmodule_names, const ccScript *dlgscript)
+HError CreateRuntimeScripts(const ccScript *glscript, const std::vector<ccScript *> &scmodules,
+                            const std::vector<String> &scmodule_names, const ccScript *dlgscript)
 {
     assert(scmodule_names.size() == scmodules.size());
 
@@ -241,19 +249,20 @@ HError CreateRuntimeScripts(const ccScript *glscript, const std::vector<ccScript
         return new Error("Global script was not loaded");
     gamescript = std::move(RuntimeScript::Create(glscript));
     if (!gamescript)
-        return new Error("Failed to create the global script:\n%s",
-            cc_get_error().ErrorString.GetCStr());
+        return new Error("Failed to create the global script:\n%s", cc_get_error().ErrorString.GetCStr());
     Debug::Printf("Created global script");
 
     numScriptModules = scmodules.size();
     for (uint32_t i = 0; i < scmodules.size(); ++i)
     {
         if (!scmodules[i])
-            return new Error(String::FromFormat("Script module (%u) '%s' was not loaded", i, scmodule_names[i].GetCStr()));
+            return new Error(
+                String::FromFormat("Script module (%u) '%s' was not loaded", i, scmodule_names[i].GetCStr()));
         std::shared_ptr<RuntimeScript> runtime_scm(RuntimeScript::Create(scmodules[i]));
         if (!runtime_scm)
-            return new Error(String::FromFormat("Failed to create the script module (%u) '%s':\n%s",
-                i, scmodules[i]->GetScriptName().c_str(), cc_get_error().ErrorString.GetCStr()));
+            return new Error(String::FromFormat("Failed to create the script module (%u) '%s':\n%s", i,
+                                                scmodules[i]->GetScriptName().c_str(),
+                                                cc_get_error().ErrorString.GetCStr()));
         scriptModules.push_back(runtime_scm);
     }
 
@@ -262,8 +271,7 @@ HError CreateRuntimeScripts(const ccScript *glscript, const std::vector<ccScript
     {
         dialogScriptsScript = std::move(RuntimeScript::Create(dlgscript));
         if (!dialogScriptsScript)
-            return new Error("Failed to create the dialog script:\n%s",
-                cc_get_error().ErrorString.GetCStr());
+            return new Error("Failed to create the dialog script:\n%s", cc_get_error().ErrorString.GetCStr());
         Debug::Printf("Created dialog script");
     }
 
@@ -289,7 +297,7 @@ HError LinkGlobalScripts()
 
     // NOTE: this function assumes that the module lists have their elements preallocated!
 
-    std::vector<RuntimeScript*> all_insts; // gather all to resolve exports below
+    std::vector<RuntimeScript *> all_insts; // gather all to resolve exports below
     for (size_t i = 0; i < numScriptModules; ++i)
     {
         all_insts.push_back(scriptModules[i].get());
@@ -313,8 +321,8 @@ HError LinkGlobalScripts()
     for (auto &inst : all_insts)
     {
         if (!inst->ResolveImports(simp))
-            return new Error(String::FromFormat("Failed to resolve script imports:\n%s",
-                cc_get_error().ErrorString.GetCStr()));
+            return new Error(
+                String::FromFormat("Failed to resolve script imports:\n%s", cc_get_error().ErrorString.GetCStr()));
     }
 
     // Record addresses for 'repeatedly_execute'
@@ -393,22 +401,22 @@ bool DoesScriptFunctionExistInModule(const String &script_module, const String &
     return false;
 }
 
-void TryRunScriptHandler(ScriptType sc_type, const String &script_module,
-    const ScriptEventHandler &handler, size_t param_count, const RuntimeScriptValue *params)
+void TryRunScriptHandler(ScriptType sc_type, const String &script_module, const ScriptEventHandler &handler,
+                         size_t param_count, const RuntimeScriptValue *params)
 {
     if (handler.IsEnabled())
         RunScriptFunctionAuto(sc_type, ScriptFunctionRef(script_module, handler.FunctionName), param_count, params);
 }
 
 // Run a script function on a non-blocking script thread
-static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScriptFunction* funcToRun, bool hasTheFunc)
+static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScriptFunction *funcToRun, bool hasTheFunc)
 {
     if (!hasTheFunc)
-        return(false);
+        return (false);
 
     no_blocking_functions++;
-    const ScriptExecError result = scriptExecutor->Run(scriptThreadNonBlocking.get(),
-        script, funcToRun->FunctionName, funcToRun->Params, funcToRun->ParamCount);
+    const ScriptExecError result = scriptExecutor->Run(scriptThreadNonBlocking.get(), script, funcToRun->FunctionName,
+                                                       funcToRun->Params, funcToRun->ParamCount);
 
     if (result == kScExecErr_FuncNotFound)
     {
@@ -426,7 +434,7 @@ static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScr
     // this might be nested, so don't disrupt blocked scripts
     cc_clear_error();
     no_blocking_functions--;
-    return(hasTheFunc);
+    return (hasTheFunc);
 }
 
 static RunScFuncResult PrepareTextScript(const RuntimeScript *script, const String &tsname)
@@ -454,7 +462,8 @@ void PostScriptProcessing();
 
 ScriptThread *AllocateDynamicScriptThread()
 {
-    scriptThreadCallbacks.push(std::make_unique<ScriptThread>(String::FromFormat("Callback%04zu", scriptThreadCallbacks.size() + 1u)));
+    scriptThreadCallbacks.push(
+        std::make_unique<ScriptThread>(String::FromFormat("Callback%04zu", scriptThreadCallbacks.size() + 1u)));
     return scriptThreadCallbacks.top().get();
 }
 
@@ -465,7 +474,8 @@ void FreeDynamicScriptThread(ScriptThread *script_thread)
         scriptThreadCallbacks.pop();
 }
 
-RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsname, size_t numParam, const RuntimeScriptValue *params)
+RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsname, size_t numParam,
+                                  const RuntimeScriptValue *params)
 {
     assert(script);
     int oldRestoreCount = gameHasBeenRestored;
@@ -496,8 +506,8 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsn
         script_thread = AllocateDynamicScriptThread();
     }
 
-    const ScriptExecError inst_ret = scriptExecutor->Run(script_thread,
-        curExecScript->Script, tsname, params, numParam);
+    const ScriptExecError inst_ret =
+        scriptExecutor->Run(script_thread, curExecScript->Script, tsname, params, numParam);
     if ((inst_ret != kScExecErr_None) && (inst_ret != kScExecErr_FuncNotFound) && (inst_ret != kScExecErr_Aborted))
     {
         quit_with_script_error(tsname);
@@ -551,7 +561,7 @@ bool RunScriptFunctionInRoom(const String &tsname, size_t param_count, const Run
 // Run non-claimable event in all script modules, *excluding* room;
 // break if certain changes occured to the game state
 static bool RunEventInModules(const String &tsname, size_t param_count, const RuntimeScriptValue *params,
-    bool break_after_first)
+                              bool break_after_first)
 {
     const int room_changes_was = play.room_changes;
     const int restore_game_count_was = gameHasBeenRestored;
@@ -563,9 +573,7 @@ static bool RunEventInModules(const String &tsname, size_t param_count, const Ru
             // Break on room change or save restoration,
             // or if was told to break after the first found callback,
             // or if script execution error occured
-            if ((ret != kScFnRes_Done) ||
-                break_after_first ||
-                (room_changes_was != play.room_changes) ||
+            if ((ret != kScFnRes_Done) || break_after_first || (room_changes_was != play.room_changes) ||
                 (restore_game_count_was != gameHasBeenRestored))
                 return ret == kScFnRes_Done; // return if succeeded to run
         }
@@ -621,12 +629,13 @@ static bool RunClaimableEvent(const String &tsname, size_t param_count, const Ru
 }
 
 bool RunScriptFunctionAuto(ScriptType sc_type, const String &fn_name, size_t param_count,
-    const RuntimeScriptValue *params)
+                           const RuntimeScriptValue *params)
 {
     return RunScriptFunctionAuto(sc_type, ScriptFunctionRef(fn_name), param_count, params);
 }
 
-bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count, const RuntimeScriptValue *params)
+bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count,
+                           const RuntimeScriptValue *params)
 {
     // If told to use a room instance, then run only there
     if (sc_type == kScTypeRoom)
@@ -637,7 +646,7 @@ bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, 
     // TODO: optimize this function name mapping to propagation type
     const String &fn_name = fn_ref.FuncName;
     auto evt_cb = std::find_if(ScriptEventCb.begin(), ScriptEventCb.end(),
-        [fn_name](const ScriptEventCallback &cb) { return cb.FnName == fn_name; });
+                               [fn_name](const ScriptEventCallback &cb) { return cb.FnName == fn_name; });
     ScriptCallbackPropagation propagate = evt_cb != ScriptEventCb.end() ? evt_cb->CbPropagate : kScCallback_Direct;
 
     // Unclaimable event means it is run in all modules except room,
@@ -658,14 +667,14 @@ bool RunScriptFunctionAuto(ScriptType sc_type, const ScriptFunctionRef &fn_ref, 
 }
 
 // TODO: merge this function with DoRunScriptFuncCantBlock
-RunScFuncResult RunScriptFunctionNonBlocking(ScriptType sc_type, const ScriptFunctionRef &fn_ref,
-    size_t param_count, const RuntimeScriptValue *params)
+RunScFuncResult RunScriptFunctionNonBlocking(ScriptType sc_type, const ScriptFunctionRef &fn_ref, size_t param_count,
+                                             const RuntimeScriptValue *params)
 {
     auto *script = GetScriptInstance(sc_type, fn_ref.ModuleName);
 
     no_blocking_functions++;
-    const ScriptExecError result = scriptExecutor->Run(scriptThreadNonBlocking.get(),
-        script, fn_ref.FuncName, params, param_count);
+    const ScriptExecError result =
+        scriptExecutor->Run(scriptThreadNonBlocking.get(), script, fn_ref.FuncName, params, param_count);
 
     if ((result != kScExecErr_None) && (result != kScExecErr_FuncNotFound) && (result != kScExecErr_Aborted))
     {
@@ -800,9 +809,7 @@ void PostScriptProcessing()
 
         switch (act.Type)
         {
-        case ePSANewRoom:
-            new_room(data1, playerchar);
-            return; // skip any remaining scheduled actions
+        case ePSANewRoom: new_room(data1, playerchar); return; // skip any remaining scheduled actions
         case ePSARestoreGame:
             AbortAllScripts();
             try_restore_save(data1);
@@ -838,21 +845,19 @@ void PostScriptProcessing()
             AbortAllScripts();
             restart_game();
             return; // skip any remaining scheduled actions
-        case ePSASaveGame:
-            save_game(data1, act.Text, std::move(act.Image));
-            break;
+        case ePSASaveGame: save_game(data1, act.Text, std::move(act.Image)); break;
         case ePSASaveGameDialog:
             do_save_game_dialog(data1 & 0xFFFF, (data1 >> 16), data2);
             return; // skip any remaining scheduled actions
         case ePSAScanSaves:
             prescan_save_slots(act.Data[0], act.Data[1], act.Data[2], act.Data[3], act.Data[4], act.Data[5]);
             break;
-        default:
-            quitprintf("undefined post script action found: %d", act.Type);
+        default: quitprintf("undefined post script action found: %d", act.Type);
         }
 
         // if the room changed in a conversation, for example, abort
-        if (old_room_number != displayed_room) {
+        if (old_room_number != displayed_room)
+        {
             return;
         }
     }
@@ -872,22 +877,25 @@ void quit_with_script_error(const String &fn_name)
     if (error.IsUserError)
         quitprintf("!Error running function '%s':\n%s", fn_name.GetCStr(), error.ErrorString.GetCStr());
     else
-        quitprintf("Error running function '%s':\n%s\n\n%s", fn_name.GetCStr(),
-            error.ErrorString.GetCStr(), error.CallStack.GetCStr());
+        quitprintf("Error running function '%s':\n%s\n\n%s", fn_name.GetCStr(), error.ErrorString.GetCStr(),
+                   error.CallStack.GetCStr());
 }
 
-struct TempEip {
+struct TempEip
+{
     int oldval;
-    TempEip (int newval) {
+    TempEip(int newval)
+    {
         oldval = get_our_eip();
         set_our_eip(newval);
     }
-    ~TempEip () { set_our_eip(oldval); }
+    ~TempEip() { set_our_eip(oldval); }
 };
 
-void can_run_delayed_command() {
-  if (no_blocking_functions)
-    quit("!This command cannot be used within non-blocking events such as " REP_EXEC_ALWAYS_NAME);
+void can_run_delayed_command()
+{
+    if (no_blocking_functions)
+        quit("!This command cannot be used within non-blocking events such as " REP_EXEC_ALWAYS_NAME);
 }
 
 bool get_can_run_delayed_command()
@@ -913,7 +921,7 @@ void run_unhandled_event(const ObjectEvent &obj_evt, int evnt)
         loc_type = LOCTYPE_NOTHING;
 
     can_run_delayed_command();
-    RuntimeScriptValue params[] = { loc_type, evnt };
+    RuntimeScriptValue params[] = {loc_type, evnt};
     RunScriptFunctionAuto(kScTypeGame, "unhandled_event", 2, params);
 }
 

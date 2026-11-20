@@ -36,19 +36,19 @@
 #include "glad/glad.h"
 
 #if AGS_OPENGL_ES2
-  float get_device_scale();
+float get_device_scale();
 
-const char* fbo_extension_string = "GL_OES_framebuffer_object";
+const char *fbo_extension_string = "GL_OES_framebuffer_object";
 
-#define glGenFramebuffersEXT glGenFramebuffers
-#define glDeleteFramebuffersEXT glDeleteFramebuffers
-#define glBindFramebufferEXT glBindFramebuffer
+#define glGenFramebuffersEXT        glGenFramebuffers
+#define glDeleteFramebuffersEXT     glDeleteFramebuffers
+#define glBindFramebufferEXT        glBindFramebuffer
 #define glCheckFramebufferStatusEXT glCheckFramebufferStatus
-#define glFramebufferTexture2DEXT glFramebufferTexture2D
+#define glFramebufferTexture2DEXT   glFramebufferTexture2D
 
-#define GL_FRAMEBUFFER_EXT GL_FRAMEBUFFER
+#define GL_FRAMEBUFFER_EXT          GL_FRAMEBUFFER
 #define GL_FRAMEBUFFER_COMPLETE_EXT GL_FRAMEBUFFER_COMPLETE
-#define GL_COLOR_ATTACHMENT0_EXT GL_COLOR_ATTACHMENT0
+#define GL_COLOR_ATTACHMENT0_EXT    GL_COLOR_ATTACHMENT0
 
 #endif //AGS_OPENGL_ES2
 
@@ -102,20 +102,11 @@ OGLBitmap::~OGLBitmap()
         glDeleteFramebuffersEXT(1, &_fbo);
 }
 
-OGLShader::OGLShader(const String &name)
-    : BaseShader(name)
-{
-}
+OGLShader::OGLShader(const String &name) : BaseShader(name) {}
 
-OGLShader::OGLShader(const String &name, OGLShader::ProgramData &&data)
-    : BaseShader(name)
-    , _data(std::move(data))
-{
-}
+OGLShader::OGLShader(const String &name, OGLShader::ProgramData &&data) : BaseShader(name), _data(std::move(data)) {}
 
-OGLShader::OGLShader(const String &name, const OGLShader &copy_shader)
-    : BaseShader(name)
-    , _data(copy_shader.GetData())
+OGLShader::OGLShader(const String &name, const OGLShader &copy_shader) : BaseShader(name), _data(copy_shader.GetData())
 {
 }
 
@@ -164,9 +155,9 @@ uint32_t OGLShader::GetConstantByName(const String &const_name)
 
     _data.Constants[const_name] = index;
     auto constant = std::make_pair(index, const_name);
-    _data.ConstantsOrdered.insert(
-        std::upper_bound(_data.ConstantsOrdered.begin(), _data.ConstantsOrdered.end(), constant, OGLShader_ConstantOrder),
-        constant);
+    _data.ConstantsOrdered.insert(std::upper_bound(_data.ConstantsOrdered.begin(), _data.ConstantsOrdered.end(),
+                                                   constant, OGLShader_ConstantOrder),
+                                  constant);
     return index;
 }
 
@@ -192,16 +183,14 @@ void OGLShader::ResetConstants()
         {
         case GL_FLOAT: glUniform1f(i, 0.f); break;
         case GL_FLOAT_VEC2: glUniform2f(i, 0.f, 0.f); break;
-        case GL_FLOAT_VEC3: glUniform3f(i, 0.f, 0.f, 0.f);  break;
+        case GL_FLOAT_VEC3: glUniform3f(i, 0.f, 0.f, 0.f); break;
         case GL_FLOAT_VEC4: glUniform4f(i, 0.f, 0.f, 0.f, 0.f); break;
         default: break;
         }
     }
 }
 
-OGLShaderInstance::OGLShaderInstance(OGLShader *shader, const String &name)
-    : BaseShaderInstance(name)
-    , _shader(shader)
+OGLShaderInstance::OGLShaderInstance(OGLShader *shader, const String &name) : BaseShaderInstance(name), _shader(shader)
 {
     _constantData.resize(OGLShader::NullConstantIndex + 1);
     _samplers.resize(OGLShader::SamplersCap);
@@ -283,91 +272,91 @@ void OGLShaderInstance::SetShaderSampler(uint32_t sampler_index, std::shared_ptr
 
 OGLGraphicsDriver::OGLGraphicsDriver()
 {
-  device_screen_physical_width  = 0;
-  device_screen_physical_height = 0;
+    device_screen_physical_width = 0;
+    device_screen_physical_height = 0;
 
-  _firstTimeInit = false;
-  _nativeSurface = nullptr;
-  _canRenderToTexture = false;
-  _doRenderToTexture = false;
-  SetupDefaultVertices();
+    _firstTimeInit = false;
+    _nativeSurface = nullptr;
+    _canRenderToTexture = false;
+    _doRenderToTexture = false;
+    SetupDefaultVertices();
 
-  // Shifts comply to GL_RGBA
-  _vmem_r_shift_32 = 0;
-  _vmem_g_shift_32 = 8;
-  _vmem_b_shift_32 = 16;
-  _vmem_a_shift_32 = 24;
+    // Shifts comply to GL_RGBA
+    _vmem_r_shift_32 = 0;
+    _vmem_g_shift_32 = 8;
+    _vmem_b_shift_32 = 16;
+    _vmem_a_shift_32 = 24;
 }
 
 void OGLGraphicsDriver::SetupDefaultVertices()
 {
-  defaultVertices[0].position.x = 0.0f;
-  defaultVertices[0].position.y = 0.0f;
-  defaultVertices[0].tu=0.0;
-  defaultVertices[0].tv=0.0;
+    defaultVertices[0].position.x = 0.0f;
+    defaultVertices[0].position.y = 0.0f;
+    defaultVertices[0].tu = 0.0;
+    defaultVertices[0].tv = 0.0;
 
-  defaultVertices[1].position.x = 1.0f;
-  defaultVertices[1].position.y = 0.0f;
-  defaultVertices[1].tu=1.0;
-  defaultVertices[1].tv=0.0;
+    defaultVertices[1].position.x = 1.0f;
+    defaultVertices[1].position.y = 0.0f;
+    defaultVertices[1].tu = 1.0;
+    defaultVertices[1].tv = 0.0;
 
-  defaultVertices[2].position.x = 0.0f;
-  defaultVertices[2].position.y = -1.0f;
-  defaultVertices[2].tu=0.0;
-  defaultVertices[2].tv=1.0;
+    defaultVertices[2].position.x = 0.0f;
+    defaultVertices[2].position.y = -1.0f;
+    defaultVertices[2].tu = 0.0;
+    defaultVertices[2].tv = 1.0;
 
-  defaultVertices[3].position.x = 1.0f;
-  defaultVertices[3].position.y = -1.0f;
-  defaultVertices[3].tu=1.0;
-  defaultVertices[3].tv=1.0;
+    defaultVertices[3].position.x = 1.0f;
+    defaultVertices[3].position.y = -1.0f;
+    defaultVertices[3].tu = 1.0;
+    defaultVertices[3].tv = 1.0;
 }
 
-void OGLGraphicsDriver::UpdateDeviceScreen(const Size &/*screen_size*/)
+void OGLGraphicsDriver::UpdateDeviceScreen(const Size & /*screen_size*/)
 {
     SDL_GL_GetDrawableSize(_sdlWindow, &device_screen_physical_width, &device_screen_physical_height);
-    Debug::Printf("OpenGL: notified of device screen updated to %d x %d, resizing viewport", device_screen_physical_width, device_screen_physical_height);
+    Debug::Printf("OpenGL: notified of device screen updated to %d x %d, resizing viewport",
+                  device_screen_physical_width, device_screen_physical_height);
     _mode.Width = device_screen_physical_width;
     _mode.Height = device_screen_physical_height;
 }
 
 void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled)
 {
-  if (_canRenderToTexture)
-  {
-    _doRenderToTexture = !enabled;
-  }
+    if (_canRenderToTexture)
+    {
+        _doRenderToTexture = !enabled;
+    }
 
-  if (_doRenderToTexture)
-    glDisable(GL_SCISSOR_TEST);
+    if (_doRenderToTexture)
+        glDisable(GL_SCISSOR_TEST);
 }
 
 bool OGLGraphicsDriver::IsModeSupported(const DisplayMode &mode)
 {
-  if (mode.Width <= 0 || mode.Height <= 0)
-  {
-    SDL_SetError("Invalid resolution parameters: %d x %d", mode.Width, mode.Height);
-    return false;
-  }
-  if (mode.ColorDepth != 32) {
-    SDL_SetError("Display colour depth not supported: %d", mode.ColorDepth);
-    return false;
-  }
-  return true;
+    if (mode.Width <= 0 || mode.Height <= 0)
+    {
+        SDL_SetError("Invalid resolution parameters: %d x %d", mode.Width, mode.Height);
+        return false;
+    }
+    if (mode.ColorDepth != 32)
+    {
+        SDL_SetError("Display colour depth not supported: %d", mode.ColorDepth);
+        return false;
+    }
+    return true;
 }
 
 bool OGLGraphicsDriver::SupportsGammaControl()
 {
-  return false;
+    return false;
 }
 
-void OGLGraphicsDriver::SetGamma(int /*newGamma*/)
-{
-}
+void OGLGraphicsDriver::SetGamma(int /*newGamma*/) {}
 
 void OGLGraphicsDriver::SetGraphicsFilter(POGLFilter filter)
 {
-  _filter = filter;
-  OnSetFilter();
+    _filter = filter;
+    OnSetFilter();
 }
 
 void OGLGraphicsDriver::SetBlendOpUniform(GLenum blend_op, GLenum src_factor, GLenum dst_factor)
@@ -381,8 +370,8 @@ void OGLGraphicsDriver::SetBlendOpRGB(GLenum rgb_op, GLenum srgb_factor, GLenum 
     glBlendFuncSeparate(srgb_factor, drgb_factor, _blendAlpha.Src, _blendAlpha.Dst);
 }
 
-void OGLGraphicsDriver::SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor,
-    GLenum alpha_op, GLenum sa_factor, GLenum da_factor)
+void OGLGraphicsDriver::SetBlendOpRGBAlpha(GLenum rgb_op, GLenum srgb_factor, GLenum drgb_factor, GLenum alpha_op,
+                                           GLenum sa_factor, GLenum da_factor)
 {
     glBlendEquationSeparate(rgb_op, alpha_op);
     glBlendFuncSeparate(srgb_factor, drgb_factor, sa_factor, da_factor);
@@ -395,7 +384,7 @@ bool OGLGraphicsDriver::FirstTimeInit()
     TestRenderToTexture();
 
     // https://registry.khronos.org/OpenGL/extensions/ARB/ARB_texture_non_power_of_two.txt
-    const char *exts = (const char*)glGetString(GL_EXTENSIONS);
+    const char *exts = (const char *)glGetString(GL_EXTENSIONS);
     _glCapsNonPowerOfTwo = strstr(exts, "GL_ARB_texture_non_power_of_two") != nullptr;
 
     if (!CreateStandardShaders())
@@ -403,10 +392,13 @@ bool OGLGraphicsDriver::FirstTimeInit()
         // The transparency shader is the one that we must have
         if (!_transparencyShader || !_transparencyShader->IsValid())
         {
-            Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL: failed to compile standard shaders, graphics driver will not be usable.");
+            Debug::Printf(kDbgMsg_Error,
+                          "ERROR: OpenGL: failed to compile standard shaders, graphics driver will not be usable.");
             return false;
         }
-        Debug::Printf(kDbgMsg_Error, "ERROR: OpenGL: one or more standard shaders failed to compile, the game may run but have unexpected visuals.");
+        Debug::Printf(
+            kDbgMsg_Error,
+            "ERROR: OpenGL: one or more standard shaders failed to compile, the game may run but have unexpected visuals.");
     }
 
     _firstTimeInit = true;
@@ -415,134 +407,145 @@ bool OGLGraphicsDriver::FirstTimeInit()
 
 bool OGLGraphicsDriver::InitGlScreen(const DisplayMode &mode)
 {
-  SDL_Window* window = sys_get_window();
-  if (window == nullptr || (SDL_GetWindowFlags(window) & SDL_WINDOW_OPENGL) == 0)
-  {
-    if (!CreateWindowAndGlContext(mode))
-      return false;
-  }
-  else
-  {
+    SDL_Window *window = sys_get_window();
+    if (window == nullptr || (SDL_GetWindowFlags(window) & SDL_WINDOW_OPENGL) == 0)
+    {
+        if (!CreateWindowAndGlContext(mode))
+            return false;
+    }
+    else
+    {
 #if (AGS_SUPPORT_MULTIDISPLAY)
-    sys_window_fit_in_display(mode.DisplayIndex);
+        sys_window_fit_in_display(mode.DisplayIndex);
 #endif
-    sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
-    sys_window_bring_to_front();
-  }
+        sys_window_set_style(mode.Mode, Size(mode.Width, mode.Height));
+        sys_window_bring_to_front();
+    }
 
-  SDL_GL_GetDrawableSize(_sdlWindow, &device_screen_physical_width, &device_screen_physical_height);
-  _mode.Width = device_screen_physical_width;
-  _mode.Height = device_screen_physical_height;
-  return true;
+    SDL_GL_GetDrawableSize(_sdlWindow, &device_screen_physical_width, &device_screen_physical_height);
+    _mode.Width = device_screen_physical_width;
+    _mode.Height = device_screen_physical_height;
+    return true;
 }
 
 void OGLGraphicsDriver::InitGlParams(const DisplayMode &mode)
 {
-  glDisable(GL_CULL_FACE);
-  glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
 
-  glEnable(GL_BLEND);
-  SetBlendOpUniform(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  _rtBlendAlpha = BlendOpState(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    SetBlendOpUniform(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    _rtBlendAlpha = BlendOpState(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 
-  _capsVsync = SDL_GL_SetSwapInterval(mode.Vsync ? 1 : 0) == 0;
-  if (mode.Vsync && !_capsVsync)
-    Debug::Printf(kDbgMsg_Warn, "OpenGL: SetVsync (%d) failed: %s", mode.Vsync, SDL_GetError());
+    _capsVsync = SDL_GL_SetSwapInterval(mode.Vsync ? 1 : 0) == 0;
+    if (mode.Vsync && !_capsVsync)
+        Debug::Printf(kDbgMsg_Warn, "OpenGL: SetVsync (%d) failed: %s", mode.Vsync, SDL_GetError());
 
-  // View matrix is always identity in OpenGL renderer, use the workaround to fill it with GL format
-  _stageMatrixes.View = glm::mat4(1.0);
+    // View matrix is always identity in OpenGL renderer, use the workaround to fill it with GL format
+    _stageMatrixes.View = glm::mat4(1.0);
 }
 
 bool OGLGraphicsDriver::CreateWindowAndGlContext(const DisplayMode &mode)
 {
-  // First setup GL attributes before creating SDL GL window
-  if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY) != 0)
-    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_PROFILE_MASK: %s", SDL_GetError());
-  if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2) != 0)
-    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_MAJOR_VERSION: %s", SDL_GetError());
+    // First setup GL attributes before creating SDL GL window
+    if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY) != 0)
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_PROFILE_MASK: %s",
+                    SDL_GetError());
+    if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2) != 0)
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_MAJOR_VERSION: %s",
+                    SDL_GetError());
 #if AGS_OPENGL_ES2
     if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0) != 0)
-        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_MINOR_VERSION: %s", SDL_GetError());
-    if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_EGL, 1) != 0) {
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_MINOR_VERSION: %s",
+                    SDL_GetError());
+    if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_EGL, 1) != 0)
+    {
         Debug::Printf(kDbgMsg_Warn, "Error occured setting attribute SDL_GL_CONTEXT_EGL: %s", SDL_GetError());
     }
 #else
-  if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1) != 0)
-    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_MINOR_VERSION: %s", SDL_GetError());
+    if (SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1) != 0)
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_CONTEXT_MINOR_VERSION: %s",
+                    SDL_GetError());
 #endif
-  // minimum number of bits for the depth buffer
-  if (SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0) != 0)
-    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_DEPTH_SIZE: %s", SDL_GetError());
-  if (SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8) != 0 ||
-      SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8) != 0 ||
-      SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8) != 0)
-  {
-    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting one of the attributes SDL_GL_(RED|GREEN| BLUE)_SIZE: %s", SDL_GetError());
-  }
-  if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) != 0)
-    SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_DOUBLEBUFFER: %s", SDL_GetError());
+    // minimum number of bits for the depth buffer
+    if (SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 0) != 0)
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_DEPTH_SIZE: %s",
+                    SDL_GetError());
+    if (SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8) != 0 || SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8) != 0 ||
+        SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8) != 0)
+    {
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION,
+                    "Error occured setting one of the attributes SDL_GL_(RED|GREEN| BLUE)_SIZE: %s", SDL_GetError());
+    }
+    if (SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) != 0)
+        SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Error occured setting attribute SDL_GL_DOUBLEBUFFER: %s",
+                    SDL_GetError());
 
-  SDL_Window *sdl_window = sys_window_create("", mode.DisplayIndex, mode.Width, mode.Height, mode.Mode, SDL_WINDOW_OPENGL);
-  if (!sdl_window)
-  {
-    Debug::Printf(kDbgMsg_Error, "Error opening window for OpenGL: %s", SDL_GetError());
-    return false;
-  }
+    SDL_Window *sdl_window =
+        sys_window_create("", mode.DisplayIndex, mode.Width, mode.Height, mode.Mode, SDL_WINDOW_OPENGL);
+    if (!sdl_window)
+    {
+        Debug::Printf(kDbgMsg_Error, "Error opening window for OpenGL: %s", SDL_GetError());
+        return false;
+    }
 
-  SDL_GLContext sdlgl_ctx = SDL_GL_CreateContext(sdl_window);
-  if (sdlgl_ctx == NULL) {
-    Debug::Printf(kDbgMsg_Error, "Error creating OpenGL context: %s", SDL_GetError());
-    sys_window_destroy();
-    return false;
-  }
+    SDL_GLContext sdlgl_ctx = SDL_GL_CreateContext(sdl_window);
+    if (sdlgl_ctx == NULL)
+    {
+        Debug::Printf(kDbgMsg_Error, "Error creating OpenGL context: %s", SDL_GetError());
+        sys_window_destroy();
+        return false;
+    }
 
-  if (SDL_GL_MakeCurrent(sdl_window, sdlgl_ctx) != 0) {
-    Debug::Printf(kDbgMsg_Error, "Error setting current OpenGL context: %s", SDL_GetError());
-    SDL_GL_DeleteContext(sdlgl_ctx);
-    sys_window_destroy();
-    return false;
-  }
+    if (SDL_GL_MakeCurrent(sdl_window, sdlgl_ctx) != 0)
+    {
+        Debug::Printf(kDbgMsg_Error, "Error setting current OpenGL context: %s", SDL_GetError());
+        SDL_GL_DeleteContext(sdlgl_ctx);
+        sys_window_destroy();
+        return false;
+    }
 #if AGS_OPENGL_ES2
-    if (!gladLoadGLES2Loader((GLADloadproc) SDL_GL_GetProcAddress)) {
+    if (!gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress))
+    {
         Debug::Printf(kDbgMsg_Error, "Failed to load glad with gladLoadGLES2Loader");
     }
 #else
-  if (!gladLoadGL()) {
-    Debug::Printf(kDbgMsg_Error, "Failed to load GL.");
-    return false;
-  }
+    if (!gladLoadGL())
+    {
+        Debug::Printf(kDbgMsg_Error, "Failed to load GL.");
+        return false;
+    }
 #endif
-  _sdlWindow = sdl_window;
-  _sdlGlContext = sdlgl_ctx;
+    _sdlWindow = sdl_window;
+    _sdlGlContext = sdlgl_ctx;
 #if AGS_PLATFORM_OS_IOS
-  // The SDL implementation of the iOS OpenGL view (SDL_uikitopenglview.m) generates its own framebuffer to target the renderbuffer
-  // Instead of using framebuffer 0, we ask OpenGL to get the current framebuffer.
-  glGetIntegerv(GL_FRAMEBUFFER_BINDING, &_screenFramebuffer);
+    // The SDL implementation of the iOS OpenGL view (SDL_uikitopenglview.m) generates its own framebuffer to target the renderbuffer
+    // Instead of using framebuffer 0, we ask OpenGL to get the current framebuffer.
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &_screenFramebuffer);
 #endif
 
-  const char *gl_version = (const char*)glGetString(GL_VERSION);
-  const char *gl_vendor = (const char*)glGetString(GL_VENDOR);
-  const char *gl_renderer = (const char*)glGetString(GL_RENDERER);
-  String adapter_info = String::FromFormat(
-      "\tOpenGL: %s\n\tVendor: %s\n\tRenderer: %s",
-      gl_version, gl_vendor, gl_renderer
-    );
-  Debug::Printf(kDbgMsg_Info, "OpenGL adapter info:\n%s", adapter_info.GetCStr());
-  return true;
+    const char *gl_version = (const char *)glGetString(GL_VERSION);
+    const char *gl_vendor = (const char *)glGetString(GL_VENDOR);
+    const char *gl_renderer = (const char *)glGetString(GL_RENDERER);
+    String adapter_info =
+        String::FromFormat("\tOpenGL: %s\n\tVendor: %s\n\tRenderer: %s", gl_version, gl_vendor, gl_renderer);
+    Debug::Printf(kDbgMsg_Info, "OpenGL adapter info:\n%s", adapter_info.GetCStr());
+    return true;
 }
 
 void OGLGraphicsDriver::DeleteWindowAndGlContext()
 {
-  SDL_GL_MakeCurrent(nullptr, nullptr);
-  if (_sdlGlContext) {
-    SDL_GL_DeleteContext(_sdlGlContext);
-  }
-  _sdlGlContext = nullptr;
-  sys_window_destroy();
-  _sdlWindow = nullptr;
+    SDL_GL_MakeCurrent(nullptr, nullptr);
+    if (_sdlGlContext)
+    {
+        SDL_GL_DeleteContext(_sdlGlContext);
+    }
+    _sdlGlContext = nullptr;
+    sys_window_destroy();
+    _sdlWindow = nullptr;
 }
 
 inline bool CanDoFrameBuffer()
@@ -552,30 +555,35 @@ inline bool CanDoFrameBuffer()
     return true;
 #else
 #ifdef GLAPI
-  return GLAD_GL_EXT_framebuffer_object != 0;
+    return GLAD_GL_EXT_framebuffer_object != 0;
 #else
 #if AGS_PLATFORM_OS_IOS
-  const char* fbo_extension_string = "GL_OES_framebuffer_object";
+    const char *fbo_extension_string = "GL_OES_framebuffer_object";
 #else
-  const char* fbo_extension_string = "GL_EXT_framebuffer_object";
+    const char *fbo_extension_string = "GL_EXT_framebuffer_object";
 #endif
-  const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
-  return extensions && strstr(extensions, fbo_extension_string) != NULL;
+    const char *extensions = (const char *)glGetString(GL_EXTENSIONS);
+    return extensions && strstr(extensions, fbo_extension_string) != NULL;
 #endif
 #endif
 }
 
 void OGLGraphicsDriver::TestRenderToTexture()
 {
-  if (CanDoFrameBuffer()) {
-    _canRenderToTexture = true;
-  } else {
-    _canRenderToTexture = false;
-    Debug::Printf(kDbgMsg_Warn, "WARNING: OpenGL extension 'GL_EXT_framebuffer_object' not supported, rendering to texture mode will be disabled.");
-  }
+    if (CanDoFrameBuffer())
+    {
+        _canRenderToTexture = true;
+    }
+    else
+    {
+        _canRenderToTexture = false;
+        Debug::Printf(
+            kDbgMsg_Warn,
+            "WARNING: OpenGL extension 'GL_EXT_framebuffer_object' not supported, rendering to texture mode will be disabled.");
+    }
 
-  if (!_canRenderToTexture)
-    _doRenderToTexture = false;
+    if (!_canRenderToTexture)
+        _doRenderToTexture = false;
 }
 
 bool OGLGraphicsDriver::CreateStandardShaders()
@@ -595,11 +603,8 @@ bool OGLGraphicsDriver::CreateStandardShaders()
     _lightShader.reset(CreateLightShader(_transparencyShader.get()));
     _darkenbyAlphaShader.reset(CreateDarkenByAlphaShader(_transparencyShader.get()));
     _lightenByAlphaShader.reset(CreateLightenByAlphaShader(_transparencyShader.get()));
-    return _transparencyShader->IsValid()
-        && _tintShader->IsValid()
-        && _lightShader->IsValid()
-        && _darkenbyAlphaShader->IsValid()
-        && _lightenByAlphaShader->IsValid();
+    return _transparencyShader->IsValid() && _tintShader->IsValid() && _lightShader->IsValid() &&
+           _darkenbyAlphaShader->IsValid() && _lightenByAlphaShader->IsValid();
 }
 
 void OGLGraphicsDriver::DeleteShaders()
@@ -612,13 +617,13 @@ void OGLGraphicsDriver::DeleteShaders()
 }
 
 
-static const auto default_vertex_shader_src =  ""
+static const auto default_vertex_shader_src = ""
 #if AGS_OPENGL_ES2
-"#version 100 \n"
+                                              "#version 100 \n"
 #else
-"#version 120 \n"
+                                              "#version 120 \n"
 #endif
-R"EOS(
+                                              R"EOS(
 uniform mat4    iMVPMatrix;
 
 attribute vec2  a_Position;
@@ -636,12 +641,12 @@ void main() {
 
 static const auto transparency_fragment_shader_src = ""
 #if AGS_OPENGL_ES2
-"#version 100 \n"
-"precision mediump float; \n"
+                                                     "#version 100 \n"
+                                                     "precision mediump float; \n"
 #else
-"#version 120 \n"
+                                                     "#version 120 \n"
 #endif
-R"EOS(
+                                                     R"EOS(
 uniform sampler2D   iTexture;
 uniform float       iAlpha;
 
@@ -668,12 +673,12 @@ void main()
 
 static const auto tint_fragment_shader_src = ""
 #if AGS_OPENGL_ES2
-"#version 100 \n"
-"precision mediump float; \n"
+                                             "#version 100 \n"
+                                             "precision mediump float; \n"
 #else
-"#version 120 \n"
+                                             "#version 120 \n"
 #endif
-R"EOS(
+                                             R"EOS(
 uniform sampler2D   iTexture;
 uniform float       iAlpha;
 
@@ -732,12 +737,12 @@ void main()
 
 static const auto light_fragment_shader_src = ""
 #if AGS_OPENGL_ES2
-"#version 100 \n"
-"precision mediump float; \n"
+                                              "#version 100 \n"
+                                              "precision mediump float; \n"
 #else
-"#version 120 \n"
+                                              "#version 120 \n"
 #endif
-R"EOS(
+                                              R"EOS(
 uniform sampler2D   iTexture;
 uniform float       iAlpha;
 uniform float       iLight;
@@ -758,12 +763,12 @@ void main()
 // blend hack 1: darken to simulate transparency as a replacement to glTexEnvi for blend mode workarounds
 static const auto darkenbyalpha_fragment_shader_src = ""
 #if AGS_OPENGL_ES2
-"#version 100 \n"
-"precision mediump float; \n"
+                                                      "#version 100 \n"
+                                                      "precision mediump float; \n"
 #else
-"#version 120 \n"
+                                                      "#version 120 \n"
 #endif
-R"EOS(
+                                                      R"EOS(
 uniform sampler2D   iTexture;
 uniform float       iAlpha;
 
@@ -780,12 +785,12 @@ void main()
 // blend hack 2: lighten  to simulate transparency as a replacement to glTexEnvi for blend mode workarounds
 static const auto lightenbyalpha_fragment_shader_src = ""
 #if AGS_OPENGL_ES2
-"#version 100 \n"
-"precision mediump float; \n"
+                                                       "#version 100 \n"
+                                                       "precision mediump float; \n"
 #else
-"#version 120 \n"
+                                                       "#version 120 \n"
 #endif
-R"EOS(
+                                                       R"EOS(
 uniform sampler2D   iTexture;
 uniform float       iAlpha;
 
@@ -879,7 +884,8 @@ OGLShader *OGLGraphicsDriver::CreateLightenByAlphaShader(const OGLShader *fallba
     return new OGLShader("LightenByAlpha");
 }
 
-bool OGLGraphicsDriver::CreateShaderProgram(OGLShader::ProgramData &prg, const String &name, const char *vertex_shader_src, const char *fragment_shader_src)
+bool OGLGraphicsDriver::CreateShaderProgram(OGLShader::ProgramData &prg, const String &name,
+                                            const char *vertex_shader_src, const char *fragment_shader_src)
 {
     GLint result;
 
@@ -912,8 +918,8 @@ bool OGLGraphicsDriver::CreateShaderProgram(OGLShader::ProgramData &prg, const S
     glLinkProgram(program);
     glGetProgramiv(program, GL_LINK_STATUS, &result);
     // NOTE: that linker will also repeat warnings from the vertext and fragment shaders
-    OutputShaderLog(program, name, "program linking", false , result == GL_FALSE);
-    if(result == GL_FALSE)
+    OutputShaderLog(program, name, "program linking", false, result == GL_FALSE);
+    if (result == GL_FALSE)
     {
         glDeleteShader(vertex_shader);
         glDeleteShader(fragment_shader);
@@ -975,7 +981,8 @@ void OGLGraphicsDriver::UpdateGlobalShaderArgValues()
     glUseProgram(0);
 }
 
-void OGLGraphicsDriver::OutputShaderLog(GLuint obj_id, const String &shader_name, const char *step_name, bool is_shader, bool as_error)
+void OGLGraphicsDriver::OutputShaderLog(GLuint obj_id, const String &shader_name, const char *step_name, bool is_shader,
+                                        bool as_error)
 {
     GLint log_len;
     if (is_shader)
@@ -1015,111 +1022,112 @@ void OGLGraphicsDriver::OutputShaderLog(GLuint obj_id, const String &shader_name
 
 void OGLGraphicsDriver::SetupNativeTarget()
 {
-  if (_nativeSurface)
-  {
-    DestroyDDB(_nativeSurface);
-    _nativeSurface = nullptr;
-    _nativeBackbuffer = BackbufferState();
-  }
+    if (_nativeSurface)
+    {
+        DestroyDDB(_nativeSurface);
+        _nativeSurface = nullptr;
+        _nativeBackbuffer = BackbufferState();
+    }
 
-  // NOTE: ability to render to texture depends on OGL context, which is
-  // created in SetDisplayMode, therefore creation of textures require
-  // both native size set and context capabilities test passed.
-  if (!IsNativeSizeValid() || !_canRenderToTexture)
-    return;
+    // NOTE: ability to render to texture depends on OGL context, which is
+    // created in SetDisplayMode, therefore creation of textures require
+    // both native size set and context capabilities test passed.
+    if (!IsNativeSizeValid() || !_canRenderToTexture)
+        return;
 
-  const Size surf_size = _srcRect.GetSize();
-  _nativeSurface = (OGLBitmap*)CreateRenderTargetDDB(
-      surf_size.Width, surf_size.Height, _mode.ColorDepth, kTxFlags_Opaque);
-  auto projection = glm::ortho(0.0f, (float)surf_size.Width, 0.0f, (float)surf_size.Height, 0.0f, 1.0f);
-  _nativeBackbuffer = BackbufferState(_nativeSurface->GetFbo(), surf_size, _srcRect.GetSize(),
-      RectWH(0, 0, surf_size.Width, surf_size.Height), projection, PlaneScaling(), GL_NEAREST, GL_CLAMP);
+    const Size surf_size = _srcRect.GetSize();
+    _nativeSurface =
+        (OGLBitmap *)CreateRenderTargetDDB(surf_size.Width, surf_size.Height, _mode.ColorDepth, kTxFlags_Opaque);
+    auto projection = glm::ortho(0.0f, (float)surf_size.Width, 0.0f, (float)surf_size.Height, 0.0f, 1.0f);
+    _nativeBackbuffer = BackbufferState(_nativeSurface->GetFbo(), surf_size, _srcRect.GetSize(),
+                                        RectWH(0, 0, surf_size.Width, surf_size.Height), projection, PlaneScaling(),
+                                        GL_NEAREST, GL_CLAMP);
 }
 
 void OGLGraphicsDriver::SetupViewport()
 {
-  if (!IsModeSet() || !IsRenderFrameValid())
-    return;
+    if (!IsModeSet() || !IsRenderFrameValid())
+        return;
 
-  Rect viewport = TopDownRect(_dstRect, device_screen_physical_height);
-  auto projection = glm::ortho(0.0f, (float)_srcRect.GetWidth(), 0.0f, (float)_srcRect.GetHeight(), 0.0f, 1.0f);
-  int txfilter = GL_NEAREST, txclamp = GL_CLAMP;
-  if (_filter)
-    _filter->GetFilteringForStandardSprite(txfilter, txclamp);
-  _screenBackbuffer = BackbufferState(_screenFramebuffer, Size(_mode.Width, _mode.Height), _srcRect.GetSize(),
-      viewport, projection, _scaling, txfilter, txclamp);
+    Rect viewport = TopDownRect(_dstRect, device_screen_physical_height);
+    auto projection = glm::ortho(0.0f, (float)_srcRect.GetWidth(), 0.0f, (float)_srcRect.GetHeight(), 0.0f, 1.0f);
+    int txfilter = GL_NEAREST, txclamp = GL_CLAMP;
+    if (_filter)
+        _filter->GetFilteringForStandardSprite(txfilter, txclamp);
+    _screenBackbuffer = BackbufferState(_screenFramebuffer, Size(_mode.Width, _mode.Height), _srcRect.GetSize(),
+                                        viewport, projection, _scaling, txfilter, txclamp);
 }
 
 bool OGLGraphicsDriver::SetDisplayMode(const DisplayMode &mode)
 {
-  ReleaseDisplayMode();
+    ReleaseDisplayMode();
 
-  if (mode.ColorDepth < 32)
-  {
-    SDL_SetError("OpenGL driver does not support non-32bit display mode");
-    return false;
-  }
+    if (mode.ColorDepth < 32)
+    {
+        SDL_SetError("OpenGL driver does not support non-32bit display mode");
+        return false;
+    }
 
-  if (_initGfxCallback != nullptr)
-    _initGfxCallback(nullptr);
+    if (_initGfxCallback != nullptr)
+        _initGfxCallback(nullptr);
 
-  try
-  {
-    if (!InitGlScreen(mode))
-      return false;
-    if (!_firstTimeInit && !FirstTimeInit())
-      return false;
-    InitGlParams(mode);
-  }
-  catch (Ali3DException exception)
-  {
-    SDL_SetError("%s", exception.Message.GetCStr());
-    return false;
-  }
+    try
+    {
+        if (!InitGlScreen(mode))
+            return false;
+        if (!_firstTimeInit && !FirstTimeInit())
+            return false;
+        InitGlParams(mode);
+    }
+    catch (Ali3DException exception)
+    {
+        SDL_SetError("%s", exception.Message.GetCStr());
+        return false;
+    }
 
-  OnInit();
+    OnInit();
 
-  // On certain platforms OpenGL renderer ignores requested screen sizes
-  // and uses values imposed by the operating system (device).
-  DisplayMode final_mode = mode;
-  final_mode.DisplayIndex = sys_get_window_display_index();
-  final_mode.Width = device_screen_physical_width;
-  final_mode.Height = device_screen_physical_height;
-  OnModeSet(final_mode);
+    // On certain platforms OpenGL renderer ignores requested screen sizes
+    // and uses values imposed by the operating system (device).
+    DisplayMode final_mode = mode;
+    final_mode.DisplayIndex = sys_get_window_display_index();
+    final_mode.Width = device_screen_physical_width;
+    final_mode.Height = device_screen_physical_height;
+    OnModeSet(final_mode);
 
-  // If we already have a native size set, then update virtual screen and setup backbuffer texture immediately
-  CreateVirtualScreen();
-  SetupNativeTarget();
-  // If we already have a render frame configured, then setup viewport and backbuffer mappings immediately
-  SetupViewport();
-  return true;
+    // If we already have a native size set, then update virtual screen and setup backbuffer texture immediately
+    CreateVirtualScreen();
+    SetupNativeTarget();
+    // If we already have a render frame configured, then setup viewport and backbuffer mappings immediately
+    SetupViewport();
+    return true;
 }
 
 void OGLGraphicsDriver::CreateVirtualScreen()
 {
-  if (!IsModeSet() || !IsNativeSizeValid())
-    return;
-  // Preset initial stage screen for plugin raw drawing
-  SetStageScreen(0, _srcRect.GetSize());
+    if (!IsModeSet() || !IsNativeSizeValid())
+        return;
+    // Preset initial stage screen for plugin raw drawing
+    SetStageScreen(0, _srcRect.GetSize());
 }
 
 bool OGLGraphicsDriver::SetNativeResolution(const GraphicResolution &native_res)
 {
-  OnSetNativeRes(native_res);
-  SetupNativeTarget();
-  // If we already have a gfx mode set, then update virtual screen immediately
-  CreateVirtualScreen();
-  return !_srcRect.IsEmpty();
+    OnSetNativeRes(native_res);
+    SetupNativeTarget();
+    // If we already have a gfx mode set, then update virtual screen immediately
+    CreateVirtualScreen();
+    return !_srcRect.IsEmpty();
 }
 
 bool OGLGraphicsDriver::SetRenderFrame(const Rect &dst_rect)
 {
-  if (!IsNativeSizeValid())
-    return false;
-  OnSetRenderFrame(dst_rect);
-  // Also make sure viewport and backbuffer mappings are updated using new native & destination rectangles
-  SetupViewport();
-  return !_dstRect.IsEmpty();
+    if (!IsNativeSizeValid())
+        return false;
+    OnSetRenderFrame(dst_rect);
+    // Also make sure viewport and backbuffer mappings are updated using new native & destination rectangles
+    SetupViewport();
+    return !_dstRect.IsEmpty();
 }
 
 int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/) const
@@ -1130,13 +1138,16 @@ int OGLGraphicsDriver::GetDisplayDepthForNativeDepth(int /*native_color_depth*/)
 
 IGfxModeList *OGLGraphicsDriver::GetSupportedModeList(int display_index, int color_depth)
 {
-    std::vector<DisplayMode> modes {};
+    std::vector<DisplayMode> modes{};
     sys_get_desktop_modes(display_index, modes, color_depth);
     if ((modes.size() == 0) && color_depth == 32)
     {
         // Pretend that 24-bit are 32-bit
         sys_get_desktop_modes(display_index, modes, 24);
-        for (auto &m : modes) { m.ColorDepth = 32; }
+        for (auto &m : modes)
+        {
+            m.ColorDepth = 32;
+        }
     }
     return new OGLDisplayModeList(modes);
 }
@@ -1148,45 +1159,45 @@ PGfxFilter OGLGraphicsDriver::GetGraphicsFilter() const
 
 void OGLGraphicsDriver::ReleaseDisplayMode()
 {
-  if (!IsModeSet())
-    return;
+    if (!IsModeSet())
+        return;
 
-  _screenBackbuffer = BackbufferState();
+    _screenBackbuffer = BackbufferState();
 
-  OnModeReleased();
-  ClearDrawLists();
-  ClearDrawBackups();
-  DestroyFxPool();
-  DestroyAllStageScreens();
+    OnModeReleased();
+    ClearDrawLists();
+    ClearDrawBackups();
+    DestroyFxPool();
+    DestroyAllStageScreens();
 
-  sys_window_set_style(kWnd_Windowed);
+    sys_window_set_style(kWnd_Windowed);
 }
 
 void OGLGraphicsDriver::UnInit()
 {
-  OnUnInit();
-  ReleaseDisplayMode();
+    OnUnInit();
+    ReleaseDisplayMode();
 
-  if (_nativeSurface)
-  {
-    DestroyDDB(_nativeSurface);
-    _nativeSurface = nullptr;
-    _nativeBackbuffer = BackbufferState();
-  }
+    if (_nativeSurface)
+    {
+        DestroyDDB(_nativeSurface);
+        _nativeSurface = nullptr;
+        _nativeBackbuffer = BackbufferState();
+    }
 
-  DeleteShaders();
-  DeleteWindowAndGlContext();
-  sys_window_destroy();
+    DeleteShaders();
+    DeleteWindowAndGlContext();
+    sys_window_destroy();
 }
 
 OGLGraphicsDriver::~OGLGraphicsDriver()
 {
-  OGLGraphicsDriver::UnInit();
+    OGLGraphicsDriver::UnInit();
 }
 
-void OGLGraphicsDriver::ClearRectangle(int /*x1*/, int /*y1*/, int /*x2*/, int /*y2*/, RGB* /*colorToUse*/)
+void OGLGraphicsDriver::ClearRectangle(int /*x1*/, int /*y1*/, int /*x2*/, int /*y2*/, RGB * /*colorToUse*/)
 {
-  // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
+    // NOTE: this function is practically useless at the moment, because OGL redraws whole game frame each time
 }
 
 void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, uint32_t batch_skip_filter)
@@ -1205,80 +1216,80 @@ void OGLGraphicsDriver::GetCopyOfScreenIntoDDB(IDriverDependantBitmap *target, u
     else
     {
         // If we normally render in native res, then simply render backbuffer contents
-        OGLBitmap *bitmap = (OGLBitmap*)target;
+        OGLBitmap *bitmap = (OGLBitmap *)target;
         Size surf_sz = bitmap->GetSize();
-        BackbufferState backbuffer = BackbufferState(bitmap->GetFbo(), surf_sz, surf_sz,
-            RectWH(0, 0, surf_sz.Width, surf_sz.Height), 
-            glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f),
-            PlaneScaling(), GL_NEAREST, GL_CLAMP);
+        BackbufferState backbuffer =
+            BackbufferState(bitmap->GetFbo(), surf_sz, surf_sz, RectWH(0, 0, surf_sz.Width, surf_sz.Height),
+                            glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f),
+                            PlaneScaling(), GL_NEAREST, GL_CLAMP);
         SetBackbufferState(&backbuffer, true);
         SetupPostFx(_nativeSurface, backbuffer);
         RenderTexture(_nativeSurface, 0, 0, backbuffer.Projection, glmex::identity(), SpriteColorTransform(), surf_sz);
     }
 }
 
-bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination,
-    const Rect *src_rect, bool at_native_res,
-    GraphicResolution *want_fmt, uint32_t batch_skip_filter)
+bool OGLGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
+                                                  GraphicResolution *want_fmt, uint32_t batch_skip_filter)
 {
-  // Currently don't support copying in screen resolution when we are rendering in native
-  if (_doRenderToTexture)
-      at_native_res = true;
+    // Currently don't support copying in screen resolution when we are rendering in native
+    if (_doRenderToTexture)
+        at_native_res = true;
 
-  Rect copy_from = src_rect ? *src_rect : _srcRect;
-  if (!at_native_res)
-    copy_from = _scaling.ScaleRange(copy_from);
-  if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != copy_from.GetSize())
-  {
-    if (want_fmt)
-      *want_fmt = GraphicResolution(copy_from.GetWidth(), copy_from.GetHeight(), _mode.ColorDepth);
-    return false;
-  }
-
-  // If we are rendering sprites at the screen resolution, and requested native res,
-  // re-render last frame to the native surface
-  // Also force re-render last frame if we require batch filtering
-  if ((at_native_res && !_doRenderToTexture) || (batch_skip_filter != 0))
-  {
-    bool old_render_res = _doRenderToTexture;
-    _doRenderToTexture = at_native_res;
-    RedrawLastFrame(batch_skip_filter);
-    RenderImpl(true);
-    _doRenderToTexture = old_render_res;
-  }
-
-  if (at_native_res)
-  {
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _nativeSurface->GetFbo());
-  }
-  else
-  {
-    // CHECKME: is this condition still relevant?
-#if !AGS_OPENGL_ES2
-    glReadBuffer(GL_FRONT);
-#endif
-  }
-
-  // Retrieve the backbuffer pixels
-  // NOTE: this is currently hardcoded to read from a 32-bit display mode
-  const int bpp = 32 / 8;
-  const int buf_sz = copy_from.GetWidth() * copy_from.GetHeight() * bpp;
-  std::vector<uint8_t> buffer(buf_sz);
-  glReadPixels(copy_from.Left, copy_from.Top, copy_from.GetWidth(), copy_from.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
-
-  // Now convert from OGL RGBA to Allegro RGBA pixel format
-  uint8_t* sourcePtr = buffer.data();
-  for (int y = destination->GetHeight() - 1; y >= 0; y--)
-  {
-    unsigned int * destPtr = reinterpret_cast<unsigned int*>(&destination->GetScanLineForWriting(y)[0]);
-    for (int dx = 0, sx = 0; dx < destination->GetWidth(); ++dx, sx = dx * bpp)
+    Rect copy_from = src_rect ? *src_rect : _srcRect;
+    if (!at_native_res)
+        copy_from = _scaling.ScaleRange(copy_from);
+    if (destination->GetColorDepth() != _mode.ColorDepth || destination->GetSize() != copy_from.GetSize())
     {
-      destPtr[dx] = makeacol32(sourcePtr[sx + 0], sourcePtr[sx + 1], sourcePtr[sx + 2], sourcePtr[sx + 3]);
+        if (want_fmt)
+            *want_fmt = GraphicResolution(copy_from.GetWidth(), copy_from.GetHeight(), _mode.ColorDepth);
+        return false;
     }
-    sourcePtr += copy_from.GetWidth() * bpp;
-  }
 
-  return true;
+    // If we are rendering sprites at the screen resolution, and requested native res,
+    // re-render last frame to the native surface
+    // Also force re-render last frame if we require batch filtering
+    if ((at_native_res && !_doRenderToTexture) || (batch_skip_filter != 0))
+    {
+        bool old_render_res = _doRenderToTexture;
+        _doRenderToTexture = at_native_res;
+        RedrawLastFrame(batch_skip_filter);
+        RenderImpl(true);
+        _doRenderToTexture = old_render_res;
+    }
+
+    if (at_native_res)
+    {
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _nativeSurface->GetFbo());
+    }
+    else
+    {
+        // CHECKME: is this condition still relevant?
+#if !AGS_OPENGL_ES2
+        glReadBuffer(GL_FRONT);
+#endif
+    }
+
+    // Retrieve the backbuffer pixels
+    // NOTE: this is currently hardcoded to read from a 32-bit display mode
+    const int bpp = 32 / 8;
+    const int buf_sz = copy_from.GetWidth() * copy_from.GetHeight() * bpp;
+    std::vector<uint8_t> buffer(buf_sz);
+    glReadPixels(copy_from.Left, copy_from.Top, copy_from.GetWidth(), copy_from.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE,
+                 buffer.data());
+
+    // Now convert from OGL RGBA to Allegro RGBA pixel format
+    uint8_t *sourcePtr = buffer.data();
+    for (int y = destination->GetHeight() - 1; y >= 0; y--)
+    {
+        unsigned int *destPtr = reinterpret_cast<unsigned int *>(&destination->GetScanLineForWriting(y)[0]);
+        for (int dx = 0, sx = 0; dx < destination->GetWidth(); ++dx, sx = dx * bpp)
+        {
+            destPtr[dx] = makeacol32(sourcePtr[sx + 0], sourcePtr[sx + 1], sourcePtr[sx + 2], sourcePtr[sx + 3]);
+        }
+        sourcePtr += copy_from.GetWidth() * bpp;
+    }
+
+    return true;
 }
 
 void OGLGraphicsDriver::Render()
@@ -1298,300 +1309,304 @@ void OGLGraphicsDriver::RenderToBackBuffer()
 
 void OGLGraphicsDriver::Render(IDriverDependantBitmap *target)
 {
-    OGLBitmap *bitmap = (OGLBitmap*)target;
+    OGLBitmap *bitmap = (OGLBitmap *)target;
     Size surf_sz = bitmap->GetSize();
-    BackbufferState backbuffer = BackbufferState(bitmap->GetFbo(), surf_sz, surf_sz,
-        RectWH(0, 0, surf_sz.Width, surf_sz.Height),
-        glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f),
-        PlaneScaling(), GL_NEAREST, GL_CLAMP);
+    BackbufferState backbuffer =
+        BackbufferState(bitmap->GetFbo(), surf_sz, surf_sz, RectWH(0, 0, surf_sz.Width, surf_sz.Height),
+                        glm::ortho(0.0f, (float)surf_sz.Width, 0.0f, (float)surf_sz.Height, 0.0f, 1.0f), PlaneScaling(),
+                        GL_NEAREST, GL_CLAMP);
     RenderToSurface(&backbuffer, true);
 }
 
-void OGLGraphicsDriver::RenderSprite(const OGLDrawListEntry *drawListEntry,
-    const glm::mat4 &projection, const glm::mat4 &matGlobal,
-    const SpriteColorTransform &color, const Size &rend_sz)
+void OGLGraphicsDriver::RenderSprite(const OGLDrawListEntry *drawListEntry, const glm::mat4 &projection,
+                                     const glm::mat4 &matGlobal, const SpriteColorTransform &color, const Size &rend_sz)
 {
     RenderTexture(drawListEntry->ddb, drawListEntry->x, drawListEntry->y, projection, matGlobal, color, rend_sz);
 }
 
-void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw_y,
-    const glm::mat4 &projection, const glm::mat4 &matGlobal,
-    const SpriteColorTransform &color, const Size &rend_sz)
+void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw_y, const glm::mat4 &projection,
+                                      const glm::mat4 &matGlobal, const SpriteColorTransform &color,
+                                      const Size &rend_sz)
 {
-  const int alpha = (color.Alpha * bmpToDraw->GetAlpha()) / 255;
-  const int invalpha = 255 - alpha;
+    const int alpha = (color.Alpha * bmpToDraw->GetAlpha()) / 255;
+    const int invalpha = 255 - alpha;
 
-  const OGLShader::ProgramData *program = nullptr;
+    const OGLShader::ProgramData *program = nullptr;
 
-  int tint_r, tint_g, tint_b, tint_sat, light_lev;
-  bmpToDraw->GetTint(tint_r, tint_g, tint_b, tint_sat);
-  light_lev = bmpToDraw->GetLightLevel();
-  const bool do_tint = tint_sat > 0 && _tintShader->GetData().Program > 0;
-  const bool do_light = tint_sat == 0 && light_lev > 0 && _lightShader->GetData().Program > 0;
-  if (bmpToDraw->GetShader())
-  {
-    // Use custom shader
-    OGLShaderInstance *shaderinst = (OGLShaderInstance*)bmpToDraw->GetShader();
-    program = &shaderinst->GetShaderData();
-    glUseProgram(program->Program);
-
-    // Apply custom constants
-    // TODO: investigate if there's a more optimal way to do this,
-    // something similar to how Direct3D applies all constants as a buffer.
-    // See: https://www.khronos.org/opengl/wiki/Uniform_Buffer_Object
-    for (const auto &c : shaderinst->GetConstantData())
+    int tint_r, tint_g, tint_b, tint_sat, light_lev;
+    bmpToDraw->GetTint(tint_r, tint_g, tint_b, tint_sat);
+    light_lev = bmpToDraw->GetLightLevel();
+    const bool do_tint = tint_sat > 0 && _tintShader->GetData().Program > 0;
+    const bool do_light = tint_sat == 0 && light_lev > 0 && _lightShader->GetData().Program > 0;
+    if (bmpToDraw->GetShader())
     {
-        switch (c.Size)
+        // Use custom shader
+        OGLShaderInstance *shaderinst = (OGLShaderInstance *)bmpToDraw->GetShader();
+        program = &shaderinst->GetShaderData();
+        glUseProgram(program->Program);
+
+        // Apply custom constants
+        // TODO: investigate if there's a more optimal way to do this,
+        // something similar to how Direct3D applies all constants as a buffer.
+        // See: https://www.khronos.org/opengl/wiki/Uniform_Buffer_Object
+        for (const auto &c : shaderinst->GetConstantData())
         {
-        case 1: glUniform1f(c.Loc, c.Val[0]); break;
-        case 2: glUniform2f(c.Loc, c.Val[0], c.Val[1]); break;
-        case 3: glUniform3f(c.Loc, c.Val[0], c.Val[1], c.Val[2]); break;
-        case 4: glUniform4f(c.Loc, c.Val[0], c.Val[1], c.Val[2], c.Val[3]); break;
+            switch (c.Size)
+            {
+            case 1: glUniform1f(c.Loc, c.Val[0]); break;
+            case 2: glUniform2f(c.Loc, c.Val[0], c.Val[1]); break;
+            case 3: glUniform3f(c.Loc, c.Val[0], c.Val[1], c.Val[2]); break;
+            case 4: glUniform4f(c.Loc, c.Val[0], c.Val[1], c.Val[2], c.Val[3]); break;
+            default: break;
+            }
+        }
+
+        const auto &samplers = shaderinst->GetShaderSamplers();
+        for (uint32_t i = 1u; i < samplers.size(); ++i)
+        {
+            if (program->Texture[i] > 0)
+            {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, samplers[i].TexID);
+                glUniform1i(program->Texture[i], i);
+                glUniform2f(program->TextureDim[i], samplers[i].TexSize.Width, samplers[i].TexSize.Height);
+            }
+        }
+    }
+    else if (do_tint)
+    {
+        // Use tinting shader
+        program = &_tintShader->GetData();
+
+        float rgb[3];
+        float sat_trs_lum[3]; // saturation / transparency / luminance
+        rgb_to_hsv(tint_r, tint_g, tint_b, &rgb[0], &rgb[1], &rgb[2]);
+        rgb[0] /= 360.0; // In HSV, Hue is 0-360
+
+        sat_trs_lum[0] = (float)tint_sat / 255.0;
+
+        if (light_lev > 0)
+            sat_trs_lum[2] = (float)light_lev / 255.0;
+        else
+            sat_trs_lum[2] = 1.0f;
+
+        glUseProgram(program->Program);
+        glUniform3f(program->TintHSV, rgb[0], rgb[1], rgb[2]);
+        glUniform1f(program->TintAmount, sat_trs_lum[0]);
+        glUniform1f(program->TintLuminance, sat_trs_lum[2]);
+    }
+    else if (do_light)
+    {
+        // Use light shader
+        program = &_lightShader->GetData();
+        float n_light_lev = 1.0f;
+
+        // Light level parameter in DDB is weird, it is measured in units of
+        // 1/255 (although effectively 1/250, see draw.cpp), but contains two
+        // ranges: 1-255 is darker range and 256-511 is brighter range.
+        // (light level of 0 means "default color")
+        if ((light_lev > 0) && (light_lev < 256))
+        {
+            // darkening the sprite... this stupid calculation is for
+            // consistency with the allegro software-mode code that does
+            // a trans blend with a (8,8,8) sprite
+            n_light_lev = -((light_lev * 192) / 256 + 64) / 255.f; // darker, uses MODULATE op
+        }
+        else if (light_lev > 256)
+        {
+            n_light_lev = ((light_lev - 256) / 2) / 255.f; // brighter, uses ADD op
+        }
+
+        glUseProgram(program->Program);
+        glUniform1f(program->LightingAmount, n_light_lev);
+    }
+    else
+    {
+        const OGLShader *shader;
+        switch (bmpToDraw->GetBlendMode())
+        {
+        case kBlend_Darken:
+        case kBlend_Multiply:
+        case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when trasparent
+            // hack for blendmodes: fade to white to make it transparent
+            shader = _lightenByAlphaShader.get();
+            break;
+        case kBlend_Lighten:
+        case kBlend_Screen:
+        case kBlend_Exclusion:
+        case kBlend_Dodge:
+            // hack for blendmodes: fade to black to make it transparent
+            shader = _darkenbyAlphaShader.get();
+            break;
+        default:
+            // Use default processing
+            shader = _transparencyShader.get();
+            break;
+        }
+
+        program = &shader->GetData();
+        glUseProgram(program->Program);
+    }
+
+    glUniform1i(program->Texture[0], 0);
+    glUniform2f(program->TextureDim[0], bmpToDraw->GetWidth(), bmpToDraw->GetHeight());
+    glUniform1f(program->Alpha, alpha / 255.0f);
+
+    float width = bmpToDraw->GetWidthToRender();
+    float height = bmpToDraw->GetHeightToRender();
+    float xProportion = width / (float)bmpToDraw->GetWidth();
+    float yProportion = height / (float)bmpToDraw->GetHeight();
+
+    const auto *txdata = bmpToDraw->GetTexture();
+    for (size_t ti = 0; ti < txdata->_numTiles; ++ti)
+    {
+        width = txdata->_tiles[ti].width * xProportion;
+        height = txdata->_tiles[ti].height * yProportion;
+        float xOffs, yOffs;
+        if ((bmpToDraw->GetFlip() & kFlip_Horizontal) != 0)
+            xOffs = (bmpToDraw->GetWidth() - (txdata->_tiles[ti].x + txdata->_tiles[ti].width)) * xProportion;
+        else
+            xOffs = txdata->_tiles[ti].x * xProportion;
+        if ((bmpToDraw->GetFlip() & kFlip_Vertical) != 0)
+            yOffs = (bmpToDraw->GetHeight() - (txdata->_tiles[ti].y + txdata->_tiles[ti].height)) * yProportion;
+        else
+            yOffs = txdata->_tiles[ti].y * yProportion;
+        float thisX = draw_x + xOffs;
+        float thisY = draw_y + yOffs;
+
+        //Setup translation and scaling matrices
+        float widthToScale = width;
+        float heightToScale = height;
+        if ((bmpToDraw->GetFlip() & kFlip_Horizontal) != 0)
+        {
+            // The usual transform changes 0..1 into 0..width
+            // So first negate it (which changes 0..w into -w..0)
+            widthToScale = -widthToScale;
+            // and now shift it over to make it 0..w again
+            thisX += width;
+        }
+        if ((bmpToDraw->GetFlip() & kFlip_Vertical) != 0)
+        {
+            heightToScale = -heightToScale;
+            thisY += height;
+        }
+        // Apply sprite origin, rounded to keep pixel precision
+        thisX -= std::roundf((abs(widthToScale) - 1.f) * bmpToDraw->GetOrigin().X);
+        thisY -= std::roundf((abs(heightToScale) - 1.f) * bmpToDraw->GetOrigin().Y);
+        // Center inside a rendering rect
+        // FIXME: this should be a part of a projection matrix, afaik
+        thisX = (-(rend_sz.Width / 2.0f)) + thisX;
+        thisY = (rend_sz.Height / 2.0f) - thisY; // inverse axis
+
+        // Setup rotation and pivot
+        float rotZ = bmpToDraw->GetRotation();
+        const Pointf &pivot = bmpToDraw->GetPivot();
+        float pivotX = -(widthToScale * pivot.X), pivotY = (heightToScale * pivot.Y);
+
+        //
+        // IMPORTANT: in OpenGL order of transformation is REVERSE to the order of commands!
+        //
+        glm::mat4 transform = projection;
+        // Origin is at the middle of the surface
+        transform = glmex::translate(transform, rend_sz.Width / 2.0f, rend_sz.Height / 2.0f);
+
+        // Global batch transform
+        transform = transform * matGlobal;
+        // Self sprite transform (first scale, then rotate and then translate, reversed)
+        transform = glmex::transform2d(transform, thisX, thisY, widthToScale, heightToScale, rotZ, pivotX, pivotY);
+
+        glUniformMatrix4fv(program->MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, txdata->_tiles[ti].texture);
+
+        if ((_smoothScaling) && bmpToDraw->GetUseResampler() && (bmpToDraw->GetSizeToRender() != bmpToDraw->GetSize()))
+        {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        }
+        else
+        {
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _currentBackbuffer->Filter);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _currentBackbuffer->Filter);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _currentBackbuffer->TxClamp);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _currentBackbuffer->TxClamp);
+        }
+
+        if (txdata->_vertex != nullptr)
+        {
+            glVertexAttribPointer(program->A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX),
+                                  &(txdata->_vertex[ti * 4].position));
+            glVertexAttribPointer(program->A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX),
+                                  &(txdata->_vertex[ti * 4].tu));
+        }
+        else
+        {
+            glVertexAttribPointer(program->A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX),
+                                  &(defaultVertices[0].position));
+            glVertexAttribPointer(program->A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX),
+                                  &(defaultVertices[0].tu));
+        }
+
+        // Treat special render modes
+        switch (bmpToDraw->GetRenderHint())
+        {
+        case kTxHint_PremulAlpha:
+            glBlendColor(alpha / 255.0f, alpha / 255.0f, alpha / 255.0f, 1.f);
+            SetBlendOpRGB(GL_FUNC_ADD, GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+            break;
         default: break;
         }
-    }
 
-    const auto &samplers = shaderinst->GetShaderSamplers();
-    for (uint32_t i = 1u; i < samplers.size(); ++i)
-    {
-        if (program->Texture[i] > 0)
+        // FIXME: user blend modes break the above special blend necessary for rendering RT textures
+        // Blend modes
+        switch (bmpToDraw->GetBlendMode())
         {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, samplers[i].TexID);
-            glUniform1i(program->Texture[i], i);
-            glUniform2f(program->TextureDim[i], samplers[i].TexSize.Width, samplers[i].TexSize.Height);
-        }
-    }
-  }
-  else if (do_tint)
-  {
-    // Use tinting shader
-    program = &_tintShader->GetData();
-
-    float rgb[3];
-    float sat_trs_lum[3]; // saturation / transparency / luminance
-    rgb_to_hsv(tint_r, tint_g, tint_b, &rgb[0], &rgb[1], &rgb[2]);
-    rgb[0] /= 360.0; // In HSV, Hue is 0-360
-
-    sat_trs_lum[0] = (float)tint_sat / 255.0;
-
-    if (light_lev > 0)
-      sat_trs_lum[2] = (float)light_lev / 255.0;
-    else
-      sat_trs_lum[2] = 1.0f;
-
-    glUseProgram(program->Program);
-    glUniform3f(program->TintHSV, rgb[0], rgb[1], rgb[2]);
-    glUniform1f(program->TintAmount, sat_trs_lum[0]);
-    glUniform1f(program->TintLuminance, sat_trs_lum[2]);
-  }
-  else if (do_light)
-  {
-    // Use light shader
-    program = &_lightShader->GetData();
-    float n_light_lev = 1.0f;
-
-    // Light level parameter in DDB is weird, it is measured in units of
-    // 1/255 (although effectively 1/250, see draw.cpp), but contains two
-    // ranges: 1-255 is darker range and 256-511 is brighter range.
-    // (light level of 0 means "default color")
-    if ((light_lev > 0) && (light_lev < 256))
-    {
-      // darkening the sprite... this stupid calculation is for
-      // consistency with the allegro software-mode code that does
-      // a trans blend with a (8,8,8) sprite
-      n_light_lev = -((light_lev * 192) / 256 + 64) / 255.f; // darker, uses MODULATE op
-    }
-    else if (light_lev > 256)
-    {
-      n_light_lev = ((light_lev - 256) / 2) / 255.f; // brighter, uses ADD op
-    }
-
-    glUseProgram(program->Program);
-    glUniform1f(program->LightingAmount, n_light_lev);
-  }
-  else
-  {
-    const OGLShader *shader;
-    switch (bmpToDraw->GetBlendMode())
-    {
-    case kBlend_Darken:
-    case kBlend_Multiply:
-    case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when trasparent
-      // hack for blendmodes: fade to white to make it transparent
-      shader = _lightenByAlphaShader.get();
-      break;
-    case kBlend_Lighten:
-    case kBlend_Screen:
-    case kBlend_Exclusion:
-    case kBlend_Dodge:
-      // hack for blendmodes: fade to black to make it transparent
-      shader = _darkenbyAlphaShader.get();
-      break;
-    default:
-      // Use default processing
-      shader = _transparencyShader.get();
-      break;
-    }
-
-    program = &shader->GetData();
-    glUseProgram(program->Program);
-  }
-
-  glUniform1i(program->Texture[0], 0);
-  glUniform2f(program->TextureDim[0], bmpToDraw->GetWidth(), bmpToDraw->GetHeight());
-  glUniform1f(program->Alpha, alpha / 255.0f);
-
-  float width = bmpToDraw->GetWidthToRender();
-  float height = bmpToDraw->GetHeightToRender();
-  float xProportion = width / (float)bmpToDraw->GetWidth();
-  float yProportion = height / (float)bmpToDraw->GetHeight();
-
-  const auto *txdata = bmpToDraw->GetTexture();
-  for (size_t ti = 0; ti < txdata->_numTiles; ++ti)
-  {
-    width = txdata->_tiles[ti].width * xProportion;
-    height = txdata->_tiles[ti].height * yProportion;
-    float xOffs, yOffs;
-    if ((bmpToDraw->GetFlip() & kFlip_Horizontal) != 0)
-      xOffs = (bmpToDraw->GetWidth() - (txdata->_tiles[ti].x + txdata->_tiles[ti].width)) * xProportion;
-    else
-      xOffs = txdata->_tiles[ti].x * xProportion;
-    if ((bmpToDraw->GetFlip() & kFlip_Vertical) != 0)
-      yOffs = (bmpToDraw->GetHeight() - (txdata->_tiles[ti].y + txdata->_tiles[ti].height)) * yProportion;
-    else
-      yOffs = txdata->_tiles[ti].y * yProportion;
-    float thisX = draw_x + xOffs;
-    float thisY = draw_y + yOffs;
-
-    //Setup translation and scaling matrices
-    float widthToScale = width;
-    float heightToScale = height;
-    if ((bmpToDraw->GetFlip() & kFlip_Horizontal) != 0)
-    {
-      // The usual transform changes 0..1 into 0..width
-      // So first negate it (which changes 0..w into -w..0)
-      widthToScale = -widthToScale;
-      // and now shift it over to make it 0..w again
-      thisX += width;
-    }
-    if ((bmpToDraw->GetFlip() & kFlip_Vertical) != 0)
-    {
-      heightToScale = -heightToScale;
-      thisY += height;
-    }
-    // Apply sprite origin, rounded to keep pixel precision
-    thisX -= std::roundf((abs(widthToScale) - 1.f) * bmpToDraw->GetOrigin().X);
-    thisY -= std::roundf((abs(heightToScale) - 1.f) * bmpToDraw->GetOrigin().Y);
-    // Center inside a rendering rect
-    // FIXME: this should be a part of a projection matrix, afaik
-    thisX = (-(rend_sz.Width / 2.0f)) + thisX;
-    thisY = (rend_sz.Height / 2.0f) - thisY; // inverse axis
-
-    // Setup rotation and pivot
-    float rotZ = bmpToDraw->GetRotation();
-    const Pointf &pivot = bmpToDraw->GetPivot();
-    float pivotX = -(widthToScale * pivot.X), pivotY = (heightToScale * pivot.Y);
-
-    //
-    // IMPORTANT: in OpenGL order of transformation is REVERSE to the order of commands!
-    //
-    glm::mat4 transform = projection;
-    // Origin is at the middle of the surface
-    transform = glmex::translate(transform, rend_sz.Width / 2.0f, rend_sz.Height / 2.0f);
-
-    // Global batch transform
-    transform = transform * matGlobal;
-    // Self sprite transform (first scale, then rotate and then translate, reversed)
-    transform = glmex::transform2d(transform, thisX, thisY, widthToScale, heightToScale,
-        rotZ, pivotX, pivotY);
-
-    glUniformMatrix4fv(program->MVPMatrix, 1, GL_FALSE, glm::value_ptr(transform));
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, txdata->_tiles[ti].texture);
-
-    if ((_smoothScaling) && bmpToDraw->GetUseResampler()
-        && (bmpToDraw->GetSizeToRender() != bmpToDraw->GetSize()))
-    {
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    }
-    else
-    {
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, _currentBackbuffer->Filter);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, _currentBackbuffer->Filter);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, _currentBackbuffer->TxClamp);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, _currentBackbuffer->TxClamp);
-    }
-
-    if (txdata->_vertex != nullptr)
-    {
-        glVertexAttribPointer(program->A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].position));
-        glVertexAttribPointer(program->A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(txdata->_vertex[ti * 4].tu));
-    }
-    else
-    {
-        glVertexAttribPointer(program->A_Position, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].position));
-        glVertexAttribPointer(program->A_TexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(OGLCUSTOMVERTEX), &(defaultVertices[0].tu));
-    }
-
-    // Treat special render modes
-    switch (bmpToDraw->GetRenderHint())
-    {
-    case kTxHint_PremulAlpha:
-        glBlendColor(alpha / 255.0f, alpha / 255.0f, alpha / 255.0f, 1.f);
-        SetBlendOpRGB(GL_FUNC_ADD, GL_CONSTANT_COLOR, GL_ONE_MINUS_SRC_ALPHA);
-        break;
-    default: break;
-    }
-
-    // FIXME: user blend modes break the above special blend necessary for rendering RT textures
-    // Blend modes
-    switch (bmpToDraw->GetBlendMode())
-    {
-    case kBlend_Normal:
-        // blend mode is always NORMAL at this point
-        // SetBlendOpRGB(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // ALPHA
-        break;
-    case kBlend_Add: SetBlendOpRGB(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE); break; // ADD (transparency = strength)
+        case kBlend_Normal:
+            // blend mode is always NORMAL at this point
+            // SetBlendOpRGB(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // ALPHA
+            break;
+        case kBlend_Add: SetBlendOpRGB(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE); break; // ADD (transparency = strength)
 #ifdef GL_MIN
-    case kBlend_Darken: SetBlendOpRGB(GL_MIN, GL_ONE, GL_ONE); break; // DARKEN
+        case kBlend_Darken: SetBlendOpRGB(GL_MIN, GL_ONE, GL_ONE); break; // DARKEN
 #endif
 #ifdef GL_MAX
-    case kBlend_Lighten: SetBlendOpRGB(GL_MAX, GL_ONE, GL_ONE); break; // LIGHTEN
+        case kBlend_Lighten: SetBlendOpRGB(GL_MAX, GL_ONE, GL_ONE); break; // LIGHTEN
 #endif
-    case kBlend_Multiply: SetBlendOpRGB(GL_FUNC_ADD, GL_ZERO, GL_SRC_COLOR); break; // MULTIPLY
-    case kBlend_Screen: SetBlendOpRGB(GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_COLOR); break; // SCREEN
-    case kBlend_Subtract: SetBlendOpRGB(GL_FUNC_REVERSE_SUBTRACT, GL_SRC_ALPHA, GL_ONE); break; // SUBTRACT (transparency = strength)
-    case kBlend_Exclusion: SetBlendOpRGB(GL_FUNC_ADD, GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR); break; // EXCLUSION
-    // APPROXIMATIONS (need pixel shaders)
-    case kBlend_Burn: SetBlendOpRGB(GL_FUNC_SUBTRACT, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR); break; // LINEAR BURN (approximation)
-    case kBlend_Dodge: SetBlendOpRGB(GL_FUNC_ADD, GL_DST_COLOR, GL_ONE); break; // fake color dodge (half strength of the real thing)
-    // IMPORTANT: please note that we are rendering onto a surface that has a premultiplied alpha,
-    // that's why Copy blend modes are somewhat different from the math you'd normally expect;
-    // i.e. we do not use GL_ONE, GL_ZERO to copy RGB, but GL_SRC_ALPHA, GL_ZERO.
-    case kBlend_Copy:
-        SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ZERO,
-                            GL_FUNC_ADD, GL_ONE, GL_ZERO);
-        break;
-    case kBlend_CopyRGB:
-        SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_DST_ALPHA, GL_ZERO,
-                            GL_FUNC_ADD, GL_ZERO, GL_ONE);
-        break;
-    case kBlend_CopyAlpha:
-        // FIXME: this does not really work whenever destination has non-opaque alpha,
-        // because destination surface colors are alpha-premultiplied!
-        SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_ZERO, GL_SRC_ALPHA,
-                            GL_FUNC_ADD, GL_ONE, GL_ZERO);
-        break;
-    default: break;
-    }
+        case kBlend_Multiply: SetBlendOpRGB(GL_FUNC_ADD, GL_ZERO, GL_SRC_COLOR); break;        // MULTIPLY
+        case kBlend_Screen: SetBlendOpRGB(GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_COLOR); break; // SCREEN
+        case kBlend_Subtract:
+            SetBlendOpRGB(GL_FUNC_REVERSE_SUBTRACT, GL_SRC_ALPHA, GL_ONE);
+            break; // SUBTRACT (transparency = strength)
+        case kBlend_Exclusion:
+            SetBlendOpRGB(GL_FUNC_ADD, GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR);
+            break; // EXCLUSION
+        // APPROXIMATIONS (need pixel shaders)
+        case kBlend_Burn:
+            SetBlendOpRGB(GL_FUNC_SUBTRACT, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR);
+            break; // LINEAR BURN (approximation)
+        case kBlend_Dodge:
+            SetBlendOpRGB(GL_FUNC_ADD, GL_DST_COLOR, GL_ONE);
+            break; // fake color dodge (half strength of the real thing)
+        // IMPORTANT: please note that we are rendering onto a surface that has a premultiplied alpha,
+        // that's why Copy blend modes are somewhat different from the math you'd normally expect;
+        // i.e. we do not use GL_ONE, GL_ZERO to copy RGB, but GL_SRC_ALPHA, GL_ZERO.
+        case kBlend_Copy: SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ZERO, GL_FUNC_ADD, GL_ONE, GL_ZERO); break;
+        case kBlend_CopyRGB:
+            SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_DST_ALPHA, GL_ZERO, GL_FUNC_ADD, GL_ZERO, GL_ONE);
+            break;
+        case kBlend_CopyAlpha:
+            // FIXME: this does not really work whenever destination has non-opaque alpha,
+            // because destination surface colors are alpha-premultiplied!
+            SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_ZERO, GL_SRC_ALPHA, GL_FUNC_ADD, GL_ONE, GL_ZERO);
+            break;
+        default: break;
+        }
 
-    // WORKAROUNDS - BEGIN
-    /*
+        // WORKAROUNDS - BEGIN
+        /*
     // 2025-03-25@AVD: Reimplemented as _darkenbyAlphaShader and _darkenbyAlphaShader to match D3D output.
     // Currently, OGL always uses a shader here, which can't be mixed with glTexEnvi this way.
 
@@ -1622,26 +1637,25 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     }
     */
 
-    // workaround: extra render pass for the blend modes that cannot be achieved with one
-    switch (bmpToDraw->GetBlendMode())
-    {
-    case kBlend_Dodge:
-        // since the dodge is only half strength we can get a closer approx by drawing it twice
+        // workaround: extra render pass for the blend modes that cannot be achieved with one
+        switch (bmpToDraw->GetBlendMode())
+        {
+        case kBlend_Dodge:
+            // since the dodge is only half strength we can get a closer approx by drawing it twice
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            break;
+        default: break;
+        }
+        // BLENDMODES WORKAROUNDS - END
+
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        break;
-    default:
-        break;
+
+        // Restore default blending mode, using render target's settings
+        // FIXME: set everything prior to a texture drawing instead?
+        SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, _rtBlendAlpha.Op, _rtBlendAlpha.Src,
+                           _rtBlendAlpha.Dst);
     }
-    // BLENDMODES WORKAROUNDS - END
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    // Restore default blending mode, using render target's settings
-    // FIXME: set everything prior to a texture drawing instead?
-    SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-                       _rtBlendAlpha.Op, _rtBlendAlpha.Src, _rtBlendAlpha.Dst);
-  }
-  glUseProgram(0);
+    glUseProgram(0);
 }
 
 void OGLGraphicsDriver::PostRenderCleanup()
@@ -1679,7 +1693,8 @@ void OGLGraphicsDriver::RenderImpl(bool clearDrawListAfterwards)
         // Draw native texture on a real backbuffer
         SetBackbufferState(&_screenBackbuffer, true);
         SetupPostFx(_nativeSurface, _screenBackbuffer);
-        RenderTexture(_nativeSurface, 0, 0, _screenBackbuffer.Projection, glmex::identity(), SpriteColorTransform(), _srcRect.GetSize());
+        RenderTexture(_nativeSurface, 0, 0, _screenBackbuffer.Projection, glmex::identity(), SpriteColorTransform(),
+                      _srcRect.GetSize());
         glFinish();
     }
 }
@@ -1736,8 +1751,8 @@ void OGLGraphicsDriver::SetScissor(const Rect &clip, bool render_on_texture, con
     glScissor(scissor.Left, scissor.Top, scissor.GetWidth(), scissor.GetHeight());
 }
 
-void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz,
-    Size &rend_sz, glm::mat4 &projection, bool clear)
+void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surface_sz, Size &rend_sz,
+                                        glm::mat4 &projection, bool clear)
 {
     if (batch && batch->RenderTarget)
     {
@@ -1749,8 +1764,8 @@ void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surfa
         glViewport(0, 0, surface_sz.Width, surface_sz.Height);
         // Configure rules for merging sprite alpha values onto a
         // render target, which also contains alpha channel.
-        SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-            GL_FUNC_ADD, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+        SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_FUNC_ADD, GL_ONE_MINUS_DST_ALPHA,
+                           GL_ONE);
         _rtBlendAlpha = BlendOpState(GL_FUNC_ADD, GL_ONE_MINUS_DST_ALPHA, GL_ONE);
     }
     else
@@ -1778,13 +1793,12 @@ void OGLGraphicsDriver::SetRenderTarget(const OGLSpriteBatch *batch, Size &surfa
 
 void OGLGraphicsDriver::SetupPostFx(OGLBitmap *surface, const BackbufferState &bufferstate)
 {
-    OGLShaderInstance *shader = static_cast<OGLShaderInstance*>(surface->GetShader());
+    OGLShaderInstance *shader = static_cast<OGLShaderInstance *>(surface->GetShader());
     if (!shader)
         return;
 
     glUseProgram(shader->GetShaderData().Program);
-    glUniform2f(shader->GetShaderData().OutputDim,
-                bufferstate.Scaling.X.ScaleDistance(surface->GetWidthToRender()),
+    glUniform2f(shader->GetShaderData().OutputDim, bufferstate.Scaling.X.ScaleDistance(surface->GetWidthToRender()),
                 bufferstate.Scaling.Y.ScaleDistance(surface->GetHeightToRender()));
 }
 
@@ -1864,7 +1878,7 @@ void OGLGraphicsDriver::RenderSpriteBatches()
         // and if there's no nested batches (even if empty ones)
         const uint32_t was_bat = cur_bat;
         while ((cur_bat != UINT32_MAX) && (cur_spr >= _spriteBatchRange[cur_bat].second) &&
-            ((last_bat == last_batch_to_rend) || (_spriteBatchDesc[last_bat + 1].Parent != cur_bat)))
+               ((last_bat == last_batch_to_rend) || (_spriteBatchDesc[last_bat + 1].Parent != cur_bat)))
         {
             rt_parents.pop(); // pop RT ref from the history
             // Back to the parent batch
@@ -1885,12 +1899,13 @@ void OGLGraphicsDriver::RenderSpriteBatches()
     glDisable(GL_SCISSOR_TEST);
 }
 
-size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from,
-    const glm::mat4 &projection, const Size &surface_size)
+size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t from, const glm::mat4 &projection,
+                                            const Size &surface_size)
 {
     if (batch.Skip)
     {
-        for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from);
+        for (; (from < _spriteList.size()) && (_spriteList[from].node == batch.ID); ++from)
+            ;
         return from;
     }
 
@@ -1907,13 +1922,11 @@ size_t OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch, size_t 
             int sx, sy;
             if (auto *ddb = DoSpriteEvtCallback(e.x, 0, sx, sy))
             {
-                auto stageEntry = OGLDrawListEntry((OGLBitmap*)ddb, batch.ID, sx, sy);
+                auto stageEntry = OGLDrawListEntry((OGLBitmap *)ddb, batch.ID, sx, sy);
                 RenderSprite(&stageEntry, projection, batch.Matrix, batch.Color, surface_size);
             }
             break;
-        default:
-            RenderSprite(&e, projection, batch.Matrix, batch.Color, surface_size);
-            break;
+        default: RenderSprite(&e, projection, batch.Matrix, batch.Color, surface_size); break;
         }
     }
     return from;
@@ -1923,9 +1936,8 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
 {
     // Render target size, depends on whether this batch will render to a
     // intermediate texture, or the final surface of _srcRect size.
-    const Size rt_size = desc.RenderTarget ?
-        Size(desc.RenderTarget->GetWidth(), desc.RenderTarget->GetHeight())
-      : _srcRect.GetSize();
+    const Size rt_size =
+        desc.RenderTarget ? Size(desc.RenderTarget->GetWidth(), desc.RenderTarget->GetHeight()) : _srcRect.GetSize();
 
     // Create transformation matrix for this batch
     // NOTE: in OpenGL order of transformation is REVERSE to the order of commands!
@@ -1936,7 +1948,10 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     {
     case kFlip_Vertical: flip_sx = -flip_sx; break;
     case kFlip_Horizontal: flip_sy = -flip_sy; break;
-    case kFlip_Both: flip_sx = -flip_sx; flip_sy = -flip_sy; break;
+    case kFlip_Both:
+        flip_sx = -flip_sx;
+        flip_sy = -flip_sy;
+        break;
     default: break;
     }
     glm::mat4 mflip = glmex::scale(flip_sx, flip_sy);
@@ -1951,20 +1966,19 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     const float pivotx = -rt_size.Width * 0.5f + desc.SizeRef.Width * desc.Transform.Pivot.X;
     const float pivoty = -rt_size.Height * 0.5f + desc.SizeRef.Height * desc.Transform.Pivot.Y;
     const glm::mat4 msrt = glmex::make_inv_transform2d((float)desc.Transform.X, (float)-desc.Transform.Y,
-        desc.Transform.ScaleX, desc.Transform.ScaleY,
-        Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
+                                                       desc.Transform.ScaleX, desc.Transform.ScaleY,
+                                                       Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
     model = model * msrt;
 
     // Also create separate viewport transformation matrix:
     // it will use a slightly different set of transforms,
     // because the viewport's coordinates origin is different from sprites.
-    glm::mat4 mat_viewport = glmex::make_transform2d(
-        (float)desc.Transform.X, (float)desc.Transform.Y,
-        desc.Transform.ScaleX, desc.Transform.ScaleY, // CHECKME: rotation args here
-        Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
-    glm::mat4 vp_flip_off = glmex::translate(
-        rt_size.Width * ((1.f - flip_sx) * 0.5f),
-        rt_size.Height * ((1.f - flip_sy) * 0.5f));
+    glm::mat4 mat_viewport =
+        glmex::make_transform2d((float)desc.Transform.X, (float)desc.Transform.Y, desc.Transform.ScaleX,
+                                desc.Transform.ScaleY, // CHECKME: rotation args here
+                                Math::DegreesToRadians(desc.Transform.Rotate), pivotx, -pivoty);
+    glm::mat4 vp_flip_off =
+        glmex::translate(rt_size.Width * ((1.f - flip_sx) * 0.5f), rt_size.Height * ((1.f - flip_sy) * 0.5f));
     mat_viewport = mflip * mat_viewport;
     mat_viewport = vp_flip_off * mat_viewport;
 
@@ -1999,8 +2013,8 @@ void OGLGraphicsDriver::InitSpriteBatch(size_t index, const SpriteBatchDesc &des
     // Assign the new spritebatch
     if (_spriteBatches.size() <= index)
         _spriteBatches.resize(index + 1);
-    _spriteBatches[index] = OGLSpriteBatch(index, (OGLBitmap*)desc.RenderTarget,
-        viewport, model, mat_viewport, desc.Transform.Color);
+    _spriteBatches[index] =
+        OGLSpriteBatch(index, (OGLBitmap *)desc.RenderTarget, viewport, model, mat_viewport, desc.Transform.Color);
 
     // Preset stage screen for plugin raw drawing
     SetStageScreen(index, viewport.GetSize());
@@ -2058,10 +2072,10 @@ void OGLGraphicsDriver::RedrawLastFrame(uint32_t skip_filter)
     FilterSpriteBatches(skip_filter);
 }
 
-void OGLGraphicsDriver::DrawSprite(int ox, int oy, int /*ltx*/, int /*lty*/, IDriverDependantBitmap* ddb)
+void OGLGraphicsDriver::DrawSprite(int ox, int oy, int /*ltx*/, int /*lty*/, IDriverDependantBitmap *ddb)
 {
     assert(_actSpriteBatch != UINT32_MAX);
-    _spriteList.push_back(OGLDrawListEntry((OGLBitmap*)ddb, _actSpriteBatch, ox, oy));
+    _spriteList.push_back(OGLDrawListEntry((OGLBitmap *)ddb, _actSpriteBatch, ox, oy));
 }
 
 void OGLGraphicsDriver::AddRenderEvent(int evt, int param)
@@ -2070,11 +2084,11 @@ void OGLGraphicsDriver::AddRenderEvent(int evt, int param)
     _spriteList.push_back(OGLDrawListEntry(nullptr, _actSpriteBatch, evt, param));
 }
 
-void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
+void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap *ddb)
 {
     // Remove from render targets
     // FIXME: this ugly accessing internal texture members
-    if (((OGLBitmap*)ddb)->GetTexture()->RenderTarget)
+    if (((OGLBitmap *)ddb)->GetTexture()->RenderTarget)
     {
         // Remove deleted DDB from batches backup
         for (auto &backup_rt : _backupBatches)
@@ -2093,127 +2107,127 @@ void OGLGraphicsDriver::DestroyDDB(IDriverDependantBitmap* ddb)
         if (backup_spr.ddb == ddb)
             backup_spr.skip = true;
     }
-    delete (OGLBitmap*)ddb;
+    delete (OGLBitmap *)ddb;
 }
 
 void OGLGraphicsDriver::UpdateTextureRegion(OGLTextureTile *tile, const Bitmap *bitmap, bool opaque)
 {
-  const int textureWidth = tile->allocWidth;
-  const int textureHeight = tile->allocHeight;
+    const int textureWidth = tile->allocWidth;
+    const int textureHeight = tile->allocHeight;
 
-  int tilex = 0, tiley = 0, tileWidth = tile->width, tileHeight = tile->height;
-  if (textureWidth > tile->width)
-  {
-      int texxoff = std::min(textureWidth - tile->width - 1, 1);
-      tilex = texxoff;
-      tileWidth += 1 + texxoff;
-  }
-  if (textureHeight > tile->height)
-  {
-      int texyoff = std::min(textureHeight - tile->height - 1, 1);
-      tiley = texyoff;
-      tileHeight += 1 + texyoff;
-  }
-
-  const bool usingLinearFiltering = _filter->UseLinearFiltering() || (_smoothScaling && !opaque);
-  uint8_t *origPtr = new uint8_t[sizeof(int) * tileWidth * tileHeight];
-  const int pitch = tileWidth * sizeof(int);
-  uint8_t *memPtr = origPtr + pitch * tiley + tilex * sizeof(int);
-
-  TextureTile fixedTile;
-  fixedTile.x = tile->x;
-  fixedTile.y = tile->y;
-  fixedTile.width = std::min(tile->width, tileWidth);
-  fixedTile.height = std::min(tile->height, tileHeight);
-
-  if (opaque)
-    BitmapToVideoMemOpaque(bitmap, &fixedTile, memPtr, pitch);
-  else
-    BitmapToVideoMem(bitmap, &fixedTile, memPtr, pitch, usingLinearFiltering);
-
-  // Mimic the behaviour of GL_CLAMP_TO_EDGE for the tile edges
-  // NOTE: on some platforms GL_CLAMP_TO_EDGE does not work with the version of OpenGL we're using.
-  // TODO: test the GL version to see if this is even necessary?!
-  // Info on CLAMP types:
-  // https://docs.gl/gl2/glTexParameter
-  // https://stackoverflow.com/questions/56823126/how-is-gl-clamp-in-opengl-different-from-gl-clamp-to-edge
-  if (tile->width < tileWidth)
-  {
-    if (tilex > 0)
+    int tilex = 0, tiley = 0, tileWidth = tile->width, tileHeight = tile->height;
+    if (textureWidth > tile->width)
     {
-      for (int y = 0; y < tileHeight; y++)
-      {
-        unsigned int* edge_left_col = (unsigned int*)(origPtr + y * pitch + (tilex - 1) * sizeof(int));
-        unsigned int* bm_left_col = (unsigned int*)(origPtr + y * pitch + (tilex) * sizeof(int));
-        *edge_left_col = *bm_left_col & 0x00FFFFFF;
-      }
+        int texxoff = std::min(textureWidth - tile->width - 1, 1);
+        tilex = texxoff;
+        tileWidth += 1 + texxoff;
     }
-    for (int y = 0; y < tileHeight; y++)
+    if (textureHeight > tile->height)
     {
-      unsigned int* edge_right_col = (unsigned int*)(origPtr + y * pitch + (tilex + tile->width) * sizeof(int));
-      unsigned int* bm_right_col = edge_right_col - 1;
-      *edge_right_col = *bm_right_col & 0x00FFFFFF;
+        int texyoff = std::min(textureHeight - tile->height - 1, 1);
+        tiley = texyoff;
+        tileHeight += 1 + texyoff;
     }
-  }
-  if (tile->height < tileHeight)
-  {
-    if (tiley > 0)
-    {
-      unsigned int* edge_top_row = (unsigned int*)(origPtr + pitch * (tiley - 1));
-      unsigned int* bm_top_row = (unsigned int*)(origPtr + pitch * (tiley));
-      for (int x = 0; x < tileWidth; x++)
-      {
-        edge_top_row[x] = bm_top_row[x] & 0x00FFFFFF;
-      }
-    }
-    unsigned int* edge_bottom_row = (unsigned int*)(origPtr + pitch * (tiley + tile->height));
-    unsigned int* bm_bottom_row = (unsigned int*)(origPtr + pitch * (tiley + tile->height - 1));
-    for (int x = 0; x < tileWidth; x++)
-    {
-      edge_bottom_row[x] = bm_bottom_row[x] & 0x00FFFFFF;
-    }
-  }
 
-  glBindTexture(GL_TEXTURE_2D, tile->texture);
-  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tileWidth, tileHeight, GL_RGBA, GL_UNSIGNED_BYTE, origPtr);
+    const bool usingLinearFiltering = _filter->UseLinearFiltering() || (_smoothScaling && !opaque);
+    uint8_t *origPtr = new uint8_t[sizeof(int) * tileWidth * tileHeight];
+    const int pitch = tileWidth * sizeof(int);
+    uint8_t *memPtr = origPtr + pitch * tiley + tilex * sizeof(int);
 
-  delete []origPtr;
+    TextureTile fixedTile;
+    fixedTile.x = tile->x;
+    fixedTile.y = tile->y;
+    fixedTile.width = std::min(tile->width, tileWidth);
+    fixedTile.height = std::min(tile->height, tileHeight);
+
+    if (opaque)
+        BitmapToVideoMemOpaque(bitmap, &fixedTile, memPtr, pitch);
+    else
+        BitmapToVideoMem(bitmap, &fixedTile, memPtr, pitch, usingLinearFiltering);
+
+    // Mimic the behaviour of GL_CLAMP_TO_EDGE for the tile edges
+    // NOTE: on some platforms GL_CLAMP_TO_EDGE does not work with the version of OpenGL we're using.
+    // TODO: test the GL version to see if this is even necessary?!
+    // Info on CLAMP types:
+    // https://docs.gl/gl2/glTexParameter
+    // https://stackoverflow.com/questions/56823126/how-is-gl-clamp-in-opengl-different-from-gl-clamp-to-edge
+    if (tile->width < tileWidth)
+    {
+        if (tilex > 0)
+        {
+            for (int y = 0; y < tileHeight; y++)
+            {
+                unsigned int *edge_left_col = (unsigned int *)(origPtr + y * pitch + (tilex - 1) * sizeof(int));
+                unsigned int *bm_left_col = (unsigned int *)(origPtr + y * pitch + (tilex) * sizeof(int));
+                *edge_left_col = *bm_left_col & 0x00FFFFFF;
+            }
+        }
+        for (int y = 0; y < tileHeight; y++)
+        {
+            unsigned int *edge_right_col = (unsigned int *)(origPtr + y * pitch + (tilex + tile->width) * sizeof(int));
+            unsigned int *bm_right_col = edge_right_col - 1;
+            *edge_right_col = *bm_right_col & 0x00FFFFFF;
+        }
+    }
+    if (tile->height < tileHeight)
+    {
+        if (tiley > 0)
+        {
+            unsigned int *edge_top_row = (unsigned int *)(origPtr + pitch * (tiley - 1));
+            unsigned int *bm_top_row = (unsigned int *)(origPtr + pitch * (tiley));
+            for (int x = 0; x < tileWidth; x++)
+            {
+                edge_top_row[x] = bm_top_row[x] & 0x00FFFFFF;
+            }
+        }
+        unsigned int *edge_bottom_row = (unsigned int *)(origPtr + pitch * (tiley + tile->height));
+        unsigned int *bm_bottom_row = (unsigned int *)(origPtr + pitch * (tiley + tile->height - 1));
+        for (int x = 0; x < tileWidth; x++)
+        {
+            edge_bottom_row[x] = bm_bottom_row[x] & 0x00FFFFFF;
+        }
+    }
+
+    glBindTexture(GL_TEXTURE_2D, tile->texture);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, tileWidth, tileHeight, GL_RGBA, GL_UNSIGNED_BYTE, origPtr);
+
+    delete[] origPtr;
 }
 
-void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap* ddb, const Bitmap *bitmap)
+void OGLGraphicsDriver::UpdateDDBFromBitmap(IDriverDependantBitmap *ddb, const Bitmap *bitmap)
 {
-    OGLBitmap *target = (OGLBitmap*)ddb;
+    OGLBitmap *target = (OGLBitmap *)ddb;
     UpdateTexture(target->GetTexture(), bitmap, target->IsOpaque());
 }
 
 void OGLGraphicsDriver::UpdateTexture(Texture *txdata, const Bitmap *bitmap, bool opaque)
 {
-  const int color_depth = bitmap->GetColorDepth();
-  if (bitmap->GetColorDepth() != txdata->Res.ColorDepth)
-    throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
-  if (txdata->Res.Width != bitmap->GetWidth() || txdata->Res.Height != bitmap->GetHeight())
-    throw Ali3DException("UpdateDDBFromBitmap: mismatched bitmap size");
+    const int color_depth = bitmap->GetColorDepth();
+    if (bitmap->GetColorDepth() != txdata->Res.ColorDepth)
+        throw Ali3DException("UpdateDDBFromBitmap: mismatched colour depths");
+    if (txdata->Res.Width != bitmap->GetWidth() || txdata->Res.Height != bitmap->GetHeight())
+        throw Ali3DException("UpdateDDBFromBitmap: mismatched bitmap size");
 
-  if (color_depth == 8)
-      select_palette(palette);
+    if (color_depth == 8)
+        select_palette(palette);
 
-  auto *ogldata = reinterpret_cast<OGLTexture*>(txdata);
-  for (size_t i = 0; i < ogldata->_numTiles; ++i)
-  {
-    UpdateTextureRegion(&ogldata->_tiles[i], bitmap, opaque);
-  }
+    auto *ogldata = reinterpret_cast<OGLTexture *>(txdata);
+    for (size_t i = 0; i < ogldata->_numTiles; ++i)
+    {
+        UpdateTextureRegion(&ogldata->_tiles[i], bitmap, opaque);
+    }
 
-  if (color_depth == 8)
-      unselect_palette();
+    if (color_depth == 8)
+        unselect_palette();
 }
 
 int OGLGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
 {
-  if (color_depth == 8)
-    return 8;
-  if (color_depth > 8 && color_depth <= 16)
-    return 16;
-  return 32;
+    if (color_depth == 8)
+        return 8;
+    if (color_depth > 8 && color_depth <= 16)
+        return 16;
+    return 32;
 }
 
 /*
@@ -2223,20 +2237,20 @@ int OGLGraphicsDriver::GetCompatibleBitmapFormat(int color_depth)
     https://registry.khronos.org/OpenGL/extensions/NVX/NVX_gpu_memory_info.txt
 */
 
-#define VBO_FREE_MEMORY_ATI                             0x87FB
-#define TEXTURE_FREE_MEMORY_ATI                         0x87FC
-#define RENDERBUFFER_FREE_MEMORY_ATI                    0x87FD
+#define VBO_FREE_MEMORY_ATI          0x87FB
+#define TEXTURE_FREE_MEMORY_ATI      0x87FC
+#define RENDERBUFFER_FREE_MEMORY_ATI 0x87FD
 
-#define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX            0x9047
-#define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX      0x9048
-#define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX    0x9049
-#define GPU_MEMORY_INFO_EVICTION_COUNT_NVX              0x904A
-#define GPU_MEMORY_INFO_EVICTED_MEMORY_NVX              0x904B
+#define GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX         0x9047
+#define GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX   0x9048
+#define GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX 0x9049
+#define GPU_MEMORY_INFO_EVICTION_COUNT_NVX           0x904A
+#define GPU_MEMORY_INFO_EVICTED_MEMORY_NVX           0x904B
 
 uint64_t OGLGraphicsDriver::GetAvailableTextureMemory()
 {
     GLint mem[4]{}; // ATI requires array of 4 ints
-    const char *exts = (const char*)glGetString(GL_EXTENSIONS);
+    const char *exts = (const char *)glGetString(GL_EXTENSIONS);
     if (strstr(exts, "GL_NVX_gpu_memory_info") != nullptr)
         glGetIntegerv(GPU_MEMORY_INFO_DEDICATED_VIDMEM_NVX, &mem[0]);
     else if (strstr(exts, "GL_ATI_meminfo") != nullptr)
@@ -2252,9 +2266,11 @@ void OGLGraphicsDriver::AdjustSizeToNearestSupportedByCard(int *width, int *heig
     if (!_glCapsNonPowerOfTwo)
     {
         int pow2;
-        for (pow2 = 2; pow2 < allocatedWidth; pow2 <<= 1);
+        for (pow2 = 2; pow2 < allocatedWidth; pow2 <<= 1)
+            ;
         allocatedWidth = pow2;
-        for (pow2 = 2; pow2 < allocatedHeight; pow2 <<= 1);
+        for (pow2 = 2; pow2 < allocatedHeight; pow2 <<= 1)
+            ;
         allocatedHeight = pow2;
     }
 
@@ -2267,32 +2283,33 @@ IDriverDependantBitmap *OGLGraphicsDriver::CreateDDB()
     return new OGLBitmap();
 }
 
-IDriverDependantBitmap* OGLGraphicsDriver::CreateDDB(int width, int height, int color_depth, int txflags)
+IDriverDependantBitmap *OGLGraphicsDriver::CreateDDB(int width, int height, int color_depth, int txflags)
 {
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
     OGLBitmap *ddb = new OGLBitmap(width, height, color_depth, txflags);
-    ddb->SetTexture(std::shared_ptr<OGLTexture>
-        (reinterpret_cast<OGLTexture*>(CreateTexture(width, height, color_depth, txflags))));
+    ddb->SetTexture(std::shared_ptr<OGLTexture>(
+        reinterpret_cast<OGLTexture *>(CreateTexture(width, height, color_depth, txflags))));
     return ddb;
 }
 
 IDriverDependantBitmap *OGLGraphicsDriver::CreateDDB(std::shared_ptr<Texture> txdata, int txflags)
 {
-    auto *ddb = reinterpret_cast<OGLBitmap*>(CreateDDB(txdata->Res.Width, txdata->Res.Height, txdata->Res.ColorDepth, txflags));
+    auto *ddb = reinterpret_cast<OGLBitmap *>(
+        CreateDDB(txdata->Res.Width, txdata->Res.Height, txdata->Res.ColorDepth, txflags));
     if (ddb)
         ddb->SetTexture(std::static_pointer_cast<OGLTexture>(txdata));
     return ddb;
 }
 
-IDriverDependantBitmap* OGLGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, int txflags)
+IDriverDependantBitmap *OGLGraphicsDriver::CreateRenderTargetDDB(int width, int height, int color_depth, int txflags)
 {
     if (color_depth != GetCompatibleBitmapFormat(color_depth))
         throw Ali3DException("CreateDDB: bitmap colour depth not supported");
 
     txflags |= kTxFlags_RenderTarget;
-    auto txdata = std::shared_ptr<OGLTexture>(
-        reinterpret_cast<OGLTexture*>(CreateTexture(width, height, color_depth, txflags)));
+    auto txdata =
+        std::shared_ptr<OGLTexture>(reinterpret_cast<OGLTexture *>(CreateTexture(width, height, color_depth, txflags)));
     GLuint fbo = 0u;
     glGenFramebuffersEXT(1, &fbo);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
@@ -2313,157 +2330,156 @@ IDriverDependantBitmap* OGLGraphicsDriver::CreateRenderTargetDDB(int width, int 
 
 std::shared_ptr<Texture> OGLGraphicsDriver::GetTexture(IDriverDependantBitmap *ddb)
 {
-    return std::static_pointer_cast<Texture>((reinterpret_cast<OGLBitmap*>(ddb))->GetSharedTexture());
+    return std::static_pointer_cast<Texture>((reinterpret_cast<OGLBitmap *>(ddb))->GetSharedTexture());
 }
 
 Texture *OGLGraphicsDriver::CreateTexture(int width, int height, int color_depth, int txflags)
 {
-  assert(width > 0);
-  assert(height > 0);
-  int allocatedWidth = width;
-  int allocatedHeight = height;
-  AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
-  const bool as_render_target = (txflags & kTxFlags_RenderTarget) != 0;
+    assert(width > 0);
+    assert(height > 0);
+    int allocatedWidth = width;
+    int allocatedHeight = height;
+    AdjustSizeToNearestSupportedByCard(&allocatedWidth, &allocatedHeight);
+    const bool as_render_target = (txflags & kTxFlags_RenderTarget) != 0;
 
-  // Calculate how many textures will be necessary to
-  // store this image
-  int MaxTextureWidth = 512;
-  int MaxTextureHeight = 512;
-  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureWidth);
-  MaxTextureHeight = MaxTextureWidth;
+    // Calculate how many textures will be necessary to
+    // store this image
+    int MaxTextureWidth = 512;
+    int MaxTextureHeight = 512;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxTextureWidth);
+    MaxTextureHeight = MaxTextureWidth;
 
-  int tilesAcross = 1, tilesDown = 1;
-  if (as_render_target)
-  {
-    // For render target - just limit the size by the max texture size
-    allocatedWidth = std::min(allocatedWidth, MaxTextureWidth);
-    allocatedHeight = std::min(allocatedHeight, MaxTextureHeight);
-  }
-  else
-  {
-    tilesAcross = (allocatedWidth + MaxTextureWidth - 1) / MaxTextureWidth;
-    tilesDown = (allocatedHeight + MaxTextureHeight - 1) / MaxTextureHeight;
-    assert(tilesAcross > 0);
-    assert(tilesDown > 0);
-    tilesAcross = std::max(1, tilesAcross);
-    tilesDown = std::max(1, tilesDown);
-  }
-
-  int tileWidth = width / tilesAcross;
-  int lastTileExtraWidth = width % tilesAcross;
-  int tileHeight = height / tilesDown;
-  int lastTileExtraHeight = height % tilesDown;
-  int tileAllocatedWidth = tileWidth;
-  int tileAllocatedHeight = tileHeight;
-
-  AdjustSizeToNearestSupportedByCard(&tileAllocatedWidth, &tileAllocatedHeight);
-
-  auto *txdata = new OGLTexture(GraphicResolution(width, height, color_depth), as_render_target);
-  int numTiles = tilesAcross * tilesDown;
-  OGLTextureTile *tiles = new OGLTextureTile[numTiles];
-  OGLCUSTOMVERTEX *vertices = nullptr;
-
-  if ((!as_render_target) &&
-      (numTiles == 1) &&
-      (allocatedWidth == width) &&
-      (allocatedHeight == height))
-  {
-    // use default whole-image vertices
-  }
-  else
-  {
-     // The texture is not the same as the bitmap, so create some custom vertices
-     // so that only the relevant portion of the texture is rendered
-     txdata->_vertex = vertices = new OGLCUSTOMVERTEX[numTiles * 4];
-  }
-
-  for (int x = 0; x < tilesAcross; x++)
-  {
-    for (int y = 0; y < tilesDown; y++)
+    int tilesAcross = 1, tilesDown = 1;
+    if (as_render_target)
     {
-      OGLTextureTile *thisTile = &tiles[y * tilesAcross + x];
-      int thisAllocatedWidth = tileAllocatedWidth;
-      int thisAllocatedHeight = tileAllocatedHeight;
-      thisTile->x = x * tileWidth;
-      thisTile->y = y * tileHeight;
-      thisTile->width = tileWidth;
-      thisTile->height = tileHeight;
-      if (x == tilesAcross - 1)
-      {
-        thisTile->width += lastTileExtraWidth;
-        thisAllocatedWidth = thisTile->width;
-        AdjustSizeToNearestSupportedByCard(&thisAllocatedWidth, &thisAllocatedHeight);
-      }
-      if (y == tilesDown - 1)
-      {
-        thisTile->height += lastTileExtraHeight;
-        thisAllocatedHeight = thisTile->height;
-        AdjustSizeToNearestSupportedByCard(&thisAllocatedWidth, &thisAllocatedHeight);
-      }
-      thisTile->allocWidth = thisAllocatedWidth;
-      thisTile->allocHeight = thisAllocatedHeight;
-
-      // Render targets has to be inverted compared to the default vertices,
-      // in order to make their contents appear correct on screen (double invertion).
-      // Also they don't need an extra u/v offset, like done for regular textures.
-      if (as_render_target)
-      {
-        for (int i = 0; i < 4; ++i)
-          vertices[i] = defaultVertices[i];
-        vertices[0].position.y = -1.f;
-        vertices[1].position.y = -1.f;
-        vertices[1].tu = (float)thisTile->width / (float)thisAllocatedWidth;
-        vertices[2].position.y = 0.f;
-        vertices[2].tv = (float)thisTile->height / (float)thisAllocatedHeight;
-        vertices[3].position.y = 0.f;
-        vertices[3].tu = (float)thisTile->width / (float)thisAllocatedWidth;
-        vertices[3].tv = (float)thisTile->height / (float)thisAllocatedHeight;
-      }
-      else if (vertices != nullptr)
-      {
-        const int texxoff = (thisAllocatedWidth - thisTile->width) > 1 ? 1 : 0;
-        const int texyoff = (thisAllocatedHeight - thisTile->height) > 1 ? 1 : 0;
-        for (int vidx = 0; vidx < 4; vidx++)
-        {
-          int i = (y * tilesAcross + x) * 4 + vidx;
-          vertices[i] = defaultVertices[vidx];
-          if (vertices[i].tu > 0.0)
-          {
-            vertices[i].tu = (float)(texxoff + thisTile->width) / (float)thisAllocatedWidth;
-          }
-          else
-          {
-            vertices[i].tu = (float)(texxoff) / (float)thisAllocatedWidth;
-          }
-          if (vertices[i].tv > 0.0)
-          {
-            vertices[i].tv = (float)(texyoff + thisTile->height) / (float)thisAllocatedHeight;
-          }
-          else
-          {
-            vertices[i].tv = (float)(texyoff) / (float)thisAllocatedHeight;
-          }
-        }
-      }
-
-      glGenTextures(1, &thisTile->texture);
-      glBindTexture(GL_TEXTURE_2D, thisTile->texture);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-      // NOTE: pay attention that the texture format depends on the **display mode**'s format,
-      // rather than source bitmap's color depth!
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        // For render target - just limit the size by the max texture size
+        allocatedWidth = std::min(allocatedWidth, MaxTextureWidth);
+        allocatedHeight = std::min(allocatedHeight, MaxTextureHeight);
     }
-  }
+    else
+    {
+        tilesAcross = (allocatedWidth + MaxTextureWidth - 1) / MaxTextureWidth;
+        tilesDown = (allocatedHeight + MaxTextureHeight - 1) / MaxTextureHeight;
+        assert(tilesAcross > 0);
+        assert(tilesDown > 0);
+        tilesAcross = std::max(1, tilesAcross);
+        tilesDown = std::max(1, tilesDown);
+    }
 
-  txdata->_numTiles = numTiles;
-  txdata->_tiles = tiles;
-  return txdata;
+    int tileWidth = width / tilesAcross;
+    int lastTileExtraWidth = width % tilesAcross;
+    int tileHeight = height / tilesDown;
+    int lastTileExtraHeight = height % tilesDown;
+    int tileAllocatedWidth = tileWidth;
+    int tileAllocatedHeight = tileHeight;
+
+    AdjustSizeToNearestSupportedByCard(&tileAllocatedWidth, &tileAllocatedHeight);
+
+    auto *txdata = new OGLTexture(GraphicResolution(width, height, color_depth), as_render_target);
+    int numTiles = tilesAcross * tilesDown;
+    OGLTextureTile *tiles = new OGLTextureTile[numTiles];
+    OGLCUSTOMVERTEX *vertices = nullptr;
+
+    if ((!as_render_target) && (numTiles == 1) && (allocatedWidth == width) && (allocatedHeight == height))
+    {
+        // use default whole-image vertices
+    }
+    else
+    {
+        // The texture is not the same as the bitmap, so create some custom vertices
+        // so that only the relevant portion of the texture is rendered
+        txdata->_vertex = vertices = new OGLCUSTOMVERTEX[numTiles * 4];
+    }
+
+    for (int x = 0; x < tilesAcross; x++)
+    {
+        for (int y = 0; y < tilesDown; y++)
+        {
+            OGLTextureTile *thisTile = &tiles[y * tilesAcross + x];
+            int thisAllocatedWidth = tileAllocatedWidth;
+            int thisAllocatedHeight = tileAllocatedHeight;
+            thisTile->x = x * tileWidth;
+            thisTile->y = y * tileHeight;
+            thisTile->width = tileWidth;
+            thisTile->height = tileHeight;
+            if (x == tilesAcross - 1)
+            {
+                thisTile->width += lastTileExtraWidth;
+                thisAllocatedWidth = thisTile->width;
+                AdjustSizeToNearestSupportedByCard(&thisAllocatedWidth, &thisAllocatedHeight);
+            }
+            if (y == tilesDown - 1)
+            {
+                thisTile->height += lastTileExtraHeight;
+                thisAllocatedHeight = thisTile->height;
+                AdjustSizeToNearestSupportedByCard(&thisAllocatedWidth, &thisAllocatedHeight);
+            }
+            thisTile->allocWidth = thisAllocatedWidth;
+            thisTile->allocHeight = thisAllocatedHeight;
+
+            // Render targets has to be inverted compared to the default vertices,
+            // in order to make their contents appear correct on screen (double invertion).
+            // Also they don't need an extra u/v offset, like done for regular textures.
+            if (as_render_target)
+            {
+                for (int i = 0; i < 4; ++i)
+                    vertices[i] = defaultVertices[i];
+                vertices[0].position.y = -1.f;
+                vertices[1].position.y = -1.f;
+                vertices[1].tu = (float)thisTile->width / (float)thisAllocatedWidth;
+                vertices[2].position.y = 0.f;
+                vertices[2].tv = (float)thisTile->height / (float)thisAllocatedHeight;
+                vertices[3].position.y = 0.f;
+                vertices[3].tu = (float)thisTile->width / (float)thisAllocatedWidth;
+                vertices[3].tv = (float)thisTile->height / (float)thisAllocatedHeight;
+            }
+            else if (vertices != nullptr)
+            {
+                const int texxoff = (thisAllocatedWidth - thisTile->width) > 1 ? 1 : 0;
+                const int texyoff = (thisAllocatedHeight - thisTile->height) > 1 ? 1 : 0;
+                for (int vidx = 0; vidx < 4; vidx++)
+                {
+                    int i = (y * tilesAcross + x) * 4 + vidx;
+                    vertices[i] = defaultVertices[vidx];
+                    if (vertices[i].tu > 0.0)
+                    {
+                        vertices[i].tu = (float)(texxoff + thisTile->width) / (float)thisAllocatedWidth;
+                    }
+                    else
+                    {
+                        vertices[i].tu = (float)(texxoff) / (float)thisAllocatedWidth;
+                    }
+                    if (vertices[i].tv > 0.0)
+                    {
+                        vertices[i].tv = (float)(texyoff + thisTile->height) / (float)thisAllocatedHeight;
+                    }
+                    else
+                    {
+                        vertices[i].tv = (float)(texyoff) / (float)thisAllocatedHeight;
+                    }
+                }
+            }
+
+            glGenTextures(1, &thisTile->texture);
+            glBindTexture(GL_TEXTURE_2D, thisTile->texture);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+            // NOTE: pay attention that the texture format depends on the **display mode**'s format,
+            // rather than source bitmap's color depth!
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, thisAllocatedWidth, thisAllocatedHeight, 0, GL_RGBA,
+                         GL_UNSIGNED_BYTE, nullptr);
+        }
+    }
+
+    txdata->_numTiles = numTiles;
+    txdata->_tiles = tiles;
+    return txdata;
 }
 
-IGraphicShader *OGLGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src, const ShaderDefinition* /*def*/)
+IGraphicShader *OGLGraphicsDriver::CreateShaderProgram(const String &name, const char *fragment_shader_src,
+                                                       const ShaderDefinition * /*def*/)
 {
     OGLShader::ProgramData prg;
     if (!CreateShaderProgram(prg, name, default_vertex_shader_src, fragment_shader_src))
@@ -2476,7 +2492,8 @@ IGraphicShader *OGLGraphicsDriver::CreateShaderProgram(const String &name, const
     return shader;
 }
 
-IGraphicShader *OGLGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data, const ShaderDefinition* /*def*/)
+IGraphicShader *OGLGraphicsDriver::CreateShaderProgram(const String &name, const std::vector<uint8_t> &compiled_data,
+                                                       const ShaderDefinition * /*def*/)
 {
     // TODO: can/should we support using precompiled shaders with OpenGL?
     return nullptr;
@@ -2488,7 +2505,7 @@ void OGLGraphicsDriver::DeleteShaderProgram(IGraphicShader *shader)
     if (shader)
     {
         _customShaders.erase(std::find(_customShaders.begin(), _customShaders.end(), shader));
-        delete (OGLShader*)shader;
+        delete (OGLShader *)shader;
     }
 }
 
@@ -2498,22 +2515,22 @@ IShaderInstance *OGLGraphicsDriver::CreateShaderInstance(IGraphicShader *shader,
     if (!shader)
         return nullptr;
 
-    return new OGLShaderInstance((OGLShader*)shader, name);
+    return new OGLShaderInstance((OGLShader *)shader, name);
 }
 
 void OGLGraphicsDriver::DeleteShaderInstance(IShaderInstance *shader_inst)
 {
     assert(shader_inst);
     if (shader_inst)
-        delete (OGLShaderInstance*)shader_inst;
+        delete (OGLShaderInstance *)shader_inst;
 }
 
 void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)
 {
     assert(_actSpriteBatch != UINT32_MAX);
-    OGLBitmap *ddb = static_cast<OGLBitmap*>(MakeFx(red, green, blue));
+    OGLBitmap *ddb = static_cast<OGLBitmap *>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
-        _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
+                    _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
     ddb->SetAlpha(255);
     _spriteList.push_back(OGLDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
@@ -2521,10 +2538,11 @@ void OGLGraphicsDriver::SetScreenFade(int red, int green, int blue)
 void OGLGraphicsDriver::SetScreenTint(int red, int green, int blue)
 {
     assert(_actSpriteBatch != UINT32_MAX);
-    if (red == 0 && green == 0 && blue == 0) return;
-    OGLBitmap *ddb = static_cast<OGLBitmap*>(MakeFx(red, green, blue));
+    if (red == 0 && green == 0 && blue == 0)
+        return;
+    OGLBitmap *ddb = static_cast<OGLBitmap *>(MakeFx(red, green, blue));
     ddb->SetStretch(_spriteBatches[_actSpriteBatch].Viewport.GetWidth(),
-        _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
+                    _spriteBatches[_actSpriteBatch].Viewport.GetHeight(), false);
     ddb->SetAlpha(128);
     _spriteList.push_back(OGLDrawListEntry(ddb, _actSpriteBatch, 0, 0));
 }
@@ -2564,12 +2582,9 @@ const GfxFilterInfo *OGLGraphicsFactory::GetFilterInfo(size_t index) const
 {
     switch (index)
     {
-    case 0:
-        return &OGLGfxFilter::FilterInfo;
-    case 1:
-        return &AAOGLGfxFilter::FilterInfo;
-    default:
-        return nullptr;
+    case 0: return &OGLGfxFilter::FilterInfo;
+    case 1: return &AAOGLGfxFilter::FilterInfo;
+    default: return nullptr;
     }
 }
 

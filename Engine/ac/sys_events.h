@@ -27,20 +27,20 @@
 // NOTE: this matches InputType in script (with a 24-bit shift)
 enum InputType
 {
-    kInputNone      = 0x00,
+    kInputNone = 0x00,
     // 0x01 is skipped for a purpose, because it has special meaning in script
-    kInputKeyboard  = 0x02,
-    kInputMouse     = 0x04,
-    kInputGamepad   = 0x08,
-    kInputTouch     = 0x10,
-    kInputAny       = 0xFF
+    kInputKeyboard = 0x02,
+    kInputMouse = 0x04,
+    kInputGamepad = 0x08,
+    kInputTouch = 0x10,
+    kInputAny = 0xFF
 };
 
 // AGS custom event codes used in SDL_Event
 enum AGS_SDLUserEvents
 {
-    AGS_SDL_EVT_BEGIN       = SDL_USEREVENT,
-    AGS_SDL_EVT_TOUCHDOWN   = AGS_SDL_EVT_BEGIN,
+    AGS_SDL_EVT_BEGIN = SDL_USEREVENT,
+    AGS_SDL_EVT_TOUCHDOWN = AGS_SDL_EVT_BEGIN,
     AGS_SDL_EVT_TOUCHUP,
     AGS_SDL_EVT_TOUCHMOTION,
     AGS_SDL_EVT_END
@@ -53,7 +53,7 @@ enum AGS_SDLUserEvents
 KeyInput sdl_keyevt_to_ags_key(const SDL_Event &event);
 // Converts eAGSKeyCode to SDL key scans (up to 3 values, because this is not a 1:1 match);
 // NOTE: fails at Ctrl+ or Alt+ AGS keys, or any unknown key codes.
-bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode(&scan)[3]);
+bool ags_key_to_sdl_scan(eAGSKeyCode key, SDL_Scancode (&scan)[3]);
 // Converts a complex SDL key definition (with mod) to a AGS key, including composite keys.
 eAGSKeyCode sdl_key_to_ags_key(const SDL_Keycode sym, const SDL_Scancode scancode, const Uint16 mod);
 // Converts sdl mod key to AGS mod key
@@ -63,9 +63,9 @@ int sdl_mod_to_ags_mod(const Uint16 mod);
 inline bool is_sdl_mod_key(const SDL_Keysym &key)
 {
     return key.scancode == SDL_SCANCODE_LCTRL || key.scancode == SDL_SCANCODE_RCTRL ||
-        key.scancode == SDL_SCANCODE_LALT || key.scancode == SDL_SCANCODE_RALT ||
-        key.scancode == SDL_SCANCODE_LSHIFT || key.scancode == SDL_SCANCODE_RSHIFT ||
-        key.scancode == SDL_SCANCODE_MODE;
+           key.scancode == SDL_SCANCODE_LALT || key.scancode == SDL_SCANCODE_RALT ||
+           key.scancode == SDL_SCANCODE_LSHIFT || key.scancode == SDL_SCANCODE_RSHIFT ||
+           key.scancode == SDL_SCANCODE_MODE;
 }
 
 // Makes a mod flag out of the scan code
@@ -88,9 +88,12 @@ inline int make_sdl_mod_flag(const SDL_Keysym &key)
 inline int make_sdl_merged_mod(int mod)
 {
     int m_mod = 0;
-    if ((mod & KMOD_CTRL) != 0) m_mod |= KMOD_CTRL;
-    if ((mod & KMOD_SHIFT) != 0) m_mod |= KMOD_SHIFT;
-    if ((mod & KMOD_ALT) != 0) m_mod |= KMOD_ALT;
+    if ((mod & KMOD_CTRL) != 0)
+        m_mod |= KMOD_CTRL;
+    if ((mod & KMOD_SHIFT) != 0)
+        m_mod |= KMOD_SHIFT;
+    if ((mod & KMOD_ALT) != 0)
+        m_mod |= KMOD_ALT;
     // what about KMOD_GUI, and there's also some SDL_SCANCODE_MODE?
     return m_mod;
 }
@@ -123,7 +126,7 @@ void ags_simulate_keyup(eAGSKeyCode ags_key);
 
 // TODO: hide these later? (bad design with run_service_key_controls,
 // but also need to clear them in ags_clear_input_state())
-extern int sys_modkeys; // accumulated mod flags
+extern int sys_modkeys;        // accumulated mod flags
 extern bool sys_modkeys_fired; // tells whether mod combination had been used for action
 
 
@@ -140,7 +143,7 @@ void ags_mouse_acquire_relxy(int &x, int &y);
 void ags_domouse();
 // Returns -1 for wheel down and +1 for wheel up
 // TODO: introduce constants for this
-int  ags_check_mouse_wheel();
+int ags_check_mouse_wheel();
 // Simulates a click with the given mouse button
 void ags_simulate_mouseclick(eAGSMouseButton but);
 
@@ -159,8 +162,7 @@ struct AGS_TouchPointerEventData
     Point Position;
 
     AGS_TouchPointerEventData() = default;
-    AGS_TouchPointerEventData(int pointer_id, const Point &pos)
-        : PointerID(pointer_id), Position(pos) {}
+    AGS_TouchPointerEventData(int pointer_id, const Point &pos) : PointerID(pointer_id), Position(pos) {}
 };
 //
 // Touch-to-mouse emulation mode
@@ -177,8 +179,7 @@ enum TouchMouseEmulation
     kNumTouchMouseModes
 };
 // Configures touch to mouse emulation
-void ags_touch_set_mouse_emulation(TouchMouseEmulation mode,
-    bool relative, float speed);
+void ags_touch_set_mouse_emulation(TouchMouseEmulation mode, bool relative, float speed);
 
 
 // Other input utilities
@@ -196,9 +197,9 @@ void ags_clear_input_queue();
 //
 void sys_evt_register_ags_events();
 // Set engine callback for when quit event is received by the backend.
-void sys_evt_set_quit_callback(void(*proc)(void));
+void sys_evt_set_quit_callback(void (*proc)(void));
 // Set engine callback for when input focus is received or lost by the window.
-void sys_evt_set_focus_callbacks(void(*switch_in)(void), void(*switch_out)(void));
+void sys_evt_set_focus_callbacks(void (*switch_in)(void), void (*switch_out)(void));
 // Update events filters based on the current system config
 void sys_evt_on_config_set();
 

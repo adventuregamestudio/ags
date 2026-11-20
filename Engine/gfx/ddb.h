@@ -52,10 +52,8 @@ struct Texture
     virtual size_t GetMemSize() const = 0;
 
 protected:
-    Texture(const GraphicResolution &res, bool rt)
-        : Res(res), RenderTarget(rt) {}
-    Texture(uint32_t id, const GraphicResolution &res, bool rt)
-        : ID(id), Res(res), RenderTarget(rt) {}
+    Texture(const GraphicResolution &res, bool rt) : Res(res), RenderTarget(rt) {}
+    Texture(uint32_t id, const GraphicResolution &res, bool rt) : ID(id), Res(res), RenderTarget(rt) {}
 };
 
 
@@ -103,16 +101,16 @@ public:
     virtual void SetStretch(int width, int height, bool useResampler = true) = 0;
     virtual Common::GraphicFlip GetFlip() const = 0;
     virtual void SetFlip(Common::GraphicFlip flip) = 0;
-    virtual float GetRotation() const = 0; // in degrees
+    virtual float GetRotation() const = 0;        // in degrees
     virtual void SetRotation(float rotation) = 0; // in degrees
     virtual Pointf GetPivot() const = 0;
     virtual void SetPivot(float pivotx, float pivoty) = 0;
-    virtual int  GetAlpha() const = 0;
-    virtual void SetAlpha(int alpha) = 0; // 0-255
-    virtual int  GetLightLevel() const = 0; // 0-255
-    virtual void SetLightLevel(int light_level) = 0; // 0-255
+    virtual int GetAlpha() const = 0;
+    virtual void SetAlpha(int alpha) = 0;                                                 // 0-255
+    virtual int GetLightLevel() const = 0;                                                // 0-255
+    virtual void SetLightLevel(int light_level) = 0;                                      // 0-255
     virtual void GetTint(int &red, int &green, int &blue, int &tintSaturation) const = 0; // 0-255
-    virtual void SetTint(int red, int green, int blue, int tintSaturation) = 0; // 0-255
+    virtual void SetTint(int red, int green, int blue, int tintSaturation) = 0;           // 0-255
     virtual Common::BlendMode GetBlendMode() const = 0;
     virtual void SetBlendMode(Common::BlendMode blendMode) = 0;
     virtual IShaderInstance *GetShader() const = 0;

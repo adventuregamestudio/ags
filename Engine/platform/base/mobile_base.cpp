@@ -53,7 +53,7 @@ void ResetConfiguration(MobileSetup &setup)
 
 // Reads config from a given file; pass nullptr instead of filename
 // to perform a config reset (all variables will get default values)
-bool ReadConfiguration(MobileSetup &setup, const char* filename, bool read_everything)
+bool ReadConfiguration(MobileSetup &setup, const char *filename, bool read_everything)
 {
     ConfigTree cfg;
     if (filename && !IniUtil::Read(filename, cfg))
@@ -140,13 +140,13 @@ void ApplyEngineConfiguration(const MobileSetup &setup, ConfigTree &cfg)
     //    * 0 - off
     //    * 1 - one finger (holding, dragging)
     //    * 2 - two fingers (tapping)
-    const char *emul_mode_str[] = { "off", "one_finger", "two_fingers" };
+    const char *emul_mode_str[] = {"off", "one_finger", "two_fingers"};
     CfgWriteString(cfg, "touch", "emul_mouse_mode", emul_mode_str[std::max(0, std::min(2, setup.mouse_emulation))]);
     // mouse_control_mode - enable relative mouse mode
     //    * 1 - relative mouse touch controls
     //    * 0 - direct touch mouse control
     CfgWriteInt(cfg, "touch", "emul_mouse_relative", setup.mouse_control_mode);
-    CfgWriteFloat(cfg, "mouse", "speed", (float)std::max(setup.mouse_speed, 1)/10.f);
+    CfgWriteFloat(cfg, "mouse", "speed", (float)std::max(setup.mouse_speed, 1) / 10.f);
 
     // translations
     CfgWriteString(cfg, "language", "translation", setup.translation);

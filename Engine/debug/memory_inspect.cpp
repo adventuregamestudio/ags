@@ -80,7 +80,9 @@ struct MemoryReference
 
     MemoryReference() = default;
     MemoryReference(const String &inst, const void *mem_ptr, IScriptObject *mgr, size_t mem_sz)
-        : Instruction(inst), MemPtr(mem_ptr), ObjMgr(mgr), MemSize(mem_sz) {}
+        : Instruction(inst), MemPtr(mem_ptr), ObjMgr(mgr), MemSize(mem_sz)
+    {
+    }
 };
 
 struct MemoryValue
@@ -89,8 +91,7 @@ struct MemoryValue
     String TypeHint;
 
     MemoryValue() = default;
-    MemoryValue(const String &value, const String &hint)
-        : Value(value), TypeHint(hint) {}
+    MemoryValue(const String &value, const String &hint) : Value(value), TypeHint(hint) {}
 };
 
 // Resolves script memory using a MemoryReference instruction.
@@ -114,7 +115,7 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
     const size_t next_off_at = mem_inst.FindChar(':', parse_at);
     char type = 0;
     size_t size = 0u;
-    
+
     if ((type_at != String::NoIndex) && (type_at < next_off_at))
     {
         type = mem_inst[type_at + 1];
@@ -136,11 +137,14 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
     // then we use its Read methods, otherwise we simply access mem_ptr + offset
     union
     {
-        int8_t i1; int16_t i2; int32_t i4; float f4;
+        int8_t i1;
+        int16_t i2;
+        int32_t i4;
+        float f4;
         const void *ptr;
     } next_value;
 
-    const void *mem_ptr_off = static_cast<const uint8_t*>(mem_ptr) + offset;
+    const void *mem_ptr_off = static_cast<const uint8_t *>(mem_ptr) + offset;
 
     switch (type)
     {
@@ -148,13 +152,13 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
         switch (size)
         {
         case 1:
-            next_value.i1 = mem_mgr ? mem_mgr->ReadInt8(mem_ptr, offset) : *static_cast<const int8_t*>(mem_ptr_off);
+            next_value.i1 = mem_mgr ? mem_mgr->ReadInt8(mem_ptr, offset) : *static_cast<const int8_t *>(mem_ptr_off);
             break;
         case 2:
-            next_value.i2 = mem_mgr ? mem_mgr->ReadInt16(mem_ptr, offset) : *static_cast<const int16_t*>(mem_ptr_off);
+            next_value.i2 = mem_mgr ? mem_mgr->ReadInt16(mem_ptr, offset) : *static_cast<const int16_t *>(mem_ptr_off);
             break;
         case 4:
-            next_value.i4 = mem_mgr ? mem_mgr->ReadInt32(mem_ptr, offset) : *static_cast<const int32_t*>(mem_ptr_off);
+            next_value.i4 = mem_mgr ? mem_mgr->ReadInt32(mem_ptr, offset) : *static_cast<const int32_t *>(mem_ptr_off);
             break;
         default: // unknown type, fail
             return false;
@@ -164,7 +168,7 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
         switch (size)
         {
         case 4:
-            next_value.f4 = mem_mgr ? mem_mgr->ReadFloat(mem_ptr, offset) : *static_cast<const float*>(mem_ptr_off);
+            next_value.f4 = mem_mgr ? mem_mgr->ReadFloat(mem_ptr, offset) : *static_cast<const float *>(mem_ptr_off);
             break;
         default: // unknown type, fail
             return false;
@@ -178,7 +182,7 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
             next_value.ptr = mem_mgr ? mem_mgr->GetFieldPtr(mem_ptr, offset) : mem_ptr_off;
         break;
     case 'h': // managed handle, int32
-        next_value.i4 = mem_mgr ? mem_mgr->ReadInt32(mem_ptr, offset) : *static_cast<const int32_t*>(mem_ptr_off);
+        next_value.i4 = mem_mgr ? mem_mgr->ReadInt32(mem_ptr, offset) : *static_cast<const int32_t *>(mem_ptr_off);
         break;
     case 'p': // value of a address, reserved but not supported atm
         return false;
@@ -197,7 +201,7 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
             // If we have a direct object, keep everything for the next entry
             if (!direct_obj)
             {
-                mem_ptr = static_cast<const uint8_t*>(next_value.ptr);
+                mem_ptr = static_cast<const uint8_t *>(next_value.ptr);
                 mem_mgr = nullptr;
                 mem_sz -= offset;
             }
@@ -208,7 +212,7 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
             IScriptObject *mgr;
             if (ccGetObjectAddressAndManagerFromHandle(next_value.i4, addr, mgr) == kScValUndefined)
                 return false; // object not found
-            mem_ptr = reinterpret_cast<const uint8_t*>(addr);
+            mem_ptr = reinterpret_cast<const uint8_t *>(addr);
             mem_mgr = mgr;
             mem_sz = 0u; // FIXME... how to get it? use typeinfo? but where to get typeinfo from?
             break;
@@ -226,12 +230,9 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
     case 'i': // integer (8, 16 or 32-bit)
         switch (size)
         {
-        case 1:
-            value = MemoryValue(base64_encode(&next_value.i1, size), "i1"); break;
-        case 2:
-            value = MemoryValue(base64_encode(&next_value.i2, size), "i2"); break;
-        case 4:
-            value = MemoryValue(base64_encode(&next_value.i4, size), "i4"); break;
+        case 1: value = MemoryValue(base64_encode(&next_value.i1, size), "i1"); break;
+        case 2: value = MemoryValue(base64_encode(&next_value.i2, size), "i2"); break;
+        case 4: value = MemoryValue(base64_encode(&next_value.i4, size), "i4"); break;
         default: // unknown type, fail
             return false;
         }
@@ -239,8 +240,7 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
     case 'f': // float (32-bit)
         switch (size)
         {
-        case 4:
-            value = MemoryValue(base64_encode(&next_value.f4, size), "f4"); break;
+        case 4: value = MemoryValue(base64_encode(&next_value.f4, size), "f4"); break;
         default: // unknown type, fail
             return false;
         }
@@ -249,7 +249,7 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
         // TODO: convert requested size to base64?
         break;
     case 's': // string pointer, pass as a string (encoding matches game text format)
-        value = MemoryValue(reinterpret_cast<const char*>(next_value.ptr), "s");
+        value = MemoryValue(reinterpret_cast<const char *>(next_value.ptr), "s");
         break;
     case 'p': // value of a address, reserved
         break;
@@ -263,7 +263,8 @@ static bool ResolveMemory(const MemoryReference &mem_ref, const size_t parse_at,
 }
 
 // Writes (appends) a memory read instruction into the provided string
-static void WriteMemReadInstruction(String &mem_inst, const RTTI::Type &type, uint32_t f_flags, uint32_t f_elem_count, bool direct_obj, uint32_t f_offset)
+static void WriteMemReadInstruction(String &mem_inst, const RTTI::Type &type, uint32_t f_flags, uint32_t f_elem_count,
+                                    bool direct_obj, uint32_t f_offset)
 {
     // Using hardcoded type names here, is there another way?...
     // TODO: perhaps generate a table of basic types, avoid testing name every time
@@ -271,35 +272,43 @@ static void WriteMemReadInstruction(String &mem_inst, const RTTI::Type &type, ui
     uint32_t typesz;
     if ((f_flags & RTTI::kField_ManagedPtr) != 0)
     {
-        typec = 'h'; typesz = 4; // managed handle int32, must be resolved
+        typec = 'h';
+        typesz = 4; // managed handle int32, must be resolved
     }
     else if ((f_flags & RTTI::kField_Array) != 0)
     {
-        typec = 'd'; typesz = f_elem_count * type.size; // static array
+        typec = 'd';
+        typesz = f_elem_count * type.size; // static array
     }
     else if (strcmp(type.name, "char") == 0)
     {
-        typec = 'i'; typesz = 1;
+        typec = 'i';
+        typesz = 1;
     }
     else if (strcmp(type.name, "short") == 0)
     {
-        typec = 'i'; typesz = 2;
+        typec = 'i';
+        typesz = 2;
     }
     else if (strcmp(type.name, "int") == 0)
     {
-        typec = 'i'; typesz = 4;
+        typec = 'i';
+        typesz = 4;
     }
     else if (strcmp(type.name, "float") == 0)
     {
-        typec = 'f'; typesz = 4;
+        typec = 'f';
+        typesz = 4;
     }
     else if (strcmp(type.name, "string") == 0)
     {
-        typec = 's'; typesz = 200; // old-style string of fixed size
+        typec = 's';
+        typesz = 200; // old-style string of fixed size
     }
     else
     {
-        typec = 'd'; typesz = type.size; // plain data or unknown type
+        typec = 'd';
+        typesz = type.size; // plain data or unknown type
     }
 
     if (direct_obj)
@@ -332,11 +341,12 @@ struct MemoryVariable
 
     MemoryVariable() = default;
     MemoryVariable(const ScriptTOC::Variable *var, const void *mem_ptr, IScriptObject *mgr, size_t mem_sz)
-        : Variable(var), MemoryPtr(mem_ptr), ObjMgr(mgr), MemorySize(mem_sz) {}
+        : Variable(var), MemoryPtr(mem_ptr), ObjMgr(mgr), MemorySize(mem_sz)
+    {
+    }
 };
 
-static bool TryGetGlobalVariable(const String &field_ref, const ScriptExecutor *exec,
-    MemoryVariable &found_var)
+static bool TryGetGlobalVariable(const String &field_ref, const ScriptExecutor *exec, MemoryVariable &found_var)
 {
     // Select the current running script
     const RuntimeScript *top_inst = exec->GetRunningScript();
@@ -355,7 +365,8 @@ static bool TryGetGlobalVariable(const String &field_ref, const ScriptExecutor *
     // If this is a script's own global variable, then simply reference its global memory
     if ((var.v_flags & ScriptTOC::kVariable_Import) == 0)
     {
-        found_var = MemoryVariable(&var, top_inst->GetGlobalData().data() + var.offset, nullptr, top_inst->GetGlobalData().size());
+        found_var = MemoryVariable(&var, top_inst->GetGlobalData().data() + var.offset, nullptr,
+                                   top_inst->GetGlobalData().size());
         return true;
     }
     // If it's an imported variable, then this may be memory from another script,
@@ -370,25 +381,23 @@ static bool TryGetGlobalVariable(const String &field_ref, const ScriptExecutor *
         if (import->ScriptPtr)
         {
             // Import from another script
-            found_var = MemoryVariable(&var,
-                import->Value.GetDirectPtr(), nullptr,
-                import->ScriptPtr->GetGlobalData().size());
+            found_var =
+                MemoryVariable(&var, import->Value.GetDirectPtr(), nullptr, import->ScriptPtr->GetGlobalData().size());
         }
         else
         {
             // Import from the engine or plugin
             // FIXME: get mem size from var type?
             // FIXME: this ptr retrieval is horrible...
-            const void *mem_ptr = (import->Value.Type < kScValStackPtr) ?
-                &import->Value.IValue : import->Value.GetDirectPtr();
+            const void *mem_ptr =
+                (import->Value.Type < kScValStackPtr) ? &import->Value.IValue : import->Value.GetDirectPtr();
             found_var = MemoryVariable(&var, import->Value.GetDirectPtr(), import->Value.ObjMgr, 0u);
         }
         return true;
     }
 }
 
-static bool TryGetLocalVariable(const String &field_ref, const ScriptExecutor *exec,
-     MemoryVariable &found_var)
+static bool TryGetLocalVariable(const String &field_ref, const ScriptExecutor *exec, MemoryVariable &found_var)
 {
     // Select the current running script
     const RuntimeScript *top_script = exec->GetRunningScript();
@@ -400,8 +409,11 @@ static bool TryGetLocalVariable(const String &field_ref, const ScriptExecutor *e
         return false; // no local data
 
     // TODO: use runtime TOC where we can guarantee sorted function list (or fixup TOC on load)
-    ScriptTOC::Function test_func; test_func.scope_begin = exec->GetPC(); test_func.scope_end = exec->GetPC() + 1;
-    auto func_it = std::lower_bound(toc.GetFunctions().begin(), toc.GetFunctions().end(), test_func,
+    ScriptTOC::Function test_func;
+    test_func.scope_begin = exec->GetPC();
+    test_func.scope_end = exec->GetPC() + 1;
+    auto func_it = std::lower_bound(
+        toc.GetFunctions().begin(), toc.GetFunctions().end(), test_func,
         [](const ScriptTOC::Function &first, const ScriptTOC::Function &second)
         { return (first.scope_begin < second.scope_begin) && (first.scope_end <= second.scope_begin); });
 
@@ -414,8 +426,9 @@ static bool TryGetLocalVariable(const String &field_ref, const ScriptExecutor *e
     // Find the latest variable which scope begins prior to the current script pos
     const ScriptTOC::Variable *var = func.local_data;
     for (const ScriptTOC::Variable *next_var = var;
-        next_var && next_var->scope_begin <= static_cast<uint32_t>(exec->GetPC());
-        var = next_var, next_var = next_var->next_local);
+         next_var && next_var->scope_begin <= static_cast<uint32_t>(exec->GetPC());
+         var = next_var, next_var = next_var->next_local)
+        ;
 
     // FIXME: helper method returning stack? don't direct access!
     // Note this stack ptr is set *after* the last allocated local data
@@ -444,8 +457,7 @@ static bool TryGetLocalVariable(const String &field_ref, const ScriptExecutor *e
         if (strcmp(var->name, field_ref.GetCStr()) == 0)
         {
             // FIXME: this ptr retrieval is horrible...
-            const void *mem_ptr = (stack_ptr->Type < kScValStackPtr) ?
-                &stack_ptr->IValue : stack_ptr->GetDirectPtr();
+            const void *mem_ptr = (stack_ptr->Type < kScValStackPtr) ? &stack_ptr->IValue : stack_ptr->GetDirectPtr();
             found_var = MemoryVariable(var, mem_ptr, stack_ptr->ObjMgr, stack_ptr->Size);
             return true;
         }
@@ -464,14 +476,16 @@ struct FieldInfo
 
     FieldInfo() = default;
     FieldInfo(const RTTI::Type *type, uint32_t f_flags, uint32_t num_elems)
-        : Type(type), FieldFlags(f_flags), NumElems(num_elems) {}
+        : Type(type), FieldFlags(f_flags), NumElems(num_elems)
+    {
+    }
 };
 
 // Try getting a registered variable from the current script's global memory,
 // or local memory (stack); or, if this is an imported variable, then lookup
 // the import table for its real address.
-static HError ParseScriptVariable(const String &field_ref, const ScriptExecutor *exec,
-    const RTTI &rtti, MemoryReference &mem_ref, FieldInfo &next_field_info)
+static HError ParseScriptVariable(const String &field_ref, const ScriptExecutor *exec, const RTTI &rtti,
+                                  MemoryReference &mem_ref, FieldInfo &next_field_info)
 {
     MemoryVariable memvar;
     // First try local data
@@ -507,8 +521,8 @@ static HError ParseScriptVariable(const String &field_ref, const ScriptExecutor 
 // Parses a field name of a given type, writes memory read instruction into "mem_ref",
 // assigns the found field's type into provided "field_type".
 // Returns success if field was found, failure otherwise.
-static HError ParseTypeField(const String &field_ref, const RTTI &rtti,
-    const FieldInfo &field_info, MemoryReference &mem_ref, FieldInfo &next_field_info)
+static HError ParseTypeField(const String &field_ref, const RTTI &rtti, const FieldInfo &field_info,
+                             MemoryReference &mem_ref, FieldInfo &next_field_info)
 {
     if ((field_info.Type->flags & RTTI::kType_Struct) == 0)
         return new Error("Invalid struct member access");
@@ -526,20 +540,22 @@ static HError ParseTypeField(const String &field_ref, const RTTI &rtti,
     }
 
     if (!found_field)
-        return new Error(String::FromFormat("Field not found '%s'", field_ref.GetCStr())); // couldn't resolve next symbol
+        return new Error(
+            String::FromFormat("Field not found '%s'", field_ref.GetCStr())); // couldn't resolve next symbol
 
     // "f_typeid" here is already resolved to global type id,
     // because we're using joint global RTTI, not local script's one
     const RTTI::Type &field_type = rtti.GetTypes()[found_field->f_typeid];
     mem_ref.Instruction.AppendChar(':');
-    WriteMemReadInstruction(mem_ref.Instruction, field_type, found_field->flags, found_field->num_elems, false, found_field->offset);
+    WriteMemReadInstruction(mem_ref.Instruction, field_type, found_field->flags, found_field->num_elems, false,
+                            found_field->offset);
     next_field_info = FieldInfo(&field_type, found_field->flags, found_field->num_elems);
     return HError::None();
 }
 
 // TODO: support sub-expressions and parse this as VariableRefToMemoryRef?
-static HError ParseArrayIndex(const String &field_ref, const FieldInfo &field_info,
-    MemoryReference &mem_ref, FieldInfo &next_field_info)
+static HError ParseArrayIndex(const String &field_ref, const FieldInfo &field_info, MemoryReference &mem_ref,
+                              FieldInfo &next_field_info)
 {
     if ((field_info.FieldFlags & RTTI::kField_Array) == 0)
         return new Error("Invalid array access");
@@ -551,8 +567,7 @@ static HError ParseArrayIndex(const String &field_ref, const FieldInfo &field_in
     // FIXME: this won't work for multidimensional arrays!
     // RTTI is missing necessary info for multidimensional arrays too.
     // FIXME: have a helper function that converts Type params to Field params of array element?
-    uint32_t elem_f_flags =
-        ((field_info.Type->flags & RTTI::kType_Managed) != 0) * RTTI::kField_ManagedPtr;
+    uint32_t elem_f_flags = ((field_info.Type->flags & RTTI::kType_Managed) != 0) * RTTI::kField_ManagedPtr;
     next_field_info = FieldInfo(field_info.Type, elem_f_flags, 0u);
     return HError::None();
 }
@@ -570,17 +585,20 @@ static String GetNextVarSection(const String &var_ref, size_t &index, char &acce
         return {};
     }
 
-    for (; std::isspace(var_ref[index]); ++index); // skip any whitespace
+    for (; std::isspace(var_ref[index]); ++index)
+        ; // skip any whitespace
 
     if (var_ref[index] == '.')
     {
         access_type = '.';
-        for (++index; std::isspace(var_ref[index]); ++index); // skip any whitespace
+        for (++index; std::isspace(var_ref[index]); ++index)
+            ; // skip any whitespace
     }
     else if (var_ref[index] == '[')
     {
         access_type = '[';
-        for (++index; std::isspace(var_ref[index]); ++index); // skip any whitespace
+        for (++index; std::isspace(var_ref[index]); ++index)
+            ; // skip any whitespace
     }
     else if (!IsKeywordChar(var_ref[index]))
     {
@@ -588,24 +606,26 @@ static String GetNextVarSection(const String &var_ref, size_t &index, char &acce
     }
 
     const size_t keyword_start = index;
-    for (; IsKeywordChar(var_ref[index]); ++index); // scan for the keyword (variable/field name)
+    for (; IsKeywordChar(var_ref[index]); ++index)
+        ; // scan for the keyword (variable/field name)
     const size_t keyword_end = index;
 
     if (access_type == '[')
     {
-        for (; std::isspace(var_ref[index]); ++index); // skip any whitespace
+        for (; std::isspace(var_ref[index]); ++index)
+            ; // skip any whitespace
         if (var_ref[index] != ']')
             return {}; // bad syntax, no closing bracket
         index++;
     }
-    
+
     return var_ref.Mid(keyword_start, keyword_end - keyword_start);
 }
 
 // Parses the naming chain item by item, and build mem_ref string,
 // containing set of instructions used to access and resolve actual memory
-static HError VariableRefToMemoryRef(const String &var_ref, const ScriptExecutor *exec,
-    MemoryReference &mem_ref, FieldInfo &var_field_info)
+static HError VariableRefToMemoryRef(const String &var_ref, const ScriptExecutor *exec, MemoryReference &mem_ref,
+                                     FieldInfo &var_field_info)
 {
     const auto &rtti = RuntimeScript::GetJointRTTI()->AsConstRTTI();
     FieldInfo last_field_info;
@@ -614,8 +634,8 @@ static HError VariableRefToMemoryRef(const String &var_ref, const ScriptExecutor
     String item;
     size_t index = 0;
     char access_type = 0;
-    for (item = GetNextVarSection(var_ref, index, access_type);
-        !item.IsEmpty(); item = GetNextVarSection(var_ref, index, access_type))
+    for (item = GetNextVarSection(var_ref, index, access_type); !item.IsEmpty();
+         item = GetNextVarSection(var_ref, index, access_type))
     {
         if (access_type == 0)
         {
@@ -680,13 +700,13 @@ HError QueryScriptVariableInContext(const ScriptExecutor *exec, const String &va
 
     if (!exec->GetRunningScript())
         return new Error("No running script"); // not in running script
-    
+
     MemoryReference mem_ref;
     FieldInfo var_field_info;
     HError err = VariableRefToMemoryRef(var_ref, exec, mem_ref, var_field_info);
     if (!err)
         return err; // failed to parse variable name chain
-    
+
     MemoryValue mem_value;
     if (ResolveMemory(mem_ref, 0u, mem_value))
     {

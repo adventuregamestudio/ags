@@ -16,18 +16,18 @@
 
 void CCStaticObjectArray::Create(IScriptObject *mgr, size_t elem_script_size, size_t elem_mem_size, size_t elem_count)
 {
-    _mgr            = mgr;
+    _mgr = mgr;
     _elemScriptSize = elem_script_size;
-    _elemMemSize    = elem_mem_size;
-    _elemCount      = elem_count;
+    _elemMemSize = elem_mem_size;
+    _elemCount = elem_count;
 }
 
-void* CCStaticObjectArray::GetFieldPtr(void *address, intptr_t offset)
+void *CCStaticObjectArray::GetFieldPtr(void *address, intptr_t offset)
 {
     return GetElementPtr(address, offset);
 }
 
-const void* CCStaticObjectArray::GetFieldPtr(const void *address, intptr_t offset)
+const void *CCStaticObjectArray::GetFieldPtr(const void *address, intptr_t offset)
 {
     return GetElementPtr(address, offset);
 }

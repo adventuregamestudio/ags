@@ -31,11 +31,11 @@ extern int pushbuttonlightcolor;
 extern int cbuttfont;
 
 MyPushButton::MyPushButton(int xx, int yy, int wi, int hi, const char *tex)
-{                             //wlevel=2;
+{ //wlevel=2;
     x = xx;
     y = yy;
     wid = wi;
-    hit = hi + 1;               //hit=hi;
+    hit = hi + 1; //hit=hi;
     state = 0;
     snprintf(text, sizeof(text), "%s", tex);
 };
@@ -70,12 +70,13 @@ void MyPushButton::draw(Bitmap *ds)
 int MyPushButton::pressedon(int mx, int my)
 {
     int wasstat;
-    while (!ags_misbuttondown(kMouseLeft) == 0) {
-
+    while (!ags_misbuttondown(kMouseLeft) == 0)
+    {
         wasstat = state;
         state = mouseisinarea(mx, my);
         update_polled_stuff();
-        if (wasstat != state) {
+        if (wasstat != state)
+        {
             draw(get_gui_screen());
         }
 
@@ -91,5 +92,5 @@ int MyPushButton::pressedon(int mx, int my)
 
 int MyPushButton::processmessage(int /*mcode*/, int /*wParam*/, intptr_t /*lParam*/)
 {
-    return -1;                  // doesn't support messages
+    return -1; // doesn't support messages
 }

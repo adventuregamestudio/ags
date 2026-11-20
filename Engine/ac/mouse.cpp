@@ -45,14 +45,14 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 extern ScriptSystem scsystem;
 extern SpriteCache spriteset;
-extern CharacterInfo*playerchar;
+extern CharacterInfo *playerchar;
 extern IGraphicsDriver *gfxDriver;
 
 ScriptMouse scmouse;
-int cur_mode = 0, cur_cursor = 0; // current mode, and current cursor look
+int cur_mode = 0, cur_cursor = 0;   // current mode, and current cursor look
 int mouse_hotx = 0, mouse_hoty = 0; // in game cursor hotspot offset
-int mouse_frame=0,mouse_delay=0;
-int lastmx=-1,lastmy=-1;
+int mouse_frame = 0, mouse_delay = 0;
+int lastmx = -1, lastmy = -1;
 
 CursorGraphicState cursor_gstate;
 
@@ -104,8 +104,10 @@ void Mouse_SetBounds(int x1, int y1, int x2, int y2)
     }
     else
     {
-        if (x1 < 0 || x1 > xmax || x2 < 0 || x2 > xmax || x1 > x2 || y1 < 0 || y1 > ymax || y2 < 0 || y2 > ymax || y1 > y2)
-            debug_script_warn("SetMouseBounds: arguments are out of range and will be corrected: (%d,%d)-(%d,%d), range is (%d,%d)-(%d,%d)",
+        if (x1 < 0 || x1 > xmax || x2 < 0 || x2 > xmax || x1 > x2 || y1 < 0 || y1 > ymax || y2 < 0 || y2 > ymax ||
+            y1 > y2)
+            debug_script_warn(
+                "SetMouseBounds: arguments are out of range and will be corrected: (%d,%d)-(%d,%d), range is (%d,%d)-(%d,%d)",
                 x1, y1, x2, y2, 0, 0, xmax, ymax);
         x1 = Math::Clamp(x1, 0, xmax);
         x2 = Math::Clamp(x2, x1, xmax);
@@ -127,9 +129,7 @@ void set_cursor_look(int newcurs, bool force_update)
     const int hotspotx = game.mcurs[newcurs].hotx, hotspoty = game.mcurs[newcurs].hoty;
 
     // if it's same cursor and there's animation in progress, then don't assign a new pic just yet
-    if (!force_update &&
-        newcurs == cur_cursor && game.mcurs[newcurs].view >= 0 &&
-        (mouse_frame > 0 || mouse_delay > 0))
+    if (!force_update && newcurs == cur_cursor && game.mcurs[newcurs].view >= 0 && (mouse_frame > 0 || mouse_delay > 0))
     {
         return;
     }
@@ -149,16 +149,15 @@ void set_cursor_look(int newcurs, bool force_update)
 
     // If it's inventory cursor, draw hotspot crosshair sprite upon it
     if (game.HasCursorRole(newcurs, kCursorRole_UseInv) && (cur_pic > 0) &&
-        ((game.inv_hot_color != 0) || (game.inv_hot_sprite > 0)) )
+        ((game.inv_hot_color != 0) || (game.inv_hot_sprite > 0)))
     {
         const int hotspot_sprite = game.inv_hot_sprite;
         Rect hotspot_rc;
         if (hotspot_sprite > 0)
         {
             hotspot_rc = RectWH(hotspotx - game.SpriteInfos[hotspot_sprite].Width / 2,
-                hotspoty - game.SpriteInfos[hotspot_sprite].Height / 2,
-                game.SpriteInfos[hotspot_sprite].Width,
-                game.SpriteInfos[hotspot_sprite].Height);
+                                hotspoty - game.SpriteInfos[hotspot_sprite].Height / 2,
+                                game.SpriteInfos[hotspot_sprite].Width, game.SpriteInfos[hotspot_sprite].Height);
         }
         else
         {
@@ -170,15 +169,15 @@ void set_cursor_look(int newcurs, bool force_update)
         int offx = -std::min(0, hotspot_rc.Left);
         int offy = -std::min(0, hotspot_rc.Top);
         Rect full_rc = SumRects(cursor_rc, hotspot_rc);
-        std::unique_ptr<Bitmap> gen_cursor(BitmapHelper::CreateTransparentBitmap(full_rc.GetWidth(), full_rc.GetHeight()));
+        std::unique_ptr<Bitmap> gen_cursor(
+            BitmapHelper::CreateTransparentBitmap(full_rc.GetWidth(), full_rc.GetHeight()));
         gen_cursor->Blit(spriteset[cur_pic], offx, offy);
 
         if (hotspot_sprite > 0)
         {
-            draw_sprite_slot_support_alpha(gen_cursor.get(),
-                hotspotx + offx - game.SpriteInfos[hotspot_sprite].Width / 2,
-                hotspoty + offy - game.SpriteInfos[hotspot_sprite].Height / 2,
-                hotspot_sprite);
+            draw_sprite_slot_support_alpha(
+                gen_cursor.get(), hotspotx + offx - game.SpriteInfos[hotspot_sprite].Width / 2,
+                hotspoty + offy - game.SpriteInfos[hotspot_sprite].Height / 2, hotspot_sprite);
         }
         else
         {
@@ -219,12 +218,14 @@ void Mouse_SetDefaultCursor()
 }
 
 // permanently change cursor graphic
-void Mouse_ChangeCursorGraphic (int curs, int newslot) {
+void Mouse_ChangeCursorGraphic(int curs, int newslot)
+{
     if ((curs < 0) || (curs >= game.numcursors))
         quit("!ChangeCursorGraphic: invalid mouse cursor");
 
     if (game.HasCursorRole(curs, kCursorRole_UseInv) && (game.options[OPT_FIXEDINVCURSOR] == 0))
-        debug_script_warn("Mouse.ChangeModeGraphic should not be used on the Inventory cursor when the cursor is linked to the active inventory item");
+        debug_script_warn(
+            "Mouse.ChangeModeGraphic should not be used on the Inventory cursor when the cursor is linked to the active inventory item");
 
     if (game.mcurs[curs].pic != newslot)
     {
@@ -236,14 +237,16 @@ void Mouse_ChangeCursorGraphic (int curs, int newslot) {
         set_cursor_look(curs);
 }
 
-int Mouse_GetModeGraphic(int curs) {
+int Mouse_GetModeGraphic(int curs)
+{
     if ((curs < 0) || (curs >= game.numcursors))
         quit("!Mouse.GetModeGraphic: invalid mouse cursor");
 
     return game.mcurs[curs].pic;
 }
 
-void Mouse_ChangeCursorHotspot (int curs, int x, int y) {
+void Mouse_ChangeCursorHotspot(int curs, int x, int y)
+{
     if ((curs < 0) || (curs >= game.numcursors))
         quit("!ChangeCursorHotspot: invalid mouse cursor");
     game.mcurs[curs].hotx = x;
@@ -261,7 +264,8 @@ ScriptUserObject *Mouse_GetModeHotspot(int curs)
     return ScriptStructHelpers::CreatePoint(x, y);
 }
 
-void Mouse_ChangeModeView(int curs, int newview, int delay) {
+void Mouse_ChangeModeView(int curs, int newview, int delay)
+{
     if ((curs < 0) || (curs >= game.numcursors))
         quit("!Mouse.ChangeModeView: invalid mouse cursor");
 
@@ -284,15 +288,18 @@ void Mouse_ChangeModeView(int curs, int newview, int delay) {
         mouse_delay = 0;
 }
 
-void Mouse_ChangeModeView2(int curs, int newview) {
+void Mouse_ChangeModeView2(int curs, int newview)
+{
     Mouse_ChangeModeView(curs, newview, SCR_NO_VALUE);
 }
 
-void Mouse_SetNextCursor () {
-    set_cursor_mode (find_next_enabled_cursor(cur_mode + 1));
+void Mouse_SetNextCursor()
+{
+    set_cursor_mode(find_next_enabled_cursor(cur_mode + 1));
 }
 
-void Mouse_SetPreviousCursor() {
+void Mouse_SetPreviousCursor()
+{
     set_cursor_mode(find_previous_enabled_cursor(cur_mode - 1));
 }
 
@@ -306,7 +313,7 @@ void set_cursor_mode(int newmode)
         find_next_enabled_cursor(newmode);
         return;
     }
-    
+
     if (game.HasCursorRole(newmode, kCursorRole_UseInv))
     {
         if (playerchar->activeinv == -1)
@@ -317,7 +324,8 @@ void set_cursor_mode(int newmode)
         update_inv_cursor(playerchar->activeinv);
     }
 
-    if (cur_mode != newmode) // TODO: actually prevent from running any action here if cursor + activeinv did not change?
+    if (cur_mode !=
+        newmode) // TODO: actually prevent from running any action here if cursor + activeinv did not change?
         debug_script_log("Cursor mode set to %d", newmode);
     cur_mode = newmode;
     set_default_cursor_look();
@@ -352,43 +360,56 @@ void Mouse_SetCursorMode(int newmode)
     set_cursor_mode(newmode);
 }
 
-void enable_cursor_mode(int modd) {
+void enable_cursor_mode(int modd)
+{
     if (modd < 0 || modd >= game.numcursors)
         return;
 
-    game.mcurs[modd].flags&=~MCF_DISABLED;
+    game.mcurs[modd].flags &= ~MCF_DISABLED;
     // now search the interfaces for related buttons to re-enable
-    int uu,ww;
+    int uu, ww;
 
-    for (uu=0;uu<game.numgui;uu++) {
-        for (ww=0;ww<guis[uu].GetControlCount();ww++) {
-            if (guis[uu].GetControlType(ww) != kGUIButton) continue;
-            GUIButton*gbpt=(GUIButton*)guis[uu].GetControl(ww);
-            if (gbpt->GetClickAction(kGUIClickLeft)!=kGUIAction_SetMode) continue;
-            if (gbpt->GetClickData(kGUIClickLeft)!=modd) continue;
+    for (uu = 0; uu < game.numgui; uu++)
+    {
+        for (ww = 0; ww < guis[uu].GetControlCount(); ww++)
+        {
+            if (guis[uu].GetControlType(ww) != kGUIButton)
+                continue;
+            GUIButton *gbpt = (GUIButton *)guis[uu].GetControl(ww);
+            if (gbpt->GetClickAction(kGUIClickLeft) != kGUIAction_SetMode)
+                continue;
+            if (gbpt->GetClickData(kGUIClickLeft) != modd)
+                continue;
             gbpt->SetEnabled(true);
         }
     }
 }
 
-void disable_cursor_mode(int modd) {
+void disable_cursor_mode(int modd)
+{
     if (modd < 0 || modd >= game.numcursors)
         return;
 
-    game.mcurs[modd].flags|=MCF_DISABLED;
+    game.mcurs[modd].flags |= MCF_DISABLED;
     // now search the interfaces for related buttons to kill
-    int uu,ww;
+    int uu, ww;
 
-    for (uu=0;uu<game.numgui;uu++) {
-        for (ww=0;ww<guis[uu].GetControlCount();ww++) {
-            if (guis[uu].GetControlType(ww) != kGUIButton) continue;
-            GUIButton*gbpt=(GUIButton*)guis[uu].GetControl(ww);
-            if (gbpt->GetClickAction(kGUIClickLeft)!=kGUIAction_SetMode) continue;
-            if (gbpt->GetClickData(kGUIClickLeft)!=modd) continue;
+    for (uu = 0; uu < game.numgui; uu++)
+    {
+        for (ww = 0; ww < guis[uu].GetControlCount(); ww++)
+        {
+            if (guis[uu].GetControlType(ww) != kGUIButton)
+                continue;
+            GUIButton *gbpt = (GUIButton *)guis[uu].GetControl(ww);
+            if (gbpt->GetClickAction(kGUIClickLeft) != kGUIAction_SetMode)
+                continue;
+            if (gbpt->GetClickData(kGUIClickLeft) != modd)
+                continue;
             gbpt->SetEnabled(false);
         }
     }
-    if (cur_mode==modd) find_next_enabled_cursor(modd);
+    if (cur_mode == modd)
+        find_next_enabled_cursor(modd);
 }
 
 void Mouse_EnableCursorMode(int mode)
@@ -401,12 +422,14 @@ void Mouse_DisableCursorMode(int mode)
     disable_cursor_mode(mode);
 }
 
-void Mouse_Refresh() {
+void Mouse_Refresh()
+{
     ags_domouse();
     update_script_mouse_coords();
 }
 
-void Mouse_SetPosition (int newx, int newy) {
+void Mouse_SetPosition(int newx, int newy)
+{
     const Rect &viewport = play.GetMainViewport();
 
     if (newx < 0)
@@ -422,7 +445,8 @@ void Mouse_SetPosition (int newx, int newy) {
     Mouse_Refresh();
 }
 
-int Mouse_GetCursorMode() {
+int Mouse_GetCursorMode()
+{
     return cur_mode;
 }
 
@@ -445,9 +469,9 @@ bool IsAnyButtonDown()
 
 int Mouse_IsModeEnabled(int which)
 {
-    return (which < 0) || (which >= game.numcursors) ? 0 :
-        game.HasCursorRole(which, kCursorRole_UseInv) ? playerchar->activeinv > 0 :
-        (game.mcurs[which].flags & MCF_DISABLED) == 0;
+    return (which < 0) || (which >= game.numcursors)       ? 0
+           : game.HasCursorRole(which, kCursorRole_UseInv) ? playerchar->activeinv > 0
+                                                           : (game.mcurs[which].flags & MCF_DISABLED) == 0;
 }
 
 void Mouse_SaveCursorForLocationChange()
@@ -474,9 +498,8 @@ void Mouse_SimulateClick(int button_id)
 
 void Mouse_EnableControl(bool on)
 {
-    bool should_control_mouse =
-        usetup.MouseCtrlWhen == kMouseCtrl_Always ||
-        (usetup.MouseCtrlWhen == kMouseCtrl_Fullscreen && (scsystem.windowed == 0));
+    bool should_control_mouse = usetup.MouseCtrlWhen == kMouseCtrl_Always ||
+                                (usetup.MouseCtrlWhen == kMouseCtrl_Fullscreen && (scsystem.windowed == 0));
     Mouse::SetMovementControl(should_control_mouse & on);
     usetup.MouseCtrlEnabled = on; // remember setting in config
 }
@@ -512,14 +535,13 @@ void Mouse_SetEnabled(bool on)
 
 ScriptShaderInstance *Mouse_GetCursorShader()
 {
-    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(
-        play.GetCursorShaderHandle()));
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(play.GetCursorShaderHandle()));
 }
 
 void Mouse_SetCursorShader(ScriptShaderInstance *shader_inst)
 {
     play.SetCursorShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
-                    ccReplaceObjectHandle(play.GetCursorShaderHandle(), shader_inst));
+                         ccReplaceObjectHandle(play.GetCursorShaderHandle(), shader_inst));
 }
 
 //=============================================================================
@@ -540,7 +562,7 @@ void update_script_mouse_coords()
 
 void update_inv_cursor(int invnum)
 {
-    if ((game.options[OPT_FIXEDINVCURSOR]==0) && (invnum > 0))
+    if ((game.options[OPT_FIXEDINVCURSOR] == 0) && (invnum > 0))
     {
         int cursorSprite = game.invinfo[invnum].cursorPic;
 
@@ -558,7 +580,8 @@ void update_inv_cursor(int invnum)
         spriteset.PrecacheSprite(cursorSprite);
 
         Rect spr_rc = RectWH(Size(game.SpriteInfos[cursorSprite].Width, game.SpriteInfos[cursorSprite].Height));
-        Point pt = AlignInRect(spr_rc, Point(game.invinfo[invnum].hotx, game.invinfo[invnum].hoty), game.invinfo[invnum].hotAlign);
+        Point pt = AlignInRect(spr_rc, Point(game.invinfo[invnum].hotx, game.invinfo[invnum].hoty),
+                               game.invinfo[invnum].hotAlign);
         mcur.hotx = pt.X;
         mcur.hoty = pt.Y;
     }
@@ -568,7 +591,8 @@ void set_new_cursor_graphic(int spriteslot)
 {
     if (spriteslot < 1)
     {
-        cursor_gstate.SetImage(std::unique_ptr<Bitmap>(BitmapHelper::CreateTransparentBitmap(1, 1, game.GetColorDepth())));
+        cursor_gstate.SetImage(
+            std::unique_ptr<Bitmap>(BitmapHelper::CreateTransparentBitmap(1, 1, game.GetColorDepth())));
     }
     else
     {
@@ -576,8 +600,10 @@ void set_new_cursor_graphic(int spriteslot)
     }
 }
 
-bool is_standard_cursor_enabled(int curs) {
-    if ((game.mcurs[curs].flags & MCF_DISABLED) == 0) {
+bool is_standard_cursor_enabled(int curs)
+{
+    if ((game.mcurs[curs].flags & MCF_DISABLED) == 0)
+    {
         // inventory cursor, and they have an active item
         if (game.HasCursorRole(curs, kCursorRole_UseInv))
         {
@@ -591,32 +617,40 @@ bool is_standard_cursor_enabled(int curs) {
     return false;
 }
 
-int find_next_enabled_cursor(int startwith) {
+int find_next_enabled_cursor(int startwith)
+{
     if (startwith >= game.numcursors)
         startwith = 0;
-    int testing=startwith;
-    do {
-        if (is_standard_cursor_enabled(testing)) break;
+    int testing = startwith;
+    do
+    {
+        if (is_standard_cursor_enabled(testing))
+            break;
         testing++;
-        if (testing >= game.numcursors) testing=0;
-    } while (testing!=startwith);
+        if (testing >= game.numcursors)
+            testing = 0;
+    } while (testing != startwith);
 
-    if (testing!=startwith)
+    if (testing != startwith)
         set_cursor_mode(testing);
 
     return testing;
 }
 
-int find_previous_enabled_cursor(int startwith) {
+int find_previous_enabled_cursor(int startwith)
+{
     if (startwith < 0)
         startwith = game.numcursors - 1;
     int testing = startwith;
-    do {
-        if (is_standard_cursor_enabled(testing)) break;
+    do
+    {
+        if (is_standard_cursor_enabled(testing))
+            break;
         testing--;
-        if (testing < 0) testing = game.numcursors - 1;
+        if (testing < 0)
+            testing = game.numcursors - 1;
     } while (testing != startwith);
-    
+
     if (testing != startwith)
         set_cursor_mode(testing);
 
@@ -831,40 +865,40 @@ RuntimeScriptValue Sc_Mouse_SetSpeed(const RuntimeScriptValue *params, int32_t p
 void RegisterMouseAPI()
 {
     ScFnRegister mouse_api[] = {
-        { "Mouse::ChangeModeGraphic^2",       API_FN_PAIR(Mouse_ChangeCursorGraphic) },
-        { "Mouse::ChangeModeHotspot^3",       API_FN_PAIR(Mouse_ChangeCursorHotspot) },
-        { "Mouse::ChangeModeView^2",          API_FN_PAIR(Mouse_ChangeModeView2) },
-        { "Mouse::ChangeModeView^3",          API_FN_PAIR(Mouse_ChangeModeView) },
-        { "Mouse::Click^1",                   API_FN_PAIR(Mouse_SimulateClick) },
-        { "Mouse::DisableMode^1",             API_FN_PAIR(Mouse_DisableCursorMode) },
-        { "Mouse::EnableMode^1",              API_FN_PAIR(Mouse_EnableCursorMode) },
-        { "Mouse::GetModeGraphic^1",          API_FN_PAIR(Mouse_GetModeGraphic) },
-        { "Mouse::GetModeHotspot^1",          API_FN_PAIR(Mouse_GetModeHotspot) },
-        { "Mouse::IsButtonDown^1",            API_FN_PAIR(Mouse_IsButtonDown) },
-        { "Mouse::IsAnyButtonDown^0",         API_FN_PAIR(IsAnyButtonDown) },
-        { "Mouse::IsModeEnabled^1",           API_FN_PAIR(Mouse_IsModeEnabled) },
-        { "Mouse::SaveCursorUntilItLeaves^0", API_FN_PAIR(Mouse_SaveCursorForLocationChange) },
-        { "Mouse::SelectNextMode^0",          API_FN_PAIR(Mouse_SetNextCursor) },
-        { "Mouse::SelectPreviousMode^0",      API_FN_PAIR(Mouse_SetPreviousCursor) },
-        { "Mouse::SetBounds^4",               API_FN_PAIR(Mouse_SetBounds) },
-        { "Mouse::SetPosition^2",             API_FN_PAIR(Mouse_SetPosition) },
-        { "Mouse::Update^0",                  API_FN_PAIR(Mouse_Refresh) },
-        { "Mouse::UseDefaultGraphic^0",       API_FN_PAIR(Mouse_SetDefaultCursor) },
-        { "Mouse::UseModeGraphic^1",          API_FN_PAIR(Mouse_SetCursor) },
-        { "Mouse::get_AutoLock",              API_FN_PAIR(Mouse_GetAutoLock) },
-        { "Mouse::set_AutoLock",              API_FN_PAIR(Mouse_SetAutoLock) },
-        { "Mouse::get_ControlEnabled",        Sc_Mouse_GetControlEnabled, Mouse::IsControlEnabled },
-        { "Mouse::set_ControlEnabled",        Sc_Mouse_SetControlEnabled, Mouse_EnableControl },
-        { "Mouse::get_Enabled",               API_FN_PAIR(Mouse_GetEnabled) },
-        { "Mouse::set_Enabled",               API_FN_PAIR(Mouse_SetEnabled) },
-        { "Mouse::get_CursorShader",          API_FN_PAIR(Mouse_GetCursorShader) },
-        { "Mouse::set_CursorShader",          API_FN_PAIR(Mouse_SetCursorShader) },
-        { "Mouse::get_Mode",                  API_FN_PAIR(Mouse_GetCursorMode) },
-        { "Mouse::set_Mode",                  API_FN_PAIR(Mouse_SetCursorMode) },
-        { "Mouse::get_Speed",                 Sc_Mouse_GetSpeed, Mouse::GetSpeed },
-        { "Mouse::set_Speed",                 Sc_Mouse_SetSpeed, Mouse::SetSpeed },
-        { "Mouse::get_Visible",               API_FN_PAIR(Mouse_GetVisible) },
-        { "Mouse::set_Visible",               API_FN_PAIR(Mouse_SetVisible) },
+        {"Mouse::ChangeModeGraphic^2", API_FN_PAIR(Mouse_ChangeCursorGraphic)},
+        {"Mouse::ChangeModeHotspot^3", API_FN_PAIR(Mouse_ChangeCursorHotspot)},
+        {"Mouse::ChangeModeView^2", API_FN_PAIR(Mouse_ChangeModeView2)},
+        {"Mouse::ChangeModeView^3", API_FN_PAIR(Mouse_ChangeModeView)},
+        {"Mouse::Click^1", API_FN_PAIR(Mouse_SimulateClick)},
+        {"Mouse::DisableMode^1", API_FN_PAIR(Mouse_DisableCursorMode)},
+        {"Mouse::EnableMode^1", API_FN_PAIR(Mouse_EnableCursorMode)},
+        {"Mouse::GetModeGraphic^1", API_FN_PAIR(Mouse_GetModeGraphic)},
+        {"Mouse::GetModeHotspot^1", API_FN_PAIR(Mouse_GetModeHotspot)},
+        {"Mouse::IsButtonDown^1", API_FN_PAIR(Mouse_IsButtonDown)},
+        {"Mouse::IsAnyButtonDown^0", API_FN_PAIR(IsAnyButtonDown)},
+        {"Mouse::IsModeEnabled^1", API_FN_PAIR(Mouse_IsModeEnabled)},
+        {"Mouse::SaveCursorUntilItLeaves^0", API_FN_PAIR(Mouse_SaveCursorForLocationChange)},
+        {"Mouse::SelectNextMode^0", API_FN_PAIR(Mouse_SetNextCursor)},
+        {"Mouse::SelectPreviousMode^0", API_FN_PAIR(Mouse_SetPreviousCursor)},
+        {"Mouse::SetBounds^4", API_FN_PAIR(Mouse_SetBounds)},
+        {"Mouse::SetPosition^2", API_FN_PAIR(Mouse_SetPosition)},
+        {"Mouse::Update^0", API_FN_PAIR(Mouse_Refresh)},
+        {"Mouse::UseDefaultGraphic^0", API_FN_PAIR(Mouse_SetDefaultCursor)},
+        {"Mouse::UseModeGraphic^1", API_FN_PAIR(Mouse_SetCursor)},
+        {"Mouse::get_AutoLock", API_FN_PAIR(Mouse_GetAutoLock)},
+        {"Mouse::set_AutoLock", API_FN_PAIR(Mouse_SetAutoLock)},
+        {"Mouse::get_ControlEnabled", Sc_Mouse_GetControlEnabled, Mouse::IsControlEnabled},
+        {"Mouse::set_ControlEnabled", Sc_Mouse_SetControlEnabled, Mouse_EnableControl},
+        {"Mouse::get_Enabled", API_FN_PAIR(Mouse_GetEnabled)},
+        {"Mouse::set_Enabled", API_FN_PAIR(Mouse_SetEnabled)},
+        {"Mouse::get_CursorShader", API_FN_PAIR(Mouse_GetCursorShader)},
+        {"Mouse::set_CursorShader", API_FN_PAIR(Mouse_SetCursorShader)},
+        {"Mouse::get_Mode", API_FN_PAIR(Mouse_GetCursorMode)},
+        {"Mouse::set_Mode", API_FN_PAIR(Mouse_SetCursorMode)},
+        {"Mouse::get_Speed", Sc_Mouse_GetSpeed, Mouse::GetSpeed},
+        {"Mouse::set_Speed", Sc_Mouse_SetSpeed, Mouse::SetSpeed},
+        {"Mouse::get_Visible", API_FN_PAIR(Mouse_GetVisible)},
+        {"Mouse::set_Visible", API_FN_PAIR(Mouse_SetVisible)},
     };
 
     ccAddExternalFunctions(mouse_api);

@@ -17,7 +17,13 @@
 #include "util/string.h"
 
 struct IAGSEditorDebugger;
-namespace AGS { namespace Engine { struct ScriptPosition; } }
+namespace AGS
+{
+namespace Engine
+{
+struct ScriptPosition;
+}
+} // namespace AGS
 
 extern int editor_debugging_enabled;
 extern int editor_debugging_initialized;
@@ -27,12 +33,12 @@ extern int break_on_next_script_step;
 
 enum DebuggerResponse
 {
-    kDbgResponse_Empty,     // no message, or failed to parse
-    kDbgResponse_Ok,        // successfully handled a message
-    kDbgResponse_Ready,     // received "READY" message
-    kDbgResponse_Resume,    // received "RESUME" message
-    kDbgResponse_Step,      // received "STEP" message
-    kDbgResponse_Exit,      // received "EXIT" message
+    kDbgResponse_Empty,  // no message, or failed to parse
+    kDbgResponse_Ok,     // successfully handled a message
+    kDbgResponse_Ready,  // received "READY" message
+    kDbgResponse_Resume, // received "RESUME" message
+    kDbgResponse_Step,   // received "STEP" message
+    kDbgResponse_Exit,   // received "EXIT" message
 };
 
 DebuggerResponse check_for_messages_from_debugger();
@@ -46,13 +52,13 @@ void check_debug_keys();
 #define DBG_NODRAWSPRITES 2
 #define DBG_NOOBJECTS     4
 #define DBG_NOUPDATE      8
-#define DBG_NOSFX      0x10
-#define DBG_NOMUSIC    0x20
-#define DBG_NOSCRIPT   0x40
-#define DBG_DBGSCRIPT  0x80
-#define DBG_DEBUGMODE 0x100
-#define DBG_REGONLY   0x200
-#define DBG_NOVIDEO   0x400
+#define DBG_NOSFX         0x10
+#define DBG_NOMUSIC       0x20
+#define DBG_NOSCRIPT      0x40
+#define DBG_DBGSCRIPT     0x80
+#define DBG_DEBUGMODE     0x100
+#define DBG_REGONLY       0x200
+#define DBG_NOVIDEO       0x400
 
 enum FPSDisplayMode
 {

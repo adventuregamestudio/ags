@@ -23,21 +23,24 @@ extern std::vector<int> StaticGUIArray;
 extern std::vector<ScriptGUI> scrGui;
 
 // return the type name of the object
-const char *CCGUI::GetType() {
+const char *CCGUI::GetType()
+{
     return "GUI";
 }
 
-size_t CCGUI::CalcSerializeSize(const void* /*address*/)
+size_t CCGUI::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCGUI::Serialize(const void *address, Stream *out) {
-    const ScriptGUI *shh = static_cast<const ScriptGUI*>(address);
+void CCGUI::Serialize(const void *address, Stream *out)
+{
+    const ScriptGUI *shh = static_cast<const ScriptGUI *>(address);
     out->WriteInt32(shh->id);
 }
 
-void CCGUI::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void CCGUI::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
     int num = in->ReadInt32();
     StaticGUIArray[num] = ccRegisterUnserializedPersistentObject(index, &scrGui[num], this);
 }

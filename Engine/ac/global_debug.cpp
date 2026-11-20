@@ -43,7 +43,7 @@ using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern RoomStruct thisroom;
-extern CharacterInfo*playerchar;
+extern CharacterInfo *playerchar;
 
 extern IGraphicsDriver *gfxDriver;
 extern SpriteCache spriteset;
@@ -71,15 +71,12 @@ String GetRuntimeInfo()
         "Running %d x %d at %d-bit%s\nGFX: %s; %s\nDraw frame %d x %d\n"
         "Sprite cache KB: %zu / %zu (%u%%), locked: %zu, ext: %zu\n"
         "Texture cache KB: %zu / %zu (%u%%)",
-        get_engine_name(),
-        get_engine_version_and_build().GetCStr(),
-        game.GetGameRes().Width, game.GetGameRes().Height, game.GetColorDepth(),
-        mode.Width, mode.Height, mode.ColorDepth,
-        (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")),
-        gfxDriver->GetDriverName(), filter->GetInfo().Name.GetCStr(),
-        render_frame.GetWidth(), render_frame.GetHeight(),
-        total_normspr / 1024, max_normspr / 1024, norm_spr_filled, total_lockspr / 1024, total_extspr / 1024,
-        total_txcached / 1024, max_txcached / 1024, tx_filled);
+        get_engine_name(), get_engine_version_and_build().GetCStr(), game.GetGameRes().Width, game.GetGameRes().Height,
+        game.GetColorDepth(), mode.Width, mode.Height, mode.ColorDepth,
+        (mode.IsWindowed() ? " W" : (mode.IsRealFullscreen() ? " F" : " FD")), gfxDriver->GetDriverName(),
+        filter->GetInfo().Name.GetCStr(), render_frame.GetWidth(), render_frame.GetHeight(), total_normspr / 1024,
+        max_normspr / 1024, norm_spr_filled, total_lockspr / 1024, total_extspr / 1024, total_txcached / 1024,
+        max_txcached / 1024, tx_filled);
     if (play.separate_music_lib)
         runtimeInfo.Append("\nAUDIO.VOX enabled");
     if (play.voice_avail)
@@ -93,22 +90,23 @@ String GetRuntimeInfo()
     return runtimeInfo;
 }
 
-void script_debug(int cmdd,int dataa) {
-    if (play.debug_mode==0)
+void script_debug(int cmdd, int dataa)
+{
+    if (play.debug_mode == 0)
         return;
 
-    if (cmdd==0)
+    if (cmdd == 0)
     {
         for (int i = 0; i < game.numinvitems; ++i)
             playerchar->set_item_quantity(i, std::max<int16_t>(1, playerchar->get_item_quantity(i)));
         UpdateInventory();
     }
-    else if (cmdd==1)
+    else if (cmdd == 1)
     {
         String toDisplay = GetRuntimeInfo();
         DisplayMB(toDisplay.GetCStr());
     }
-    else if (cmdd==2) 
+    else if (cmdd == 2)
     {
         // show room mask
         auto mask = static_cast<RoomAreaMask>(dataa);
@@ -119,7 +117,7 @@ void script_debug(int cmdd,int dataa) {
             debugLastRoomMask = mask;
         debug_draw_room_mask(debugLastRoomMask);
     }
-    else if (cmdd==3) 
+    else if (cmdd == 3)
     {
         int goToRoom = -1;
         if (game.roomNames.size() == 0)
@@ -135,7 +133,7 @@ void script_debug(int cmdd,int dataa) {
             goToRoom = roomSelectorWindow(displayed_room, game.roomNames);
             restore_after_dialog();
         }
-        if (goToRoom >= 0) 
+        if (goToRoom >= 0)
             NewRoom(goToRoom);
     }
     else if (cmdd == 4)

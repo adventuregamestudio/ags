@@ -72,31 +72,33 @@ IAGSEditorDebugger *GetEditorDebugger(const char *instanceToken)
     return new NamedPipesAGSDebugger(instanceToken);
 }
 
-#else   // AGS_PLATFORM_OS_WINDOWS
+#else // AGS_PLATFORM_OS_WINDOWS
 
-IAGSEditorDebugger *GetEditorDebugger(const char* /*instanceToken*/)
+IAGSEditorDebugger *GetEditorDebugger(const char * /*instanceToken*/)
 {
     return nullptr;
 }
 
 #endif
 
-int debug_flags=0;
+int debug_flags = 0;
 
 FPSDisplayMode display_fps = kFPS_Hide;
 
 void send_message_to_debugger(IAGSEditorDebugger *ide_debugger,
-    const std::vector<std::pair<String, String>>& tag_values, const String& command)
+                              const std::vector<std::pair<String, String>> &tag_values, const String &command)
 {
-    String messageToSend = String::FromFormat(R"(<?xml version="1.0" encoding="UTF-8"?><Debugger Command="%s">)", command.GetCStr());
+    String messageToSend =
+        String::FromFormat(R"(<?xml version="1.0" encoding="UTF-8"?><Debugger Command="%s">)", command.GetCStr());
 #if AGS_PLATFORM_OS_WINDOWS
-    messageToSend.Append(String::FromFormat("  <EngineWindow>%" PRIdPTR "</EngineWindow> ", reinterpret_cast<intptr_t>(sys_win_get_window())));
+    messageToSend.Append(String::FromFormat("  <EngineWindow>%" PRIdPTR "</EngineWindow> ",
+                                            reinterpret_cast<intptr_t>(sys_win_get_window())));
 #endif
 
-    for(const auto& tag_value : tag_values)
+    for (const auto &tag_value : tag_values)
     {
-        messageToSend.AppendFmt("  <%s><![CDATA[%s]]></%s> ",
-                                tag_value.first.GetCStr(), tag_value.second.GetCStr(), tag_value.first.GetCStr());
+        messageToSend.AppendFmt("  <%s><![CDATA[%s]]></%s> ", tag_value.first.GetCStr(), tag_value.second.GetCStr(),
+                                tag_value.first.GetCStr());
     }
 
     messageToSend.Append("</Debugger>\n");
@@ -107,8 +109,7 @@ void send_message_to_debugger(IAGSEditorDebugger *ide_debugger,
 class DebuggerLogOutputTarget : public AGS::Common::IOutputHandler
 {
 public:
-    DebuggerLogOutputTarget(IAGSEditorDebugger *ide_debugger)
-        : _ideDebugger(ide_debugger) {};
+    DebuggerLogOutputTarget(IAGSEditorDebugger *ide_debugger) : _ideDebugger(ide_debugger) {};
     virtual ~DebuggerLogOutputTarget() {};
 
     void OnRegister() override
@@ -119,14 +120,11 @@ public:
     void PrintMessage(const DebugMessage &msg) override
     {
         assert(_ideDebugger);
-        std::vector<std::pair<String, String>> log_info =
-                {
-                        {"Text", msg.Text},
-                        {"GroupID", StrUtil::IntToString(msg.GroupID)},
-                        {"MTID", StrUtil::IntToString(msg.MT)}
-                };
+        std::vector<std::pair<String, String>> log_info = {
+            {"Text", msg.Text}, {"GroupID", StrUtil::IntToString(msg.GroupID)}, {"MTID", StrUtil::IntToString(msg.MT)}};
         send_message_to_debugger(_ideDebugger, log_info, "LOG");
     }
+
 private:
     IAGSEditorDebugger *_ideDebugger = nullptr;
 };
@@ -141,21 +139,19 @@ const String OutputDebuggerLogID = "debugger";
 // ----------------------------------------------------------------------------
 
 // SDL log priority names
-static const char *SDL_priority[SDL_NUM_LOG_PRIORITIES] = {
-    nullptr, "VERBOSE", "DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"
-};
+static const char *SDL_priority[SDL_NUM_LOG_PRIORITIES] = {nullptr, "VERBOSE", "DEBUG",   "INFO",
+                                                           "WARN",  "ERROR",   "CRITICAL"};
 // SDL log category names
-static const char *SDL_category[SDL_LOG_CATEGORY_RESERVED1] = {
-    "APP", "ERROR", "SYSTEM", "AUDIO", "VIDEO", "RENDER", "INPUT"
-};
+static const char *SDL_category[SDL_LOG_CATEGORY_RESERVED1] = {"APP",   "ERROR",  "SYSTEM", "AUDIO",
+                                                               "VIDEO", "RENDER", "INPUT"};
 // Conversion between SDL priorities and our MessageTypes
-static MessageType SDL_to_MT[SDL_NUM_LOG_PRIORITIES] = {
-    kDbgMsg_None, kDbgMsg_All, kDbgMsg_Debug, kDbgMsg_Info, kDbgMsg_Warn, kDbgMsg_Error, kDbgMsg_Alert
-};
+static MessageType SDL_to_MT[SDL_NUM_LOG_PRIORITIES] = {kDbgMsg_None, kDbgMsg_All,   kDbgMsg_Debug, kDbgMsg_Info,
+                                                        kDbgMsg_Warn, kDbgMsg_Error, kDbgMsg_Alert};
 // Print SDL message through our own log
-void SDL_Log_Output(void* /*userdata*/, int category, SDL_LogPriority priority, const char *message) {
+void SDL_Log_Output(void * /*userdata*/, int category, SDL_LogPriority priority, const char *message)
+{
     DbgMgr.Print(kDbgGroup_SDL, SDL_to_MT[priority],
-        String::FromFormat("%s: %s: %s", SDL_category[category], SDL_priority[priority], message));
+                 String::FromFormat("%s: %s: %s", SDL_category[category], SDL_priority[priority], message));
 }
 
 // ----------------------------------------------------------------------------
@@ -163,8 +159,9 @@ void SDL_Log_Output(void* /*userdata*/, int category, SDL_LogPriority priority, 
 // ----------------------------------------------------------------------------
 
 // Create a new log output by ID
-static std::unique_ptr<IOutputHandler> create_log_output(const String &name,
-    const String &dir = "", const String &filename = "", LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
+static std::unique_ptr<IOutputHandler> create_log_output(const String &name, const String &dir = "",
+                                                         const String &filename = "",
+                                                         LogFile::OpenMode open_mode = LogFile::kLogFile_Overwrite)
 {
     if (name.CompareNoCase(OutputSystemID) == 0)
     {
@@ -192,8 +189,7 @@ static std::unique_ptr<IOutputHandler> create_log_output(const String &name,
             return nullptr;
         return std::move(log_file);
     }
-    else if (name.CompareNoCase(OutputDebuggerLogID) == 0 &&
-        editor_debugger != nullptr)
+    else if (name.CompareNoCase(OutputDebuggerLogID) == 0 && editor_debugger != nullptr)
     {
         return std::make_unique<DebuggerLogOutputTarget>(editor_debugger);
     }
@@ -222,17 +218,17 @@ std::vector<String> parse_log_multigroup(const String &group_str)
 
 MessageType get_messagetype_from_string(const String &option)
 {
-    if (option.CompareNoCase("all") == 0) return kDbgMsg_All;
-    return StrUtil::ParseEnumAllowNum<MessageType>(option,
-        CstrArr<kNumDbgMsg>{"", "alert", "fatal", "error", "warn", "info", "debug"},
-        kDbgMsg_None, kDbgMsg_None);
+    if (option.CompareNoCase("all") == 0)
+        return kDbgMsg_All;
+    return StrUtil::ParseEnumAllowNum<MessageType>(
+        option, CstrArr<kNumDbgMsg>{"", "alert", "fatal", "error", "warn", "info", "debug"}, kDbgMsg_None,
+        kDbgMsg_None);
 }
 
 typedef std::pair<CommonDebugGroup, MessageType> DbgGroupOption;
 
-static void apply_log_config(const ConfigTree &cfg, const String &log_id,
-                      bool def_enabled,
-                      std::initializer_list<DbgGroupOption> def_opts)
+static void apply_log_config(const ConfigTree &cfg, const String &log_id, bool def_enabled,
+                             std::initializer_list<DbgGroupOption> def_opts)
 {
     const String value = CfgReadString(cfg, "log", log_id);
     if (value.IsEmpty() && !def_enabled)
@@ -299,8 +295,8 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
     // Setup SDL output
     SDL_LogSetOutputFunction(SDL_Log_Output, nullptr);
     String sdl_log = CfgReadString(cfg, "log", "sdl");
-    SDL_LogPriority priority = StrUtil::ParseEnumAllowNum<SDL_LogPriority>(sdl_log,
-        CstrArr<SDL_NUM_LOG_PRIORITIES>{"all", "verbose", "debug", "info", "warn", "error", "critical"},
+    SDL_LogPriority priority = StrUtil::ParseEnumAllowNum<SDL_LogPriority>(
+        sdl_log, CstrArr<SDL_NUM_LOG_PRIORITIES>{"all", "verbose", "debug", "info", "warn", "error", "critical"},
         static_cast<SDL_LogPriority>(0), SDL_LOG_PRIORITY_INFO);
     SDL_LogSetAllPriority(priority);
 
@@ -314,31 +310,30 @@ void init_debug(const ConfigTree &cfg, bool stderr_only)
 void apply_debug_config(const ConfigTree &cfg, bool finalize)
 {
     apply_log_config(cfg, OutputSystemID, /* defaults */ true,
-        { DbgGroupOption(kDbgGroup_Main, kDbgMsg_Info),
-          DbgGroupOption(kDbgGroup_SDL, kDbgMsg_Info),
-          DbgGroupOption(kDbgGroup_Plugin, kDbgMsg_Info)
-        });
+                     {DbgGroupOption(kDbgGroup_Main, kDbgMsg_Info), DbgGroupOption(kDbgGroup_SDL, kDbgMsg_Info),
+                      DbgGroupOption(kDbgGroup_Plugin, kDbgMsg_Info)});
     bool legacy_log_enabled = CfgReadBoolInt(cfg, "misc", "log", false);
 
     apply_log_config(cfg, OutputFileID,
-        /* defaults */
-        legacy_log_enabled,
-        { DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
-          DbgGroupOption(kDbgGroup_SDL, kDbgMsg_Info),
-          DbgGroupOption(kDbgGroup_Plugin, kDbgMsg_Info),
-          DbgGroupOption(kDbgGroup_Game, kDbgMsg_Info),
-          DbgGroupOption(kDbgGroup_Script, kDbgMsg_All),
+                     /* defaults */
+                     legacy_log_enabled,
+                     {
+                         DbgGroupOption(kDbgGroup_Main, kDbgMsg_All),
+                         DbgGroupOption(kDbgGroup_SDL, kDbgMsg_Info),
+                         DbgGroupOption(kDbgGroup_Plugin, kDbgMsg_Info),
+                         DbgGroupOption(kDbgGroup_Game, kDbgMsg_Info),
+                         DbgGroupOption(kDbgGroup_Script, kDbgMsg_All),
 #if DEBUG_SPRITECACHE
-          DbgGroupOption(kDbgGroup_SprCache, kDbgMsg_All),
+                         DbgGroupOption(kDbgGroup_SprCache, kDbgMsg_All),
 #else
-          DbgGroupOption(kDbgGroup_SprCache, kDbgMsg_Info),
+                         DbgGroupOption(kDbgGroup_SprCache, kDbgMsg_Info),
 #endif
 #if DEBUG_MANAGED_OBJECTS
-          DbgGroupOption(kDbgGroup_ManObj, kDbgMsg_All),
+                         DbgGroupOption(kDbgGroup_ManObj, kDbgMsg_All),
 #else
-          DbgGroupOption(kDbgGroup_ManObj, kDbgMsg_Info),
+                         DbgGroupOption(kDbgGroup_ManObj, kDbgMsg_Info),
 #endif
-        });
+                     });
 
     // If the game was compiled in Debug mode *and* there's no regular file log,
     // then open "warnings.log" for printing script warnings.
@@ -380,12 +375,11 @@ void debug_script_event(MessageType mt, const String &msg)
     if (scriptExecutor && scriptExecutor->GetRunningScript())
     {
         const auto &scriptname = scriptExecutor->GetRunningScript()->GetSectionOrScriptName(scriptExecutor->GetPC());
-        scriptname.IsEmpty() ?
-            locinfo.AppendFmt("[?:%d]", currentline) :
-            locinfo.AppendFmt("[%s:%d]", scriptname.GetCStr(), currentline);
+        scriptname.IsEmpty() ? locinfo.AppendFmt("[?:%d]", currentline)
+                             : locinfo.AppendFmt("[%s:%d]", scriptname.GetCStr(), currentline);
     }
 
-    static const char *msgtype[kNumDbgMsg] = { "", "[ALERT]", "[FATAL]", "[ERROR]", "[WARN]", "", "" };
+    static const char *msgtype[kNumDbgMsg] = {"", "[ALERT]", "[FATAL]", "[ERROR]", "[WARN]", "", ""};
     Debug::Printf(kDbgGroup_Game, mt, "%s%s %s", locinfo.GetCStr(), msgtype[mt], msg.GetCStr());
 
     // A (possibly) temporary solution to making script errors stand out more to the game developer or testers:
@@ -409,19 +403,18 @@ struct Breakpoint
 
 std::vector<Breakpoint> breakpoints;
 
-bool send_state_to_debugger(const String& msg, const String& errorMsg)
+bool send_state_to_debugger(const String &msg, const String &errorMsg)
 {
     // Get either saved callstack from a script error, or current execution point
-    String callStack = (!errorMsg.IsEmpty() && cc_has_error()) ?
-        cc_get_error().CallStack : cc_get_callstack();
+    String callStack = (!errorMsg.IsEmpty() && cc_has_error()) ? cc_get_error().CallStack : cc_get_callstack();
     if (callStack.IsEmpty())
         return false;
 
-    std::vector<std::pair<String, String>> scipt_info = { { "ScriptState", callStack } };
+    std::vector<std::pair<String, String>> scipt_info = {{"ScriptState", callStack}};
 
     if (!errorMsg.IsEmpty())
     {
-        scipt_info.emplace_back( "ErrorMessage", errorMsg );
+        scipt_info.emplace_back("ErrorMessage", errorMsg);
     }
 
     send_message_to_debugger(editor_debugger, scipt_info, msg);
@@ -433,7 +426,7 @@ bool send_state_to_debugger(const char *msg)
     return send_state_to_debugger(String(msg), String());
 }
 
-bool init_editor_debugging(const ConfigTree &cfg) 
+bool init_editor_debugging(const ConfigTree &cfg)
 {
 #if AGS_PLATFORM_OS_WINDOWS
     editor_debugger = GetEditorDebugger(editor_debugger_instance_token);
@@ -477,7 +470,7 @@ DebuggerResponse check_for_messages_from_debugger()
             return kDbgResponse_Empty;
         }
 
-        if (strncmp(msg, "<Engine Command=\"", 17) != 0) 
+        if (strncmp(msg, "<Engine Command=\"", 17) != 0)
         {
             Debug::Printf(kDbgMsg_Warn, "Debugger: faulty message received:");
             Debug::Printf(kDbgMsg_Warn, "Debugger: %s", msg);
@@ -500,8 +493,7 @@ DebuggerResponse check_for_messages_from_debugger()
         {
             response = kDbgResponse_Ready;
         }
-        else if ((strncmp(msgPtr, "SETBREAK", 8) == 0) ||
-            (strncmp(msgPtr, "DELBREAK", 8) == 0))
+        else if ((strncmp(msgPtr, "SETBREAK", 8) == 0) || (strncmp(msgPtr, "DELBREAK", 8) == 0))
         {
             bool isDelete = (msgPtr[0] == 'D');
             // Format:  SETBREAK $scriptname$lineNumber$
@@ -516,7 +508,7 @@ DebuggerResponse check_for_messages_from_debugger()
 
             int lineNumber = atoi(msgPtr);
 
-            if (isDelete) 
+            if (isDelete)
             {
                 for (size_t i = 0; i < breakpoints.size(); ++i)
                 {
@@ -529,7 +521,7 @@ DebuggerResponse check_for_messages_from_debugger()
                     }
                 }
             }
-            else 
+            else
             {
                 Breakpoint bp;
                 snprintf(bp.scriptName, sizeof(Breakpoint::scriptName), "%s", scriptNameBuf);
@@ -538,20 +530,20 @@ DebuggerResponse check_for_messages_from_debugger()
                 Debug::Printf("Debugger: breakpoint set at %s : %d", scriptNameBuf, lineNumber);
             }
         }
-        else if (strncmp(msgPtr, "RESUME", 6) == 0) 
+        else if (strncmp(msgPtr, "RESUME", 6) == 0)
         {
             Debug::Printf("Debugger: resume engine");
             game_paused_in_debugger = 0;
             response = kDbgResponse_Resume;
         }
-        else if (strncmp(msgPtr, "STEP", 4) == 0) 
+        else if (strncmp(msgPtr, "STEP", 4) == 0)
         {
             Debug::Printf("Debugger: step script");
             game_paused_in_debugger = 0;
             break_on_next_script_step = 1;
             response = kDbgResponse_Step;
         }
-        else if (strncmp(msgPtr, "EXIT", 4) == 0) 
+        else if (strncmp(msgPtr, "EXIT", 4) == 0)
         {
             Debug::Printf(kDbgMsg_Info, "Debugger: shutdown engine");
             want_exit = true;
@@ -608,8 +600,6 @@ DebuggerResponse check_for_messages_from_debugger()
 }
 
 
-
-
 bool send_exception_to_debugger(const char *qmsg)
 {
 #if AGS_PLATFORM_OS_WINDOWS
@@ -634,7 +624,7 @@ bool send_exception_to_debugger(const char *qmsg)
 }
 
 
-void break_into_debugger() 
+void break_into_debugger()
 {
 #if AGS_PLATFORM_OS_WINDOWS
 
@@ -646,7 +636,7 @@ void break_into_debugger()
 
     game_paused_in_debugger = 1;
 
-    while (game_paused_in_debugger) 
+    while (game_paused_in_debugger)
     {
         update_polled_stuff();
         platform->YieldCPU();
@@ -675,7 +665,7 @@ void scriptDebugHook(ScriptExecutor *exec, int linenum)
     }
 
     // no plugin, use built-in debugger
-    if (break_on_next_script_step) 
+    if (break_on_next_script_step)
     {
         break_on_next_script_step = 0;
         break_into_debugger();
@@ -683,10 +673,9 @@ void scriptDebugHook(ScriptExecutor *exec, int linenum)
     }
 
     String scriptName = exec->GetRunningScript()->GetSectionName(exec->GetPC());
-    for (const auto & breakpoint : breakpoints)
+    for (const auto &breakpoint : breakpoints)
     {
-        if ((breakpoint.lineNumber == linenum) &&
-            (scriptName.Compare(breakpoint.scriptName) == 0))
+        if ((breakpoint.lineNumber == linenum) && (scriptName.Compare(breakpoint.scriptName) == 0))
         {
             break_into_debugger();
             break;
@@ -696,19 +685,19 @@ void scriptDebugHook(ScriptExecutor *exec, int linenum)
 
 int scrlockWasDown = 0;
 
-void check_debug_keys() {
-    if (play.debug_mode) {
+void check_debug_keys()
+{
+    if (play.debug_mode)
+    {
         // do the run-time script debugging
 
         const Uint8 *ks = SDL_GetKeyboardState(nullptr);
         if ((!ks[SDL_SCANCODE_SCROLLLOCK]) && (scrlockWasDown))
             scrlockWasDown = 0;
-        else if ((ks[SDL_SCANCODE_SCROLLLOCK]) && (!scrlockWasDown)) {
-
+        else if ((ks[SDL_SCANCODE_SCROLLLOCK]) && (!scrlockWasDown))
+        {
             break_on_next_script_step = 1;
             scrlockWasDown = 1;
         }
-
     }
-
 }

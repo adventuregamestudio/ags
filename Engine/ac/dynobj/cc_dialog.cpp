@@ -22,21 +22,24 @@ using namespace AGS::Common;
 extern std::vector<int> StaticDialogArray;
 
 // return the type name of the object
-const char *CCDialog::GetType() {
+const char *CCDialog::GetType()
+{
     return "Dialog";
 }
 
-size_t CCDialog::CalcSerializeSize(const void* /*address*/)
+size_t CCDialog::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCDialog::Serialize(const void *address, Stream *out) {
-    const ScriptDialog *shh = static_cast<const ScriptDialog*>(address);
+void CCDialog::Serialize(const void *address, Stream *out)
+{
+    const ScriptDialog *shh = static_cast<const ScriptDialog *>(address);
     out->WriteInt32(shh->id);
 }
 
-void CCDialog::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void CCDialog::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
     int num = in->ReadInt32();
     StaticDialogArray[num] = ccRegisterUnserializedPersistentObject(index, &scrDialog[num], this);
 }

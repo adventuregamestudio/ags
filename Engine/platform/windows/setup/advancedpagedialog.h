@@ -35,8 +35,7 @@ using namespace AGS::Common;
 class AdvancedPageDialog : public WinSetupPageDialog
 {
 public:
-    AdvancedPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in)
-        : WinSetupPageDialog(win_cfg, cfg_in) {}
+    AdvancedPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in) : WinSetupPageDialog(win_cfg, cfg_in) {}
 
     String GetTitle() const override { return "Advanced"; }
 
@@ -84,8 +83,7 @@ private:
 class GameFilesPageDialog : public WinSetupPageDialog
 {
 public:
-    GameFilesPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in)
-        : WinSetupPageDialog(win_cfg, cfg_in) {}
+    GameFilesPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in) : WinSetupPageDialog(win_cfg, cfg_in) {}
 
     String GetTitle() const override { return "Game Files"; }
 
@@ -125,9 +123,9 @@ class AccessibilityPageDialog : public WinSetupPageDialog
 {
 public:
     AccessibilityPageDialog(WinConfig &win_cfg, const ConfigTree &cfg_in, ConfigTree &cfg_out)
-        : WinSetupPageDialog(win_cfg, cfg_in)
-        , _cfgOut(cfg_out)
-    {}
+        : WinSetupPageDialog(win_cfg, cfg_in), _cfgOut(cfg_out)
+    {
+    }
 
     static bool ShouldDisplayPage(const ConfigTree &cfg_in);
 
@@ -145,7 +143,7 @@ protected:
     INT_PTR OnCommand(WORD id) override;
 
 private:
-    static const int TextReadSpeedMin = 0; // 0 means "use game defaults"
+    static const int TextReadSpeedMin = 0;  // 0 means "use game defaults"
     static const int TextReadSpeedMax = 30; // double of the default AGS "15"
 
     // Event handlers

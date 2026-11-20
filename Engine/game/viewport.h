@@ -35,8 +35,9 @@ typedef std::weak_ptr<Viewport> ViewportRef;
 // TODO: move to utility header
 // From https://stackoverflow.com/questions/45507041/how-to-check-if-weak-ptr-is-empty-non-assigned
 // Tests that weak_ptr is empty (was not initialized with valid reference)
-template <typename T>
-bool is_uninitialized(std::weak_ptr<T> const& weak) {
+template<typename T>
+bool is_uninitialized(std::weak_ptr<T> const &weak)
+{
     using wt = std::weak_ptr<T>;
     return !weak.owner_before(wt{}) && !wt{}.owner_before(weak);
 }
@@ -73,7 +74,11 @@ public:
     Pointf GetEffectivePivot() const;
     int GetShaderID() const { return _shaderID; }
     int GetShaderHandle() const { return _shaderHandle; }
-    void SetShader(int shader_id, int shader_handle) { _shaderID = shader_id; _shaderHandle = shader_handle; }
+    void SetShader(int shader_id, int shader_handle)
+    {
+        _shaderID = shader_id;
+        _shaderHandle = shader_handle;
+    }
 
     // Tells if camera is currently locked at custom position
     bool IsLocked() const;
@@ -163,7 +168,11 @@ public:
 
     int GetShaderID() const { return _shaderID; }
     int GetShaderHandle() const { return _shaderHandle; }
-    void SetShader(int shader_id, int shader_handle) { _shaderID = shader_id; _shaderHandle = shader_handle; }
+    void SetShader(int shader_id, int shader_handle)
+    {
+        _shaderID = shader_id;
+        _shaderHandle = shader_handle;
+    }
 
     // Calculates room-to-viewport coordinate conversion.
     void AdjustTransformation();

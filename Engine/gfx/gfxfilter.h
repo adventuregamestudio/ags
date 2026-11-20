@@ -32,19 +32,16 @@ using Common::String;
 
 struct GfxFilterInfo
 {
-    String   Id;
-    String   Name;
-    int      MinScale;
-    int      MaxScale;
+    String Id;
+    String Name;
+    int MinScale;
+    int MaxScale;
 
-    GfxFilterInfo()
-    {}
+    GfxFilterInfo() {}
     GfxFilterInfo(String id, String name, int min_scale = 0, int max_scale = 0)
-        : Id(id)
-        , Name(name)
-        , MinScale(min_scale)
-        , MaxScale(max_scale)
-    {}
+        : Id(id), Name(name), MinScale(min_scale), MaxScale(max_scale)
+    {
+    }
 };
 
 class IGfxFilter

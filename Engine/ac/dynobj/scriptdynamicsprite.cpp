@@ -20,7 +20,8 @@ using namespace AGS::Common;
 
 const char *ScriptDynamicSprite::TypeID = "DynamicSprite";
 
-int ScriptDynamicSprite::Dispose(void* /*address*/, bool force) {
+int ScriptDynamicSprite::Dispose(void * /*address*/, bool force)
+{
     // always dispose
     if ((slot) && (!force))
     {
@@ -32,25 +33,29 @@ int ScriptDynamicSprite::Dispose(void* /*address*/, bool force) {
     return 1;
 }
 
-const char *ScriptDynamicSprite::GetType() {
+const char *ScriptDynamicSprite::GetType()
+{
     return ScriptDynamicSprite::TypeID;
 }
 
-size_t ScriptDynamicSprite::CalcSerializeSize(const void* /*address*/)
+size_t ScriptDynamicSprite::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void ScriptDynamicSprite::Serialize(const void* /*address*/, Stream *out) {
+void ScriptDynamicSprite::Serialize(const void * /*address*/, Stream *out)
+{
     out->WriteInt32(slot);
 }
 
-void ScriptDynamicSprite::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void ScriptDynamicSprite::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
     slot = in->ReadInt32();
     ccRegisterUnserializedObject(index, this, this);
 }
 
-ScriptDynamicSprite::ScriptDynamicSprite(int theSlot) {
+ScriptDynamicSprite::ScriptDynamicSprite(int theSlot)
+{
     slot = theSlot;
     ccRegisterManagedObject(this, this);
 }

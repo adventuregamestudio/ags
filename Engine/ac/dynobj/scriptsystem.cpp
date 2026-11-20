@@ -28,9 +28,7 @@ int32_t ScriptSystem::ReadInt32(const void *address, intptr_t offset)
     case 5: return vsync;
     case 6: return viewport_width;
     case 7: return viewport_height;
-    default:
-        cc_error("ScriptSystem: unsupported variable offset %" PRIdPTR, offset);
-        return 0;
+    default: cc_error("ScriptSystem: unsupported variable offset %" PRIdPTR, offset); return 0;
     }
 }
 
@@ -46,11 +44,10 @@ void ScriptSystem::WriteInt32(void *address, intptr_t offset, int32_t val)
     case 4:
     case 6:
     case 7:
-        debug_script_warn("ScriptSystem: attempt to write in readonly variable at offset %" PRIdPTR ", value %d", offset, val);
+        debug_script_warn("ScriptSystem: attempt to write in readonly variable at offset %" PRIdPTR ", value %d",
+                          offset, val);
         break;
     case 5: vsync = val; break;
-    default:
-        cc_error("ScriptSystem: unsupported variable offset %" PRIdPTR, offset);
-        break;
+    default: cc_error("ScriptSystem: unsupported variable offset %" PRIdPTR, offset); break;
     }
 }

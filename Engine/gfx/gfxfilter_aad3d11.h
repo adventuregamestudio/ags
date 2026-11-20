@@ -15,9 +15,9 @@ class AAD3D11GfxFilter : public D3D11GfxFilter
 public:
     static const GfxFilterInfo FilterInfo;
 
-    const GfxFilterInfo& GetInfo() const;
+    const GfxFilterInfo &GetInfo() const;
     int GetSamplerStateForStandardSprite();
-    void SetSamplerStateForStandardSprite(void* direct3dcontext);
+    void SetSamplerStateForStandardSprite(void *direct3dcontext);
     bool NeedToColourEdgeLines();
 };
 

@@ -34,8 +34,8 @@ public:
     bool IsValid() override { return _pf != nullptr; }
 
 private:
-    Common::HError OpenImpl(std::unique_ptr<Common::Stream> data_stream,
-        const String &name, int &flags, int target_depth) override;
+    Common::HError OpenImpl(std::unique_ptr<Common::Stream> data_stream, const String &name, int &flags,
+                            int target_depth) override;
     void CloseImpl() override;
     // Retrieves next video frame, implementation-specific
     bool NextVideoFrame(Common::Bitmap *dst, float &ts) override;

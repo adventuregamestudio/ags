@@ -19,18 +19,18 @@
 #define __AGS_EE_GUI__GUIDIALOGDEFINES_H
 
 // These were GlobalMessages (984 - 995).
-#define MSG_RESTORE      0     // "Restore"
-#define MSG_CANCEL       1     // "Cancel"
-#define MSG_SELECTLOAD   2     // "Select game to restore"
-#define MSG_SAVEBUTTON   3     // "Save"
-#define MSG_SAVEDIALOG   4     // "Save game name:"
-#define MSG_REPLACE      5     // "Replace"
-#define MSG_MUSTREPLACE  6     // "The folder is full. you must replace"
-#define MSG_REPLACEWITH1 7     // "Replace:"
-#define MSG_REPLACEWITH2 8     // "With:"
-#define MSG_QUITBUTTON   9     // "Quit"
-#define MSG_PLAYBUTTON   10    // "Play"
-#define MSG_QUITDIALOG   11    // "Do you want to quit?"
+#define MSG_RESTORE      0  // "Restore"
+#define MSG_CANCEL       1  // "Cancel"
+#define MSG_SELECTLOAD   2  // "Select game to restore"
+#define MSG_SAVEBUTTON   3  // "Save"
+#define MSG_SAVEDIALOG   4  // "Save game name:"
+#define MSG_REPLACE      5  // "Replace"
+#define MSG_MUSTREPLACE  6  // "The folder is full. you must replace"
+#define MSG_REPLACEWITH1 7  // "Replace:"
+#define MSG_REPLACEWITH2 8  // "With:"
+#define MSG_QUITBUTTON   9  // "Quit"
+#define MSG_PLAYBUTTON   10 // "Play"
+#define MSG_QUITDIALOG   11 // "Do you want to quit?"
 #define NUM_GUIDIALOGMSG 12
 
 /*#define COL251 26
@@ -49,17 +49,17 @@
 #define CNT_LABEL      0x003
 #define CNT_TEXTBOX    0x004
 // Control properties
-#define CNF_DEFAULT    0x100
-#define CNF_CANCEL     0x200
+#define CNF_DEFAULT 0x100
+#define CNF_CANCEL  0x200
 
 // Dialog messages
 #define CM_COMMAND   1
 #define CM_KEYPRESS  2
 #define CM_SELCHANGE 3
 // System messages
-#define SM_SAVEGAME  100
-#define SM_LOADGAME  101
-#define SM_QUIT      102
+#define SM_SAVEGAME 100
+#define SM_LOADGAME 101
+#define SM_QUIT     102
 // System messages (to ADVEN)
 #define SM_SETTRANSFERMEM 120
 #define SM_GETINIVALUE    121
@@ -75,12 +75,18 @@
 #define CLB_SETTEXT   5
 #define CLB_SETCURSEL 6
 // TextBox messages
-#define CTB_GETTEXT   1
-#define CTB_SETTEXT   2
+#define CTB_GETTEXT 1
+#define CTB_SETTEXT 2
 
 #define CTB_KEYPRESS 91
 
-namespace AGS { namespace Common { class Bitmap; } }
+namespace AGS
+{
+namespace Common
+{
+class Bitmap;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 struct CSCIMessage

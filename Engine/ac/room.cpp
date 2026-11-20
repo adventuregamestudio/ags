@@ -73,10 +73,10 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern GameSetupStruct game;
-extern RoomStatus*croom;
-extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
+extern RoomStatus *croom;
+extern RoomStatus troom; // used for non-saveable rooms, eg. intro
 extern int displayed_room;
-extern RoomObject*objs;
+extern RoomObject *objs;
 extern AGSPlatformDriver *platform;
 extern bool done_as_error;
 extern Bitmap *walkareabackup, *walkable_areas_temp;
@@ -84,9 +84,9 @@ extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern SpriteCache spriteset;
 extern EnterNewRoomState in_new_room, new_room_was;
 extern int in_leaves_screen;
-extern CharacterInfo*playerchar;
+extern CharacterInfo *playerchar;
 extern std::vector<CharacterExtras> charextra;
-extern IDriverDependantBitmap* roomBackgroundBmp;
+extern IDriverDependantBitmap *roomBackgroundBmp;
 extern IGraphicsDriver *gfxDriver;
 extern RGB palette[256];
 extern bool logScriptRTTI, logScriptTOC;
@@ -108,15 +108,15 @@ extern std::vector<int> StaticWalkareaArray;
 extern std::vector<int> StaticWalkbehindArray;
 
 std::unique_ptr<MaskRouteFinder> room_pathfinder;
-RGB_MAP rgb_table;  // for 256-col antialiasing
-int new_room_flags=0;
+RGB_MAP rgb_table; // for 256-col antialiasing
+int new_room_flags = 0;
 // TODO: find a way to merge these with DynamicSpriteDSRef
 // Drawing Surface handles, for backgrounds
 std::vector<int> RoomBgDS;
 // Drawing Surface handles, for room masks
 int RoomMaskDS[kNumRoomAreaTypes];
 
-ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
+ScriptDrawingSurface *Room_GetDrawingSurfaceForBackground(int backgroundNumber)
 {
     if (displayed_room < 0)
         quit("!Room.GetDrawingSurfaceForBackground: no room is currently loaded");
@@ -128,7 +128,9 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
 
     if ((backgroundNumber < 0) || (static_cast<uint32_t>(backgroundNumber) >= thisroom.BgFrameCount))
     {
-        debug_script_warn("Room.GetDrawingSurfaceForBackground: invalid background number specified: %d, valid range in this room is 0..%u", backgroundNumber, thisroom.BgFrameCount - 1);
+        debug_script_warn(
+            "Room.GetDrawingSurfaceForBackground: invalid background number specified: %d, valid range in this room is 0..%u",
+            backgroundNumber, thisroom.BgFrameCount - 1);
         return nullptr;
     }
 
@@ -142,14 +144,15 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
     return surface;
 }
 
-ScriptDrawingSurface* Room_GetDrawingSurfaceForMask(RoomAreaMask mask)
+ScriptDrawingSurface *Room_GetDrawingSurfaceForMask(RoomAreaMask mask)
 {
     if (displayed_room < 0)
         quit("!Room_GetDrawingSurfaceForMask: no room is currently loaded");
 
     if (mask <= kRoomAreaNone || mask >= kNumRoomAreaTypes)
     {
-        debug_script_warn("Room.GetDrawingSurfaceForMask: invalid mask index specified: %d, valid range is %d..%d", mask, kRoomAreaHotspot, kRoomAreaRegion);
+        debug_script_warn("Room.GetDrawingSurfaceForMask: invalid mask index specified: %d, valid range is %d..%d",
+                          mask, kRoomAreaHotspot, kRoomAreaRegion);
         return nullptr;
     }
 
@@ -163,67 +166,79 @@ ScriptDrawingSurface* Room_GetDrawingSurfaceForMask(RoomAreaMask mask)
     return surface;
 }
 
-int Room_GetHotspotCount() {
+int Room_GetHotspotCount()
+{
     return MAX_ROOM_HOTSPOTS;
 }
 
-int Room_GetObjectCount() {
+int Room_GetObjectCount()
+{
     return croom->numobj;
 }
 
-int Room_GetRegionCount() {
+int Room_GetRegionCount()
+{
     return MAX_ROOM_REGIONS;
 }
 
-int Room_GetWalkableAreaCount() {
+int Room_GetWalkableAreaCount()
+{
     return MAX_WALK_AREAS;
 }
 
-int Room_GetWalkbehindCount() {
+int Room_GetWalkbehindCount()
+{
     return MAX_WALK_BEHINDS;
 }
 
-int Room_GetWidth() {
+int Room_GetWidth()
+{
     return thisroom.Width;
 }
 
-int Room_GetHeight() {
+int Room_GetHeight()
+{
     return thisroom.Height;
 }
 
-int Room_GetColorDepth() {
+int Room_GetColorDepth()
+{
     return thisroom.BgImages[0]->GetColorDepth();
 }
 
-int Room_GetBackgroundCount() {
+int Room_GetBackgroundCount()
+{
     return thisroom.BgFrameCount;
 }
 
 ScriptShaderInstance *Room_GetBackgroundShader()
 {
-    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(
-        croom->GetBgShaderHandle()));
+    return static_cast<ScriptShaderInstance *>(ccGetObjectAddressFromHandle(croom->GetBgShaderHandle()));
 }
 
 void Room_SetBackgroundShader(ScriptShaderInstance *shader_inst)
 {
     croom->SetBgShader(shader_inst ? shader_inst->GetID() : ScriptShaderInstance::NullInstanceID,
-                         ccReplaceObjectHandle(croom->GetBgShaderHandle(), shader_inst));
+                       ccReplaceObjectHandle(croom->GetBgShaderHandle(), shader_inst));
 }
 
-int Room_GetLeftEdge() {
+int Room_GetLeftEdge()
+{
     return thisroom.Edges.Left;
 }
 
-int Room_GetRightEdge() {
+int Room_GetRightEdge()
+{
     return thisroom.Edges.Right;
 }
 
-int Room_GetTopEdge() {
+int Room_GetTopEdge()
+{
     return thisroom.Edges.Top;
 }
 
-int Room_GetBottomEdge() {
+int Room_GetBottomEdge()
+{
     return thisroom.Edges.Bottom;
 }
 
@@ -232,7 +247,7 @@ int Room_GetProperty(const char *property)
     return get_int_property(thisroom.Properties, croom->roomProps, property);
 }
 
-const char* Room_GetTextProperty(const char *property)
+const char *Room_GetTextProperty(const char *property)
 {
     return get_text_property_dynamic_string(thisroom.Properties, croom->roomProps, property);
 }
@@ -280,7 +295,7 @@ ScriptUserObject *Room_NearestWalkableArea(int x, int y)
         quit("!Room.NearestWalkableArea: no room is currently loaded");
     Point found_pt;
     if (Pathfinding::FindNearestWalkablePoint(thisroom.WalkAreaMask.get(),
-        Point(room_to_mask_coord(x), room_to_mask_coord(y)), found_pt))
+                                              Point(room_to_mask_coord(x), room_to_mask_coord(y)), found_pt))
     {
         return ScriptStructHelpers::CreatePoint(mask_to_room_coord(found_pt.X), mask_to_room_coord(found_pt.Y));
     }
@@ -307,42 +322,42 @@ ScriptDrawingSurface *Region_GetDrawingSurface()
     return Room_GetDrawingSurfaceForMask(kRoomAreaRegion);
 }
 
-ScriptHotspot* Room_GetiHotspots(int idx)
+ScriptHotspot *Room_GetiHotspots(int idx)
 {
     if ((idx < 0) || (idx >= MAX_ROOM_HOTSPOTS))
         return nullptr;
     return &scrHotspot[idx];
 }
 
-ScriptObject* Room_GetiObjects(int idx)
+ScriptObject *Room_GetiObjects(int idx)
 {
     if ((idx < 0) || (idx >= MAX_ROOM_OBJECTS))
         return nullptr;
     return &scrObj[idx];
 }
 
-ScriptRegion* Room_GetiRegions(int idx)
+ScriptRegion *Room_GetiRegions(int idx)
 {
     if ((idx < 0) || (idx >= MAX_ROOM_REGIONS))
         return nullptr;
     return &scrRegion[idx];
 }
 
-ScriptWalkableArea* Room_GetiWalkableAreas(int idx)
+ScriptWalkableArea *Room_GetiWalkableAreas(int idx)
 {
     if ((idx < 0) || (idx >= MAX_WALK_AREAS))
         return nullptr;
     return &scrWalkarea[idx];
 }
 
-ScriptWalkbehind* Room_GetiWalkbehinds(int idx)
+ScriptWalkbehind *Room_GetiWalkbehinds(int idx)
 {
     if ((idx < 0) || (idx >= MAX_WALK_BEHINDS))
         return nullptr;
     return &scrWalkbehind[idx];
 }
 
-ScriptPathfinder* Room_GetPathFinder()
+ScriptPathfinder *Room_GetPathFinder()
 {
     return RoomPathfinder::Create();
 }
@@ -385,14 +400,14 @@ void unload_old_room()
 
     dispose_room_drawdata();
 
-    for (uint32_t ff=0;ff<croom->numobj;ff++)
+    for (uint32_t ff = 0; ff < croom->numobj; ff++)
         objs[ff].moving = 0;
 
     AbortAllScripts();
     // Invalidate and detach any active DrawingSurfaces connected to this room
     detach_room_bg_surfaces();
 
-    events.clear();  // cancel any pending room events
+    events.clear(); // cancel any pending room events
 
     if (roomBackgroundBmp != nullptr)
     {
@@ -400,13 +415,16 @@ void unload_old_room()
         roomBackgroundBmp = nullptr;
     }
 
-    if (croom==nullptr) ;
-    else if (roomscript) {
+    if (croom == nullptr)
+        ;
+    else if (roomscript)
+    {
         save_room_data_segment();
         FreeRoomScript();
     }
-    else croom->tsdatasize=0;
-    memset(&play.walkable_areas_on[0],1,MAX_WALK_AREAS);
+    else
+        croom->tsdatasize = 0;
+    memset(&play.walkable_areas_on[0], 1, MAX_WALK_AREAS);
     play.bg_frame = 0;
     play.bg_frame_locked = 0;
     remove_all_overlays();
@@ -415,7 +433,8 @@ void unload_old_room()
         play.room_mask_modified[i] = false;
 
     // ensure that any half-moves (eg. with scaled movement) are stopped
-    for (int ff = 0; ff < game.numcharacters; ff++) {
+    for (int ff = 0; ff < game.numcharacters; ff++)
+    {
         charextra[ff].xwas = INVALID_X;
     }
 
@@ -460,7 +479,8 @@ void unload_old_room()
     clear_drawobj_cache(true /* keep object callbacks */);
 
     // if Hide Player Character was ticked, restore it to visible
-    if (play.temporarily_turned_off_character >= 0) {
+    if (play.temporarily_turned_off_character >= 0)
+    {
         game.chars[play.temporarily_turned_off_character].set_enabled(true);
         play.temporarily_turned_off_character = -1;
     }
@@ -512,8 +532,8 @@ HError LoadRoomScript(RoomStruct *room, int newnum)
     {
         auto script = UScript(ccScript::CreateFromStream(in.get()));
         if (!script)
-            return new Error("Failed to load a script module: %s\n%s", filename.GetCStr(), 
-                cc_get_error().ErrorString.GetCStr());
+            return new Error("Failed to load a script module: %s\n%s", filename.GetCStr(),
+                             cc_get_error().ErrorString.GetCStr());
         room->CompiledScript = std::move(script);
     }
     return HError::None();
@@ -558,8 +578,8 @@ static void init_object_states(size_t start, size_t end)
         crobj.spr_offset = trobj.GraphicOffset;
         crobj.UpdateGraphicSpace();
         if (trobj.Sprite > UINT16_MAX)
-            debug_script_warn("Object's (id %d) sprite %d outside of internal range (%d), reset to 0",
-                              i, trobj.Sprite, UINT16_MAX);
+            debug_script_warn("Object's (id %d) sprite %d outside of internal range (%d), reset to 0", i, trobj.Sprite,
+                              UINT16_MAX);
     }
 }
 
@@ -583,8 +603,8 @@ void load_new_room(int newnum, CharacterInfo *forchar)
 
     String room_filename;
     done_as_error = false;
-    play.room_changes ++;
-    displayed_room=newnum;
+    play.room_changes++;
+    displayed_room = newnum;
 
     room_filename.Format("room%d.crm", newnum);
 
@@ -594,11 +614,11 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     HError err = LoadRoom(room_filename, &thisroom, AssetMgr.get(), game.SpriteInfos);
     if (!err)
     {
-        quitprintf("Unable to load the room file '%s'. Error: %s", room_filename.GetCStr(), err->FullMessage().GetCStr());
+        quitprintf("Unable to load the room file '%s'. Error: %s", room_filename.GetCStr(),
+                   err->FullMessage().GetCStr());
     }
 
-    if ((thisroom.GameID != NO_GAME_ID_IN_ROOM_FILE) &&
-        (thisroom.GameID != game.uniqueid))
+    if ((thisroom.GameID != NO_GAME_ID_IN_ROOM_FILE) && (thisroom.GameID != game.uniqueid))
     {
         quitprintf("!Unable to load '%s'. This room file is assigned to a different game.", room_filename.GetCStr());
     }
@@ -607,7 +627,7 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     if (!err)
     {
         quitprintf("!Unable to load script from '%s'. Error: %s", room_filename.GetCStr(),
-            err->FullMessage().GetCStr());
+                   err->FullMessage().GetCStr());
     }
 
     // Optionally dump joint RTTI into the log
@@ -618,7 +638,8 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     // Optionally dump room script's TOC into the log
     if (logScriptTOC && thisroom.CompiledScript && thisroom.CompiledScript->sctoc)
     {
-        Debug::Printf(PrintScriptTOC(*thisroom.CompiledScript->sctoc, thisroom.CompiledScript->sectionNames[0].c_str()));
+        Debug::Printf(
+            PrintScriptTOC(*thisroom.CompiledScript->sctoc, thisroom.CompiledScript->sectionNames[0].c_str()));
     }
 
     set_our_eip(201);
@@ -634,10 +655,12 @@ void load_new_room(int newnum, CharacterInfo *forchar)
         play.bg_frame = 0;
 
     // do the palette
-    for (size_t cc=0;cc<256;cc++) {
-        if (game.paluses[cc]==PAL_BACKGROUND)
-            palette[cc]=thisroom.Palette[cc];
-        else {
+    for (size_t cc = 0; cc < 256; cc++)
+    {
+        if (game.paluses[cc] == PAL_BACKGROUND)
+            palette[cc] = thisroom.Palette[cc];
+        else
+        {
             // copy the gamewide colours into the room palette
             for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
                 thisroom.BgFrames[i].Palette[cc] = palette[cc];
@@ -646,9 +669,8 @@ void load_new_room(int newnum, CharacterInfo *forchar)
 
     for (size_t i = 0; i < thisroom.BgFrameCount; ++i)
     {
-        thisroom.BgImages[i] = PrepareSpriteForUse(
-            thisroom.BgImages[i], false /* no alpha */, false /* no keep mask */,
-            false /* dont care about alpha */, thisroom.BgFrames[i].Palette);
+        thisroom.BgImages[i] = PrepareSpriteForUse(thisroom.BgImages[i], false /* no alpha */, false /* no keep mask */,
+                                                   false /* dont care about alpha */, thisroom.BgFrames[i].Palette);
     }
 
     // If the room script data did not have any name, then assign room filename, primarily for test/debug purposes
@@ -665,13 +687,14 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     // walkable_areas_temp is used by the pathfinder to generate a
     // copy of the walkable areas - allocate it here to save time later
     delete walkable_areas_temp;
-    walkable_areas_temp = BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), 8);
+    walkable_areas_temp =
+        BitmapHelper::CreateBitmap(thisroom.WalkAreaMask->GetWidth(), thisroom.WalkAreaMask->GetHeight(), 8);
 
     // Make a backup copy of the walkable areas prior to
     // any RemoveWalkableArea commands
     delete walkareabackup;
     // copy the walls screen
-    walkareabackup=BitmapHelper::CreateBitmapCopy(thisroom.WalkAreaMask.get());
+    walkareabackup = BitmapHelper::CreateBitmapCopy(thisroom.WalkAreaMask.get());
 
     set_our_eip(204);
     redo_walkable_areas();
@@ -679,15 +702,16 @@ void load_new_room(int newnum, CharacterInfo *forchar)
 
     set_our_eip(205);
     // setup objects
-    if (forchar != nullptr) {
+    if (forchar != nullptr)
+    {
         // if not restoring a game, always reset temp room
         reset_temp_room();
     }
 
-    if ((newnum>=0) & (newnum<MAX_ROOMS))
+    if ((newnum >= 0) & (newnum < MAX_ROOMS))
         croom = GetRoomState(newnum);
     else
-        croom=&troom;
+        croom = &troom;
 
     // Decide what to do if we have been or not in this room before
     const bool been_here = croom->beenhere > 0;
@@ -704,11 +728,13 @@ void load_new_room(int newnum, CharacterInfo *forchar)
         for (size_t i = 0; i < (size_t)MAX_WALK_BEHINDS; ++i)
             croom->walkbehind_base[i] = thisroom.WalkBehinds[i].Baseline;
 
-        for (int cc=0;cc < MAX_ROOM_HOTSPOTS;cc++) {
+        for (int cc = 0; cc < MAX_ROOM_HOTSPOTS; cc++)
+        {
             croom->hotspot[cc].Enabled = true;
             croom->hotspot[cc].Name = thisroom.Hotspots[cc].Name;
         }
-        for (int cc = 0; cc < MAX_ROOM_REGIONS; cc++) {
+        for (int cc = 0; cc < MAX_ROOM_REGIONS; cc++)
+        {
             croom->region_enabled[cc] = 1;
         }
         for (int i = 0; i < MAX_WALK_AREAS; ++i)
@@ -716,7 +742,7 @@ void load_new_room(int newnum, CharacterInfo *forchar)
             croom->walkareas[i].FaceDirectionRatio = thisroom.WalkAreas[i].FaceDirectionRatio;
         }
 
-        croom->beenhere=1;
+        croom->beenhere = 1;
         in_new_room = kEnterRoom_FirstTime;
     }
     else
@@ -726,8 +752,10 @@ void load_new_room(int newnum, CharacterInfo *forchar)
         // then adjust the *room state* by either expanding or cutting objects array
         if (croom->obj.size() != thisroom.Objects.size())
         {
-            Debug::Printf(kDbgMsg_Warn, "WARNING: the restored room state has different number of object states than the current room has objects (%u vs %u).",
-                          croom->numobj, (uint32_t)thisroom.Objects.size());
+            Debug::Printf(
+                kDbgMsg_Warn,
+                "WARNING: the restored room state has different number of object states than the current room has objects (%u vs %u).",
+                croom->numobj, (uint32_t)thisroom.Objects.size());
             const size_t was_obj_states = croom->obj.size();
             croom->numobj = thisroom.Objects.size();
             croom->obj.resize(thisroom.Objects.size());
@@ -774,20 +802,23 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     }
 
     set_our_eip(210);
-    if (play.ShouldAASprites()) {
-        create_rgb_table (&rgb_table, palette, nullptr);
+    if (play.ShouldAASprites())
+    {
+        create_rgb_table(&rgb_table, palette, nullptr);
         rgb_map = &rgb_table;
     }
     set_our_eip(211);
-    if (forchar!=nullptr) {
+    if (forchar != nullptr)
+    {
         // if it's not a Restore Game
 
         // if a following character is still waiting to come into the
         // previous room, force it out so that the timer resets
-        for (int ff = 0; ff < game.numcharacters; ff++) {
-            if ((charextra[ff].following >= 0) && (game.chars[ff].room < 0)) {
-                if ((charextra[ff].following == game.playercharacter) &&
-                    (forchar->prevroom == newnum))
+        for (int ff = 0; ff < game.numcharacters; ff++)
+        {
+            if ((charextra[ff].following >= 0) && (game.chars[ff].room < 0))
+            {
+                if ((charextra[ff].following == game.playercharacter) && (forchar->prevroom == newnum))
                     // the player went back to the previous room, so make sure
                     // the following character is still there
                     game.chars[ff].room = newnum;
@@ -796,15 +827,16 @@ void load_new_room(int newnum, CharacterInfo *forchar)
             }
         }
 
-        forchar->prevroom=forchar->room;
-        forchar->room=newnum;
+        forchar->prevroom = forchar->room;
+        forchar->room = newnum;
         // only stop moving if it's a new room, not a restore game
-        for (int cc=0;cc<game.numcharacters;cc++)
+        for (int cc = 0; cc < game.numcharacters; cc++)
             Character_StopMoving(&game.chars[cc]);
     }
 
     roomscript = nullptr;
-    if (debug_flags & DBG_NOSCRIPT) ;
+    if (debug_flags & DBG_NOSCRIPT)
+        ;
     else if (thisroom.CompiledScript)
     {
         compile_room_script();
@@ -813,12 +845,14 @@ void load_new_room(int newnum, CharacterInfo *forchar)
             const auto &globaldata = roomscript->GetGlobalData();
             if (croom->tsdatasize > globaldata.size())
             {
-                quitprintf("Restored Room %d script data size exceeds current script data (%u vs %zu bytes).",
-                    newnum, croom->tsdatasize, globaldata.size());
+                quitprintf("Restored Room %d script data size exceeds current script data (%u vs %zu bytes).", newnum,
+                           croom->tsdatasize, globaldata.size());
             }
             else if (croom->tsdatasize < globaldata.size())
             {
-                Debug::Printf(kDbgMsg_Warn, "WARNING: Restored Room %d script data size is less than the current script data (%u vs %zu bytes)",
+                Debug::Printf(
+                    kDbgMsg_Warn,
+                    "WARNING: Restored Room %d script data size is less than the current script data (%u vs %zu bytes)",
                     newnum, croom->tsdatasize, globaldata.size());
             }
             roomscript->CopyGlobalData(croom->tsdata);
@@ -834,93 +868,138 @@ void load_new_room(int newnum, CharacterInfo *forchar)
         if (new_room_placeonwalkable)
             Character_PlaceOnWalkableArea(forchar);
 
-		if (new_room_loop != SCR_NO_VALUE)
-			forchar->loop = new_room_loop;
+        if (new_room_loop != SCR_NO_VALUE)
+            forchar->loop = new_room_loop;
     }
     // reset new_room instructions
     new_room_x = new_room_y = SCR_NO_VALUE;
     new_room_loop = SCR_NO_VALUE;
     new_room_placeonwalkable = false;
 
-    if ((new_room_pos>0) & (forchar!=nullptr)) {
-        if (new_room_pos>=4000) {
+    if ((new_room_pos > 0) & (forchar != nullptr))
+    {
+        if (new_room_pos >= 4000)
+        {
             play.entered_edge = 3;
             forchar->y = thisroom.Edges.Top + 1;
-            forchar->x=new_room_pos%1000;
-            if (forchar->x==0) forchar->x=thisroom.Width/2;
+            forchar->x = new_room_pos % 1000;
+            if (forchar->x == 0)
+                forchar->x = thisroom.Width / 2;
             if (forchar->x <= thisroom.Edges.Left)
                 forchar->x = thisroom.Edges.Left + 3;
             if (forchar->x >= thisroom.Edges.Right)
                 forchar->x = thisroom.Edges.Right - 3;
-            forchar->loop=0;
+            forchar->loop = 0;
         }
-        else if (new_room_pos>=3000) {
+        else if (new_room_pos >= 3000)
+        {
             play.entered_edge = 2;
             forchar->y = thisroom.Edges.Bottom - 1;
-            forchar->x=new_room_pos%1000;
-            if (forchar->x==0) forchar->x=thisroom.Width/2;
+            forchar->x = new_room_pos % 1000;
+            if (forchar->x == 0)
+                forchar->x = thisroom.Width / 2;
             if (forchar->x <= thisroom.Edges.Left)
                 forchar->x = thisroom.Edges.Left + 3;
             if (forchar->x >= thisroom.Edges.Right)
                 forchar->x = thisroom.Edges.Right - 3;
-            forchar->loop=3;
+            forchar->loop = 3;
         }
-        else if (new_room_pos>=2000) {
+        else if (new_room_pos >= 2000)
+        {
             play.entered_edge = 1;
             forchar->x = thisroom.Edges.Right - 1;
-            forchar->y=new_room_pos%1000;
-            if (forchar->y==0) forchar->y=thisroom.Height/2;
+            forchar->y = new_room_pos % 1000;
+            if (forchar->y == 0)
+                forchar->y = thisroom.Height / 2;
             if (forchar->y <= thisroom.Edges.Top)
                 forchar->y = thisroom.Edges.Top + 3;
             if (forchar->y >= thisroom.Edges.Bottom)
                 forchar->y = thisroom.Edges.Bottom - 3;
-            forchar->loop=1;
+            forchar->loop = 1;
         }
-        else if (new_room_pos>=1000) {
+        else if (new_room_pos >= 1000)
+        {
             play.entered_edge = 0;
             forchar->x = thisroom.Edges.Left + 1;
-            forchar->y=new_room_pos%1000;
-            if (forchar->y==0) forchar->y=thisroom.Height/2;
+            forchar->y = new_room_pos % 1000;
+            if (forchar->y == 0)
+                forchar->y = thisroom.Height / 2;
             if (forchar->y <= thisroom.Edges.Top)
                 forchar->y = thisroom.Edges.Top + 3;
             if (forchar->y >= thisroom.Edges.Bottom)
                 forchar->y = thisroom.Edges.Bottom - 3;
-            forchar->loop=2;
+            forchar->loop = 2;
         }
         // if starts on un-walkable area
-        if (get_walkable_area_pixel(forchar->x, forchar->y) == 0) {
-            if (new_room_pos>=3000) { // bottom or top of screen
-                int tryleft=forchar->x - 1,tryright=forchar->x + 1;
-                while (1) {
-                    if (get_walkable_area_pixel(tryleft, forchar->y) > 0) {
-                        forchar->x=tryleft; break; }
-                    if (get_walkable_area_pixel(tryright, forchar->y) > 0) {
-                        forchar->x=tryright; break; }
-                    int nowhere=0;
-                    if (tryleft>thisroom.Edges.Left) { tryleft--; nowhere++; }
-                    if (tryright<thisroom.Edges.Right) { tryright++; nowhere++; }
-                    if (nowhere==0) break;  // no place to go, so leave him
+        if (get_walkable_area_pixel(forchar->x, forchar->y) == 0)
+        {
+            if (new_room_pos >= 3000)
+            { // bottom or top of screen
+                int tryleft = forchar->x - 1, tryright = forchar->x + 1;
+                while (1)
+                {
+                    if (get_walkable_area_pixel(tryleft, forchar->y) > 0)
+                    {
+                        forchar->x = tryleft;
+                        break;
+                    }
+                    if (get_walkable_area_pixel(tryright, forchar->y) > 0)
+                    {
+                        forchar->x = tryright;
+                        break;
+                    }
+                    int nowhere = 0;
+                    if (tryleft > thisroom.Edges.Left)
+                    {
+                        tryleft--;
+                        nowhere++;
+                    }
+                    if (tryright < thisroom.Edges.Right)
+                    {
+                        tryright++;
+                        nowhere++;
+                    }
+                    if (nowhere == 0)
+                        break; // no place to go, so leave him
                 }
             }
-            else if (new_room_pos>=1000) { // left or right
-                int tryleft=forchar->y - 1,tryright=forchar->y + 1;
-                while (1) {
-                    if (get_walkable_area_pixel(forchar->x, tryleft) > 0) {
-                        forchar->y=tryleft; break; }
-                    if (get_walkable_area_pixel(forchar->x, tryright) > 0) {
-                        forchar->y=tryright; break; }
-                    int nowhere=0;
-                    if (tryleft>thisroom.Edges.Top) { tryleft--; nowhere++; }
-                    if (tryright<thisroom.Edges.Bottom) { tryright++; nowhere++; }
-                    if (nowhere==0) break;  // no place to go, so leave him
+            else if (new_room_pos >= 1000)
+            { // left or right
+                int tryleft = forchar->y - 1, tryright = forchar->y + 1;
+                while (1)
+                {
+                    if (get_walkable_area_pixel(forchar->x, tryleft) > 0)
+                    {
+                        forchar->y = tryleft;
+                        break;
+                    }
+                    if (get_walkable_area_pixel(forchar->x, tryright) > 0)
+                    {
+                        forchar->y = tryright;
+                        break;
+                    }
+                    int nowhere = 0;
+                    if (tryleft > thisroom.Edges.Top)
+                    {
+                        tryleft--;
+                        nowhere++;
+                    }
+                    if (tryright < thisroom.Edges.Bottom)
+                    {
+                        tryright++;
+                        nowhere++;
+                    }
+                    if (nowhere == 0)
+                        break; // no place to go, so leave him
                 }
             }
         }
-        new_room_pos=0;
+        new_room_pos = 0;
     }
-    if (forchar!=nullptr) {
-        play.entered_at_x=forchar->x;
-        play.entered_at_y=forchar->y;
+    if (forchar != nullptr)
+    {
+        play.entered_at_x = forchar->x;
+        play.entered_at_y = forchar->y;
         if (forchar->x >= thisroom.Edges.Right)
             play.entered_edge = 1;
         else if (forchar->x <= thisroom.Edges.Left)
@@ -932,11 +1011,15 @@ void load_new_room(int newnum, CharacterInfo *forchar)
     }
 
     set_our_eip(208);
-    if (forchar!=nullptr) {
-        if (thisroom.Options.PlayerCharOff==0) {
+    if (forchar != nullptr)
+    {
+        if (thisroom.Options.PlayerCharOff == 0)
+        {
             forchar->set_enabled(true);
-            enable_cursor_mode(game.GetModeWalk()); }
-        else {
+            enable_cursor_mode(game.GetModeWalk());
+        }
+        else
+        {
             forchar->set_enabled(false);
             disable_cursor_mode(game.GetModeWalk());
             // remember which character we turned off, in case they
@@ -944,9 +1027,12 @@ void load_new_room(int newnum, CharacterInfo *forchar)
             // the correct character when leaving the room)
             play.temporarily_turned_off_character = game.playercharacter;
         }
-        if (forchar->flags & CHF_FIXVIEW) ;
-        else if (thisroom.Options.PlayerView==0) Character_SetViewDirect(forchar, forchar->defview, true);
-        else Character_SetViewDirect(forchar, thisroom.Options.PlayerView-1, true);
+        if (forchar->flags & CHF_FIXVIEW)
+            ;
+        else if (thisroom.Options.PlayerView == 0)
+            Character_SetViewDirect(forchar, forchar->defview, true);
+        else
+            Character_SetViewDirect(forchar, thisroom.Options.PlayerView - 1, true);
     }
     color_map = nullptr;
 
@@ -969,8 +1055,8 @@ void load_new_room(int newnum, CharacterInfo *forchar)
 
     set_our_eip(212);
     invalidate_screen();
-    new_room_flags=0;
-    play.gscript_timer=-1;  // avoid screw-ups with changing screens
+    new_room_flags = 0;
+    play.gscript_timer = -1; // avoid screw-ups with changing screens
     play.player_on_region = 0;
 
     // drop any input which they might have done while it was loading
@@ -988,7 +1074,8 @@ void load_new_room(int newnum, CharacterInfo *forchar)
 }
 
 // new_room: changes the current room number, and loads the new room from disk
-void new_room(int newnum,CharacterInfo*forchar) {
+void new_room(int newnum, CharacterInfo *forchar)
+{
     EndSkippingUntilCharStops();
 
     debug_script_log("Room change requested to room %d", newnum);
@@ -1008,11 +1095,11 @@ void new_room(int newnum,CharacterInfo*forchar) {
     in_leaves_screen = -1;
 
     CharacterExtras *player_ex = &charextra[playerchar->index_id];
-    if ((player_ex->following >= 0) &&
-        (game.chars[player_ex->following].room != newnum)) {
-            // the player character is following another character,
-            // who is not in the new room. therefore, abort the follow
-            player_ex->SetFollowing(playerchar, -1);
+    if ((player_ex->following >= 0) && (game.chars[player_ex->following].room != newnum))
+    {
+        // the player character is following another character,
+        // who is not in the new room. therefore, abort the follow
+        player_ex->SetFollowing(playerchar, -1);
     }
 
     // change rooms
@@ -1026,7 +1113,7 @@ void new_room(int newnum,CharacterInfo*forchar) {
         texturecache_clear();
     }
 
-    load_new_room(newnum,forchar);
+    load_new_room(newnum, forchar);
 
     // Update background frame state (it's not a part of the RoomStatus currently)
     play.bg_frame = 0;
@@ -1047,7 +1134,8 @@ void set_room_placeholder()
     croom = &troom;
 }
 
-void first_room_initialization() {
+void first_room_initialization()
+{
     in_room_transition = true;
     playerchar->prevroom = -1;
     set_loop_counter(0);
@@ -1075,11 +1163,13 @@ void check_new_room()
     }
 }
 
-void compile_room_script() {
+void compile_room_script()
+{
     cc_clear_error();
 
     roomscript = RuntimeScript::Create(thisroom.CompiledScript.get());
-    if ((cc_has_error()) || (roomscript==nullptr)) {
+    if ((cc_has_error()) || (roomscript == nullptr))
+    {
         quitprintf("Unable to create local script:\n%s", cc_get_error().ErrorString.GetCStr());
     }
 
@@ -1094,13 +1184,13 @@ void compile_room_script() {
 
 int bg_just_changed = 0;
 
-void on_background_frame_change () {
-
+void on_background_frame_change()
+{
     invalidate_screen();
     mark_current_background_dirty();
 
     // get the new frame's palette
-    memcpy (palette, thisroom.BgFrames[play.bg_frame].Palette, sizeof(RGB) * 256);
+    memcpy(palette, thisroom.BgFrames[play.bg_frame].Palette, sizeof(RGB) * 256);
 
     // hi-colour, update the palette. It won't have an immediate effect
     // but will be drawn properly when the screen fades in
@@ -1131,7 +1221,8 @@ ScriptDrawingSurface *get_room_bg_surface(uint32_t bgindex)
     assert(bgindex >= 0 && bgindex < RoomBgDS.size());
     if (bgindex >= 0 && bgindex && RoomBgDS[bgindex] > 0)
     {
-        ScriptDrawingSurface *surface = static_cast<ScriptDrawingSurface*>(ccGetObjectAddressFromHandle(RoomBgDS[bgindex]));
+        ScriptDrawingSurface *surface =
+            static_cast<ScriptDrawingSurface *>(ccGetObjectAddressFromHandle(RoomBgDS[bgindex]));
         if (surface)
             return surface;
     }
@@ -1143,7 +1234,8 @@ ScriptDrawingSurface *get_room_mask_surface(RoomAreaMask mask)
     assert(mask > kRoomAreaNone && mask < kNumRoomAreaTypes);
     if (mask > kRoomAreaNone && mask < kNumRoomAreaTypes && RoomMaskDS[mask] > 0)
     {
-        ScriptDrawingSurface *surface = static_cast<ScriptDrawingSurface*>(ccGetObjectAddressFromHandle(RoomMaskDS[mask]));
+        ScriptDrawingSurface *surface =
+            static_cast<ScriptDrawingSurface *>(ccGetObjectAddressFromHandle(RoomMaskDS[mask]));
         if (surface)
             return surface;
     }
@@ -1439,39 +1531,39 @@ RuntimeScriptValue Sc_Room_GetPathFinder(const RuntimeScriptValue *params, int32
 void RegisterRoomAPI()
 {
     ScFnRegister room_api[] = {
-        { "Room::Exists",                             API_FN_PAIR(Room_Exists) },
-        { "Room::GetDrawingSurfaceForBackground^1",   API_FN_PAIR(Room_GetDrawingSurfaceForBackground) },
-        { "Room::GetProperty^1",                      API_FN_PAIR(Room_GetProperty) },
-        { "Room::GetTextProperty^1",                  API_FN_PAIR(Room_GetTextProperty) },
-        { "Room::NearestWalkableArea^2",              API_FN_PAIR(Room_NearestWalkableArea) },
-        { "Room::SetProperty^2",                      API_FN_PAIR(Room_SetProperty) },
-        { "Room::SetTextProperty^2",                  API_FN_PAIR(Room_SetTextProperty) },
-        { "Room::ProcessClick^3",                     API_FN_PAIR(RoomProcessClick) },
-        { "Room::get_BackgroundCount",                API_FN_PAIR(Room_GetBackgroundCount) },
-        { "Room::get_BackgroundShader",               API_FN_PAIR(Room_GetBackgroundShader) },
-        { "Room::set_BackgroundShader",               API_FN_PAIR(Room_SetBackgroundShader) },
-        { "Room::get_BottomEdge",                     API_FN_PAIR(Room_GetBottomEdge) },
-        { "Room::get_ColorDepth",                     API_FN_PAIR(Room_GetColorDepth) },
-        { "Room::get_Height",                         API_FN_PAIR(Room_GetHeight) },
-        { "Room::get_LeftEdge",                       API_FN_PAIR(Room_GetLeftEdge) },
-        { "Room::get_HotspotCount",                   API_FN_PAIR(Room_GetHotspotCount) },
-        { "Room::get_ObjectCount",                    API_FN_PAIR(Room_GetObjectCount) },
-        { "Room::get_RegionCount",                    API_FN_PAIR(Room_GetRegionCount) },
-        { "Room::get_WalkableAreaCount",              API_FN_PAIR(Room_GetWalkableAreaCount) },
-        { "Room::get_WalkbehindCount",                API_FN_PAIR(Room_GetWalkbehindCount) },
-        { "Room::get_RightEdge",                      API_FN_PAIR(Room_GetRightEdge) },
-        { "Room::get_TopEdge",                        API_FN_PAIR(Room_GetTopEdge) },
-        { "Room::get_Width",                          API_FN_PAIR(Room_GetWidth) },
-        { "Room::get_FaceDirectionRatio",             API_FN_PAIR(Room_GetFaceDirectionRatio) },
-        { "Room::set_FaceDirectionRatio",             API_FN_PAIR(Room_SetFaceDirectionRatio) },
-        { "Room::get_Name",                           API_FN_PAIR(Room_GetName) },
-        { "Room::get_Number",                         API_FN_PAIR(Room_GetNumber) },
-        { "Room::geti_Hotspots",                      API_FN_PAIR(Room_GetiHotspots) },
-        { "Room::geti_Objects",                       API_FN_PAIR(Room_GetiObjects) },
-        { "Room::geti_Regions",                       API_FN_PAIR(Room_GetiRegions) },
-        { "Room::geti_WalkableAreas",                 API_FN_PAIR(Room_GetiWalkableAreas) },
-        { "Room::geti_Walkbehinds",                   API_FN_PAIR(Room_GetiWalkbehinds) },
-        { "Room::get_PathFinder",                     API_FN_PAIR(Room_GetPathFinder) },
+        {"Room::Exists", API_FN_PAIR(Room_Exists)},
+        {"Room::GetDrawingSurfaceForBackground^1", API_FN_PAIR(Room_GetDrawingSurfaceForBackground)},
+        {"Room::GetProperty^1", API_FN_PAIR(Room_GetProperty)},
+        {"Room::GetTextProperty^1", API_FN_PAIR(Room_GetTextProperty)},
+        {"Room::NearestWalkableArea^2", API_FN_PAIR(Room_NearestWalkableArea)},
+        {"Room::SetProperty^2", API_FN_PAIR(Room_SetProperty)},
+        {"Room::SetTextProperty^2", API_FN_PAIR(Room_SetTextProperty)},
+        {"Room::ProcessClick^3", API_FN_PAIR(RoomProcessClick)},
+        {"Room::get_BackgroundCount", API_FN_PAIR(Room_GetBackgroundCount)},
+        {"Room::get_BackgroundShader", API_FN_PAIR(Room_GetBackgroundShader)},
+        {"Room::set_BackgroundShader", API_FN_PAIR(Room_SetBackgroundShader)},
+        {"Room::get_BottomEdge", API_FN_PAIR(Room_GetBottomEdge)},
+        {"Room::get_ColorDepth", API_FN_PAIR(Room_GetColorDepth)},
+        {"Room::get_Height", API_FN_PAIR(Room_GetHeight)},
+        {"Room::get_LeftEdge", API_FN_PAIR(Room_GetLeftEdge)},
+        {"Room::get_HotspotCount", API_FN_PAIR(Room_GetHotspotCount)},
+        {"Room::get_ObjectCount", API_FN_PAIR(Room_GetObjectCount)},
+        {"Room::get_RegionCount", API_FN_PAIR(Room_GetRegionCount)},
+        {"Room::get_WalkableAreaCount", API_FN_PAIR(Room_GetWalkableAreaCount)},
+        {"Room::get_WalkbehindCount", API_FN_PAIR(Room_GetWalkbehindCount)},
+        {"Room::get_RightEdge", API_FN_PAIR(Room_GetRightEdge)},
+        {"Room::get_TopEdge", API_FN_PAIR(Room_GetTopEdge)},
+        {"Room::get_Width", API_FN_PAIR(Room_GetWidth)},
+        {"Room::get_FaceDirectionRatio", API_FN_PAIR(Room_GetFaceDirectionRatio)},
+        {"Room::set_FaceDirectionRatio", API_FN_PAIR(Room_SetFaceDirectionRatio)},
+        {"Room::get_Name", API_FN_PAIR(Room_GetName)},
+        {"Room::get_Number", API_FN_PAIR(Room_GetNumber)},
+        {"Room::geti_Hotspots", API_FN_PAIR(Room_GetiHotspots)},
+        {"Room::geti_Objects", API_FN_PAIR(Room_GetiObjects)},
+        {"Room::geti_Regions", API_FN_PAIR(Room_GetiRegions)},
+        {"Room::geti_WalkableAreas", API_FN_PAIR(Room_GetiWalkableAreas)},
+        {"Room::geti_Walkbehinds", API_FN_PAIR(Room_GetiWalkbehinds)},
+        {"Room::get_PathFinder", API_FN_PAIR(Room_GetPathFinder)},
     };
 
     ccAddExternalFunctions(room_api);

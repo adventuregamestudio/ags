@@ -32,7 +32,7 @@ namespace
 {
 
 MoveList MakeMoveList(const std::vector<Point> &path, float speed_x, float speed_y,
-    const RunPathParams &params = RunPathParams::DefaultOnce())
+                      const RunPathParams &params = RunPathParams::DefaultOnce())
 {
     MoveList mls;
     EXPECT_TRUE(MoveListOp::CalculateMoveList(mls, path, speed_x, speed_y, 0, params));
@@ -125,7 +125,7 @@ TEST(MoveList, SpeedsPerStage)
 {
     MoveList mls;
     ASSERT_TRUE(MoveListOp::CalculateMoveList(mls, {{0, 0}, {6, 0}, {6, 6}}, {{3.f, 3.f}, {1.f, 1.f}}, 0,
-        RunPathParams::DefaultOnce()));
+                                              RunPathParams::DefaultOnce()));
     EXPECT_FLOAT_EQ(3.f, mls.GetStageSpeed(0).X);
     EXPECT_FLOAT_EQ(1.f, mls.GetStageSpeed(1).Y);
     EXPECT_EQ(2u + 6u, WalkToEnd(mls).size());
@@ -140,8 +140,8 @@ TEST(MoveList, InvalidInputIsRefused)
     // both speeds zero: no movement possible
     EXPECT_FALSE(MoveListOp::CalculateMoveList(mls, {{0, 0}, {1, 1}}, 0.f, 0.f, 0, RunPathParams::DefaultOnce()));
     // fewer speeds than stages
-    EXPECT_FALSE(MoveListOp::CalculateMoveList(mls, {{0, 0}, {6, 0}, {6, 6}}, {{3.f, 3.f}}, 0,
-        RunPathParams::DefaultOnce()));
+    EXPECT_FALSE(
+        MoveListOp::CalculateMoveList(mls, {{0, 0}, {6, 0}, {6, 6}}, {{3.f, 3.f}}, 0, RunPathParams::DefaultOnce()));
 }
 #endif // NDEBUG
 
@@ -158,7 +158,7 @@ TEST(MoveList, StageFlagsMarkDirectMovement)
 {
     MoveList mls;
     ASSERT_TRUE(MoveListOp::CalculateMoveList(mls, {{0, 0}, {4, 0}}, 1.f, 1.f, kMoveStage_Direct,
-        RunPathParams::DefaultOnce()));
+                                              RunPathParams::DefaultOnce()));
     EXPECT_TRUE(mls.IsStageDirect());
     ASSERT_TRUE(MoveListOp::AddWaypointDirect(mls, 4, 4, 2.f, 2.f, 0));
     ASSERT_EQ(3u, mls.GetNumStages());

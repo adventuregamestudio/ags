@@ -62,13 +62,13 @@ namespace Engine
 
 enum VideoFlags
 {
-    kVideo_None           = 0,
-    kVideo_EnableVideo    = 0x0001,
-    kVideo_EnableAudio    = 0x0002,
-    kVideo_Loop           = 0x0004,
-    kVideo_LegacyFrameSize= 0x0008,
+    kVideo_None = 0,
+    kVideo_EnableVideo = 0x0001,
+    kVideo_EnableAudio = 0x0002,
+    kVideo_Loop = 0x0004,
+    kVideo_LegacyFrameSize = 0x0008,
     // Allow to drop late video frames in autoplay mode
-    kVideo_DropFrames     = 0x0010,
+    kVideo_DropFrames = 0x0010,
     // Allow to drop frames in decoder, right after the encoded packet
     // was read. This saves even more time, but may result in graphical
     // "artifacts", because the video frames may contain partial image.
@@ -80,7 +80,7 @@ enum VideoFlags
     kVideo_SyncAudioVideo = 0x0040,
     // Must accumulate decoded frames, when format's frames
     // do not have a full image, but diff from the previous frame
-    kVideo_AccumFrame     = 0x0080,
+    kVideo_AccumFrame = 0x0080,
 };
 
 // Parent video player class, provides basic playback logic,
@@ -93,11 +93,9 @@ public:
     virtual ~VideoPlayer();
 
     // Tries to init a video playback reading from the given stream
-    Common::HError Open(std::unique_ptr<Common::Stream> data_stream,
-        const String &name, int flags);
-    Common::HError Open(std::unique_ptr<Common::Stream> data_stream,
-        const String &name, int flags,
-        const Size &target_sz, int target_depth = 0, float target_fps = 0.f);
+    Common::HError Open(std::unique_ptr<Common::Stream> data_stream, const String &name, int flags);
+    Common::HError Open(std::unique_ptr<Common::Stream> data_stream, const String &name, int flags,
+                        const Size &target_sz, int target_depth = 0, float target_fps = 0.f);
     // Tells if the videoplayer object is valid and ready to render
     virtual bool IsValid() { return false; }
     bool HasVideo() const { return (_flags & kVideo_EnableVideo) != 0; }
@@ -135,9 +133,9 @@ public:
     // Gets current video frame index
     uint32_t GetFrameIndex() const { return _frameIndex; }
 
-    void  SetSpeed(float speed);
-    void  SetVolume(float volume);
-    void  SetLooping(bool loop) { _flags = (_flags & ~kVideo_Loop) | (kVideo_Loop * loop); }
+    void SetSpeed(float speed);
+    void SetVolume(float volume);
+    void SetLooping(bool loop) { _flags = (_flags & ~kVideo_Loop) | (kVideo_Loop * loop); }
 
     // Retrieve the currently prepared video frame
     std::unique_ptr<Common::Bitmap> GetReadyFrame();
@@ -153,11 +151,13 @@ public:
 protected:
     // TODO: separate decoding implementations into VideoDecoder class,
     // similar to how there's SDLDecoder and AudioPlayer.
-    // 
+    //
     // Opens the video, implementation-specific; allows to modify flags
-    virtual Common::HError OpenImpl(std::unique_ptr<Common::Stream> /*data_stream*/,
-        const String &/*name*/, int& /*flags*/, int /*target_depth*/)
-        { return new Common::Error("Internal error: operation not implemented"); };
+    virtual Common::HError OpenImpl(std::unique_ptr<Common::Stream> /*data_stream*/, const String & /*name*/,
+                                    int & /*flags*/, int /*target_depth*/)
+    {
+        return new Common::Error("Internal error: operation not implemented");
+    };
     // Closes the video, implementation-specific
     virtual void CloseImpl() {};
     // Rewind to the start
@@ -199,17 +199,13 @@ private:
     struct VideoFrame
     {
         VideoFrame() = default;
-        VideoFrame(std::unique_ptr<Common::Bitmap> &&bmp, float ts = -1.f)
-            : _bmp(std::move(bmp)), _ts(ts) {}
+        VideoFrame(std::unique_ptr<Common::Bitmap> &&bmp, float ts = -1.f) : _bmp(std::move(bmp)), _ts(ts) {}
 
         const Common::Bitmap *Bitmap() const { return _bmp.get(); }
         float Timestamp() const { return _ts; }
         void SetTimestamp(float ts) { _ts = ts; }
 
-        std::unique_ptr<Common::Bitmap> Retrieve()
-        {
-            return std::move(_bmp);
-        }
+        std::unique_ptr<Common::Bitmap> Retrieve() { return std::move(_bmp); }
 
     private:
         std::unique_ptr<Common::Bitmap> _bmp;
@@ -254,7 +250,7 @@ private:
     int _targetDepth = 0;
     float _targetFPS = 0.f;
     float _targetFrameTime = 0.f; // frame duration in ms for "target fps"
-    uint32_t _queueMax = 5u; // measured in video frame times!
+    uint32_t _queueMax = 5u;      // measured in video frame times!
     float _queueTimeMax = 0.f;
 
     // Playback state
@@ -277,11 +273,11 @@ private:
     // also may be adjusted when the playback speed changes or for synchronization
     // purposes.
     Clock::time_point _startTs;
-    Clock::time_point _pollTs; // timestamp of the last Poll in autoplay mode
-    bool _resetStartTime = false; // an instruction to reset start ts on the next poll
-    Clock::time_point _pauseTs; // time when the playback was paused
+    Clock::time_point _pollTs;      // timestamp of the last Poll in autoplay mode
+    bool _resetStartTime = false;   // an instruction to reset start ts on the next poll
+    Clock::time_point _pauseTs;     // time when the playback was paused
     uint32_t _inputFrameCount = 0u; // how many frames received on input
-    float _inputAudioDurMs = 0.f; // how much audio received on input
+    float _inputAudioDurMs = 0.f;   // how much audio received on input
     //float _nextVideoTs = 0.f; // expected next video timestamp for output
     //float _nextAudioTs = 0.f; // expected next audio timestamp for output
     Clock::duration _playbackDuration; // playback time passed since start timestamp
@@ -308,26 +304,26 @@ private:
     {
         struct ProcStat
         {
-            uint32_t Frames = 0u; // number of frames processed
+            uint32_t Frames = 0u;      // number of frames processed
             uint64_t TotalDataSz = 0u; // amount of data in frames in bytes
-            float    TotalDurMs = 0.f;  // amount of media data in milliseconds
-            uint32_t Dropped = 0u; // number of discarded frames
+            float TotalDurMs = 0.f;    // amount of media data in milliseconds
+            uint32_t Dropped = 0u;     // number of discarded frames
 
-            uint32_t RawDecodedDataSz = 0u; // size of the raw frame (decoded)
+            uint32_t RawDecodedDataSz = 0u;     // size of the raw frame (decoded)
             uint32_t RawDecodedConvDataSz = 0u; // size of the raw frame (decoded + converted)
-            float    MaxTimePerFrame = 0.f; // max time spent on a frame (ms)
-            float    AvgTimePerFrame = 0.f; // average time spent on a frame (ms)
-            uint64_t TotalTime = 0u; // total time spent on input frames (ms)
+            float MaxTimePerFrame = 0.f;        // max time spent on a frame (ms)
+            float AvgTimePerFrame = 0.f;        // average time spent on a frame (ms)
+            uint64_t TotalTime = 0u;            // total time spent on input frames (ms)
         };
 
         Clock::time_point LastWorkTs = {}; // last time when the work time was updated
         Clock::time_point LastPlayTs = {}; // last time when the play time was updated
-        Clock::duration WorkTime = {}; // real time this player was working (all time, including delays between frames)
-        Clock::duration PlayTime = {}; // real time this player was in a playback state (not paused)
-        ProcStat VideoIn; // amount of video data received on input
-        ProcStat VideoOut; // amount of video data passed on output (to render)
-        ProcStat AudioIn; // amount of audio data received on input
-        ProcStat AudioOut; // amount of audio data passed on output (to render)
+        Clock::duration WorkTime = {};  // real time this player was working (all time, including delays between frames)
+        Clock::duration PlayTime = {};  // real time this player was in a playback state (not paused)
+        ProcStat VideoIn;               // amount of video data received on input
+        ProcStat VideoOut;              // amount of video data passed on output (to render)
+        ProcStat AudioIn;               // amount of audio data received on input
+        ProcStat AudioOut;              // amount of audio data passed on output (to render)
         uint32_t MaxBufferedVideo = 0u; // number of frames
         float MaxBufferedAudioMs = 0.f; // duration
         uint32_t BufferedVideoAccum = 0u;

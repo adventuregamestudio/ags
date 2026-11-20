@@ -21,7 +21,7 @@
 #include "util/string.h"
 
 
-#define ARRAY_MANAGED_TYPE_FLAG    0x80000000
+#define ARRAY_MANAGED_TYPE_FLAG 0x80000000
 
 struct CCDynamicArray final : AGSCCDynamicObject
 {
@@ -46,14 +46,18 @@ public:
 
     inline static const Header &GetHeader(const void *address)
     {
-        return reinterpret_cast<const Header&>(*(static_cast<const uint8_t*>(address) - MemHeaderSz));
+        return reinterpret_cast<const Header &>(*(static_cast<const uint8_t *>(address) - MemHeaderSz));
     }
 
     // Create managed array object and return a pointer to the beginning of a buffer
     static DynObjectRef CreateOld(uint32_t elem_count, uint32_t elem_size, bool is_managed)
-        { return CreateImpl(0u, is_managed, elem_count, elem_size); }
+    {
+        return CreateImpl(0u, is_managed, elem_count, elem_size);
+    }
     static DynObjectRef CreateNew(uint32_t type_id, uint32_t elem_count, uint32_t elem_size)
-        { return CreateImpl(type_id, false, elem_count, elem_size); }
+    {
+        return CreateImpl(type_id, false, elem_count, elem_size);
+    }
 
     // return the type name of the object
     const char *GetType() override;
@@ -61,8 +65,7 @@ public:
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
     // Remap typeid fields using the provided map
-    void RemapTypeids(void* address,
-        const std::unordered_map<uint32_t, uint32_t> &typeid_map) override;
+    void RemapTypeids(void *address, const std::unordered_map<uint32_t, uint32_t> &typeid_map) override;
     // Traverse all managed references in this object, and run callback for each of them
     void TraverseRefs(void *address, PfnTraverseRefOp traverse_op) override;
 
@@ -71,10 +74,10 @@ private:
     static const size_t MemHeaderSz = sizeof(Header);
     // The size of the serialized header
     static const size_t FileHeaderSz = sizeof(uint32_t) * 3;
-    // Writeable GetHeader variant for internal purposes 
+    // Writeable GetHeader variant for internal purposes
     inline static Header &GetHeaderW(void *address)
     {
-        return reinterpret_cast<Header&>(*(static_cast<uint8_t*>(address) - MemHeaderSz));
+        return reinterpret_cast<Header &>(*(static_cast<uint8_t *>(address) - MemHeaderSz));
     }
 
     static DynObjectRef CreateImpl(uint32_t type_id, bool is_managed, uint32_t elem_count, uint32_t elem_size);
@@ -93,28 +96,28 @@ extern CCDynamicArray globalDynamicArray;
 // TODO: move to the separate source file and merge with script struct helpers?!
 namespace DynamicArrayHelpers
 {
-    // Create array of the requested size in bytes
-    DynObjectRef CreateArray(size_t data_sz);
-    // Create array of the requested length and size of element
-    DynObjectRef CreateArray(size_t elem_size, size_t length);
-    // Create array, initializing with the provided bytes
-    DynObjectRef CreateArray(const std::vector<uint8_t> &data);
-    // Create array of managed strings
-    DynObjectRef CreateStringArray(const std::vector<const char*> &);
-    DynObjectRef CreateStringArray(const std::vector<AGS::Common::String> &);
-    // Create array of managed strings from preallocated script string buffers
-    DynObjectRef CreateStringArrayFromBuffers(std::vector<ScriptString::Buffer> &&);
-    // Create array from managed list of dynamic objects
-    DynObjectRef CreateScriptArray(std::vector<DynObjectRef> &&items);
-    // Resolves a dynamic array of integers
-    bool ResolveIntArray(const void *arrobj, std::vector<int> &ints);
-    // Resolves a dynamic array of floats
-    bool ResolveFloatArray(const void *arrobj, std::vector<float> &floats);
-    // Resolves a dynamic array of managed pointers (handles) to a list of object addresses
-    bool ResolvePointerArray(const void* arrobj, std::vector<void*> &objects);
-    // Resolves a dynamic array of managed pointers (handles) to a list of DynObjectRef structs,
-    // which define object address, manager and handle
-    bool ResolvePointerArray(const void* arrobj, std::vector<DynObjectRef> &objects);
-};
+// Create array of the requested size in bytes
+DynObjectRef CreateArray(size_t data_sz);
+// Create array of the requested length and size of element
+DynObjectRef CreateArray(size_t elem_size, size_t length);
+// Create array, initializing with the provided bytes
+DynObjectRef CreateArray(const std::vector<uint8_t> &data);
+// Create array of managed strings
+DynObjectRef CreateStringArray(const std::vector<const char *> &);
+DynObjectRef CreateStringArray(const std::vector<AGS::Common::String> &);
+// Create array of managed strings from preallocated script string buffers
+DynObjectRef CreateStringArrayFromBuffers(std::vector<ScriptString::Buffer> &&);
+// Create array from managed list of dynamic objects
+DynObjectRef CreateScriptArray(std::vector<DynObjectRef> &&items);
+// Resolves a dynamic array of integers
+bool ResolveIntArray(const void *arrobj, std::vector<int> &ints);
+// Resolves a dynamic array of floats
+bool ResolveFloatArray(const void *arrobj, std::vector<float> &floats);
+// Resolves a dynamic array of managed pointers (handles) to a list of object addresses
+bool ResolvePointerArray(const void *arrobj, std::vector<void *> &objects);
+// Resolves a dynamic array of managed pointers (handles) to a list of DynObjectRef structs,
+// which define object address, manager and handle
+bool ResolvePointerArray(const void *arrobj, std::vector<DynObjectRef> &objects);
+}; // namespace DynamicArrayHelpers
 
 #endif

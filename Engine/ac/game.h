@@ -28,10 +28,17 @@
 #include "util/string.h"
 
 // Forward declaration
-namespace AGS { namespace Common { class AssetManager; class Stream; } }
+namespace AGS
+{
+namespace Common
+{
+class AssetManager;
+class Stream;
+} // namespace Common
+} // namespace AGS
 using namespace AGS; // FIXME later
 
-#define RAGMODE_LOADNOW 0x8000000  // just to make sure it's non-zero
+#define RAGMODE_LOADNOW 0x8000000 // just to make sure it's non-zero
 
 enum CutsceneSkipStyle
 {
@@ -52,7 +59,7 @@ enum CutsceneSkipStyle
 #define VOL_BOTH             1680
 
 void Game_StopAudio(int audioType);
-int  Game_IsAudioPlaying(int audioType);
+int Game_IsAudioPlaying(int audioType);
 void Game_SetAudioTypeSpeechVolumeDrop(int audioType, int volumeDrop);
 void Game_SetAudioTypeVolume(int audioType, int volume, int changeType);
 
@@ -65,7 +72,7 @@ int Game_GetDialogCount();
 void SetDefaultSaveDirectory();
 // Sets a new save directory within the save parent; copies "restart" slot if available
 int Game_SetSaveGameDirectory(const char *newFolder);
-const char* Game_GetSaveSlotDescription(int slnum);
+const char *Game_GetSaveSlotDescription(int slnum);
 
 // Various sort parameter validation.
 ScriptFileSortStyle ValidateFileSort(const char *apiname, int file_sort);
@@ -96,14 +103,14 @@ int Game_GetSpriteHeight(int spriteNum);
 int Game_GetLoopCountForView(int viewNumber);
 int Game_GetRunNextSettingForLoop(int viewNumber, int loopNumber);
 int Game_GetFrameCountForLoop(int viewNumber, int loopNumber);
-ScriptViewFrame* Game_GetViewFrame(int viewNumber, int loopNumber, int frame);
+ScriptViewFrame *Game_GetViewFrame(int viewNumber, int loopNumber, int frame);
 int Game_DoOnceOnly(const char *token);
 
-int  Game_GetTextReadingSpeed();
+int Game_GetTextReadingSpeed();
 void Game_SetTextReadingSpeed(int newTextSpeed);
-int  Game_GetMinimumTextDisplayTimeMs();
+int Game_GetMinimumTextDisplayTimeMs();
 void Game_SetMinimumTextDisplayTimeMs(int newTextMinTime);
-int  Game_GetIgnoreUserInputAfterTextTimeoutMs();
+int Game_GetIgnoreUserInputAfterTextTimeoutMs();
 void Game_SetIgnoreUserInputAfterTextTimeoutMs(int newValueMs);
 const char *Game_GetFileName();
 const char *Game_GetName();
@@ -113,17 +120,17 @@ int Game_GetSkippingCutscene();
 int Game_GetInSkippableCutscene();
 
 int Game_GetColorFromRGB(int red, int grn, int blu);
-const char* Game_InputBox(const char *msg);
-const char* Game_GetLocationName(int x, int y, int hit_options);
+const char *Game_InputBox(const char *msg);
+const char *Game_GetLocationName(int x, int y, int hit_options);
 
 int Game_GetSpeechFont();
 int Game_GetNormalFont();
 void Game_SetNormalFont(int font);
 void Game_SetSpeechFont(int font);
 
-const char* Game_GetTranslationFilename();
+const char *Game_GetTranslationFilename();
 int Game_ChangeTranslation(const char *newFilename);
-const char* Game_GetSpeechVoxFilename();
+const char *Game_GetSpeechVoxFilename();
 bool Game_ChangeSpeechVox(const char *newFilename);
 
 //=============================================================================
@@ -175,7 +182,7 @@ void prescan_save_slots(int dest_arr_handle, int min_slot, int max_slot, int fil
 
 bool is_in_cutscene();
 CutsceneSkipStyle get_cutscene_skipstyle();
-void start_skipping_cutscene ();
+void start_skipping_cutscene();
 bool check_skip_cutscene_keypress(int kgn);
 bool check_skip_cutscene_mclick(int mbut);
 bool check_skip_cutscene_gamepad(int gbut);
@@ -190,7 +197,8 @@ void stop_fast_forwarding();
 //  - outside a room viewport;
 //  - on a hotspot 0 and allow_hotspot0 == false
 // If location type != LOCTYPE_NOTHING, then fills locobj_index with object's or hotspot's index.
-int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool click_through_gui = false, bool allow_hotspot0 = false);
+int GetLocationTypeImpl(int *locobj_index, int x, int y, int hit_options, bool click_through_gui = false,
+                        bool allow_hotspot0 = false);
 
 // Called whenever game loses input focus
 void display_switch_out();
@@ -240,8 +248,8 @@ extern std::unique_ptr<AGS::Common::AssetManager> AssetMgr;
 enum EnterNewRoomState
 {
     kEnterRoom_None = 0,
-    kEnterRoom_Normal = 1, // changed to room and finished fade-in
-    kEnterRoom_FirstTime = 2, // same as normal, but this is first time this room is visited
+    kEnterRoom_Normal = 1,       // changed to room and finished fade-in
+    kEnterRoom_FirstTime = 2,    // same as normal, but this is first time this room is visited
     kEnterRoom_RestoredSave = 3, // loaded a room after restoring a save
 };
 

@@ -36,10 +36,10 @@ private:
     // Update the implementation after a new walkable area is set
     void OnSetWalkableArea() override;
     // CanSeeFrom implementation
-    bool CanSeeFromImpl(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr)  override;
+    bool CanSeeFromImpl(int srcx, int srcy, int dstx, int dsty, int *lastcx = nullptr, int *lastcy = nullptr) override;
     // FindRoute implementation
-    bool FindRouteImpl(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty,
-        bool exact_dest, bool ignore_walls)  override;
+    bool FindRouteImpl(std::vector<Point> &path, int srcx, int srcy, int dstx, int dsty, bool exact_dest,
+                       bool ignore_walls) override;
 
     void SyncNavWalkablearea();
     bool FindRouteJPS(std::vector<Point> &nav_path, int fromx, int fromy, int destx, int desty);

@@ -52,8 +52,7 @@ struct PreservedParams
     std::vector<size_t> ScMdDataSize;
 
     PreservedParams() = default;
-    PreservedParams(const SavegameDescription &desc)
-        : Desc(desc) {}
+    PreservedParams(const SavegameDescription &desc) : Desc(desc) {}
 };
 
 // Flags for the image saved in header (usually a game screenshot)
@@ -87,32 +86,29 @@ enum ViewportSaveFlags
 // SaveRestorationFlags mark the specifics of a restored save
 enum SaveRestorationFlags
 {
-    kSaveRestore_Default           = 0,
+    kSaveRestore_Default = 0,
     // Game data has been cleared to initial state prior to reading a save.
     // This indicates that if any game entities do not have a match in the
     // restored save, then they will be presented in their default state
     // (which they have when the game starts).
-    kSaveRestore_ClearData          = 0x0001,
+    kSaveRestore_ClearData = 0x0001,
     // Allow save entries mismatching game contents:
     // - more entries, less entries, etc
     kSaveRestore_AllowMismatchExtra = 0x0002,
-    kSaveRestore_AllowMismatchLess  = 0x0004,
+    kSaveRestore_AllowMismatchLess = 0x0004,
     // We detected that the save file has less data of certain type
     // than the game requires.
-    kSaveRestore_MissingDataInSave  = 0x0008,
+    kSaveRestore_MissingDataInSave = 0x0008,
     // We detected that the save file has more data of certain type
     // than the game requires.
-    kSaveRestore_ExtraDataInSave    = 0x0010,
+    kSaveRestore_ExtraDataInSave = 0x0010,
     // Run a save scan only, gather data counts and assert matches
-    kSaveRestore_Prescan            = 0x0020,
+    kSaveRestore_Prescan = 0x0020,
     // Mask for finding out if save has any mismatches
-    kSaveRestore_MismatchMask       = kSaveRestore_MissingDataInSave
-                                    | kSaveRestore_ExtraDataInSave,
+    kSaveRestore_MismatchMask = kSaveRestore_MissingDataInSave | kSaveRestore_ExtraDataInSave,
     // Mask for the restoration result flags
-    kSaveRestore_ResultMask         = kSaveRestore_ClearData
-                                    | kSaveRestore_MissingDataInSave
-                                    | kSaveRestore_ExtraDataInSave
-                                    | kSaveRestore_Prescan
+    kSaveRestore_ResultMask =
+        kSaveRestore_ClearData | kSaveRestore_MissingDataInSave | kSaveRestore_ExtraDataInSave | kSaveRestore_Prescan
 };
 
 // SaveRestoreResult records allowances for the save restoration
@@ -148,7 +144,7 @@ struct SaveRestoredDataCounts
     uint32_t ScriptModules = 0u;
     std::vector<String> ScriptModuleNames;
     std::vector<uint32_t> ScriptModuleDataSz;
-    int Room = -1; // the room this save was made in
+    int Room = -1;                   // the room this save was made in
     AGS::Common::StringMap GameInfo; // game info from the game that made this save
 };
 
@@ -156,10 +152,10 @@ struct SaveRestoredDataCounts
 // the restoration process
 struct RestoredData
 {
-    SaveRestoreResult       Result;
-    SaveRestoredDataCounts  DataCounts;
+    SaveRestoreResult Result;
+    SaveRestoredDataCounts DataCounts;
 
-    int                     FPS;
+    int FPS;
     // Unserialized bitmaps for dynamic surfaces
     std::vector<std::unique_ptr<Bitmap>> DynamicSurfaces;
     // Unserialized bitmaps for overlays (old-style saves)
@@ -169,25 +165,25 @@ struct RestoredData
     {
         std::vector<uint8_t> Data;
     };
-    ScriptData              GlobalScript;
+    ScriptData GlobalScript;
     std::unordered_map<String, ScriptData> ScriptModules;
     // Generated RTTI is meant for remapping typeids
     // (in case they were changed in game), and provides placeholders
     // for types that were declared in unloaded (room) scripts
-    RTTI                    GenRTTI;
+    RTTI GenRTTI;
     // Managed objects unserializer
-    AGSDeSerializer         ManObjReader;
+    AGSDeSerializer ManObjReader;
     // Room data (has to be be preserved until room is loaded)
-    int                     Room;
+    int Room;
     std::vector<std::unique_ptr<Bitmap>> RoomBkgScene;
     std::unique_ptr<Bitmap> RoomMask[kNumRoomAreaTypes];
-    short                   RoomLightLevels[MAX_ROOM_REGIONS];
-    int                     RoomTintLevels[MAX_ROOM_REGIONS];
-    short                   RoomZoomLevels1[MAX_WALK_AREAS];
-    short                   RoomZoomLevels2[MAX_WALK_AREAS];
+    short RoomLightLevels[MAX_ROOM_REGIONS];
+    int RoomTintLevels[MAX_ROOM_REGIONS];
+    short RoomZoomLevels1[MAX_WALK_AREAS];
+    short RoomZoomLevels2[MAX_WALK_AREAS];
     // Mouse cursor parameters
-    int                     CursorID;
-    int                     CursorMode;
+    int CursorID;
+    int CursorMode;
     // General audio
     struct ChannelInfo
     {
@@ -208,7 +204,7 @@ struct RestoredData
         int YSource = -1;
         int MaxDist = 0;
     };
-    ChannelInfo             AudioChans[TOTAL_AUDIO_CHANNELS];
+    ChannelInfo AudioChans[TOTAL_AUDIO_CHANNELS];
     // Viewport and camera data, has to be preserved and applied only after
     // room gets loaded, because we must clamp these to room parameters.
     struct ViewportData
@@ -249,7 +245,7 @@ struct RestoredData
 enum PluginSvgVersion
 {
     kPluginSvgVersion_Initial = 0,
-    kPluginSvgVersion_36115   = 1,
+    kPluginSvgVersion_36115 = 1,
 };
 
 Bitmap *ReadBitmap(Stream *in, bool compressed = false);

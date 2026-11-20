@@ -45,8 +45,7 @@ bool NamedPipesAGSDebugger::Initialize()
     MultiByteToWideChar(CP_UTF8, 0, pipeNameBuffer, -1, wpipeNameBuf, MAX_PATH_SZ);
     _hPipeReading = CreateFileW(wpipeNameBuf, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
 
-    if ((_hPipeReading == INVALID_HANDLE_VALUE) ||
-        (_hPipeSending == INVALID_HANDLE_VALUE))
+    if ((_hPipeReading == INVALID_HANDLE_VALUE) || (_hPipeSending == INVALID_HANDLE_VALUE))
         return false;
 
     return true;
@@ -62,10 +61,10 @@ void NamedPipesAGSDebugger::Shutdown()
     }
 }
 
-bool NamedPipesAGSDebugger::SendMessageToEditor(const char *message) 
+bool NamedPipesAGSDebugger::SendMessageToEditor(const char *message)
 {
     DWORD bytesWritten;
-    return (WriteFile(_hPipeSending, message, strlen(message), &bytesWritten, NULL ) != 0);
+    return (WriteFile(_hPipeSending, message, strlen(message), &bytesWritten, NULL) != 0);
 }
 
 bool NamedPipesAGSDebugger::IsMessageAvailable()
@@ -76,14 +75,14 @@ bool NamedPipesAGSDebugger::IsMessageAvailable()
     return (bytesAvailable > 0);
 }
 
-char* NamedPipesAGSDebugger::GetNextMessage()
+char *NamedPipesAGSDebugger::GetNextMessage()
 {
     DWORD bytesAvailable = 0;
     PeekNamedPipe(_hPipeReading, NULL, 0, NULL, &bytesAvailable, NULL);
 
     if (bytesAvailable > 0)
     {
-        char* buffer = (char*)malloc(bytesAvailable + 1);
+        char *buffer = (char *)malloc(bytesAvailable + 1);
         DWORD bytesRead = 0;
         ReadFile(_hPipeReading, buffer, bytesAvailable, &bytesRead, NULL);
         buffer[bytesRead] = 0;
@@ -95,7 +94,6 @@ char* NamedPipesAGSDebugger::GetNextMessage()
     {
         return NULL;
     }
-
 }
 
 #endif // AGS_PLATFORM_OS_WINDOWS

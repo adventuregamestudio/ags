@@ -39,9 +39,9 @@ void Camera::SetSize(const Size cam_size)
 {
     // TODO: currently we don't support having camera larger than room background
     // (or rather - looking outside of the room background); look into this later
-    const Size real_room_sz = (displayed_room >= 0 && (thisroom.Width > 0 && thisroom.Height > 0)) ?
-        Size(thisroom.Width, thisroom.Height) :
-        Size(INT32_MAX, INT32_MAX);
+    const Size real_room_sz = (displayed_room >= 0 && (thisroom.Width > 0 && thisroom.Height > 0))
+                                  ? Size(thisroom.Width, thisroom.Height)
+                                  : Size(INT32_MAX, INT32_MAX);
 
     const Size real_size = Size::Clamp(cam_size, Size(1, 1), real_room_sz);
     if (_position.GetWidth() == real_size.Width && _position.GetHeight() == real_size.Height)
@@ -112,9 +112,8 @@ void Camera::SetPivotOffset(const Point &pivot_off)
 
 Pointf Camera::GetEffectivePivot() const
 {
-    return _pivot +
-        Pointf((static_cast<float>(_pivotOff.X) / _position.GetWidth()),
-               (static_cast<float>(_pivotOff.Y) / _position.GetHeight()));
+    return _pivot + Pointf((static_cast<float>(_pivotOff.X) / _position.GetWidth()),
+                           (static_cast<float>(_pivotOff.Y) / _position.GetHeight()));
 }
 
 void Camera::AdjustTransformations()
@@ -261,17 +260,15 @@ void Viewport::AdjustTransformation()
         float rotate = locked_cam->GetRotation();
         Pointf pivot = locked_cam->GetEffectivePivot();
 
-        glm::mat4 mat_v2c = glmex::make_transform2d(cam_rc.Left, cam_rc.Top,
-            1.f / scale_x, 1.f / scale_y, Math::DegreesToRadians(rotate),
-            -cam_rc.GetWidth() * pivot.X, -cam_rc.GetHeight() * pivot.Y
-            );
+        glm::mat4 mat_v2c = glmex::make_transform2d(cam_rc.Left, cam_rc.Top, 1.f / scale_x, 1.f / scale_y,
+                                                    Math::DegreesToRadians(rotate), -cam_rc.GetWidth() * pivot.X,
+                                                    -cam_rc.GetHeight() * pivot.Y);
         _v2cTransform = glmex::translate(mat_v2c, -_position.Left, -_position.Top);
 
         glm::mat4 mat_c2v = glmex::translate(_position.Left, _position.Top);
-        _c2vTransform = glmex::inv_transform2d(mat_c2v, -cam_rc.Left, -cam_rc.Top,
-            scale_x, scale_y, -Math::DegreesToRadians(rotate),
-            cam_rc.GetWidth() * pivot.X, cam_rc.GetHeight() * pivot.Y
-            );
+        _c2vTransform = glmex::inv_transform2d(mat_c2v, -cam_rc.Left, -cam_rc.Top, scale_x, scale_y,
+                                               -Math::DegreesToRadians(rotate), cam_rc.GetWidth() * pivot.X,
+                                               cam_rc.GetHeight() * pivot.Y);
     }
 }
 

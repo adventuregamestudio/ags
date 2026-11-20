@@ -28,7 +28,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 // Global audio core state and resources
-static struct 
+static struct
 {
     // Device handle (could be a real hardware, or a service/server)
     ALCdevice *alcDevice = nullptr;
@@ -54,7 +54,10 @@ static struct
 void dump_al_errors()
 {
     auto err = alGetError();
-    if (err == AL_NO_ERROR) { return; }
+    if (err == AL_NO_ERROR)
+    {
+        return;
+    }
     Debug::Printf(kDbgMsg_Error, "OpenAL Error: %s", alGetString(err));
     assert(err == AL_NO_ERROR);
 }
@@ -65,7 +68,7 @@ void dump_al_errors()
 
 static void audio_core_entry();
 
-void audio_core_init() 
+void audio_core_init()
 {
     if (g_acore.audio_core_thread_running)
         return; // already running
@@ -75,12 +78,21 @@ void audio_core_init()
 
     /* Open and initialize a device */
     g_acore.alcDevice = alcOpenDevice(nullptr);
-    if (!g_acore.alcDevice) { throw std::runtime_error("AudioCore: error opening device"); }
+    if (!g_acore.alcDevice)
+    {
+        throw std::runtime_error("AudioCore: error opening device");
+    }
 
     g_acore.alcContext = alcCreateContext(g_acore.alcDevice, nullptr);
-    if (!g_acore.alcContext) { throw std::runtime_error("AudioCore: error creating context"); }
+    if (!g_acore.alcContext)
+    {
+        throw std::runtime_error("AudioCore: error creating context");
+    }
 
-    if (alcMakeContextCurrent(g_acore.alcContext) == ALC_FALSE) { throw std::runtime_error("AudioCore: error setting context"); }
+    if (alcMakeContextCurrent(g_acore.alcContext) == ALC_FALSE)
+    {
+        throw std::runtime_error("AudioCore: error setting context");
+    }
 
     const ALCchar *name = nullptr;
     if (alcIsExtensionPresent(g_acore.alcDevice, "ALC_ENUMERATE_ALL_EXT"))
@@ -125,12 +137,14 @@ void audio_core_shutdown()
     Sound_Quit();
 
     alcMakeContextCurrent(nullptr);
-    if(g_acore.alcContext) {
+    if (g_acore.alcContext)
+    {
         alcDestroyContext(g_acore.alcContext);
         g_acore.alcContext = nullptr;
     }
 
-    if (g_acore.alcDevice) {
+    if (g_acore.alcDevice)
+    {
         alcCloseDevice(g_acore.alcDevice);
         g_acore.alcDevice = nullptr;
     }
@@ -143,7 +157,7 @@ void audio_core_shutdown()
 // AUDIO CORE CONFIG
 // -------------------------------------------------------------------------------------------------
 
-void audio_core_set_master_volume(float newvol) 
+void audio_core_set_master_volume(float newvol)
 {
     // TODO: review this later; how do we apply master volume
     // if we use alternate audio output (e.g. from plugin)?
@@ -215,12 +229,16 @@ void audio_core_entry_poll()
     // burn off any errors for new loop
     dump_al_errors();
 
-    for (auto &entry : g_acore.slots_) {
+    for (auto &entry : g_acore.slots_)
+    {
         auto &slot = entry.second;
 
-        try {
+        try
+        {
             slot->Poll();
-        } catch (const std::exception& e) {
+        }
+        catch (const std::exception &e)
+        {
             Debug::Printf(kDbgMsg_Error, "AudioCore poll exception: %s", e.what());
         }
     }
@@ -231,8 +249,8 @@ static void audio_core_entry()
 {
     std::unique_lock<std::mutex> lk(g_acore.mixer_mutex_m);
 
-    while (g_acore.audio_core_thread_running) {
-
+    while (g_acore.audio_core_thread_running)
+    {
         audio_core_entry_poll();
 
         g_acore.mixer_cv.wait_for(lk, std::chrono::milliseconds(50));

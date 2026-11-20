@@ -25,16 +25,20 @@ extern GameSetupStruct game;
 
 // ** LABEL FUNCTIONS
 
-const char* Label_GetText_New(GUILabel *labl) {
+const char *Label_GetText_New(GUILabel *labl)
+{
     return CreateNewScriptString(labl->GetText());
 }
 
-void Label_GetText(GUILabel *labl, char *buffer) {
+void Label_GetText(GUILabel *labl, char *buffer)
+{
     snprintf(buffer, MAX_MAXSTRLEN, "%s", labl->GetText().GetCStr());
 }
 
-void Label_SetText(GUILabel *labl, const char *newtx) {
-    if (labl->GetText() != newtx) {
+void Label_SetText(GUILabel *labl, const char *newtx)
+{
+    if (labl->GetText() != newtx)
+    {
         labl->SetText(newtx);
     }
 }
@@ -70,11 +74,13 @@ void Label_SetTextOutlineColor(GUILabel *labl, int color)
     labl->SetTextOutlineColor(color);
 }
 
-int Label_GetFont(GUILabel *labl) {
+int Label_GetFont(GUILabel *labl)
+{
     return labl->GetFont();
 }
 
-void Label_SetFont(GUILabel *guil, int fontnum) {
+void Label_SetFont(GUILabel *guil, int fontnum)
+{
     fontnum = ValidateFontNumber("Label.Font", fontnum);
     guil->SetFont(fontnum);
 }
@@ -152,22 +158,21 @@ RuntimeScriptValue Sc_Label_SetTextOutlineColor(void *self, const RuntimeScriptV
 }
 
 
-
 void RegisterLabelAPI()
 {
     ScFnRegister label_api[] = {
-        { "Label::GetText^1",     API_FN_PAIR(Label_GetText) },
-        { "Label::SetText^1",     API_FN_PAIR(Label_SetText) },
-        { "Label::get_TextAlignment", API_FN_PAIR(Label_GetTextAlignment) },
-        { "Label::set_TextAlignment", API_FN_PAIR(Label_SetTextAlignment) },
-        { "Label::get_Font",      API_FN_PAIR(Label_GetFont) },
-        { "Label::set_Font",      API_FN_PAIR(Label_SetFont) },
-        { "Label::get_Text",      API_FN_PAIR(Label_GetText_New) },
-        { "Label::set_Text",      API_FN_PAIR(Label_SetText) },
-        { "Label::get_TextColor", API_FN_PAIR(Label_GetTextColor) },
-        { "Label::set_TextColor", API_FN_PAIR(Label_SetTextColor) },
-        { "Label::get_TextOutlineColor", API_FN_PAIR(Label_GetTextOutlineColor) },
-        { "Label::set_TextOutlineColor", API_FN_PAIR(Label_SetTextOutlineColor) },
+        {"Label::GetText^1", API_FN_PAIR(Label_GetText)},
+        {"Label::SetText^1", API_FN_PAIR(Label_SetText)},
+        {"Label::get_TextAlignment", API_FN_PAIR(Label_GetTextAlignment)},
+        {"Label::set_TextAlignment", API_FN_PAIR(Label_SetTextAlignment)},
+        {"Label::get_Font", API_FN_PAIR(Label_GetFont)},
+        {"Label::set_Font", API_FN_PAIR(Label_SetFont)},
+        {"Label::get_Text", API_FN_PAIR(Label_GetText_New)},
+        {"Label::set_Text", API_FN_PAIR(Label_SetText)},
+        {"Label::get_TextColor", API_FN_PAIR(Label_GetTextColor)},
+        {"Label::set_TextColor", API_FN_PAIR(Label_SetTextColor)},
+        {"Label::get_TextOutlineColor", API_FN_PAIR(Label_GetTextOutlineColor)},
+        {"Label::set_TextOutlineColor", API_FN_PAIR(Label_SetTextOutlineColor)},
     };
 
     ccAddExternalFunctions(label_api);

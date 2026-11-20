@@ -36,8 +36,8 @@ const char *get_translation(const char *text)
         return ""; // don't try translating an empty line
 
     // check if a plugin wants to translate it - if so, return that
-    const char *pl_result = reinterpret_cast<const char*>(
-        pl_run_plugin_hooks(kPluginEvt_TranslateText, reinterpret_cast<intptr_t>(text)));
+    const char *pl_result =
+        reinterpret_cast<const char *>(pl_run_plugin_hooks(kPluginEvt_TranslateText, reinterpret_cast<intptr_t>(text)));
     if (pl_result)
         return pl_result;
 
@@ -49,7 +49,8 @@ const char *get_translation(const char *text)
     return text;
 }
 
-int IsTranslationAvailable () {
+int IsTranslationAvailable()
+{
     if (get_translation_tree().size() > 0)
         return 1;
     return 0;

@@ -29,9 +29,10 @@ using AGS::Common::StringIMap;
 // returned for the given property.
 int get_int_property(const StringIMap &st_prop, const StringIMap &rt_prop, const char *property);
 void get_text_property(const StringIMap &st_prop, const StringIMap &rt_prop, const char *property, char *bufer);
-const char* get_text_property_dynamic_string(const StringIMap &st_prop, const StringIMap &rt_prop, const char *property);
+const char *get_text_property_dynamic_string(const StringIMap &st_prop, const StringIMap &rt_prop,
+                                             const char *property);
 
 bool set_int_property(StringIMap &rt_prop, const char *property, int value);
-bool set_text_property(StringIMap &rt_prop, const char *property, const char* value);
+bool set_text_property(StringIMap &rt_prop, const char *property, const char *value);
 
 #endif // __AGS_EE_AC__PROPERTIES_H

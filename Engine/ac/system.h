@@ -20,24 +20,24 @@
 
 #include "ac/dynobj/scriptobjects.h"
 
-int     System_GetColorDepth();
-int     System_GetOS();
+int System_GetColorDepth();
+int System_GetOS();
 const char *System_GetVersion();
-int     System_GetHardwareAcceleration();
-int     System_GetNumLock();
-int     System_GetCapsLock();
-int     System_GetScrollLock();
-int     System_GetVsync();
-void    System_SetVsync(int newValue);
-void    System_SetVSyncInternal(bool vsync);
-int     System_GetWindowed();
-int     System_GetSupportsGammaControl();
-int     System_GetGamma();
-void    System_SetGamma(int newValue);
-int     System_GetAudioChannelCount();
-ScriptAudioChannel* System_GetAudioChannels(int index);
-int     System_GetVolume();
-void    System_SetVolume(int newvol);
+int System_GetHardwareAcceleration();
+int System_GetNumLock();
+int System_GetCapsLock();
+int System_GetScrollLock();
+int System_GetVsync();
+void System_SetVsync(int newValue);
+void System_SetVSyncInternal(bool vsync);
+int System_GetWindowed();
+int System_GetSupportsGammaControl();
+int System_GetGamma();
+void System_SetGamma(int newValue);
+int System_GetAudioChannelCount();
+ScriptAudioChannel *System_GetAudioChannels(int index);
+int System_GetVolume();
+void System_SetVolume(int newvol);
 const char *System_GetRuntimeInfo();
 
 // Engine value constants match the declarations in script API.
@@ -47,11 +47,11 @@ const char *System_GetRuntimeInfo();
 // When adding indexed values - make sure to also add a value that tells their count.
 enum EngineValueID
 {
-    ENGINE_VALUE_UNDEFINED = 0,            // formality...
+    ENGINE_VALUE_UNDEFINED = 0, // formality...
     ENGINE_VALUE_SI_VALUENAME,
     ENGINE_VALUE_S_ENGINE_NAME,
-    ENGINE_VALUE_S_ENGINE_VERSION,         // N.N.N.N (with an optional custom tag)
-    ENGINE_VALUE_S_ENGINE_VERSION_FULL,    // full, with bitness, endianess and any tag list
+    ENGINE_VALUE_S_ENGINE_VERSION,      // N.N.N.N (with an optional custom tag)
+    ENGINE_VALUE_S_ENGINE_VERSION_FULL, // full, with bitness, endianess and any tag list
     ENGINE_VALUE_S_DISPLAY_MODE_STR,
     ENGINE_VALUE_S_GFXRENDERER,
     ENGINE_VALUE_S_GFXFILTER,
@@ -63,7 +63,7 @@ enum EngineValueID
     ENGINE_VALUE_I_TEXCACHE_NORMAL,
     ENGINE_VALUE_I_FPS_MAX,
     ENGINE_VALUE_I_FPS,
-    ENGINE_VALUE_LAST                      // in case user wants to iterate them
+    ENGINE_VALUE_LAST // in case user wants to iterate them
 };
 
 // Returns a runtime engine integer parameter, identified by a constant, and an optional index

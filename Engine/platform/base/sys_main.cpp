@@ -37,32 +37,34 @@ SystemConfig gl_SysConfig;
 // INIT / SHUTDOWN
 // ----------------------------------------------------------------------------
 
-int sys_main_init(/*config*/) {
+int sys_main_init(/*config*/)
+{
     SDL_version version;
     SDL_GetVersion(&version);
     Debug::Printf(kDbgMsg_Info, "SDL Version: %d.%d.%d", version.major, version.minor, version.patch);
     // Disable SDL2's own touch-to-mouse emulation:
     // we are going to use our own in the engine, and only if requested by the user config
-#if defined (SDL_HINT_TOUCH_MOUSE_EVENTS) && defined (SDL_HINT_MOUSE_TOUCH_EVENTS)
+#if defined(SDL_HINT_TOUCH_MOUSE_EVENTS) && defined(SDL_HINT_MOUSE_TOUCH_EVENTS)
     SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
     SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "0");
-#elif defined (SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH)
+#elif defined(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH)
     SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
 #endif
     // TODO: setup these subsystems in config rather than keep hardcoded?
-    if (SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) != 0) {
+    if (SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) != 0)
+    {
         Debug::Printf(kDbgMsg_Error, "Unable to initialize SDL: %s", SDL_GetError());
         return -1;
     }
     bool controller_res = SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) == 0;
-    if (!controller_res) {
+    if (!controller_res)
+    {
         // In non-desktop pc platforms, there is a chance that the gamecontroller is indeed necessary
         // For now, it's better to just warn and rely on other input methods, in ags4 we can review this
         Debug::Printf(kDbgMsg_Warn, "Unable to initialize SDL Gamepad: %s", SDL_GetError());
     }
     gl_SysMainInfo.SDLSubsystems =
-          SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS |
-          SDL_INIT_GAMECONTROLLER * controller_res;
+        SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_GAMECONTROLLER * controller_res;
     return 0;
 }
 
@@ -82,7 +84,8 @@ const SystemConfig &sys_get_config()
     return gl_SysConfig;
 }
 
-void sys_main_shutdown() {
+void sys_main_shutdown()
+{
     sys_window_destroy();
     sys_audio_shutdown(); // in case it's still on
     SDL_QuitSubSystem(gl_SysMainInfo.SDLSubsystems);
@@ -90,7 +93,8 @@ void sys_main_shutdown() {
     gl_SysMainInfo.SDLSubsystems = 0u;
 }
 
-void sys_set_background_mode(bool /*on*/) {
+void sys_set_background_mode(bool /*on*/)
+{
     // TODO: consider if we want any implementation here, and what...
 }
 
@@ -100,15 +104,18 @@ void sys_set_background_mode(bool /*on*/) {
 // ----------------------------------------------------------------------------
 const int DEFAULT_DISPLAY_INDEX = 0;
 
-int sys_get_display_count() {
+int sys_get_display_count()
+{
     return SDL_GetNumVideoDisplays();
 }
 
-bool sys_is_display_valid(int display_index) {
+bool sys_is_display_valid(int display_index)
+{
     return display_index >= 0 && display_index < SDL_GetNumVideoDisplays();
 }
 
-int sys_get_window_display_index() {
+int sys_get_window_display_index()
+{
 #if (AGS_SUPPORT_MULTIDISPLAY)
     int index = -1;
     SDL_Window *window = sys_get_window();
@@ -120,13 +127,16 @@ int sys_get_window_display_index() {
 #endif
 }
 
-bool sys_get_desktop_resolution(int &width, int &height) {
+bool sys_get_desktop_resolution(int &width, int &height)
+{
     return sys_get_desktop_resolution(sys_get_window_display_index(), width, height);
 }
 
-bool sys_get_desktop_resolution(int display_index, int &width, int &height) {
+bool sys_get_desktop_resolution(int display_index, int &width, int &height)
+{
     SDL_Rect r;
-    if (SDL_GetDisplayBounds(display_index, &r) != 0) {
+    if (SDL_GetDisplayBounds(display_index, &r) != 0)
+    {
         Debug::Printf(kDbgMsg_Error, "SDL_GetDisplayBounds failed: %s", SDL_GetError());
         return false;
     }
@@ -135,17 +145,21 @@ bool sys_get_desktop_resolution(int display_index, int &width, int &height) {
     return true;
 }
 
-void sys_get_desktop_modes(int display_index, std::vector<AGS::Engine::DisplayMode> &dms, int color_depth) {
+void sys_get_desktop_modes(int display_index, std::vector<AGS::Engine::DisplayMode> &dms, int color_depth)
+{
     SDL_DisplayMode mode;
     const int count = SDL_GetNumDisplayModes(display_index);
     dms.clear();
-    for (int i = 0; i < count; ++i) {
-        if (SDL_GetDisplayMode(display_index, i, &mode) != 0) {
+    for (int i = 0; i < count; ++i)
+    {
+        if (SDL_GetDisplayMode(display_index, i, &mode) != 0)
+        {
             Debug::Printf(kDbgMsg_Error, "SDL_GetDisplayMode failed: %s", SDL_GetError());
             continue;
         }
         const int bitsdepth = SDL_BITSPERPIXEL(mode.format);
-        if ((color_depth == 0) || (bitsdepth != color_depth)) {
+        if ((color_depth == 0) || (bitsdepth != color_depth))
+        {
             continue;
         }
         AGS::Engine::DisplayMode dm;
@@ -174,7 +188,7 @@ static bool try_init_audio_driver(const char *driver_name)
         SDL_setenv("SDL_AUDIODRIVER", driver_name, 1);
     if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
         return false;
-    SDL_AudioSpec desired {};
+    SDL_AudioSpec desired{};
     SDL_AudioDeviceID device = SDL_OpenAudioDevice(NULL, SDL_FALSE, &desired, NULL, SDL_AUDIO_ALLOW_ANY_CHANGE);
     if (device)
     {
@@ -218,8 +232,8 @@ bool sys_audio_init(const String &driver_name)
     const char *env_drv = SDL_getenv("SDL_AUDIODRIVER");
     if (!res && env_drv)
     {
-        Debug::Printf(kDbgMsg_Error, "Failed to initialize requested audio driver '%s'; error: %s",
-            env_drv, SDL_GetError());
+        Debug::Printf(kDbgMsg_Error, "Failed to initialize requested audio driver '%s'; error: %s", env_drv,
+                      SDL_GetError());
         Debug::Printf("Attempt to initialize any audio driver from the known list");
         res = try_init_audio_driver("");
     }
@@ -228,7 +242,7 @@ bool sys_audio_init(const String &driver_name)
     if (!res && (!env_drv || ags_stricmp(env_drv, "dummy") != 0))
     {
         Debug::Printf(kDbgMsg_Error, "Failed to initialize any audio driver suitable for this plaform; error: %s",
-            SDL_GetError());
+                      SDL_GetError());
         Debug::Printf("Attempt to initialize \"dummy\" audio driver");
         res = try_init_audio_driver("dummy");
     }
@@ -236,8 +250,7 @@ bool sys_audio_init(const String &driver_name)
     if (res)
         Debug::Printf(kDbgMsg_Info, "Audio driver: %s", SDL_GetCurrentAudioDriver());
     else
-        Debug::Printf(kDbgMsg_Error, "Failed to initialize any audio driver; error: %s",
-            SDL_GetError());
+        Debug::Printf(kDbgMsg_Error, "Failed to initialize any audio driver; error: %s", SDL_GetError());
     gl_SysMainInfo.SDLSubsystems |= SDL_INIT_AUDIO * res;
     return res;
 }
@@ -258,8 +271,10 @@ void sys_audio_shutdown()
 // TODO: support multiple windows? in case we need some for diag purposes etc
 static SDL_Window *window = nullptr;
 
-SDL_Window *sys_window_create(const char *window_title, int display_index, int w, int h, WindowMode mode, int ex_flags) {
-    if (window) {
+SDL_Window *sys_window_create(const char *window_title, int display_index, int w, int h, WindowMode mode, int ex_flags)
+{
+    if (window)
+    {
         sys_window_destroy();
     }
     // TODO: support display index selection (?)
@@ -283,14 +298,8 @@ SDL_Window *sys_window_create(const char *window_title, int display_index, int w
     assert(display_index == DEFAULT_DISPLAY_INDEX);
     display_index = DEFAULT_DISPLAY_INDEX;
 #endif
-    window = SDL_CreateWindow(
-        window_title,
-        SDL_WINDOWPOS_CENTERED_DISPLAY(display_index),
-        SDL_WINDOWPOS_CENTERED_DISPLAY(display_index),
-        w,
-        h,
-        flags
-    );
+    window = SDL_CreateWindow(window_title, SDL_WINDOWPOS_CENTERED_DISPLAY(display_index),
+                              SDL_WINDOWPOS_CENTERED_DISPLAY(display_index), w, h, flags);
 #if (AGS_SUPPORT_MULTIDISPLAY)
     // CHECKME: this is done because SDL2 has some bug(s) during
     // centering. See: https://github.com/libsdl-org/SDL/issues/6875
@@ -303,13 +312,17 @@ SDL_Window *sys_window_create(const char *window_title, int display_index, int w
     return window;
 }
 
-SDL_Window *sys_get_window() {
+SDL_Window *sys_get_window()
+{
     return window;
 }
 
-void sys_window_set_style(WindowMode mode, Size size) {
-    if (!window) return;
-    if(mode != kWnd_Windowed && !platform->FullscreenSupported()) mode = kWnd_Windowed;
+void sys_window_set_style(WindowMode mode, Size size)
+{
+    if (!window)
+        return;
+    if (mode != kWnd_Windowed && !platform->FullscreenSupported())
+        mode = kWnd_Windowed;
     // NOTE: depending on which mode we are switching to, the order of
     // actions may be different; e.g. if we are going windowed mode, then
     // we first should disable fullscreen and set new size only after;
@@ -328,27 +341,31 @@ void sys_window_set_style(WindowMode mode, Size size) {
         SDL_SetWindowDisplayMode(window, nullptr); // use window size
         SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
         break;
-    case kWnd_FullDesktop:
-        SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-        break;
+    case kWnd_FullDesktop: SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP); break;
     }
 }
 
-void sys_window_bring_to_front() {
-    if (!window) return;
+void sys_window_bring_to_front()
+{
+    if (!window)
+        return;
     SDL_RaiseWindow(window);
 }
 
-void sys_window_show_cursor(bool on) {
+void sys_window_show_cursor(bool on)
+{
     SDL_ShowCursor(on ? SDL_ENABLE : SDL_DISABLE);
 }
 
-bool sys_window_lock_mouse(bool on) {
+bool sys_window_lock_mouse(bool on)
+{
     return sys_window_lock_mouse(on, Rect());
 }
 
-bool sys_window_lock_mouse(bool on, const Rect &bounds) {
-    if (!window) return false;
+bool sys_window_lock_mouse(bool on, const Rect &bounds)
+{
+    if (!window)
+        return false;
     SDL_SetWindowGrab(window, static_cast<SDL_bool>(on));
 #if SDL_VERSION_ATLEAST(2, 0, 18)
     if (on && !bounds.IsEmpty())
@@ -364,40 +381,52 @@ bool sys_window_lock_mouse(bool on, const Rect &bounds) {
     {
         SDL_SetWindowMouseRect(window, nullptr);
     }
-#endif // SDL_VERSION_ATLEAST(2, 0, 18)
+#endif         // SDL_VERSION_ATLEAST(2, 0, 18)
     return on; // TODO: test if successful?
 }
 
-void sys_window_set_mouse(int x, int y) {
-    if (!window) return;
-    if (!gl_SysConfig.MouseEnabled) return;
+void sys_window_set_mouse(int x, int y)
+{
+    if (!window)
+        return;
+    if (!gl_SysConfig.MouseEnabled)
+        return;
     SDL_WarpMouseInWindow(window, x, y);
 }
 
-void sys_window_destroy() {
-    if (window) {
+void sys_window_destroy()
+{
+    if (window)
+    {
         SDL_DestroyWindow(window);
         window = nullptr;
     }
 }
 
-void sys_window_set_title(const char *title) {
-    if (window) {
+void sys_window_set_title(const char *title)
+{
+    if (window)
+    {
         SDL_SetWindowTitle(window, title);
     }
 }
 
-void sys_window_set_icon() {
-    if (window) {
+void sys_window_set_icon()
+{
+    if (window)
+    {
         SDL_Surface *icon = platform->CreateWindowIcon();
-        if (!icon) return; // no icon
+        if (!icon)
+            return; // no icon
         SDL_SetWindowIcon(window, icon);
         SDL_FreeSurface(icon);
     }
 }
 
-bool sys_window_set_size(int w, int h, bool center) {
-    if (window) {
+bool sys_window_set_size(int w, int h, bool center)
+{
+    if (window)
+    {
         SDL_SetWindowSize(window, w, h);
         if (center)
             sys_window_center();
@@ -408,7 +437,8 @@ bool sys_window_set_size(int w, int h, bool center) {
     return false;
 }
 
-void sys_window_center(int display_index) {
+void sys_window_center(int display_index)
+{
     if (!window)
         return;
 #if (AGS_SUPPORT_MULTIDISPLAY)
@@ -436,7 +466,8 @@ void sys_window_center(int display_index) {
 #endif
 }
 
-void sys_window_fit_in_display(int display_index) {
+void sys_window_fit_in_display(int display_index)
+{
     if (!window)
         return;
 #if (AGS_SUPPORT_MULTIDISPLAY)
@@ -445,7 +476,8 @@ void sys_window_fit_in_display(int display_index) {
         return;
     int w = 0, h = 0;
     SDL_GetWindowSize(window, &w, &h);
-    if (w > bounds.w || h > bounds.h) {
+    if (w > bounds.w || h > bounds.h)
+    {
         SDL_SetWindowSize(window, std::min(bounds.w, w), std::min(bounds.h, h));
     }
     sys_window_center(display_index);
@@ -456,9 +488,10 @@ void sys_window_fit_in_display(int display_index) {
 }
 
 #if AGS_PLATFORM_OS_WINDOWS
-void* sys_win_get_window()
+void *sys_win_get_window()
 {
-    if (!window) return nullptr;
+    if (!window)
+        return nullptr;
     SDL_SysWMinfo wmInfo;
     SDL_VERSION(&wmInfo.version);
     SDL_GetWindowWMInfo(window, &wmInfo);

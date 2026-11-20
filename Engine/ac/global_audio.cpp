@@ -38,21 +38,24 @@ extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 
 
-void SetSpeechVolume(int newvol) {
-    if ((newvol<0) | (newvol>255))
+void SetSpeechVolume(int newvol)
+{
+    if ((newvol < 0) | (newvol > 255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
-    auto* ch = AudioChans::GetChannel(SCHAN_SPEECH);
+    auto *ch = AudioChans::GetChannel(SCHAN_SPEECH);
     if (ch)
         ch->set_volume255(newvol);
     play.speech_volume = newvol;
 }
 
-int IsSpeechVoxAvailable() {
+int IsSpeechVoxAvailable()
+{
     return play.voice_avail ? 1 : 0;
 }
 
-int IsMusicVoxAvailable () {
+int IsMusicVoxAvailable()
+{
     return play.separate_music_lib ? 1 : 0;
 }
 
@@ -68,11 +71,10 @@ static String get_cue_filename(int charid, int sndid)
     // Naming format: use full script name (past the prefix),
     //            clip number (X) is separated by a dot:
     //            "CHARNAME.X"
-    const char *charname = (charid >= 0) ? game.chars[charid].scrname.GetCStr()
-        : "narrator";
+    const char *charname = (charid >= 0) ? game.chars[charid].scrname.GetCStr() : "narrator";
     size_t from = (charname[0] == 'c') ? 1 : 0u;
     String charname_fix(charname + from, SIZE_MAX);
-    
+
     const char *fmt_str = "%s.%d";
     String asset_filename = String::FromFormat(fmt_str, charname_fix.GetCStr(), sndid);
     return Path::ConcatPaths(get_voice_assetpath(), asset_filename);
@@ -82,7 +84,7 @@ static AssetPath find_voice_clip(const String &voice_name)
 {
     // TODO: perhaps a better algorithm, allow any extension / sound format?
     // e.g. make a hashmap matching a voice name to a asset name
-    std::array<const char*, 4> exts = {{ "mp3", "ogg", "wav", "flac" }};
+    std::array<const char *, 4> exts = {{"mp3", "ogg", "wav", "flac"}};
     AssetPath apath = get_voice_over_assetpath(voice_name);
     bool found = false;
     for (auto *ext : exts)
@@ -93,7 +95,8 @@ static AssetPath find_voice_clip(const String &voice_name)
             break;
     }
 
-    if (!found) {
+    if (!found)
+    {
         debug_script_warn("Speech file not found: '%s'", voice_name.GetCStr());
         return AssetPath();
     }
@@ -112,7 +115,8 @@ static bool play_voice_clip_on_channel(const String &voice_name)
         return false;
 
     std::unique_ptr<SoundClip> voice_clip(load_sound_clip(apath, "", false));
-    if (voice_clip != nullptr) {
+    if (voice_clip != nullptr)
+    {
         voice_clip->fileName = apath.Name;
         voice_clip->bundlingType = kAudioBundle_SpeechVox;
         voice_clip->set_volume255(play.speech_volume);
@@ -120,7 +124,8 @@ static bool play_voice_clip_on_channel(const String &voice_name)
             voice_clip.reset();
     }
 
-    if (!voice_clip) {
+    if (!voice_clip)
+    {
         debug_script_warn("Speech load failure: '%s'", voice_name.GetCStr());
         return false;
     }
@@ -165,11 +170,13 @@ bool play_voice_speech(int charid, int sndid)
     if (!play_voice_clip_impl(voice_file, true, true))
         return false;
 
-    int ii;  // Compare the base file name to the .pam file name
-    curLipLine = -1;  // See if we have voice lip sync for this line
+    int ii;          // Compare the base file name to the .pam file name
+    curLipLine = -1; // See if we have voice lip sync for this line
     curLipLinePhoneme = -1;
-    for (ii = 0; ii < numLipLines; ii++) {
-        if (voice_file.CompareNoCase(splipsync[ii].filename) == 0) {
+    for (ii = 0; ii < numLipLines; ii++)
+    {
+        if (voice_file.CompareNoCase(splipsync[ii].filename) == 0)
+        {
             curLipLine = ii;
             break;
         }
@@ -181,7 +188,8 @@ bool play_voice_speech(int charid, int sndid)
 
     // change Sierra w/bgrnd  to Sierra without background when voice
     // is available (for Tierra)
-    if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_SierraBackground) && (play.no_textbg_when_voice > 0)) {
+    if ((game.options[OPT_SPEECHTYPE] == kSpeechStyle_SierraBackground) && (play.no_textbg_when_voice > 0))
+    {
         game.options[OPT_SPEECHTYPE] = kSpeechStyle_SierraTransparent;
         play.no_textbg_when_voice = 2;
     }

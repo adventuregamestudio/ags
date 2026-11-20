@@ -16,7 +16,8 @@
 
 using namespace AGS::Common;
 
-TEST(SystemImports, ScriptSymbolsMap_GetIndexOf) {
+TEST(SystemImports, ScriptSymbolsMap_GetIndexOf)
+{
     ScriptSymbolsMap sym;
     sym.Add("Function", 0);
     sym.Add("Function^1", 1);
@@ -30,7 +31,8 @@ TEST(SystemImports, ScriptSymbolsMap_GetIndexOf) {
     ASSERT_EQ(sym.GetIndexOf("FunctionLong^5"), 2);
 }
 
-TEST(SystemImports, ScriptSymbolsMap_GetIndexOfAny) {
+TEST(SystemImports, ScriptSymbolsMap_GetIndexOfAny)
+{
     ScriptSymbolsMap sym;
     // Import symbols
     sym.Add("Func", 0);
@@ -71,22 +73,24 @@ TEST(SystemImports, ScriptSymbolsMap_GetIndexOfAny) {
     // Request without appendage, which does not have a direct match
     // - match the first found script export matching the base name, with any args
     ASSERT_EQ(sym.GetIndexOfAny("FunctionLong"), 13); // "FunctionLong$1" - first export match of the base name
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage"), 17); // "FunctionWithLongAppendage$123" - first export match of the base name
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage"),
+              17); // "FunctionWithLongAppendage$123" - first export match of the base name
     // Request import name with appendage, which does not have a direct match
     // - match the one without appendage, if not then...
     // - match the script export with the matching appendage
     ASSERT_EQ(sym.GetIndexOfAny("Function^2"), 1); // "Function" - no appendage match found, best match of the base name
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong^0"), UINT32_MAX); // not matching any variant
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong^0"), UINT32_MAX);  // not matching any variant
     ASSERT_EQ(sym.GetIndexOfAny("FunctionLong^10"), UINT32_MAX); // not matching any variant
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionNoAppendage^5"), 8); // "FunctionNoAppendage" - no appendage match found, best match of the base name
-    ASSERT_EQ(sym.GetIndexOfAny("Function^9"), 12); // "Function$9"
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong^7"), 16); // "FunctionLong$7"
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionNoAppendage^5"),
+              8); // "FunctionNoAppendage" - no appendage match found, best match of the base name
+    ASSERT_EQ(sym.GetIndexOfAny("Function^9"), 12);                    // "Function$9"
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong^7"), 16);                // "FunctionLong$7"
     ASSERT_EQ(sym.GetIndexOfAny("FunctionWithLongAppendage^345"), 19); // "FunctionWithLongAppendage$345"
     // Request export name with appendage, which does not have a direct match
     // - match the one without appendage
     ASSERT_EQ(sym.GetIndexOfAny("Function$2"), 1); // "Function" - no appendage match found, best match of the base name
     ASSERT_EQ(sym.GetIndexOfAny("Function$8"), 1); // "Function" - no appendage match found, best match of the base name
     ASSERT_EQ(sym.GetIndexOfAny("FunctionExtra$1"), UINT32_MAX); // not matching any variant
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong$9"), UINT32_MAX); // not matching any variant
-    ASSERT_EQ(sym.GetIndexOfAny("FunctionNoAppendage$1"), 8); // "FunctionNoAppendage"
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionLong$9"), UINT32_MAX);  // not matching any variant
+    ASSERT_EQ(sym.GetIndexOfAny("FunctionNoAppendage$1"), 8);    // "FunctionNoAppendage"
 }

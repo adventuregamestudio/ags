@@ -17,18 +17,18 @@
 
 #include "gui/newcontrol.h"
 
-struct MyLabel:public NewControl
+struct MyLabel : public NewControl
 {
-  char text[150];
-  int textheight; // TODO: use font instead
+    char text[150];
+    int textheight; // TODO: use font instead
 
-  MyLabel(int xx, int yy, int wii, const char *tee, int textheight);
+    MyLabel(int xx, int yy, int wii, const char *tee, int textheight);
 
-  void draw(Common::Bitmap *ds) override;
+    void draw(Common::Bitmap *ds) override;
 
-  int pressedon(int mx, int my) override;
+    int pressedon(int mx, int my) override;
 
-  int processmessage(int mcode, int wParam, intptr_t ipParam) override;
+    int processmessage(int mcode, int wParam, intptr_t ipParam) override;
 };
 
 #endif // __AC_MYLABEL_H

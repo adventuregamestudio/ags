@@ -17,7 +17,13 @@
 #include "ac/keycode.h"
 #include "ac/runtime_defines.h"
 
-namespace AGS { namespace Engine { class IDriverDependantBitmap; }}
+namespace AGS
+{
+namespace Engine
+{
+class IDriverDependantBitmap;
+}
+} // namespace AGS
 struct GamepadInput;
 struct TouchInput;
 
@@ -43,7 +49,8 @@ void RunGameUntilAborted();
 // * extra_ddb, x and y - adds an additional arbitrary texture to the render list,
 //       rendered on top of everything else (except cursor).
 //       This is a leftover used only for built-in dialogs, and must be replaced eventually.
-void UpdateGameOnce(bool do_controls = false, AGS::Engine::IDriverDependantBitmap *extra_ddb = nullptr, int extra_x = 0, int extra_y = 0);
+void UpdateGameOnce(bool do_controls = false, AGS::Engine::IDriverDependantBitmap *extra_ddb = nullptr, int extra_x = 0,
+                    int extra_y = 0);
 // Update minimal required game state: audio, loop counter, etc; wait for the next frame
 void UpdateGameAudioOnly();
 // Updates everything related to object views that could have changed in the midst of a

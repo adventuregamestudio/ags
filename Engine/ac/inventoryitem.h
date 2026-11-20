@@ -23,18 +23,18 @@
 bool AssertInvItem(const char *apiname, int item_index);
 
 void InventoryItem_SetCursorGraphic(ScriptInvItem *iitem, int newSprite);
-int  InventoryItem_GetCursorGraphic(ScriptInvItem *iitem);
+int InventoryItem_GetCursorGraphic(ScriptInvItem *iitem);
 void InventoryItem_SetGraphic(ScriptInvItem *iitem, int piccy);
 void InventoryItem_SetName(ScriptInvItem *scii, const char *newname);
-int  InventoryItem_GetID(ScriptInvItem *scii);
-const char* InventoryItem_GetName_New(ScriptInvItem *invitem);
-int  InventoryItem_GetGraphic(ScriptInvItem *iitem);
+int InventoryItem_GetID(ScriptInvItem *scii);
+const char *InventoryItem_GetName_New(ScriptInvItem *invitem);
+int InventoryItem_GetGraphic(ScriptInvItem *iitem);
 void InventoryItem_RunInteraction(ScriptInvItem *iitem, int mood);
 void RunInventoryInteraction(int iit, int mood);
-int  InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood);
-int  InventoryItem_GetProperty(ScriptInvItem *scii, const char *property);
+int InventoryItem_CheckInteractionAvailable(ScriptInvItem *iitem, int mood);
+int InventoryItem_GetProperty(ScriptInvItem *scii, const char *property);
 void InventoryItem_GetPropertyText(ScriptInvItem *scii, const char *property, char *bufer);
-const char* InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *property);
+const char *InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *property);
 int GetInvAt(int scrx, int scry, int gui_hitoptions, int inv_hitoptions);
 
 void set_inv_item_cursorpic(int invItemId, int piccy);

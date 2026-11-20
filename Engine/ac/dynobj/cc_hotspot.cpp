@@ -24,21 +24,24 @@ extern std::vector<int> StaticHotspotArray;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 
 // return the type name of the object
-const char *CCHotspot::GetType() {
+const char *CCHotspot::GetType()
+{
     return "Hotspot";
 }
 
-size_t CCHotspot::CalcSerializeSize(const void* /*address*/)
+size_t CCHotspot::CalcSerializeSize(const void * /*address*/)
 {
     return sizeof(int32_t);
 }
 
-void CCHotspot::Serialize(const void *address, Stream *out) {
-    const ScriptHotspot *shh = static_cast<const ScriptHotspot*>(address);
+void CCHotspot::Serialize(const void *address, Stream *out)
+{
+    const ScriptHotspot *shh = static_cast<const ScriptHotspot *>(address);
     out->WriteInt32(shh->id);
 }
 
-void CCHotspot::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
+void CCHotspot::Unserialize(int index, Stream *in, size_t /*data_sz*/)
+{
     int num = in->ReadInt32();
     StaticHotspotArray[num] = ccRegisterUnserializedPersistentObject(index, &scrHotspot[num], this);
 }

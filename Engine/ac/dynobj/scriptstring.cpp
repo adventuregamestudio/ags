@@ -30,7 +30,7 @@ const char *ScriptString::GetType()
 
 int ScriptString::Dispose(void *address, bool /*force*/)
 {
-    delete[] (static_cast<uint8_t*>(address) - MemHeaderSz);
+    delete[] (static_cast<uint8_t *>(address) - MemHeaderSz);
     return 1;
 }
 
@@ -40,7 +40,7 @@ size_t ScriptString::CalcSerializeSize(const void *address)
     return hdr.Length + 1 + FileHeaderSz;
 }
 
-void ScriptString::Serialize(const void* address, Stream *out)
+void ScriptString::Serialize(const void *address, Stream *out)
 {
     const Header &hdr = GetHeader(address);
     out->WriteInt32(hdr.Length);
@@ -51,10 +51,10 @@ void ScriptString::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 {
     size_t len = in->ReadInt32();
     uint8_t *buf = new uint8_t[len + 1 + MemHeaderSz];
-    char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
+    char *text_ptr = reinterpret_cast<char *>(buf + MemHeaderSz);
     in->Read(text_ptr, len + 1); // it was writing trailing 0 for some reason
-    text_ptr[len] = 0; // for safety
-    Header &hdr = reinterpret_cast<Header&>(*buf);
+    text_ptr[len] = 0;           // for safety
+    Header &hdr = reinterpret_cast<Header &>(*buf);
     hdr.Length = len;
     hdr.ULength = ustrlen(text_ptr);
     hdr.LastCharIdx = 0u;
@@ -64,7 +64,7 @@ void ScriptString::Unserialize(int index, Stream *in, size_t /*data_sz*/)
 
 DynObjectRef ScriptString::CreateObject(uint8_t *buf)
 {
-    char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
+    char *text_ptr = reinterpret_cast<char *>(buf + MemHeaderSz);
     int32_t handle = ccRegisterManagedObject(text_ptr, &myScriptStringImpl);
     if (handle == 0)
     {
@@ -78,7 +78,7 @@ ScriptString::Buffer ScriptString::CreateBuffer(size_t len, size_t ulen)
 {
     assert(ulen <= len);
     std::unique_ptr<uint8_t[]> buf(new uint8_t[len + 1 + MemHeaderSz]);
-    auto *header = reinterpret_cast<Header*>(buf.get());
+    auto *header = reinterpret_cast<Header *>(buf.get());
     header->Length = len;
     header->ULength = ulen;
     header->LastCharIdx = 0;
@@ -101,8 +101,8 @@ DynObjectRef ScriptString::Create(const char *text)
 DynObjectRef ScriptString::Create(Buffer &&strbuf)
 {
     uint8_t *buf = strbuf._buf.release();
-    auto *header = reinterpret_cast<Header*>(buf);
-    char *text_ptr = reinterpret_cast<char*>(buf + MemHeaderSz);
+    auto *header = reinterpret_cast<Header *>(buf);
+    char *text_ptr = reinterpret_cast<char *>(buf + MemHeaderSz);
     text_ptr[header->Length] = 0; // fixup in case buffer did not have one added
     if ((header->Length > 0) && (header->ULength == 0u))
     {

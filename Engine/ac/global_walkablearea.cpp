@@ -25,15 +25,17 @@ using namespace AGS::Common;
 extern RoomStruct thisroom;
 
 
-int GetScalingAt (int x, int y) {
+int GetScalingAt(int x, int y)
+{
     int onarea = get_walkable_area_pixel(x, y);
     if (onarea < 0)
         return 100;
 
-    return get_area_scaling (onarea, x, y);
+    return get_area_scaling(onarea, x, y);
 }
 
-void SetAreaScaling(int area, int min, int max) {
+void SetAreaScaling(int area, int min, int max)
+{
     if ((area < 0) || (area >= MAX_WALK_AREAS))
         quit("!SetAreaScaling: invalid walkalbe area");
 
@@ -47,45 +49,50 @@ void SetAreaScaling(int area, int min, int max) {
     min -= 100;
     max -= 100;
 
-    if (min == max) {
+    if (min == max)
+    {
         thisroom.WalkAreas[area].ScalingFar = min;
         thisroom.WalkAreas[area].ScalingNear = NOT_VECTOR_SCALED;
     }
-    else {
+    else
+    {
         thisroom.WalkAreas[area].ScalingFar = min;
         thisroom.WalkAreas[area].ScalingNear = max;
     }
 }
 
-void RemoveWalkableArea(int areanum) {
-  if ((areanum < 1) | (areanum >= MAX_WALK_AREAS))
-    quitprintf("!RemoveWalkableArea: invalid area number specified (1-%d).", MAX_WALK_AREAS - 1);
-  play.walkable_areas_on[areanum]=0;
-  redo_walkable_areas();
-  debug_script_log("Walkable area %d removed", areanum);
+void RemoveWalkableArea(int areanum)
+{
+    if ((areanum < 1) | (areanum >= MAX_WALK_AREAS))
+        quitprintf("!RemoveWalkableArea: invalid area number specified (1-%d).", MAX_WALK_AREAS - 1);
+    play.walkable_areas_on[areanum] = 0;
+    redo_walkable_areas();
+    debug_script_log("Walkable area %d removed", areanum);
 }
 
-void RestoreWalkableArea(int areanum) {
-  if ((areanum < 1) | (areanum >= MAX_WALK_AREAS))
-    quitprintf("!RestoreWalkableArea: invalid area number specified (1-%d).", MAX_WALK_AREAS - 1);
-  play.walkable_areas_on[areanum]=1;
-  redo_walkable_areas();
-  debug_script_log("Walkable area %d restored", areanum);
+void RestoreWalkableArea(int areanum)
+{
+    if ((areanum < 1) | (areanum >= MAX_WALK_AREAS))
+        quitprintf("!RestoreWalkableArea: invalid area number specified (1-%d).", MAX_WALK_AREAS - 1);
+    play.walkable_areas_on[areanum] = 1;
+    redo_walkable_areas();
+    debug_script_log("Walkable area %d restored", areanum);
 }
 
-int GetWalkableAreaAtScreen(int x, int y) {
-  VpPoint vpt = play.ScreenToRoom(x, y);
-  if (vpt.second < 0)
-    return -1;
-  return GetWalkableAreaAtRoom(vpt.first.X, vpt.first.Y);
+int GetWalkableAreaAtScreen(int x, int y)
+{
+    VpPoint vpt = play.ScreenToRoom(x, y);
+    if (vpt.second < 0)
+        return -1;
+    return GetWalkableAreaAtRoom(vpt.first.X, vpt.first.Y);
 }
 
-int GetWalkableAreaAtRoom(int x, int y) {
-  int area = get_walkable_area_pixel(x, y);
-  // IMPORTANT: disabled walkable areas are actually erased completely from the mask;
-  // see: RemoveWalkableArea() and RestoreWalkableArea().
-  return (area >= 0 && area < MAX_WALK_AREAS) ? area : 0;
+int GetWalkableAreaAtRoom(int x, int y)
+{
+    int area = get_walkable_area_pixel(x, y);
+    // IMPORTANT: disabled walkable areas are actually erased completely from the mask;
+    // see: RemoveWalkableArea() and RestoreWalkableArea().
+    return (area >= 0 && area < MAX_WALK_AREAS) ? area : 0;
 }
 
 //=============================================================================
-

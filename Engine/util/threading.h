@@ -24,25 +24,20 @@ namespace AGS
 {
 namespace Engine
 {
-    
+
 // LockedObjectPtr wraps an object pointer guarded by a mutex lock.
 // Unlocks the mutex on destruction (e.g. when going out of scope).
 // Optionally accepts a condition variable, sends notification on destruction.
-template <typename T>
+template<typename T>
 class LockedObjectPtr
 {
 public:
     LockedObjectPtr(T *object, std::unique_lock<std::mutex> &&ulk, std::condition_variable *cv)
-        : _object(object)
-        , _ulock(std::move(ulk))
-        , _cv(cv)
+        : _object(object), _ulock(std::move(ulk)), _cv(cv)
     {
     }
 
-    LockedObjectPtr(LockedObjectPtr<T> &&lock)
-        : _object(lock._object)
-        , _ulock(std::move(lock._ulock))
-        , _cv(lock._cv)
+    LockedObjectPtr(LockedObjectPtr<T> &&lock) : _object(lock._object), _ulock(std::move(lock._ulock)), _cv(lock._cv)
     {
         lock._cv = nullptr;
     }
@@ -54,10 +49,10 @@ public:
     }
 
     operator bool() const { return _object != nullptr; }
-    const T *operator ->() const { return _object; }
-    T *operator ->() { return _object; }
-    const T &operator *() const { return *_object; }
-    T &operator *() { return *_object; }
+    const T *operator->() const { return _object; }
+    T *operator->() { return _object; }
+    const T &operator*() const { return *_object; }
+    T &operator*() { return *_object; }
 
 private:
     T *_object = nullptr;

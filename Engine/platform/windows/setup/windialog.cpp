@@ -34,7 +34,7 @@ INT_PTR WinDialog::ShowModal(WinDialog *dialog, HWND parent_hwnd)
     if (dialog->_hwnd != NULL)
         return FALSE;
     return DialogBoxParamW(GetModuleHandleW(NULL), (LPCWSTR)dialog->GetTemplateID(), parent_hwnd,
-        (DLGPROC)WinDialog::DialogProc, (LONG_PTR)dialog);
+                           (DLGPROC)WinDialog::DialogProc, (LONG_PTR)dialog);
 }
 
 // DoLockDlgRes - loads and locks a dialog template resource.
@@ -55,8 +55,7 @@ void WinDialog::CreateModeless(HWND parent_hwnd)
 
     HINSTANCE hinst = GetModuleHandleW(NULL);
     DLGTEMPLATE *dlgtempl = DoLockDlgRes(hinst, (LPCWSTR)GetTemplateID());
-    CreateDialogIndirectParamW(hinst, dlgtempl, parent_hwnd,
-        (DLGPROC)WinDialog::DialogProc, (LONG_PTR)this);
+    CreateDialogIndirectParamW(hinst, dlgtempl, parent_hwnd, (DLGPROC)WinDialog::DialogProc, (LONG_PTR)this);
 }
 
 void WinDialog::Show()
@@ -86,14 +85,14 @@ INT_PTR CALLBACK WinDialog::DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, L
         SetWindowLongPtrW(hwndDlg, GWLP_USERDATA, lParam);
         if (lParam != NULL)
         {
-            dlg = (WinDialog*)lParam;
+            dlg = (WinDialog *)lParam;
             dlg->_hwnd = hwndDlg;
             return dlg->OnDialogEvent(uMsg, wParam, lParam);
         }
         return FALSE;
     default:
         // Retrieve a bound dialog object from HWND and call OnDialogEvent()
-        dlg = (WinDialog*)GetWindowLongPtrW(hwndDlg, GWLP_USERDATA);
+        dlg = (WinDialog *)GetWindowLongPtrW(hwndDlg, GWLP_USERDATA);
         if (dlg)
             return dlg->OnDialogEvent(uMsg, wParam, lParam);
         return FALSE;
@@ -104,16 +103,13 @@ INT_PTR WinDialog::OnDialogEvent(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/)
 {
     switch (uMsg)
     {
-    case WM_INITDIALOG:
-        return OnInitDialog();
-    case WM_DESTROY:
-        return OnDestroyDialog();
+    case WM_INITDIALOG: return OnInitDialog();
+    case WM_DESTROY: return OnDestroyDialog();
     case WM_COMMAND:
         if (HIWORD(wParam) == CBN_SELCHANGE)
             return OnListSelection(LOWORD(wParam));
         return OnCommand(LOWORD(wParam));
-    default:
-        return FALSE;
+    default: return FALSE;
     }
 }
 

@@ -20,15 +20,13 @@
 struct FileBasedAGSDebugger : IAGSEditorDebugger
 {
 public:
-
     bool Initialize() override;
     void Shutdown() override;
     bool SendMessageToEditor(const char *message) override;
     bool IsMessageAvailable() override;
-    char* GetNextMessage() override;
-
+    char *GetNextMessage() override;
 };
 
-extern const char* SENT_MESSAGE_FILE_NAME;
+extern const char *SENT_MESSAGE_FILE_NAME;
 
 #endif // __AC_FILEBASEDAGSDEBUGGER_H

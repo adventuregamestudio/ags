@@ -46,8 +46,8 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 // TODO: choose these values depending on game resolution?
-#define MAXDIRTYREGIONS 25
-#define WHOLESCREENDIRTY (MAXDIRTYREGIONS + 5)
+#define MAXDIRTYREGIONS   25
+#define WHOLESCREENDIRTY  (MAXDIRTYREGIONS + 5)
 #define MAX_SPANS_PER_ROW 4
 
 // Dirty rects store coordinate values in the coordinate system of a camera surface,
@@ -97,15 +97,9 @@ struct DirtyRects
 };
 
 
-IRSpan::IRSpan()
-    : x1(0), x2(0)
-{
-}
+IRSpan::IRSpan() : x1(0), x2(0) {}
 
-IRRow::IRRow()
-    : numSpans(0)
-{
-}
+IRRow::IRRow() : numSpans(0) {}
 
 int IRSpan::mergeSpan(int tx1, int tx2)
 {
@@ -119,10 +113,7 @@ int IRSpan::mergeSpan(int tx1, int tx2)
     return 1;
 }
 
-DirtyRects::DirtyRects()
-    : NumDirtyRegions(0)
-{
-}
+DirtyRects::DirtyRects() : NumDirtyRegions(0) {}
 
 bool DirtyRects::IsInit() const
 {
@@ -260,46 +251,60 @@ void invalidate_rect_on_surf(int x1, int y1, int x2, int y2, DirtyRects &rects)
 {
     if (rects.DirtyRows.size() == 0)
         return;
-    if (rects.NumDirtyRegions >= MAXDIRTYREGIONS) {
+    if (rects.NumDirtyRegions >= MAXDIRTYREGIONS)
+    {
         // too many invalid rectangles, just mark the whole thing dirty
         rects.NumDirtyRegions = WHOLESCREENDIRTY;
         return;
     }
 
-    if(x1 > x2 || y1 > y2) return;
+    if (x1 > x2 || y1 > y2)
+        return;
 
     int a;
 
     const Size &surfsz = rects.SurfaceSize;
 
-    if(x1 >= surfsz.Width || y1 >= surfsz.Height || x2 < 0 || y2 < 0) return;
+    if (x1 >= surfsz.Width || y1 >= surfsz.Height || x2 < 0 || y2 < 0)
+        return;
 
-    if (x2 >= surfsz.Width) x2 = surfsz.Width - 1;
-    if (y2 >= surfsz.Height) y2 = surfsz.Height - 1;
-    if (x1 < 0) x1 = 0;
-    if (y1 < 0) y1 = 0;
+    if (x2 >= surfsz.Width)
+        x2 = surfsz.Width - 1;
+    if (y2 >= surfsz.Height)
+        y2 = surfsz.Height - 1;
+    if (x1 < 0)
+        x1 = 0;
+    if (y1 < 0)
+        y1 = 0;
     rects.NumDirtyRegions++;
 
     // ** Span code
     std::vector<IRRow> &dirtyRow = rects.DirtyRows;
     int s, foundOne;
     // add this rect to the list for this row
-    for (a = y1; a <= y2; a++) {
+    for (a = y1; a <= y2; a++)
+    {
         foundOne = 0;
-        for (s = 0; s < dirtyRow[a].numSpans; s++) {
-            if (dirtyRow[a].span[s].mergeSpan(x1, x2)) {
+        for (s = 0; s < dirtyRow[a].numSpans; s++)
+        {
+            if (dirtyRow[a].span[s].mergeSpan(x1, x2))
+            {
                 foundOne = 1;
                 break;
             }
         }
-        if (foundOne) {
+        if (foundOne)
+        {
             // we were merged into a span, so we're ok
             int t;
             // check whether now two of the spans overlap each other
             // in which case merge them
-            for (s = 0; s < dirtyRow[a].numSpans; s++) {
-                for (t = s + 1; t < dirtyRow[a].numSpans; t++) {
-                    if (dirtyRow[a].span[s].mergeSpan(dirtyRow[a].span[t].x1, dirtyRow[a].span[t].x2)) {
+            for (s = 0; s < dirtyRow[a].numSpans; s++)
+            {
+                for (t = s + 1; t < dirtyRow[a].numSpans; t++)
+                {
+                    if (dirtyRow[a].span[s].mergeSpan(dirtyRow[a].span[t].x1, dirtyRow[a].span[t].x2))
+                    {
                         dirtyRow[a].numSpans--;
                         for (int u = t; u < dirtyRow[a].numSpans; u++)
                             dirtyRow[a].span[u] = dirtyRow[a].span[u + 1];
@@ -308,24 +313,29 @@ void invalidate_rect_on_surf(int x1, int y1, int x2, int y2, DirtyRects &rects)
                 }
             }
         }
-        else if (dirtyRow[a].numSpans < MAX_SPANS_PER_ROW) {
+        else if (dirtyRow[a].numSpans < MAX_SPANS_PER_ROW)
+        {
             dirtyRow[a].span[dirtyRow[a].numSpans].x1 = x1;
             dirtyRow[a].span[dirtyRow[a].numSpans].x2 = x2;
             dirtyRow[a].numSpans++;
         }
-        else {
+        else
+        {
             // didn't fit in an existing span, and there are none spare
             int nearestDist = 99999, nearestWas = -1, extendLeft = 0;
             // find the nearest span, and enlarge that to include this rect
-            for (s = 0; s < dirtyRow[a].numSpans; s++) {
+            for (s = 0; s < dirtyRow[a].numSpans; s++)
+            {
                 int tleft = dirtyRow[a].span[s].x1 - x2;
-                if ((tleft > 0) && (tleft < nearestDist)) {
+                if ((tleft > 0) && (tleft < nearestDist))
+                {
                     nearestDist = tleft;
                     nearestWas = s;
                     extendLeft = 1;
                 }
                 int tright = x1 - dirtyRow[a].span[s].x2;
-                if ((tright > 0) && (tright < nearestDist)) {
+                if ((tright > 0) && (tright < nearestDist))
+                {
                     nearestDist = tright;
                     nearestWas = s;
                     extendLeft = 0;
@@ -363,7 +373,7 @@ void invalidate_rect_ds(DirtyRects &rects, int x1, int y1, int x2, int y2, bool 
         y2 = rects.Screen2DirtySurf.Y.ScalePt(y2);
     }
     else
-    {   // Transform only from camera pos to room background
+    { // Transform only from camera pos to room background
         x1 -= rects.Room2Screen.X.GetSrcOffset();
         y1 -= rects.Room2Screen.Y.GetSrcOffset();
         x2 -= rects.Room2Screen.X.GetSrcOffset();
@@ -434,7 +444,8 @@ void update_invalid_region(Bitmap *ds, Bitmap *src, const DirtyRects &rects, boo
                 {
                     int tx1 = dirty_row.span[k].x1;
                     int tx2 = dirty_row.span[k].x2;
-                    memcpy(&dst_scanline[(tx1 + dst_x) * bypp], &src_scanline[(tx1 + src_x) * bypp], ((tx2 - tx1) + 1) * bypp);
+                    memcpy(&dst_scanline[(tx1 + dst_x) * bypp], &src_scanline[(tx1 + src_x) * bypp],
+                           ((tx2 - tx1) + 1) * bypp);
                 }
             }
         }
@@ -446,7 +457,8 @@ void update_invalid_region(Bitmap *ds, Bitmap *src, const DirtyRects &rects, boo
             {
                 // if there are rows with identical masks, do them all in one go
                 // TODO: what is this for? may this be done at the invalidate_rect merge step?
-                while ((i + rowsInOne < surf_height) && (memcmp(&dirtyRow[i], &dirtyRow[i + rowsInOne], sizeof(IRRow)) == 0))
+                while ((i + rowsInOne < surf_height) &&
+                       (memcmp(&dirtyRow[i], &dirtyRow[i + rowsInOne], sizeof(IRRow)) == 0))
                     rowsInOne++;
 
                 const IRRow &dirty_row = dirtyRow[i];
@@ -479,7 +491,8 @@ void update_invalid_region(Bitmap *ds, color_t fill_color, const DirtyRects &rec
             {
                 // if there are rows with identical masks, do them all in one go
                 // TODO: what is this for? may this be done at the invalidate_rect merge step?
-                while ((i + rowsInOne < surf_height) && (memcmp(&dirtyRow[i], &dirtyRow[i + rowsInOne], sizeof(IRRow)) == 0))
+                while ((i + rowsInOne < surf_height) &&
+                       (memcmp(&dirtyRow[i], &dirtyRow[i + rowsInOne], sizeof(IRRow)) == 0))
                     rowsInOne++;
 
                 const IRRow &dirty_row = dirtyRow[i];
@@ -506,7 +519,7 @@ void update_room_invreg_and_reset(int view_index, Bitmap *ds, Bitmap *src, bool 
 {
     if (view_index < 0 || RoomCamRects.size() == 0)
         return;
-    
+
     update_invalid_region(ds, src, RoomCamRects[view_index], no_transform);
     RoomCamRects[view_index].Reset();
 }

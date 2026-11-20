@@ -35,18 +35,18 @@ public:
     struct Buffer
     {
         friend ScriptString;
+
     public:
         Buffer() = default;
         ~Buffer() = default;
         Buffer(Buffer &&buf) = default;
         // Returns a pointer to the beginning of a text buffer
-        char *Get() { return reinterpret_cast<char*>(_buf.get() + MemHeaderSz); }
+        char *Get() { return reinterpret_cast<char *>(_buf.get() + MemHeaderSz); }
         // Returns size allocated for a text content (includes null pointer)
         size_t GetSize() const { return _sz - MemHeaderSz; }
 
     private:
-        Buffer(std::unique_ptr<uint8_t[]> &&buf, size_t buf_sz)
-            : _buf(std::move(buf)), _sz(buf_sz) {}
+        Buffer(std::unique_ptr<uint8_t[]> &&buf, size_t buf_sz) : _buf(std::move(buf)), _sz(buf_sz) {}
 
         std::unique_ptr<uint8_t[]> _buf;
         size_t _sz;
@@ -58,12 +58,12 @@ public:
 
     inline static const Header &GetHeader(const void *address)
     {
-        return reinterpret_cast<const Header&>(*(static_cast<const uint8_t*>(address) - MemHeaderSz));
+        return reinterpret_cast<const Header &>(*(static_cast<const uint8_t *>(address) - MemHeaderSz));
     }
 
     inline static Header &GetHeader(void *address)
     {
-        return reinterpret_cast<Header&>(*(static_cast<uint8_t*>(address) - MemHeaderSz));
+        return reinterpret_cast<Header &>(*(static_cast<uint8_t *>(address) - MemHeaderSz));
     }
 
     // Allocates a ScriptString-compatible buffer large enough to accomodate

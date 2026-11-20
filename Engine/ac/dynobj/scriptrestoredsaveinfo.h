@@ -27,17 +27,15 @@ public:
     using SaveCmpSelection = AGS::Engine::SaveCmpSelection;
 
     ScriptRestoredSaveInfo(SaveRestorationFlags result, const SavegameDescription &save_desc,
-            const SaveRestoredDataCounts &counts, bool default_cancel)
-        : _result(result)
-        , _desc(save_desc)
-        , _counts(counts)
-        , _cancel(default_cancel)
-    {}
+                           const SaveRestoredDataCounts &counts, bool default_cancel)
+        : _result(result), _desc(save_desc), _counts(counts), _cancel(default_cancel)
+    {
+    }
 
     const char *GetType() override { return "RestoredSaveInfo"; }
     int Dispose(void *address, bool force) override
     {
-        delete (ScriptRestoredSaveInfo*)address;
+        delete (ScriptRestoredSaveInfo *)address;
         return 1;
     }
 

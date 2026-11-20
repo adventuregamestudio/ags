@@ -30,17 +30,22 @@ bool get_property_desc(PropertyDesc &desc, const char *property, PropertyType wa
 {
     PropertySchema::const_iterator sch_it = game.propSchema.find(property);
     if (sch_it == game.propSchema.end())
-        quitprintf("!Did not find property '%s' in the schema. Make sure you are using the property's name, and not its description, when calling this command.", property);
+        quitprintf(
+            "!Did not find property '%s' in the schema. Make sure you are using the property's name, and not its description, when calling this command.",
+            property);
 
     desc = sch_it->second;
     if (want_type == kPropertyString && desc.Type != kPropertyString)
-        quitprintf("!Property '%s' isn't a text property.  Use GetProperty/SetProperty for non-text properties", property);
+        quitprintf("!Property '%s' isn't a text property.  Use GetProperty/SetProperty for non-text properties",
+                   property);
     else if (want_type != kPropertyString && desc.Type == kPropertyString)
-        quitprintf("!Property '%s' is a text property.  Use GetTextProperty/SetTextProperty for text properties", property);
+        quitprintf("!Property '%s' is a text property.  Use GetTextProperty/SetTextProperty for text properties",
+                   property);
     return true;
 }
 
-String get_property_value(const StringIMap &st_prop, const StringIMap &rt_prop, const char *property, const String def_val)
+String get_property_value(const StringIMap &st_prop, const StringIMap &rt_prop, const char *property,
+                          const String def_val)
 {
     // First check runtime properties, then static properties;
     // if no matching entry was found, use default schema value
@@ -73,7 +78,7 @@ void get_text_property(const StringIMap &st_prop, const StringIMap &rt_prop, con
     snprintf(bufer, MAX_MAXSTRLEN, "%s", val.GetCStr());
 }
 
-const char* get_text_property_dynamic_string(const StringIMap &st_prop, const StringIMap &rt_prop, const char *property)
+const char *get_text_property_dynamic_string(const StringIMap &st_prop, const StringIMap &rt_prop, const char *property)
 {
     PropertyDesc desc;
     if (!get_property_desc(desc, property, kPropertyString))
@@ -94,7 +99,7 @@ bool set_int_property(StringIMap &rt_prop, const char *property, int value)
     return false;
 }
 
-bool set_text_property(StringIMap &rt_prop, const char *property, const char* value)
+bool set_text_property(StringIMap &rt_prop, const char *property, const char *value)
 {
     PropertyDesc desc;
     if (get_property_desc(desc, property, kPropertyString))

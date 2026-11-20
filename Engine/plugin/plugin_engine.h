@@ -31,8 +31,7 @@ struct PluginObjectReader
     const Common::String Type;
     ICCObjectReader *const Reader = nullptr;
 
-    PluginObjectReader(const Common::String &type, ICCObjectReader *reader)
-        : Type(type), Reader(reader) {}
+    PluginObjectReader(const Common::String &type, ICCObjectReader *reader) : Type(type), Reader(reader) {}
 };
 
 
@@ -41,7 +40,7 @@ void pl_startup_plugins();
 void pl_get_plugin_names(std::vector<AGS::Common::String> &names);
 intptr_t pl_run_plugin_hooks(int event, intptr_t data);
 void pl_run_plugin_init_gfx_hooks(const char *driverName, void *data);
-int  pl_run_plugin_debug_hooks(const char *scriptfile, int linenum);
+int pl_run_plugin_debug_hooks(const char *scriptfile, int linenum);
 // Finds a plugin that wants this event, starting with pl_index;
 // returns TRUE on success and fills its index and name;
 // returns FALSE if no more suitable plugins found.
@@ -58,5 +57,5 @@ bool pl_is_plugin_loaded(const char *pl_name);
 //returns whether _any_ plugins want a particular event
 bool pl_any_want_hook(int event);
 
-bool RegisterPluginStubs(const char* name);
+bool RegisterPluginStubs(const char *name);
 #endif // __AGS_EE_PLUGIN__PLUGINENGINE_H

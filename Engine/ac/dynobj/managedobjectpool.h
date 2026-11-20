@@ -19,13 +19,19 @@
 #include <queue>
 #include <unordered_map>
 
-#include "ac/dynobj/cc_scriptobject.h"   // IScriptObject
+#include "ac/dynobj/cc_scriptobject.h" // IScriptObject
 #include "platform/platform.h"
 #include "script/runtimescriptvalue.h"
 #include "util/indexedobjectpool.h"
 #include "util/string.h"
 
-namespace AGS { namespace Common { class Stream; }}
+namespace AGS
+{
+namespace Common
+{
+class Stream;
+}
+} // namespace AGS
 using namespace AGS; // FIXME later
 
 struct ManagedObjectPool final
@@ -33,29 +39,31 @@ struct ManagedObjectPool final
 private:
     struct GCObject;
     // TODO: find out if we can make handle unsigned
-    struct ManagedObject {
+    struct ManagedObject
+    {
         ScriptValueType obj_type = kScValUndefined; // TODO: find out if this may be get rid of
-        int32_t handle = 0; // TODO: find out if may not store this here?
+        int32_t handle = 0;                         // TODO: find out if may not store this here?
         void *addr = nullptr;
         IScriptObject *callback = nullptr;
         int refCount = 0;
         // For GC
         // FIXME: optimize the object storage...
-        std::list<GCObject>::iterator gcItUsed{}; // for quick removal from a list
+        std::list<GCObject>::iterator gcItUsed{};       // for quick removal from a list
         static const int GC_FLAG_EXCLUDED = 0x80000000; // flag an object excluded from GC
-        int gcRefCount = 0; // for scan & sweep algorithm
+        int gcRefCount = 0;                             // for scan & sweep algorithm
 
         bool isUsed() const { return obj_type != kScValUndefined; }
 
-        ManagedObject() 
-            : obj_type(kScValUndefined), handle(0), addr(nullptr), callback(nullptr), refCount(0) {}
-        ManagedObject(ScriptValueType obj_type, int32_t handle, void *addr, IScriptObject * callback) 
-            : obj_type(obj_type), handle(handle), addr(addr), callback(callback), refCount(0) {}
+        ManagedObject() : obj_type(kScValUndefined), handle(0), addr(nullptr), callback(nullptr), refCount(0) {}
+        ManagedObject(ScriptValueType obj_type, int32_t handle, void *addr, IScriptObject *callback)
+            : obj_type(obj_type), handle(handle), addr(addr), callback(callback), refCount(0)
+        {
+        }
     };
 
     IndexedObjectPool<ManagedObject, int32_t> objects;
-    std::unordered_map<void*, int32_t> handleByAddress;
-    
+    std::unordered_map<void *, int32_t> handleByAddress;
+
     // Scan lists for the garbage collection;
     // TODO: this is bit inefficient, because of certain mem duplication, and extra
     // cross-references; ideally this should be merged with ManagedObject (and maybe even ICCDynamicObject)!
@@ -64,27 +72,27 @@ private:
         int32_t handle = 0;
 
         GCObject(int32_t h) : handle(h) {}
-        inline bool operator ==(const GCObject &other) { return handle == other.handle; }
+        inline bool operator==(const GCObject &other) { return handle == other.handle; }
     };
     std::list<GCObject> gcUsedList;
     std::list<GCObject> gcRemList;
 
     // Various counters, for GC trigger and stats
-    int objectCreationCounter;  // used to do garbage collection every so often
+    int objectCreationCounter; // used to do garbage collection every so often
     struct Stats
     {
-        uint64_t Added = 0u; // total number of objects added
-        uint64_t AddedPersistent = 0u; // number of persistent objects added
-        uint64_t Removed = 0u; // total number of objects removed
+        uint64_t Added = 0u;             // total number of objects added
+        uint64_t AddedPersistent = 0u;   // number of persistent objects added
+        uint64_t Removed = 0u;           // total number of objects removed
         uint64_t RemovedPersistent = 0u; // number of persistent objects removed
-        uint64_t RemovedGC = 0u; // number of objects removed by GC
+        uint64_t RemovedGC = 0u;         // number of objects removed by GC
         uint64_t RemovedGCDetached = 0u; // number of "detached" objects removed by GC
         uint64_t MaxObjectsPresent = 0u; // max objects presets at the same time
-        uint64_t GCTimesRun = 0u; // how many times GC ran
+        uint64_t GCTimesRun = 0u;        // how many times GC ran
     } stats;
 
-    int  Add(int handle, void *address, IScriptObject *callback, ScriptValueType obj_type, bool persistent);
-    int  Remove(ManagedObject &o, bool force = false);
+    int Add(int handle, void *address, IScriptObject *callback, ScriptValueType obj_type, bool persistent);
+    int Remove(ManagedObject &o, bool force = false);
     void RunGarbageCollection();
     void WriteImpl(Common::Stream *out) const;
 
@@ -98,14 +106,15 @@ public:
     // Explicitly tests an object for disposal
     int CheckDispose(int32_t handle);
     int32_t AddressToHandle(void *addr);
-    void* HandleToAddress(int32_t handle);
+    void *HandleToAddress(int32_t handle);
     IScriptObject *AddressToManager(void *addr);
     ScriptValueType HandleToAddressAndManager(int32_t handle, void *&object, IScriptObject *&manager);
     // Forcefully remove the object, regardless of the current ref count
     int RemoveObject(void *address);
     void RunGarbageCollectionIfAppropriate();
     int AddObject(void *address, IScriptObject *callback, ScriptValueType obj_type, bool persistent);
-    int AddUnserializedObject(void *address, IScriptObject *callback, int handle, ScriptValueType obj_type, bool persistent);
+    int AddUnserializedObject(void *address, IScriptObject *callback, int handle, ScriptValueType obj_type,
+                              bool persistent);
     // NOTE: WriteToDisk is not const, because it calls RunGarbageCollection() internally
     void WriteToDisk(Common::Stream *out);
     int ReadFromDisk(Common::Stream *in, ICCObjectCollectionReader *reader);
@@ -122,7 +131,7 @@ public:
     // uses provided typeid maps
     void RemapTypeids(const std::unordered_map<uint32_t, uint32_t> &typeid_map);
 
-    void *disableDisposeForObject {nullptr};
+    void *disableDisposeForObject{nullptr};
 };
 
 extern ManagedObjectPool pool;

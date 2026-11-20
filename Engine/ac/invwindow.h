@@ -24,21 +24,21 @@
 
 using AGS::Common::GUIInvWindow;
 
-void            InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa);
-CharacterInfo*  InvWindow_GetCharacterToUse(GUIInvWindow *guii);
-void            InvWindow_SetItemWidth(GUIInvWindow *guii, int newwidth);
-int             InvWindow_GetItemWidth(GUIInvWindow *guii);
-void            InvWindow_SetItemHeight(GUIInvWindow *guii, int newhit);
-int             InvWindow_GetItemHeight(GUIInvWindow *guii);
-void            InvWindow_SetTopItem(GUIInvWindow *guii, int topitem);
-int             InvWindow_GetTopItem(GUIInvWindow *guii);
-int             InvWindow_GetItemsPerRow(GUIInvWindow *guii);
-int             InvWindow_GetItemCount(GUIInvWindow *guii);
-int             InvWindow_GetRowCount(GUIInvWindow *guii);
-void            InvWindow_ScrollDown(GUIInvWindow *guii);
-void            InvWindow_ScrollUp(GUIInvWindow *guii);
-ScriptInvItem*  InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index);
-int             InvWindow_GetItemAtXY(GUIInvWindow *inv, int at_x, int at_y);
+void InvWindow_SetCharacterToUse(GUIInvWindow *guii, CharacterInfo *chaa);
+CharacterInfo *InvWindow_GetCharacterToUse(GUIInvWindow *guii);
+void InvWindow_SetItemWidth(GUIInvWindow *guii, int newwidth);
+int InvWindow_GetItemWidth(GUIInvWindow *guii);
+void InvWindow_SetItemHeight(GUIInvWindow *guii, int newhit);
+int InvWindow_GetItemHeight(GUIInvWindow *guii);
+void InvWindow_SetTopItem(GUIInvWindow *guii, int topitem);
+int InvWindow_GetTopItem(GUIInvWindow *guii);
+int InvWindow_GetItemsPerRow(GUIInvWindow *guii);
+int InvWindow_GetItemCount(GUIInvWindow *guii);
+int InvWindow_GetRowCount(GUIInvWindow *guii);
+void InvWindow_ScrollDown(GUIInvWindow *guii);
+void InvWindow_ScrollUp(GUIInvWindow *guii);
+ScriptInvItem *InvWindow_GetItemAtIndex(GUIInvWindow *guii, int index);
+int InvWindow_GetItemAtXY(GUIInvWindow *inv, int at_x, int at_y);
 
 //=============================================================================
 

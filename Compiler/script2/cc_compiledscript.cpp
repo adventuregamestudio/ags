@@ -38,8 +38,7 @@ void AGS::ccCompiledScript::PopReg(CodeCell regg)
     OffsetToLocalVarBlock -= SIZE_OF_STACK_CELL;
 }
 
-AGS::ccCompiledScript::ccCompiledScript(bool emit_line_numbers)
-    : EmitLineNumbers(emit_line_numbers)
+AGS::ccCompiledScript::ccCompiledScript(bool emit_line_numbers) : EmitLineNumbers(emit_line_numbers)
 {
     OffsetToLocalVarBlock = 0;
 
@@ -140,8 +139,7 @@ int AGS::ccCompiledScript::AddExport(std::string const &name, CodeLoc const loca
 {
     bool const is_function = (INT_MAX != arguments_count);
     // Exported functions get the number of parameters appended
-    std::string const export_name =
-        is_function ? name + "$" + std::to_string(arguments_count) : name;
+    std::string const export_name = is_function ? name + "$" + std::to_string(arguments_count) : name;
 
     if (location >= 0x00ffffff)
     {
@@ -150,11 +148,9 @@ int AGS::ccCompiledScript::AddExport(std::string const &name, CodeLoc const loca
 
     if (0u < ExportIdx.count(export_name))
         return ExportIdx[export_name];
-    
+
     exports.push_back(export_name);
-    export_addr.push_back(
-        location |
-        static_cast<CodeLoc>(is_function? EXPORT_FUNCTION : EXPORT_DATA) << 24L);
+    export_addr.push_back(location | static_cast<CodeLoc>(is_function ? EXPORT_FUNCTION : EXPORT_DATA) << 24L);
     return (ExportIdx[export_name] = static_cast<int32_t>(exports.size() - 1));
 }
 
@@ -208,7 +204,7 @@ bool AGS::Snippet::IsEmpty()
     {
         if (SCMD_LINENUM != Code[idx])
             return false; // found some content
-        idx++; // skip the parameter of the 'linenum' pseudo-directive
+        idx++;            // skip the parameter of the 'linenum' pseudo-directive
     }
     return true;
 }
@@ -221,8 +217,8 @@ void AGS::RestorePoint::Cut(Snippet &snippet, bool const keep_starting_linum)
     CodeLoc rcl = _rememberedCodeLocation;
     if (keep_starting_linum)
     {
-        if (_scrip.code[rcl] == SCMD_LINENUM) // 
-            rcl += 2; // skip the linenum pseudo-directive
+        if (_scrip.code[rcl] == SCMD_LINENUM) //
+            rcl += 2;                         // skip the linenum pseudo-directive
     }
     if (_scrip.Codesize_i32() <= rcl)
         return; // all done

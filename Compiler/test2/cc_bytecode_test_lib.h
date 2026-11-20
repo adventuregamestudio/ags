@@ -14,7 +14,7 @@
 #ifndef CC_BYTECODE_TEST_LIB
 #define CC_BYTECODE_TEST_LIB
 
-#include <iostream>  
+#include <iostream>
 #include "script2/cc_compiledscript.h"
 
 // Should contain a path to which the tests can write copies of their checking code
@@ -32,7 +32,8 @@ struct CharRun
 extern void CompareCode(AGS::ccCompiledScript *scrip, size_t code_size, int32_t code[]);
 extern void CompareFixups(AGS::ccCompiledScript *scrip, size_t fixups_size, int32_t fixups[], char fixuptypes[]);
 extern void CompareImports(AGS::ccCompiledScript *scrip, size_t non_empty_imports_count, std::string imports[]);
-extern void CompareExports(AGS::ccCompiledScript *scrip, size_t exports_size, std::string exports[], int32_t export_addr[]);
+extern void CompareExports(AGS::ccCompiledScript *scrip, size_t exports_size, std::string exports[],
+                           int32_t export_addr[]);
 extern void CompareStrings(AGS::ccCompiledScript *scrip, size_t strings_size, char strings[]);
 extern void CompareGlobalRuns(AGS::ccCompiledScript *scrip, struct CharRun global_runs[]);
 extern void CompareGlobalData(AGS::ccCompiledScript *scrip, size_t size, unsigned char gdata[]);

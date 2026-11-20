@@ -18,7 +18,7 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "script/cs_parser_common.h"   // macro definitions
+#include "script/cs_parser_common.h" // macro definitions
 #include "script/cc_treemap.h"
 #include "script/cc_symboldef.h"
 
@@ -30,8 +30,8 @@ struct SymbolTableEntry
     int16_t stype = 0;
     int32_t flags = 0;
     int16_t vartype = 0;
-    int32_t soffs = 0; // or property getter/setter import indexes, packed as two int16 
-    int32_t ssize = 0; // or return type size for function
+    int32_t soffs = 0;  // or property getter/setter import indexes, packed as two int16
+    int32_t ssize = 0;  // or return type size for function
     int16_t sscope = 0; // or num arguments for function
     // symbol's life scope, in bytecode pos
     int32_t scope_section_begin = 0;
@@ -42,32 +42,33 @@ struct SymbolTableEntry
     // return value is at index 0, actual args begin with 1
     std::vector<FuncParamInfo> funcparams;
 
-	int get_num_args() const;
+    int get_num_args() const;
 
-	int is_loadable_variable() const;
+    int is_loadable_variable() const;
     bool is_variadic_function() const;
 
     // Set indexes of get/set property handlers; 0xffff for no entry
-	void set_propfuncs(int propget, int propset);
+    void set_propfuncs(int propget, int propset);
     // Returns an index of get property handler; -1 means no entry
-	int get_propget() const;
+    int get_propget() const;
     // Returns an index of set property handler; -1 means no entry
-	int get_propset() const;
+    int get_propset() const;
 
-	int operatorToVCPUCmd() const;
+    int operatorToVCPUCmd() const;
 };
 
-struct symbolTable {
-	// index for predefined symbols
+struct symbolTable
+{
+    // index for predefined symbols
     int normalIntSym;
     int normalStringSym;
     int normalFloatSym;
     int normalVoidSym;
     int nullSym;
-    int stringStructSym;  // can get overwritten with new String symbol defined in agsdefns.sh
+    int stringStructSym; // can get overwritten with new String symbol defined in agsdefns.sh
 
-	// properties for symbols, size is numsymbols
-	std::vector<SymbolTableEntry> entries;
+    // properties for symbols, size is numsymbols
+    std::vector<SymbolTableEntry> entries;
     // section names filled by tokenizer, required for RTTI
     std::vector<std::string> sections;
     // type module names, correspond to sections, required for RTTI
@@ -76,27 +77,26 @@ struct symbolTable {
     std::vector<SymbolTableEntry> localEntries;
 
     symbolTable();
-    void reset();    // clears table
-    int  find(const char*);  // returns ID of symbol, or -1
-    int  add_ex(const char*,int,char);  // adds new symbol of type and size
-    int  add(const char*);   // adds new symbol, returns -1 if already exists
-    int  find_or_add(const char*);
+    void reset();                        // clears table
+    int find(const char *);              // returns ID of symbol, or -1
+    int add_ex(const char *, int, char); // adds new symbol of type and size
+    int add(const char *);               // adds new symbol, returns -1 if already exists
+    int find_or_add(const char *);
 
     // TODO: why is there "friendly name" and "name", and what's the difference?
-    std::string get_friendly_name(int idx);  // inclue ptr
-    const char *get_name(int idx); // gets symbol name of index
+    std::string get_friendly_name(int idx); // inclue ptr
+    const char *get_name(int idx);          // gets symbol name of index
 
-    int  get_type(int ii);
+    int get_type(int ii);
 
 
 private:
-
     std::map<int, char *> nameGenCache;
 
     ccTreeMap symbolTree;
     std::vector<char *> symbolTreeNames;
 
-    int  add_operator(const char*, int priority, int vcpucmd); // adds new operator
+    int add_operator(const char *, int priority, int vcpucmd); // adds new operator
     std::string get_name_string(int idx);
 };
 

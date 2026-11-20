@@ -24,7 +24,7 @@ void clear_error(void)
     last_cc_error_buf.clear();
 }
 
-const char* last_seen_cc_error(void)
+const char *last_seen_cc_error(void)
 {
     return last_cc_error_buf.c_str();
 }

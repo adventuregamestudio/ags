@@ -42,8 +42,8 @@ protected:
 };
 
 
-TEST_F(Compile1, Sections) {
-
+TEST_F(Compile1, Sections)
+{
     // Errors in globalscript must be reported for globalscript
     // "__NEWSCRIPTSTART..." begins a line #0,
     // so the error must be reported on line 3.
@@ -67,8 +67,8 @@ TEST_F(Compile1, Sections) {
     ASSERT_STREQ("globalscript.ash", mh.GetError().Section.c_str());
 }
 
-TEST_F(Compile1, Autoptr) {
-
+TEST_F(Compile1, Autoptr)
+{
     // String is autoptr so should not print as "String *"
 
     char const *inpl = "\
@@ -85,14 +85,13 @@ TEST_F(Compile1, Autoptr) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_EQ(std::string::npos, err_msg.find("String *"));
 }
 
 TEST_F(Compile1, BinaryNot)
 {
-
     // '!' can't be binary
 
     char const *inpl = "\
@@ -111,8 +110,8 @@ TEST_F(Compile1, BinaryNot)
     EXPECT_NE(std::string::npos, err_msg.find("inary or postfix op"));
 }
 
-TEST_F(Compile1, UnaryDivideBy) {
-
+TEST_F(Compile1, UnaryDivideBy)
+{
     // '/' can't be unary
 
     char const *inpl = "\
@@ -126,13 +125,13 @@ TEST_F(Compile1, UnaryDivideBy) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("refix operator"));
 }
 
-TEST_F(Compile1, UnaryPlus) {
-
+TEST_F(Compile1, UnaryPlus)
+{
     // '/' can't be unary
 
     char const *inpl = "\
@@ -147,12 +146,12 @@ TEST_F(Compile1, UnaryPlus) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, FloatInt1) {
-
+TEST_F(Compile1, FloatInt1)
+{
     // Can't mix float and int
 
     char const *inpl = "\
@@ -167,13 +166,13 @@ TEST_F(Compile1, FloatInt1) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'/'"));
 }
 
-TEST_F(Compile1, FloatInt2) {
-
+TEST_F(Compile1, FloatInt2)
+{
     // Can't negate float
 
     char const *inpl = "\
@@ -188,13 +187,13 @@ TEST_F(Compile1, FloatInt2) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("convert"));
 }
 
-TEST_F(Compile1, StringInt1) {
-
+TEST_F(Compile1, StringInt1)
+{
     // Can't mix string and int
 
     char const *inpl = "\
@@ -208,13 +207,13 @@ TEST_F(Compile1, StringInt1) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("compare"));
 }
 
-TEST_F(Compile1, ExpressionVoid) {
-
+TEST_F(Compile1, ExpressionVoid)
+{
     // Can't mix void
 
     char const *inpl = "\
@@ -229,13 +228,13 @@ TEST_F(Compile1, ExpressionVoid) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("convert"));
 }
 
-TEST_F(Compile1, ExpressionLoneUnary1) {
-
+TEST_F(Compile1, ExpressionLoneUnary1)
+{
     // Unary -, nothing following
 
     char const *inpl = "\
@@ -252,13 +251,13 @@ TEST_F(Compile1, ExpressionLoneUnary1) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("xpected a term"));
 }
 
-TEST_F(Compile1, ExpressionLoneUnary2) {
-
+TEST_F(Compile1, ExpressionLoneUnary2)
+{
     // Unary ~, nothing following
 
     char const *inpl = "\
@@ -274,13 +273,13 @@ TEST_F(Compile1, ExpressionLoneUnary2) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("xpected a term"));
 }
 
-TEST_F(Compile1, ExpressionBinaryWithoutRHS) {
-
+TEST_F(Compile1, ExpressionBinaryWithoutRHS)
+{
     // Binary %, nothing following
 
     char const *inpl = "\
@@ -297,7 +296,7 @@ TEST_F(Compile1, ExpressionBinaryWithoutRHS) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("ollowing"));
 }
@@ -319,7 +318,7 @@ TEST_F(Compile1, LocalTypes1)
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("struct type"));
 }
@@ -341,13 +340,13 @@ TEST_F(Compile1, LocalTypes2)
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("enum type"));
 }
 
-TEST_F(Compile1, StaticArrayIndex1) {
-
+TEST_F(Compile1, StaticArrayIndex1)
+{
     // Constant array index, is out ouf bounds
 
     char const *inpl = "\
@@ -366,13 +365,13 @@ TEST_F(Compile1, StaticArrayIndex1) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("oo high"));
 }
 
-TEST_F(Compile1, StaticArrayIndex2) {
-
+TEST_F(Compile1, StaticArrayIndex2)
+{
     // Constant array index, is out ouf bounds
 
     char const *inpl = "\
@@ -392,13 +391,13 @@ TEST_F(Compile1, StaticArrayIndex2) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("oo low"));
 }
 
-TEST_F(Compile1, ExpressionArray1) {
-
+TEST_F(Compile1, ExpressionArray1)
+{
     // Can't mix void
 
     char const *inpl = "\
@@ -415,13 +414,13 @@ TEST_F(Compile1, ExpressionArray1) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("convert"));
 }
 
-TEST_F(Compile1, FuncTypeClash1) {
-
+TEST_F(Compile1, FuncTypeClash1)
+{
     // Can't use func here except in a func call
 
     char const *inpl = "\
@@ -439,13 +438,13 @@ TEST_F(Compile1, FuncTypeClash1) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'('"));
 }
 
-TEST_F(Compile1, FloatOutOfBounds) {
-
+TEST_F(Compile1, FloatOutOfBounds)
+{
     // Too small
 
     char const *inpl = "\
@@ -463,13 +462,13 @@ TEST_F(Compile1, FloatOutOfBounds) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("ut of bounds"));
 }
 
-TEST_F(Compile1, DoWhileSemicolon) {
-
+TEST_F(Compile1, DoWhileSemicolon)
+{
     // ';' missing
 
     char const *inpl = "\
@@ -487,13 +486,13 @@ TEST_F(Compile1, DoWhileSemicolon) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("';'"));
 }
 
-TEST_F(Compile1, ExtenderExtender1) {
-
+TEST_F(Compile1, ExtenderExtender1)
+{
     // No extending a struct with a compound function
 
     char const *inpl = "\
@@ -514,13 +513,13 @@ TEST_F(Compile1, ExtenderExtender1) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'::'"));
 }
 
-TEST_F(Compile1, ExtenderExtender2) {
-
+TEST_F(Compile1, ExtenderExtender2)
+{
     // No extending a struct with a compound function
 
     char const *inpl = "\
@@ -537,13 +536,13 @@ TEST_F(Compile1, ExtenderExtender2) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'::'"));
 }
 
-TEST_F(Compile1, NonManagedStructParameter) {
-
+TEST_F(Compile1, NonManagedStructParameter)
+{
     // Can't pass a non-managed struct as a function parameter
 
     char const *inpl = "\
@@ -560,13 +559,13 @@ TEST_F(Compile1, NonManagedStructParameter) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("non-managed"));
 }
 
-TEST_F(Compile1, StrangeParameterName) {
-
+TEST_F(Compile1, StrangeParameterName)
+{
     // Can't use keyword as parameter name
 
     char const *inpl = "\
@@ -579,13 +578,13 @@ TEST_F(Compile1, StrangeParameterName) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("while"));
 }
 
-TEST_F(Compile1, DoubleParameterName) {
-
+TEST_F(Compile1, DoubleParameterName)
+{
     // Can't use parameter name twice
 
     char const *inpl = "\
@@ -599,13 +598,13 @@ TEST_F(Compile1, DoubleParameterName) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("PI"));
 }
 
-TEST_F(Compile1, FuncParamDefaults1) {
-
+TEST_F(Compile1, FuncParamDefaults1)
+{
     // Either give no defaults or give them all
 
     char const *inpl = "\
@@ -620,13 +619,13 @@ TEST_F(Compile1, FuncParamDefaults1) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("#2"));
 }
 
-TEST_F(Compile1, FuncParamDefaults2) {
-
+TEST_F(Compile1, FuncParamDefaults2)
+{
     // All parameters that follow a default parameter must have a default
 
     char const *inpl = "\
@@ -642,8 +641,8 @@ TEST_F(Compile1, FuncParamDefaults2) {
     EXPECT_NE(std::string::npos, err_msg.find("#2"));
 }
 
-TEST_F(Compile1, FuncParamDefaults3) {
-
+TEST_F(Compile1, FuncParamDefaults3)
+{
     // Can't give a parameter a default here, not a default there
 
     char const *inpl = "\
@@ -658,13 +657,13 @@ TEST_F(Compile1, FuncParamDefaults3) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("#2"));
 }
 
-TEST_F(Compile1, FuncParamDefaults4) {
-
+TEST_F(Compile1, FuncParamDefaults4)
+{
     // Can't give a parameter differing defaults
 
     char const *inpl = "\
@@ -678,13 +677,13 @@ TEST_F(Compile1, FuncParamDefaults4) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("#1"));
 }
 
-TEST_F(Compile1, FuncParamNumber1) {
-
+TEST_F(Compile1, FuncParamNumber1)
+{
     // Differing number of parameters
 
     char const *inpl = "\
@@ -699,13 +698,13 @@ TEST_F(Compile1, FuncParamNumber1) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("parameters"));
 }
 
-TEST_F(Compile1, FuncParamNumber2) {
-
+TEST_F(Compile1, FuncParamNumber2)
+{
     // Instantiation has number of parameters than is different from declaration
 
     char const *inpl = "\
@@ -725,12 +724,12 @@ TEST_F(Compile1, FuncParamNumber2) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, FuncVariadicCollision) {
-
+TEST_F(Compile1, FuncVariadicCollision)
+{
     // Variadic / non-variadic
 
     char const *inpl = "\
@@ -744,13 +743,13 @@ TEST_F(Compile1, FuncVariadicCollision) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("additional"));
 }
 
-TEST_F(Compile1, FuncReturnVartypes) {
-
+TEST_F(Compile1, FuncReturnVartypes)
+{
     // Return vartypes
 
     char const *inpl = "\
@@ -765,13 +764,13 @@ TEST_F(Compile1, FuncReturnVartypes) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("eturn"));
 }
 
-TEST_F(Compile1, FuncReturnStruct1) {
-
+TEST_F(Compile1, FuncReturnStruct1)
+{
     // Return vartype must be managed when it is a struct
 
     char const *inpl = "\
@@ -786,13 +785,13 @@ TEST_F(Compile1, FuncReturnStruct1) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("managed"));
 }
 
-TEST_F(Compile1, FuncReturnStruct2) {
-
+TEST_F(Compile1, FuncReturnStruct2)
+{
     // Compiler will imply the '*'
     // but should be slightly unhappy about the missing return statement
 
@@ -812,8 +811,8 @@ TEST_F(Compile1, FuncReturnStruct2) {
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("return"));
 }
 
-TEST_F(Compile1, FuncReturnStruct3) {
-
+TEST_F(Compile1, FuncReturnStruct3)
+{
     // Compiler should be slightly unhappy about the missing return statement
 
     char const *inpl = "\
@@ -832,8 +831,8 @@ TEST_F(Compile1, FuncReturnStruct3) {
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("return"));
 }
 
-TEST_F(Compile1, FuncNamed_ParamsInconsistent01) {
-
+TEST_F(Compile1, FuncNamed_ParamsInconsistent01)
+{
     // Can't use named args when the parameters are named inconsistently
 
     char const *inpl = "\
@@ -851,8 +850,8 @@ TEST_F(Compile1, FuncNamed_ParamsInconsistent01) {
     EXPECT_NE(std::string::npos, errmsg.find("nconsisten"));
 }
 
-TEST_F(Compile1, FuncNamed_ParamsInconsistent02) {
-
+TEST_F(Compile1, FuncNamed_ParamsInconsistent02)
+{
     // Can use named args when the parameters aren't always named
     // (as long as the compiler knows all parameter names when it
     // processes the call)
@@ -871,8 +870,8 @@ TEST_F(Compile1, FuncNamed_ParamsInconsistent02) {
     ASSERT_STREQ("Ok", (compile_result >= 0) ? "Ok" : errmsg.c_str());
 }
 
-TEST_F(Compile1, FuncNamed_DoubleParams) {
-
+TEST_F(Compile1, FuncNamed_DoubleParams)
+{
     // Mustn't specify a parameter twice
 
     char const *inpl = "\
@@ -889,8 +888,8 @@ TEST_F(Compile1, FuncNamed_DoubleParams) {
     EXPECT_NE(std::string::npos, errmsg.find("'Y'"));
 }
 
-TEST_F(Compile1, FuncNamed_Sequence01) {
-
+TEST_F(Compile1, FuncNamed_Sequence01)
+{
     // Can't use a mixture of named and sequence arguments
 
     char const *inpl = "\
@@ -907,8 +906,8 @@ TEST_F(Compile1, FuncNamed_Sequence01) {
     EXPECT_NE(std::string::npos, errmsg.find("mix"));
 }
 
-TEST_F(Compile1, FuncNamed_Sequence02) {
-
+TEST_F(Compile1, FuncNamed_Sequence02)
+{
     // Can't use a mixture of named and sequence arguments
 
     char const *inpl = "\
@@ -925,8 +924,8 @@ TEST_F(Compile1, FuncNamed_Sequence02) {
     EXPECT_NE(std::string::npos, errmsg.find("mix"));
 }
 
-TEST_F(Compile1, FuncNamed_Missing) {
-
+TEST_F(Compile1, FuncNamed_Missing)
+{
     // Must specify all non-optional parameters
 
     char const *inpl = "\
@@ -944,8 +943,8 @@ TEST_F(Compile1, FuncNamed_Missing) {
     EXPECT_NE(std::string::npos, errmsg.find("ine 1"));
 }
 
-TEST_F(Compile1, FuncNamed_Unknown) {
-
+TEST_F(Compile1, FuncNamed_Unknown)
+{
     // Mustn't specify parameters that the function doesn't have
 
     char const *inpl = "\
@@ -962,8 +961,8 @@ TEST_F(Compile1, FuncNamed_Unknown) {
     EXPECT_NE(std::string::npos, errmsg.find("'Y'"));
 }
 
-TEST_F(Compile1, FuncReturn1) {
-
+TEST_F(Compile1, FuncReturn1)
+{
     // Should detect that the 'I' define can't be reached
     // Should not warn about a missing return at end of function body.
 
@@ -988,8 +987,8 @@ TEST_F(Compile1, FuncReturn1) {
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("Code execution"));
 }
 
-TEST_F(Compile1, FuncReturn2) {
-
+TEST_F(Compile1, FuncReturn2)
+{
     // Should detect that the 'I' assignment can't be reached
     // Should warn about a missing return at end of function body.
 
@@ -1017,8 +1016,8 @@ TEST_F(Compile1, FuncReturn2) {
     EXPECT_NE(std::string::npos, mh.GetMessages().at(0).Message.find("Code execution"));
 }
 
-TEST_F(Compile1, FuncDouble) {
-
+TEST_F(Compile1, FuncDouble)
+{
     // No two equally-named functions with body
 
     char const *inpl = "\
@@ -1035,13 +1034,13 @@ TEST_F(Compile1, FuncDouble) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("with body"));
 }
 
-TEST_F(Compile1, FuncProtected) {
-
+TEST_F(Compile1, FuncProtected)
+{
     // Protected functions must be part of a struct
 
     char const *inpl = "\
@@ -1055,13 +1054,13 @@ TEST_F(Compile1, FuncProtected) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("protected"));
 }
 
-TEST_F(Compile1, FuncNameClash1) {
-
+TEST_F(Compile1, FuncNameClash1)
+{
     // Function name mustn't equal a variable name.
 
     char const *inpl = "\
@@ -1080,8 +1079,8 @@ TEST_F(Compile1, FuncNameClash1) {
     EXPECT_NE(std::string::npos, err_msg.find("declared as a function"));
 }
 
-TEST_F(Compile1, FuncDeclWrong1) {
-
+TEST_F(Compile1, FuncDeclWrong1)
+{
     char const *inpl = "\
     managed struct Struct1          \n\
     {                               \n\
@@ -1116,9 +1115,8 @@ TEST_F(Compile1, FuncDeclWrong1) {
     EXPECT_NE(std::string::npos, res.find("parameter"));
 }
 
-TEST_F(Compile1, FuncDeclWrong2) {
-
-
+TEST_F(Compile1, FuncDeclWrong2)
+{
     char const *inpl = "\
     managed struct Struct1          \n\
     {                               \n\
@@ -1153,8 +1151,8 @@ TEST_F(Compile1, FuncDeclWrong2) {
     EXPECT_NE(std::string::npos, res.find("parameter"));
 }
 
-TEST_F(Compile1, FuncDeclReturnVartype) {
-
+TEST_F(Compile1, FuncDeclReturnVartype)
+{
     // Should compile.
 
     char const *inpl = "\
@@ -1183,8 +1181,8 @@ TEST_F(Compile1, FuncDeclReturnVartype) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, FuncHeader1) {
-
+TEST_F(Compile1, FuncHeader1)
+{
     // Can't have a specific array size in func parameters
 
     char const *inpl = "\
@@ -1204,8 +1202,8 @@ TEST_F(Compile1, FuncHeader1) {
     EXPECT_NE(std::string::npos, err.find("'15'"));
 }
 
-TEST_F(Compile1, FuncHeader2) {
-
+TEST_F(Compile1, FuncHeader2)
+{
     // Default for float parameter, an int value. Should fail
 
     char const *inpl = "\
@@ -1225,8 +1223,8 @@ TEST_F(Compile1, FuncHeader2) {
     EXPECT_NE(std::string::npos, err.find("loat expression"));
 }
 
-TEST_F(Compile1, FuncHeader3) {
-
+TEST_F(Compile1, FuncHeader3)
+{
     // Integer default for managed parameter. Should fail
     char const *inpl = "\
         managed struct Payload                  \n\
@@ -1250,8 +1248,8 @@ TEST_F(Compile1, FuncHeader3) {
     EXPECT_NE(std::string::npos, err.find("rameter default"));
 }
 
-TEST_F(Compile1, FuncExtenderHeaderFault1a) {
-
+TEST_F(Compile1, FuncExtenderHeaderFault1a)
+{
     char const *inpl = "\
         struct Weapon {                        \n\
             int Damage;                        \n\
@@ -1273,8 +1271,8 @@ TEST_F(Compile1, FuncExtenderHeaderFault1a) {
     EXPECT_NE(std::string::npos, err.find("Holzschuh"));
 }
 
-TEST_F(Compile1, FuncExtenderHeaderFault1b) {
-
+TEST_F(Compile1, FuncExtenderHeaderFault1b)
+{
     // A comma or paren should follow 'Weapon'
 
     char const *inpl = "\
@@ -1298,8 +1296,8 @@ TEST_F(Compile1, FuncExtenderHeaderFault1b) {
     EXPECT_NE(std::string::npos, err.find("'Of'"));
 }
 
-TEST_F(Compile1, FuncExtenderHeaderFault1c) {
-
+TEST_F(Compile1, FuncExtenderHeaderFault1c)
+{
     char const *inpl = "\
         struct Weapon {                        \n\
             int Damage;                        \n\
@@ -1321,8 +1319,8 @@ TEST_F(Compile1, FuncExtenderHeaderFault1c) {
     EXPECT_NE(std::string::npos, err.find("tatic extender function"));
 }
 
-TEST_F(Compile1, FuncExtenderHeaderFault2) {
-
+TEST_F(Compile1, FuncExtenderHeaderFault2)
+{
     char const *inpl = "\
         struct Weapon {                        \n\
             int Damage;                        \n\
@@ -1345,8 +1343,8 @@ TEST_F(Compile1, FuncExtenderHeaderFault2) {
     EXPECT_NE(std::string::npos, err.find("struct"));
 }
 
-TEST_F(Compile1, FuncDoubleExtender) {
-
+TEST_F(Compile1, FuncDoubleExtender)
+{
     // Must not define a function with body twice.
 
     char const *inpl = "\
@@ -1375,8 +1373,8 @@ TEST_F(Compile1, FuncDoubleExtender) {
     EXPECT_NE(std::string::npos, err.find("defined"));
 }
 
-TEST_F(Compile1, FuncDoubleNonExtender) {
-
+TEST_F(Compile1, FuncDoubleNonExtender)
+{
     char const *inpl = "\
         int Foo(int Bar)                       \n\
         {                                      \n\
@@ -1398,8 +1396,8 @@ TEST_F(Compile1, FuncDoubleNonExtender) {
     EXPECT_NE(std::string::npos, err.find("defined"));
 }
 
-TEST_F(Compile1, FuncUndeclaredStruct1) {
-
+TEST_F(Compile1, FuncUndeclaredStruct1)
+{
     // Should fail, Struct doesn't have Func
 
     char const *inpl = "\
@@ -1422,8 +1420,8 @@ TEST_F(Compile1, FuncUndeclaredStruct1) {
     EXPECT_NE(std::string::npos, err_msg.find("Func"));
 }
 
-TEST_F(Compile1, FuncUndeclaredStruct2) {
-
+TEST_F(Compile1, FuncUndeclaredStruct2)
+{
     // Should succeed, Struct has Func
 
     char const *inpl = "\
@@ -1445,8 +1443,8 @@ TEST_F(Compile1, FuncUndeclaredStruct2) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, FuncCall_MultidimensionalArray) {
-
+TEST_F(Compile1, FuncCall_MultidimensionalArray)
+{
     // Function parameter should be recognized as 1 parameter
     // even though it is an element of a 3-dimensional array.
 
@@ -1465,12 +1463,12 @@ TEST_F(Compile1, FuncCall_MultidimensionalArray) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, TypeEqComponent) {
-
+TEST_F(Compile1, TypeEqComponent)
+{
     // A struct component may have the same name as a type.
 
     char const *inpl = "\
@@ -1489,12 +1487,12 @@ TEST_F(Compile1, TypeEqComponent) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ExtenderFuncClash) {
-
+TEST_F(Compile1, ExtenderFuncClash)
+{
     // Don't remember the struct of extender functions past their definition (and body, if applicable)
 
     char const *inpl = "\
@@ -1510,12 +1508,12 @@ TEST_F(Compile1, ExtenderFuncClash) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, MissingSemicolonAfterStruct1) {
-
+TEST_F(Compile1, MissingSemicolonAfterStruct1)
+{
     // Missing ";" after struct declaration; isn't a var decl either
 
     char const *inpl = "\
@@ -1536,13 +1534,13 @@ TEST_F(Compile1, MissingSemicolonAfterStruct1) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("orget a"));
 }
 
-TEST_F(Compile1, NewBuiltin1) {
-
+TEST_F(Compile1, NewBuiltin1)
+{
     // Cannot do "new X;" when X is a builtin type
 
     char const *inpl = "\
@@ -1566,13 +1564,13 @@ TEST_F(Compile1, NewBuiltin1) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("built-in"));
 }
 
-TEST_F(Compile1, NewArrayBuiltin1) {
-
+TEST_F(Compile1, NewArrayBuiltin1)
+{
     // Can do "new X[77];" when X is a builtin type because this will only
     // allocate a dynarray of pointers, not of X chunks
 
@@ -1598,12 +1596,12 @@ TEST_F(Compile1, NewArrayBuiltin1) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, MissingFunc) {
-
+TEST_F(Compile1, MissingFunc)
+{
     // Must either import or define a function with body if you want to call it.
     // Also, check that the section is set correctly.
 
@@ -1626,8 +1624,8 @@ TEST_F(Compile1, MissingFunc) {
     EXPECT_STREQ("HauntedHouse", mh.GetError().Section.c_str());
 }
 
-TEST_F(Compile1, FixupMismatch) {
-
+TEST_F(Compile1, FixupMismatch)
+{
     // Code cells that have an "import" fixup must point to the corresponding imports.
     // (This used to fail in combination with linenumbers turned on)
 
@@ -1659,7 +1657,7 @@ TEST_F(Compile1, FixupMismatch) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 
     // Sanity check for import fixups: The corresponding Bytecode must
@@ -1679,8 +1677,8 @@ TEST_F(Compile1, FixupMismatch) {
     }
 }
 
-TEST_F(Compile1, ComponentOfNonStruct1) {
-
+TEST_F(Compile1, ComponentOfNonStruct1)
+{
     // If a '.' follows something other than a struct then complain about that fact.
     // Do not complain about expecting and not finding a component.
 
@@ -1702,13 +1700,13 @@ TEST_F(Compile1, ComponentOfNonStruct1) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'.'"));
 }
 
-TEST_F(Compile1, ComponentOfNonStruct2) {
-
+TEST_F(Compile1, ComponentOfNonStruct2)
+{
     // If a '.' follows something other than a struct then complain about that fact.
     // Do not complain about expecting and not finding a component.
 
@@ -1724,13 +1722,13 @@ TEST_F(Compile1, ComponentOfNonStruct2) {
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'.'"));
 }
 
-TEST_F(Compile1, EmptySection) {
-
+TEST_F(Compile1, EmptySection)
+{
     // An empty last section should not result in an endless loop.
 
     char const *inpl = "\
@@ -1745,8 +1743,8 @@ TEST_F(Compile1, EmptySection) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, AutoptrDisplay) {
-
+TEST_F(Compile1, AutoptrDisplay)
+{
     // Autopointered types should not be shown with trailing ' ' in messages
     char const *inpl = "\
         internalstring autoptr builtin      \n\
@@ -1793,8 +1791,8 @@ TEST_F(Compile1, ReadonlyObjectWritableAttribute)
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ImportAutoptr1) {
-
+TEST_F(Compile1, ImportAutoptr1)
+{
     // Import decls of funcs with autopointered returns must be processed correctly.
 
     char const *inpl = "\
@@ -1819,8 +1817,8 @@ TEST_F(Compile1, ImportAutoptr1) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ImportAutoptr2) {
-
+TEST_F(Compile1, ImportAutoptr2)
+{
     // Import decls of autopointered variables must be processed correctly.
 
     char const *inpl = "\
@@ -1919,8 +1917,7 @@ TEST_F(Compile1, DynptrDynarrayMismatch2)
 
 TEST_F(Compile1, ZeroMemoryAllocation1)
 {
-
-    // If a struct type doesn't contain any variables then there are zero bytes 
+    // If a struct type doesn't contain any variables then there are zero bytes
     // to allocate. However, it _is_ legal to allocate a dynarray for the
     // struct. (Its elements could be initialized via other means than new.)
 
@@ -2077,7 +2074,7 @@ TEST_F(Compile1, ForwardStructAutoptr2)
 TEST_F(Compile1, FuncThenAssign)
 {
     // A function symbol in front of an assignment
-    // The compiler should complain about a missing '('  
+    // The compiler should complain about a missing '('
 
     char const *inpl = "\
         import int GetTextHeight                    \n\
@@ -2126,8 +2123,8 @@ TEST_F(Compile1, BuiltinForbidden)
     EXPECT_NE(std::string::npos, err_msg.find("__Builtin_"));
 }
 
-TEST_F(Compile1, ReadonlyParameters1) {
-
+TEST_F(Compile1, ReadonlyParameters1)
+{
     // Parameters may be declared "readonly" so that they cannot be
     // assigned to within the function.
 
@@ -2154,12 +2151,12 @@ TEST_F(Compile1, ReadonlyParameters1) {
     EXPECT_NE(std::string::npos, err_msg.find("readonly"));
 }
 
-TEST_F(Compile1, ReadonlyParameters2) {
-
+TEST_F(Compile1, ReadonlyParameters2)
+{
     // "readonly" parameters can be assigned to other variables,
     // but they may not be modified themselves.
     // Contrast this to "const" parameters, they
-    // may only assigned to variables that are "const" and 
+    // may only assigned to variables that are "const" and
     // may not be returned unless the return vartype is "const".
     // "Readonly" does NOT imply "const".
     // All the assignments in the function should be allowed.
@@ -2225,7 +2222,7 @@ TEST_F(Compile1, IncrementReadonly)
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
-  
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("eadonly"));
 }
@@ -2417,7 +2414,7 @@ TEST_F(Compile1, SideEffectExpression4)
         }                               \n\
         ";
 
- 
+
     int const compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
@@ -2444,11 +2441,10 @@ TEST_F(Compile1, DisallowStaticVariables)
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("tatic "));
-
 }
 
-TEST_F(Compile1, LongMin01) {
-
+TEST_F(Compile1, LongMin01)
+{
     // LONG_MAX + 1 is too large (when there isn't a '-' in front)
 
     char const *inpl = "\
@@ -2467,8 +2463,8 @@ TEST_F(Compile1, LongMin01) {
     EXPECT_NE(std::string::npos, err_msg.find("ut of bounds"));
 }
 
-TEST_F(Compile1, LongMin02) {
-
+TEST_F(Compile1, LongMin02)
+{
     // LONG_MAX + 1 is too large (when there isn't a UNARY '-' in front)
 
     char const *inpl = "\
@@ -2487,8 +2483,8 @@ TEST_F(Compile1, LongMin02) {
     EXPECT_NE(std::string::npos, err_msg.find("ut of bounds"));
 }
 
-TEST_F(Compile1, LongMin03) {
-
+TEST_F(Compile1, LongMin03)
+{
     // Can subtract LONG_MIN from LONG_MIN (result is 0)
 
     char const *inpl = "\
@@ -2528,8 +2524,8 @@ TEST_F(Compile1, AssignmentInParameterList1)
     EXPECT_NE(std::string::npos, err_msg.find("'='"));
 }
 
-TEST_F(Compile1, CallUndefinedFunc) {
-
+TEST_F(Compile1, CallUndefinedFunc)
+{
     // Function is called, but not defined with body or external
     // This should be flagged naming the function
 
@@ -2550,14 +2546,14 @@ TEST_F(Compile1, CallUndefinedFunc) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'Test::F'"));
     EXPECT_NE(std::string::npos, err_msg.find("never defined"));
 }
 
-TEST_F(Compile1, CrementAsBinary1) {
-
+TEST_F(Compile1, CrementAsBinary1)
+{
     // Increment operator can't be used as a binary operator.
 
     char const *inpl = "\
@@ -2573,14 +2569,14 @@ TEST_F(Compile1, CrementAsBinary1) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'++'"));
     EXPECT_NE(std::string::npos, err_msg.find("binary"));
 }
 
-TEST_F(Compile1, ReportMissingFunction) {
-
+TEST_F(Compile1, ReportMissingFunction)
+{
     // Function is called, but not defined with body or external
     // This should be flagged naming the function
 
@@ -2598,13 +2594,13 @@ TEST_F(Compile1, ReportMissingFunction) {
     size_t err_line = mh.GetError().Lineno;
     EXPECT_EQ(0u, mh.WarningsCount());
 
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("pNZaFLjz3ajd"));
 }
 
-TEST_F(Compile1, ConstructorDeclaration1) {
-
+TEST_F(Compile1, ConstructorDeclaration1)
+{
     // Constructors are member functions which have name
     // identical to the name of a struct, and a type 'void'
 
@@ -2623,8 +2619,8 @@ TEST_F(Compile1, ConstructorDeclaration1) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ConstructorDeclaration2) {
-
+TEST_F(Compile1, ConstructorDeclaration2)
+{
     // Constructors in regular structs are not supported
 
     char const *inpl = "\
@@ -2641,8 +2637,8 @@ TEST_F(Compile1, ConstructorDeclaration2) {
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ConstructorDeclaration3) {
-
+TEST_F(Compile1, ConstructorDeclaration3)
+{
     // Constructors must have return type 'void'
 
     char const *inpl = "\
@@ -2659,8 +2655,8 @@ TEST_F(Compile1, ConstructorDeclaration3) {
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ConstructorDeclaration4) {
-
+TEST_F(Compile1, ConstructorDeclaration4)
+{
     // Constructors must not be static
 
     char const *inpl = "\
@@ -2677,8 +2673,8 @@ TEST_F(Compile1, ConstructorDeclaration4) {
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ConstructorDeclaration5) {
-
+TEST_F(Compile1, ConstructorDeclaration5)
+{
     // Constructors must not be protected
 
     char const *inpl = "\
@@ -2695,8 +2691,8 @@ TEST_F(Compile1, ConstructorDeclaration5) {
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ConstructorDeclaration6) {
-
+TEST_F(Compile1, ConstructorDeclaration6)
+{
     // Constructors may be declared for any type in an inheritance
 
     char const *inpl = "\
@@ -2720,8 +2716,8 @@ TEST_F(Compile1, ConstructorDeclaration6) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ConstructorCall01) {
-
+TEST_F(Compile1, ConstructorCall01)
+{
     // It's (normally) not okay to call a constructor as a function.
 
     char const *inpl = R"%&/(
@@ -2747,8 +2743,8 @@ TEST_F(Compile1, ConstructorCall01) {
     EXPECT_NE(std::string::npos, err_msg.find("onstructor"));
 }
 
-TEST_F(Compile1, ConstructorCall02) {
-
+TEST_F(Compile1, ConstructorCall02)
+{
     // It's (normally) not okay to call a constructor as a function.
 
     char const *inpl = R"%&/(
@@ -2778,8 +2774,8 @@ TEST_F(Compile1, ConstructorCall02) {
     EXPECT_NE(std::string::npos, err_msg.find("onstructor"));
 }
 
-TEST_F(Compile1, ConstructorCall03) {
-
+TEST_F(Compile1, ConstructorCall03)
+{
     // No recursive calling the constructor.
 
     char const *inpl = R"%&/(
@@ -2804,8 +2800,8 @@ TEST_F(Compile1, ConstructorCall03) {
     EXPECT_NE(std::string::npos, err_msg.find("onstructor"));
 }
 
-TEST_F(Compile1, ConstructorCall04) {
-
+TEST_F(Compile1, ConstructorCall04)
+{
     // It's okay to call the constructor of an _ancester_ within a constructor
     // (so that the ancester elements can be initialized)
 
@@ -2839,8 +2835,8 @@ TEST_F(Compile1, ConstructorCall04) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ParensAfterNew01) {
-
+TEST_F(Compile1, ParensAfterNew01)
+{
     // Parentheses after 'new' are not required if there's no constructor
 
     char const *inpl = "\
@@ -2862,8 +2858,8 @@ TEST_F(Compile1, ParensAfterNew01) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ParensAfterNew02) {
-
+TEST_F(Compile1, ParensAfterNew02)
+{
     // No trailing symbols allowed
 
     char const *inpl = "\
@@ -2885,8 +2881,8 @@ TEST_F(Compile1, ParensAfterNew02) {
     EXPECT_NE(std::string::npos, err_msg.find("1.0"));
 }
 
-TEST_F(Compile1, ParensAfterNew03) {
-
+TEST_F(Compile1, ParensAfterNew03)
+{
     // Parentheses after 'new' are okay
     // even when there isn't any constructor
 
@@ -2909,8 +2905,8 @@ TEST_F(Compile1, ParensAfterNew03) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ParensAfterNew04) {
-
+TEST_F(Compile1, ParensAfterNew04)
+{
     // No trailing symbols after the parentheses
 
     char const *inpl = "\
@@ -2934,8 +2930,8 @@ TEST_F(Compile1, ParensAfterNew04) {
     EXPECT_EQ(9u, err_line);
 }
 
-TEST_F(Compile1, ParensAfterNew05) {
-
+TEST_F(Compile1, ParensAfterNew05)
+{
     // When there is an constructor, then it must be called
 
     char const *inpl = "\
@@ -2954,13 +2950,13 @@ TEST_F(Compile1, ParensAfterNew05) {
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_NE(std::string::npos, err_msg.find("parameter list"));
 }
 
-TEST_F(Compile1, ParensAfterNew06) {
-
+TEST_F(Compile1, ParensAfterNew06)
+{
     // Structs inherit constructors from their parents;
     // when there is *any* constructor, then it must be called
 
@@ -2985,13 +2981,13 @@ TEST_F(Compile1, ParensAfterNew06) {
     int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
     std::string err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
-    
+
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     ASSERT_NE(std::string::npos, err_msg.find("Ancester::Ancester"));
 }
 
-TEST_F(Compile1, ParensAfterNew07) {
-
+TEST_F(Compile1, ParensAfterNew07)
+{
     // When there is a constructor call,
     // then it must be called with the proper arguments
 
@@ -3016,8 +3012,8 @@ TEST_F(Compile1, ParensAfterNew07) {
     EXPECT_NE(std::string::npos, err_msg.find("#1"));
 }
 
-TEST_F(Compile1, ParensAfterNew08) {
-
+TEST_F(Compile1, ParensAfterNew08)
+{
     // No trailing symbols after the constructor call
 
     char const *inpl = "\
@@ -3043,8 +3039,8 @@ TEST_F(Compile1, ParensAfterNew08) {
     EXPECT_NE(std::string::npos, err_msg.find("'0'"));
 }
 
-TEST_F(Compile1, DynarrayOfArray) {
-
+TEST_F(Compile1, DynarrayOfArray)
+{
     // Refuse a dynarray of an array
 
     char const *inpl = "\
@@ -3137,8 +3133,8 @@ TEST_F(Compile1, ExpressionNotFoundMessage2)
     EXPECT_NE(std::string::npos, err_msg.find("'do'"));
 }
 
-TEST_F(Compile1, ImportWithBody) {
-
+TEST_F(Compile1, ImportWithBody)
+{
     // An "import" function must not be declared with body
 
     char const *inpl = "\
@@ -3209,8 +3205,8 @@ TEST_F(Compile1, ImpliedStaticFuncNonStaticCall02)
     EXPECT_NE(std::string::npos, err_msg.find("'Armor::Wizardy'"));
 }
 
-TEST_F(Compile1, ReturnVoidExpressionFromVoidFunc) {
-
+TEST_F(Compile1, ReturnVoidExpressionFromVoidFunc)
+{
     // A 'void' function may return the result of a call to another 'void' function
 
     char const *inpl = "\
@@ -3228,8 +3224,8 @@ TEST_F(Compile1, ReturnVoidExpressionFromVoidFunc) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile1, ReturnValueFromVoidFunc) {
-
+TEST_F(Compile1, ReturnValueFromVoidFunc)
+{
     // A 'void' function may not return a non-void value
 
     char const *inpl = "\

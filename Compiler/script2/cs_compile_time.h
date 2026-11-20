@@ -15,13 +15,13 @@
 #define __CS_COMPILE_TIME_H
 
 #include <functional>
-#include "cs_parser_common.h" 
+#include "cs_parser_common.h"
 
 namespace AGS
 {
 struct SymbolTable;
 
-// Encapsules a function that will be called at compile time 
+// Encapsules a function that will be called at compile time
 // (when both its arguments are known at compile time)
 class CompileTimeFunc
 {
@@ -46,34 +46,28 @@ public:
         std::string _msg;
 
     public:
-        CompileTimeError(std::string const &msg)
-            : _msg(msg)
-        {}
+        CompileTimeError(std::string const &msg) : _msg(msg) {}
 
         const char *what() const noexcept { return _msg.c_str(); }
     };
 
-    CompileTimeFunc(SymbolTable &sym)
-        : _sym(sym)
-    {}
+    CompileTimeFunc(SymbolTable &sym) : _sym(sym) {}
 
-    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
-        = 0;
+    virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) = 0;
 };
 
 // A compile time func that operates on integers and yields an integer
 class CTF_IntToInt : public CompileTimeFunc
 {
 protected:
-    CodeCell (*_func) (CodeCell, CodeCell); // The compile time function to execute
-    Symbol _name; // of the operator symbol
+    CodeCell (*_func)(CodeCell, CodeCell); // The compile time function to execute
+    Symbol _name;                          // of the operator symbol
 
 public:
     CTF_IntToInt(SymbolTable &sym, Symbol name, CodeCell (*func)(CodeCell, CodeCell))
-        : CompileTimeFunc(sym)
-        , _func(func)
-        , _name(name)
-    {}
+        : CompileTimeFunc(sym), _func(func), _name(name)
+    {
+    }
 
     virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
@@ -151,10 +145,9 @@ private:
 
 public:
     CTF_IntToBool(SymbolTable &sym, Symbol name, bool (*func)(CodeCell, CodeCell))
-        : CompileTimeFunc(sym)
-        , _func(func)
-        , _name(name)
-    {}
+        : CompileTimeFunc(sym), _func(func), _name(name)
+    {
+    }
 
     virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
@@ -168,11 +161,10 @@ protected:
     Symbol _name;
 
 public:
-    CTF_FloatToFloat(SymbolTable &sym, Symbol name, float(*func)(float, float))
-        : CompileTimeFunc(sym)
-        , _func(func)
-        , _name(name)
-    {}
+    CTF_FloatToFloat(SymbolTable &sym, Symbol name, float (*func)(float, float))
+        : CompileTimeFunc(sym), _func(func), _name(name)
+    {
+    }
 
     virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };
@@ -180,7 +172,6 @@ public:
 // '/' on floats
 class CTF_FloatDivide : public CTF_FloatToFloat
 {
-
 public:
     CTF_FloatDivide(SymbolTable &sym);
 
@@ -197,10 +188,9 @@ private:
 
 public:
     CTF_FloatToBool(SymbolTable &sym, Symbol name, bool (*func)(float, float))
-        : CompileTimeFunc(sym)
-        , _func(func)
-        , _name(name)
-    {}
+        : CompileTimeFunc(sym), _func(func), _name(name)
+    {
+    }
 
     virtual void Evaluate(Symbol arg1, Symbol arg2, Symbol &result) override;
 };

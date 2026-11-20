@@ -45,18 +45,16 @@ void ccGetExtensions2(std::vector<std::string> &exts)
 // Convert VartypeFlags to RTTI::TypeFlags
 inline uint32_t VartypeFlagsToRTTIType(const VartypeType vtt, const VartypeFlags &vtf_flag)
 {
-    return 0u
-        | RTTI::kType_Managed * (vtf_flag[VTF::kManaged] || vtt == VTT::kDynpointer || vtt == VTT::kDynarray)
-        | RTTI::kType_Struct * (vtf_flag[VTF::kStruct])
-        | RTTI::kType_Array * (vtt == VTT::kArray || vtt == VTT::kDynarray);
+    return 0u | RTTI::kType_Managed * (vtf_flag[VTF::kManaged] || vtt == VTT::kDynpointer || vtt == VTT::kDynarray) |
+           RTTI::kType_Struct * (vtf_flag[VTF::kStruct]) |
+           RTTI::kType_Array * (vtt == VTT::kArray || vtt == VTT::kDynarray);
 }
 
 // Convert VartypeType to RTTI::FieldFlags
 inline uint32_t VartypeToRTTIField(VartypeType vtt)
 {
-    return 0u
-        | RTTI::kField_ManagedPtr * (vtt == VTT::kDynpointer || vtt == VTT::kDynarray)
-        | RTTI::kField_Array * (vtt == VTT::kArray || vtt == VTT::kDynarray);
+    return 0u | RTTI::kField_ManagedPtr * (vtt == VTT::kDynpointer || vtt == VTT::kDynarray) |
+           RTTI::kField_Array * (vtt == VTT::kArray || vtt == VTT::kDynarray);
 }
 
 // Compiles RTTI table for the given script.
@@ -93,7 +91,8 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
         // * atomic
         // * struct (regular and managed)
         // * dynamic array derived types, in case there are jagged arrays
-        if (ste.VartypeD && ((ste.VartypeD->Type == VartypeType::kAtomic) || (ste.VartypeD->Type == VartypeType::kDynarray)))
+        if (ste.VartypeD &&
+            ((ste.VartypeD->Type == VartypeType::kAtomic) || (ste.VartypeD->Type == VartypeType::kDynarray)))
         {
             uint32_t section_id = 0u;
             if (ste.Declared < INT_MAX)
@@ -120,17 +119,15 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
             for (const auto sz : field_type.VartypeD->Dims)
                 num_elems += sz; // CHECKME if correct
             rtb.AddField(ste.ComponentD->Parent, buf, ste.ComponentD->Offset,
-                symt.GetFirstBaseVartype(ste.VariableD->Vartype), flags, num_elems);
+                         symt.GetFirstBaseVartype(ste.VariableD->Vartype), flags, num_elems);
         }
     }
 
-    return std::unique_ptr<RTTI>(
-        new RTTI(std::move(rtb.Finalize())));
+    return std::unique_ptr<RTTI>(new RTTI(std::move(rtb.Finalize())));
 }
 
-static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
-    const SymbolTable &symt, const std::vector<SymbolTableEntry> &entries, const SectionList &seclist,
-    const RTTI *rtti)
+static void ccCompileDataTOC(ScriptTOCBuilder &tocb, const SymbolTable &symt,
+                             const std::vector<SymbolTableEntry> &entries, const SectionList &seclist, const RTTI *rtti)
 {
     for (size_t t = 0; t < entries.size(); t++)
     {
@@ -165,8 +162,7 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
                 uint32_t v_flags = 0u;
                 if (ste.VariableD->TypeQualifiers[TQ::kImport])
                     v_flags |= ScriptTOC::kVariable_Import;
-                tocb.AddGlobalVar(ste.Name, section_id, ste.VariableD->Offset,
-                    v_flags, f_typeid, f_flags, num_elems);
+                tocb.AddGlobalVar(ste.Name, section_id, ste.VariableD->Offset, v_flags, f_typeid, f_flags, num_elems);
             }
             // Scoped variable: local or parameter
             else
@@ -174,9 +170,8 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
                 uint32_t v_flags = ScriptTOC::kVariable_Local;
                 if (ste.Scope == SymbolTableConstant::kParameterScope)
                     v_flags |= ScriptTOC::kVariable_Parameter;
-                tocb.AddLocalVar(ste.Name, section_id, ste.VariableD->Offset,
-                    ste.LifeScope.first, ste.LifeScope.second,
-                    v_flags, f_typeid, f_flags, num_elems);
+                tocb.AddLocalVar(ste.Name, section_id, ste.VariableD->Offset, ste.LifeScope.first, ste.LifeScope.second,
+                                 v_flags, f_typeid, f_flags, num_elems);
             }
         }
 
@@ -198,9 +193,8 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
             if (ste.Declared < INT_MAX)
                 section_id = seclist.GetSectionIdAt(ste.Declared);
 
-            const uint32_t func_id =
-                tocb.AddFunction(ste.Name, section_id, ste.LifeScope.first, ste.LifeScope.second,
-                    func_flags, rval_type, rval_flags);
+            const uint32_t func_id = tocb.AddFunction(ste.Name, section_id, ste.LifeScope.first, ste.LifeScope.second,
+                                                      func_flags, rval_type, rval_flags);
 
             // Add function parameters
             for (size_t i = 1; i < ste.FunctionD->Parameters.size(); ++i)
@@ -210,28 +204,27 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
                 uint32_t param_type = symt.GetFirstBaseVartype(param.Vartype);
                 uint32_t param_flags = VartypeToRTTIField(field_type.VartypeD->Type);
                 std::string param_name = symt.entries[param.Name].Name;
-                tocb.AddFunctionParam(func_id, param_name, 0u /* TODO: param offset? */,
-                    param_type, param_flags);
+                tocb.AddFunctionParam(func_id, param_name, 0u /* TODO: param offset? */, param_type, param_flags);
             }
         }
     }
 }
 
-static std::unique_ptr<ScriptTOC> ccCompileDataTOC(const SymbolTable &symt, const SectionList &seclist, const RTTI *rtti)
+static std::unique_ptr<ScriptTOC> ccCompileDataTOC(const SymbolTable &symt, const SectionList &seclist,
+                                                   const RTTI *rtti)
 {
     ScriptTOCBuilder tocb;
 
     ccCompileDataTOC(tocb, symt, symt.entries, seclist, rtti);
     ccCompileDataTOC(tocb, symt, symt.localEntries, seclist, rtti);
 
-    return std::unique_ptr<ScriptTOC>(
-        new ScriptTOC(std::move(tocb.Finalize(rtti))));
+    return std::unique_ptr<ScriptTOC>(new ScriptTOC(std::move(tocb.Finalize(rtti))));
 }
 
-ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t const options, MessageHandler &mh)
+ccScript *ccCompileText2(std::string const &script, std::string const &scriptName, uint64_t const options,
+                         MessageHandler &mh)
 {
-    ccCompiledScript *compiled_script =
-        new ccCompiledScript(FlagIsSet(options, SCOPT_LINENUMBERS));
+    ccCompiledScript *compiled_script = new ccCompiledScript(FlagIsSet(options, SCOPT_LINENUMBERS));
     SymbolTable symt; // for gathering rtti
     SectionList seclist;
 

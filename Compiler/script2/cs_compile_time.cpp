@@ -75,26 +75,24 @@ void AGS::CTF_IntToInt::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
 
 AGS::CTF_IntPlus::CTF_IntPlus(SymbolTable &sym)
     : CTF_IntToInt(sym, kKW_Plus, [](CodeCell i1, CodeCell i2) { return i1 + i2; })
-{ }
+{
+}
 
 void AGS::CTF_IntPlus::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
 {
     CodeCell const i1 = _sym[arg1].LiteralD->Value;
     CodeCell const i2 = _sym[arg2].LiteralD->Value;
 
-    if (((i1 > 0 && i2 > 0) || (i1 < 0 && i2 < 0)) &&
-        (std::numeric_limits<CodeCell>::max() - abs(i1) < abs(i2)))
-        UserError(
-            "Overflow when calculating '%s + %s'",
-            std::to_string(i1).c_str(),
-            std::to_string(i2).c_str());
+    if (((i1 > 0 && i2 > 0) || (i1 < 0 && i2 < 0)) && (std::numeric_limits<CodeCell>::max() - abs(i1) < abs(i2)))
+        UserError("Overflow when calculating '%s + %s'", std::to_string(i1).c_str(), std::to_string(i2).c_str());
 
     CTF_IntToInt::Evaluate(arg1, arg2, result);
 }
 
 AGS::CTF_IntMinus::CTF_IntMinus(SymbolTable &sym)
     : CTF_IntToInt(sym, kKW_Minus, [](CodeCell i1, CodeCell i2) { return i1 - i2; })
-{ }
+{
+}
 
 void AGS::CTF_IntMinus::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
 {
@@ -102,23 +100,17 @@ void AGS::CTF_IntMinus::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
     CodeCell const i2 = _sym[arg2].LiteralD->Value;
 
     if (i1 >= 0 && i2 == INT32_MIN)
-        UserError(
-            "Overflow when calculating '%s - %s'",
-            _sym[arg1].Name.c_str(),
-            _sym[arg2].Name.c_str());
-    if (((i1 > 0 && i2 < 0) || (i1 < 0 && i2 > 0)) &&
-        (std::numeric_limits<CodeCell>::max() - abs(i1) < abs(i2)))
-        UserError(
-            "Overflow when calculating '%s - %s'",
-            _sym[arg1].Name.c_str(),
-            _sym[arg2].Name.c_str());
+        UserError("Overflow when calculating '%s - %s'", _sym[arg1].Name.c_str(), _sym[arg2].Name.c_str());
+    if (((i1 > 0 && i2 < 0) || (i1 < 0 && i2 > 0)) && (std::numeric_limits<CodeCell>::max() - abs(i1) < abs(i2)))
+        UserError("Overflow when calculating '%s - %s'", _sym[arg1].Name.c_str(), _sym[arg2].Name.c_str());
 
     CTF_IntToInt::Evaluate(arg1, arg2, result);
 }
 
 AGS::CTF_IntMultiply::CTF_IntMultiply(SymbolTable &sym)
     : CTF_IntToInt(sym, kKW_Multiply, [](CodeCell i1, CodeCell i2) { return i1 * i2; })
-{ }
+{
+}
 
 void AGS::CTF_IntMultiply::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
 {
@@ -126,7 +118,7 @@ void AGS::CTF_IntMultiply::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
     CodeCell const i2 = _sym[arg2].LiteralD->Value;
 
     // Overflow detection - unsigned values cannot generate overflow by definition;
-    // leverage the fact that they have inherent wrap-around 
+    // leverage the fact that they have inherent wrap-around
     if (i1 != 0 && i2 != 0)
     {
         uint32_t const ui1 = abs(i1);
@@ -135,17 +127,15 @@ void AGS::CTF_IntMultiply::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
 
         bool const wraparound_happened = product < ui1 || product < ui2;
         if (wraparound_happened || product > INT_MAX)
-            UserError(
-                "Overflow when calculating '%s * %s'",
-                std::to_string(i1).c_str(),
-                std::to_string(i2).c_str());
+            UserError("Overflow when calculating '%s * %s'", std::to_string(i1).c_str(), std::to_string(i2).c_str());
     }
     CTF_IntToInt::Evaluate(arg1, arg2, result);
 }
 
 AGS::CTF_IntDivide::CTF_IntDivide(SymbolTable &sym)
     : CTF_IntToInt(sym, kKW_Divide, [](CodeCell i1, CodeCell i2) { return i1 / i2; })
-{ }
+{
+}
 
 void AGS::CTF_IntDivide::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
 {
@@ -153,17 +143,16 @@ void AGS::CTF_IntDivide::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
     CodeCell const i2 = _sym[arg2].LiteralD->Value;
 
     if (0 == i2)
-        UserError(
-            "Division by zero when calculating '%s / %s'",
-            std::to_string(i1).c_str(),
-            std::to_string(i2).c_str());
+        UserError("Division by zero when calculating '%s / %s'", std::to_string(i1).c_str(),
+                  std::to_string(i2).c_str());
 
     CTF_IntToInt::Evaluate(arg1, arg2, result);
 }
 
 AGS::CTF_IntShiftLeft::CTF_IntShiftLeft(SymbolTable &sym)
     : CTF_IntToInt(sym, kKW_ShiftLeft, [](CodeCell i1, CodeCell i2) { return i1 << i2; })
-{ }
+{
+}
 
 void AGS::CTF_IntShiftLeft::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
 {
@@ -171,25 +160,21 @@ void AGS::CTF_IntShiftLeft::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
     CodeCell const i2 = _sym[arg2].LiteralD->Value;
 
     if (i2 < 0)
-        UserError(
-            "Negative shift amount when calculating '%s << %s'",
-            std::to_string(i1).c_str(),
-            std::to_string(i2).c_str());
+        UserError("Negative shift amount when calculating '%s << %s'", std::to_string(i1).c_str(),
+                  std::to_string(i2).c_str());
 
-    // The Engine calculates shifts by using signed values, so overflow is possible. 
+    // The Engine calculates shifts by using signed values, so overflow is possible.
     size_t const digitnum = std::numeric_limits<CodeCell>::digits + 1;
     if (0 != i2 && 0 != abs(i1) >> (digitnum - i2))
-        UserError(
-            "Overflow when calculating '%s << %s'",
-            std::to_string(i1).c_str(),
-            std::to_string(i2).c_str());
+        UserError("Overflow when calculating '%s << %s'", std::to_string(i1).c_str(), std::to_string(i2).c_str());
 
     CTF_IntToInt::Evaluate(arg1, arg2, result);
 }
 
 AGS::CTF_IntShiftRight::CTF_IntShiftRight(SymbolTable &sym)
     : CTF_IntToInt(sym, kKW_ShiftRight, [](CodeCell i1, CodeCell i2) { return i1 >> i2; })
-{ }
+{
+}
 
 void AGS::CTF_IntShiftRight::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
 {
@@ -197,17 +182,16 @@ void AGS::CTF_IntShiftRight::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
     CodeCell const i2 = _sym[arg2].LiteralD->Value;
 
     if (i2 < 0)
-        UserError(
-            "Negative shift amount when calculating '%s << %s'",
-            std::to_string(i1).c_str(),
-            std::to_string(i2).c_str());
+        UserError("Negative shift amount when calculating '%s << %s'", std::to_string(i1).c_str(),
+                  std::to_string(i2).c_str());
 
     CTF_IntToInt::Evaluate(arg1, arg2, result);
 }
 
 AGS::CTF_IntModulo::CTF_IntModulo(SymbolTable &sym)
     : CTF_IntToInt(sym, kKW_Modulo, [](CodeCell i1, CodeCell i2) { return i1 % i2; })
-{ }
+{
+}
 
 void AGS::CTF_IntModulo::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
 {
@@ -215,10 +199,8 @@ void AGS::CTF_IntModulo::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
     CodeCell const i2 = _sym[arg2].LiteralD->Value;
 
     if (0 == i2)
-        UserError(
-            "Modulo zero encountered when calculating '%s per %s'",
-            std::to_string(i1).c_str(),
-            std::to_string(i2).c_str());
+        UserError("Modulo zero encountered when calculating '%s per %s'", std::to_string(i1).c_str(),
+                  std::to_string(i2).c_str());
 
     CTF_IntToInt::Evaluate(arg1, arg2, result);
 }
@@ -237,9 +219,8 @@ void AGS::CTF_FloatToFloat::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
     float const f2 = InterpretIntAsFloat(_sym[arg2].LiteralD->Value);
     float res = _func(f1, f2);
     if (HUGE_VAL == res || -HUGE_VAL == res || NAN == res)
-        UserError(
-            "Overflow on calculating '%s %s %s'",
-            FloatToString(f1).c_str(), _sym.GetName(_name).c_str(),  FloatToString(f2).c_str());
+        UserError("Overflow on calculating '%s %s %s'", FloatToString(f1).c_str(), _sym.GetName(_name).c_str(),
+                  FloatToString(f2).c_str());
 
     result = FindOrMakeLiteral(res);
 }
@@ -254,7 +235,8 @@ void AGS::CTF_FloatToBool::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
 
 AGS::CTF_FloatDivide::CTF_FloatDivide(SymbolTable &sym)
     : CTF_FloatToFloat(sym, kKW_Divide, [](float f1, float f2) { return f1 / f2; })
-{}
+{
+}
 
 void AGS::CTF_FloatDivide::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
 {
@@ -262,10 +244,7 @@ void AGS::CTF_FloatDivide::Evaluate(Symbol arg1, Symbol arg2, Symbol &result)
     float const f2 = InterpretIntAsFloat(_sym[arg2].LiteralD->Value);
 
     if (0.0 == f2)
-        UserError(
-            "Division by zero when calculating '%s / %s'",
-            FloatToString(f1).c_str(), FloatToString(f2).c_str());
+        UserError("Division by zero when calculating '%s / %s'", FloatToString(f1).c_str(), FloatToString(f2).c_str());
 
     CTF_FloatToFloat::Evaluate(arg1, arg2, result);
 }
-

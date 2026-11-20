@@ -25,22 +25,25 @@
 #include <string>
 #include <vector>
 
-class CompilerOptions{
-    struct Flags {
-        bool ExportAll = true;               // export all functions automatically
+class CompilerOptions
+{
+    struct Flags
+    {
+        bool ExportAll = true; // export all functions automatically
         //bool ShowWarnings = true;          // printf warnings to console; [DEPRECATED], impl proper output verbosity instead?
-        bool LineNumbers = true;             // include line numbers in compiled code
-        bool AutoImport = false;              // when creating instance, export funcs to other scripts
-        bool DebugRun = false;                // write instructions as they are processed to log file
-        bool NoImportOverride = false;        // do not allow an import to be re-declared
+        bool LineNumbers = true;       // include line numbers in compiled code
+        bool AutoImport = false;       // when creating instance, export funcs to other scripts
+        bool DebugRun = false;         // write instructions as they are processed to log file
+        bool NoImportOverride = false; // do not allow an import to be re-declared
         bool EnforceObjectBasedScript = true;
-        bool EnforceNewStrings = true;        // do not allow old-style strings
+        bool EnforceNewStrings = true; // do not allow old-style strings
         bool EnforceNewAudio = true;
         bool UseOldCustomDialogOptionsAPI = false;
         bool UseOldKeyboardHandling = false;
     };
 
-    struct ScriptAPI {
+    struct ScriptAPI
+    {
         std::string ScriptAPIVersion = HIGHEST_SCRIPT_API;
         std::string ScriptCompatLevel = HIGHEST_SCRIPT_API;
     };
@@ -62,7 +65,7 @@ public:
     void PrintToStdout() const;
 };
 
-int Compile(const CompilerOptions& comp_opts);
+int Compile(const CompilerOptions &comp_opts);
 std::vector<const char *> GetScriptAPIs();
 
 #endif //__CC_COMPILER_H

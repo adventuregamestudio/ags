@@ -25,8 +25,8 @@
 
 const char *ccSoftwareVersion = "1.0";
 
-std::vector<const char*> defaultheaders;
-std::vector<const char*> defaultHeaderNames;
+std::vector<const char *> defaultheaders;
+std::vector<const char *> defaultHeaderNames;
 
 void ccGetExtensions(std::vector<std::string> &exts)
 {
@@ -40,19 +40,21 @@ void ccGetExtensions(std::vector<std::string> &exts)
     return;
 }
 
-int ccAddDefaultHeader(const char* nhead, const char *nName)
+int ccAddDefaultHeader(const char *nhead, const char *nName)
 {
     defaultheaders.push_back(nhead);
     defaultHeaderNames.push_back(nName);
     return 0;
 }
 
-void ccRemoveDefaultHeaders() {
+void ccRemoveDefaultHeaders()
+{
     defaultheaders.clear();
     defaultHeaderNames.clear();
 }
 
-void ccSetSoftwareVersion(const char *versionNumber) {
+void ccSetSoftwareVersion(const char *versionNumber)
+{
     ccSoftwareVersion = versionNumber;
 }
 
@@ -60,27 +62,25 @@ void ccSetSoftwareVersion(const char *versionNumber) {
 // Convert SFLG_* flags to RTTI::TypeFlags
 inline uint32_t SflgToRTTIType(int ste_flags)
 {
-    return 0u
-        | RTTI::kType_Struct * ((ste_flags & SFLG_STRUCTTYPE) != 0)
-        | RTTI::kType_Managed * ((ste_flags & SFLG_MANAGED) != 0);
+    return 0u | RTTI::kType_Struct * ((ste_flags & SFLG_STRUCTTYPE) != 0) |
+           RTTI::kType_Managed * ((ste_flags & SFLG_MANAGED) != 0);
 }
 
 // Convert SFLG_* flags to RTTI::FieldFlags
 inline uint32_t SflgToRTTIField(int ste_flags)
 {
-    return 0u
-        | RTTI::kField_ManagedPtr * ((ste_flags & SFLG_DYNAMICARRAY) != 0 ||
-            // compiler marks static arrays of pointers as SFLG_POINTER;
-            // but the array itself is not a pointer, so don't mark that as one
-            (((ste_flags & SFLG_POINTER) != 0) && ((ste_flags & SFLG_ARRAY) == 0)))
-        | RTTI::kField_Array * ((ste_flags & SFLG_ARRAY) != 0);
+    return 0u |
+           RTTI::kField_ManagedPtr * ((ste_flags & SFLG_DYNAMICARRAY) != 0 ||
+                                      // compiler marks static arrays of pointers as SFLG_POINTER;
+                                      // but the array itself is not a pointer, so don't mark that as one
+                                      (((ste_flags & SFLG_POINTER) != 0) && ((ste_flags & SFLG_ARRAY) == 0))) |
+           RTTI::kField_Array * ((ste_flags & SFLG_ARRAY) != 0);
 }
 
 // Convert STYPE_* flags to RTTI::FieldFlags
 inline uint32_t StypeToRTTIField(int stype_flags)
 {
-    return 0u
-        | RTTI::kField_ManagedPtr * ((stype_flags & STYPE_DYNARRAY) != 0 || (stype_flags & STYPE_POINTER) != 0);
+    return 0u | RTTI::kField_ManagedPtr * ((stype_flags & STYPE_DYNARRAY) != 0 || (stype_flags & STYPE_POINTER) != 0);
 }
 
 // Compiles RTTI table for the given script.
@@ -111,8 +111,7 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
     {
         const SymbolTableEntry &ste = sym.entries[t];
 
-        if ((ste.stype == SYM_VARTYPE) || ((ste.flags & SFLG_STRUCTTYPE) != 0) ||
-            ((ste.flags & SFLG_MANAGED) != 0))
+        if ((ste.stype == SYM_VARTYPE) || ((ste.flags & SFLG_STRUCTTYPE) != 0) || ((ste.flags & SFLG_MANAGED) != 0))
         {
             uint32_t flags = SflgToRTTIType(ste.flags);
             uint32_t loc_id = 0u;
@@ -125,21 +124,18 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const symbolTable &sym)
             rtb.AddType(ste.sname, t, loc_id, 0u /* base */, ste.extends, flags, ste.ssize, 0u /* dim num */);
         }
         else if ((ste.stype == SYM_STRUCTMEMBER) && ((ste.flags & SFLG_STRUCTMEMBER) != 0) &&
-            ((ste.flags & SFLG_PROPERTY) == 0))
+                 ((ste.flags & SFLG_PROPERTY) == 0))
         {
             buf = ste.sname.substr(ste.sname.rfind(":") + 1);
             uint32_t flags = SflgToRTTIField(ste.flags);
-            rtb.AddField(ste.extends, buf, ste.soffs, ste.vartype, flags,
-                static_cast<uint32_t>(ste.arrsize));
+            rtb.AddField(ste.extends, buf, ste.soffs, ste.vartype, flags, static_cast<uint32_t>(ste.arrsize));
         }
     }
 
-    return std::unique_ptr<RTTI>(
-        new RTTI(std::move(rtb.Finalize())));
+    return std::unique_ptr<RTTI>(new RTTI(std::move(rtb.Finalize())));
 }
 
-static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
-    const std::vector<SymbolTableEntry> &entries, const RTTI *rtti)
+static void ccCompileDataTOC(ScriptTOCBuilder &tocb, const std::vector<SymbolTableEntry> &entries, const RTTI *rtti)
 {
     for (size_t t = 0; t < entries.size(); ++t)
     {
@@ -160,19 +156,17 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
                 if (ste.flags & SFLG_IMPORTED)
                     v_flags = ScriptTOC::kVariable_Import;
 
-                tocb.AddGlobalVar(ste.sname, ste.section, ste.soffs,
-                    v_flags, ste.vartype, f_flags, static_cast<uint32_t>(ste.arrsize));
+                tocb.AddGlobalVar(ste.sname, ste.section, ste.soffs, v_flags, ste.vartype, f_flags,
+                                  static_cast<uint32_t>(ste.arrsize));
             }
             else
             {
                 uint32_t v_flags = ScriptTOC::kVariable_Local;
                 if (ste.flags & SFLG_PARAMETER)
                     v_flags |= ScriptTOC::kVariable_Parameter;
-                tocb.AddLocalVar(ste.sname, ste.section, ste.soffs,
-                    ste.scope_section_begin, ste.scope_section_end,
-                    v_flags, ste.vartype, f_flags, static_cast<uint32_t>(ste.arrsize));
+                tocb.AddLocalVar(ste.sname, ste.section, ste.soffs, ste.scope_section_begin, ste.scope_section_end,
+                                 v_flags, ste.vartype, f_flags, static_cast<uint32_t>(ste.arrsize));
             }
-            
         }
 
         // Add functions
@@ -191,9 +185,8 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
             uint32_t rval_type = entries[t].funcparams[0].Type & STYPE_MASK;
             int stype_flags = entries[t].funcparams[0].Type & ~STYPE_MASK;
             uint32_t rval_flags = StypeToRTTIField(stype_flags);
-            const uint32_t func_id =
-                tocb.AddFunction(ste.sname, ste.section, ste.scope_section_begin, ste.scope_section_end,
-                    func_flags, rval_type, rval_flags);
+            const uint32_t func_id = tocb.AddFunction(ste.sname, ste.section, ste.scope_section_begin,
+                                                      ste.scope_section_end, func_flags, rval_type, rval_flags);
 
             // Add function parameters
             for (int i = 1; i < ste.get_num_args() + 1; ++i)
@@ -202,8 +195,7 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
                 int stype_flags = entries[t].funcparams[i].Type & ~STYPE_MASK;
                 const std::string &name = entries[t].funcparams[i].Name;
                 uint32_t param_flags = StypeToRTTIField(stype_flags);
-                tocb.AddFunctionParam(func_id, name, 0u /* TODO: param offset? */,
-                    param_type, param_flags);
+                tocb.AddFunctionParam(func_id, name, 0u /* TODO: param offset? */, param_type, param_flags);
             }
         }
     }
@@ -216,11 +208,11 @@ static std::unique_ptr<ScriptTOC> ccCompileDataTOC(const symbolTable &sym, const
     ccCompileDataTOC(tocb, sym.entries, rtti);
     ccCompileDataTOC(tocb, sym.localEntries, rtti);
 
-    return std::unique_ptr<ScriptTOC>(
-        new ScriptTOC(std::move(tocb.Finalize(rtti))));
+    return std::unique_ptr<ScriptTOC>(new ScriptTOC(std::move(tocb.Finalize(rtti))));
 }
 
-ccScript* ccCompileText(const char *texo, const char *scriptName) {
+ccScript *ccCompileText(const char *texo, const char *scriptName)
+{
     ccCompiledScript *cctemp = new ccCompiledScript();
 
     sym.reset();
@@ -230,39 +222,46 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
 
     cc_clear_error();
 
-    for (size_t t=0;t<defaultheaders.size();t++) {
+    for (size_t t = 0; t < defaultheaders.size(); t++)
+    {
         if (defaultHeaderNames[t])
             ccCurScriptName = defaultHeaderNames[t];
         else
             ccCurScriptName = "Internal header file";
 
         cctemp->start_new_section(ccCurScriptName.c_str());
-        cc_compile(defaultheaders[t],cctemp);
-        if (cc_has_error()) break;
+        cc_compile(defaultheaders[t], cctemp);
+        if (cc_has_error())
+            break;
     }
 
-    if (!cc_has_error()) {
+    if (!cc_has_error())
+    {
         ccCurScriptName = scriptName;
         cctemp->start_new_section(ccCurScriptName.c_str());
-        cc_compile(texo,cctemp);
+        cc_compile(texo, cctemp);
     }
 
-    if (cc_has_error()) {
+    if (cc_has_error())
+    {
         delete cctemp;
         return NULL;
     }
 
-    for (size_t t=0; t<sym.entries.size();t++) {
+    for (size_t t = 0; t < sym.entries.size(); t++)
+    {
         int stype = sym.get_type(t);
         // blank out the name for imports that are not used, to save space
         // in the output file
-        if (((sym.entries[t].flags & SFLG_IMPORTED)!=0) && ((sym.entries[t].flags & SFLG_ACCESSED)==0)) {
-
-            if ((stype == SYM_FUNCTION) || (stype == SYM_GLOBALVAR)) {
+        if (((sym.entries[t].flags & SFLG_IMPORTED) != 0) && ((sym.entries[t].flags & SFLG_ACCESSED) == 0))
+        {
+            if ((stype == SYM_FUNCTION) || (stype == SYM_GLOBALVAR))
+            {
                 // unused func/variable
                 cctemp->imports[sym.entries[t].soffs] = std::string();
             }
-            else if (sym.entries[t].flags & SFLG_PROPERTY) {
+            else if (sym.entries[t].flags & SFLG_PROPERTY)
+            {
                 // unused property -- get rid of the getter and setter
                 int propGet = sym.entries[t].get_propget();
                 int propSet = sym.entries[t].get_propset();
@@ -273,33 +272,38 @@ ccScript* ccCompileText(const char *texo, const char *scriptName) {
             }
         }
 
-        if ((sym.get_type(t) != SYM_GLOBALVAR) &&
-            (sym.get_type(t) != SYM_LOCALVAR)) continue;
+        if ((sym.get_type(t) != SYM_GLOBALVAR) && (sym.get_type(t) != SYM_LOCALVAR))
+            continue;
 
-        if (sym.entries[t].flags & SFLG_IMPORTED) continue;
+        if (sym.entries[t].flags & SFLG_IMPORTED)
+            continue;
         //if ((sym.entries[t].flags & SFLG_ACCESSED)==0) {
         //    printf("warning: variable '%s' is never used\n",sym.get_friendly_name(t).c_str());
         //}
     }
 
-    if (ccGetOption(SCOPT_EXPORTALL)) {
+    if (ccGetOption(SCOPT_EXPORTALL))
+    {
         // export all functions
-        for (size_t t=0; t < cctemp->functions.size(); ++t) {
-            if (cctemp->add_new_export(cctemp->functions[t].c_str(), EXPORT_FUNCTION,
-                cctemp->funccodeoffs[t], cctemp->funcnumparams[t]) == -1) {
-                    return NULL;
+        for (size_t t = 0; t < cctemp->functions.size(); ++t)
+        {
+            if (cctemp->add_new_export(cctemp->functions[t].c_str(), EXPORT_FUNCTION, cctemp->funccodeoffs[t],
+                                       cctemp->funcnumparams[t]) == -1)
+            {
+                return NULL;
             }
-
         }
     }
 
     // Construct RTTI
-    if (ccGetOption(SCOPT_RTTI)) {
+    if (ccGetOption(SCOPT_RTTI))
+    {
         cctemp->rtti = ccCompileRTTI(sym);
     }
 
     // Construct TOC
-    if (ccGetOption(SCOPT_SCRIPT_TOC)) {
+    if (ccGetOption(SCOPT_SCRIPT_TOC))
+    {
         cctemp->sctoc = ccCompileDataTOC(sym, cctemp->rtti.get() /* may be null */);
     }
 

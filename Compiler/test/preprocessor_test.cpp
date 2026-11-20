@@ -18,15 +18,19 @@
 
 typedef AGS::Common::String AGSString;
 
-namespace AGS {
-namespace Preprocessor {
+namespace AGS
+{
+namespace Preprocessor
+{
 
 
-std::vector<AGSString> SplitLines(const AGSString& str)
+std::vector<AGSString> SplitLines(const AGSString &str)
 {
     std::vector<AGSString> str_lines = str.Split('\n');
-    for (size_t i = 0; i < str_lines.size(); i++) {
-        if (str_lines[i].CompareRight("\r", 1) == 0) {
+    for (size_t i = 0; i < str_lines.size(); i++)
+    {
+        if (str_lines[i].CompareRight("\r", 1) == 0)
+        {
             str_lines[i].ClipRight(1);
         }
     }
@@ -34,9 +38,10 @@ std::vector<AGSString> SplitLines(const AGSString& str)
 }
 
 
-TEST(Preprocess, Comments) {
+TEST(Preprocess, Comments)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 // this is a comment
 // this is another comment
 // 1234
@@ -46,12 +51,12 @@ int i;
 )EOS";
 
     clear_error();
-    String res = pp.Preprocess(inpl,"ScriptName");
+    String res = pp.Preprocess(inpl, "ScriptName");
 
     EXPECT_STREQ(last_seen_cc_error(), "");
 
     std::vector<AGSString> lines = SplitLines(res);
-    ASSERT_EQ(lines.size(),9);
+    ASSERT_EQ(lines.size(), 9);
     ASSERT_STREQ(lines[0].GetCStr(), "\"__NEWSCRIPTSTART_ScriptName\"");
     ASSERT_STREQ(lines[1].GetCStr(), "");
     ASSERT_STREQ(lines[2].GetCStr(), "");
@@ -64,11 +69,12 @@ int i;
 }
 
 
-TEST(Preprocess, MultilineComments) {
+TEST(Preprocess, MultilineComments)
+{
     Preprocessor pp = Preprocessor();
     // this test is verifying multiline comments
     // and documents current behavior of Editor preprocessor
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 int hey /* comment  */= 7;
 // this  
 "this prints";
@@ -83,12 +89,12 @@ int k;
 )EOS";
 
     clear_error();
-    String res = pp.Preprocess(inpl,"MultiLine");
+    String res = pp.Preprocess(inpl, "MultiLine");
 
     EXPECT_STREQ(last_seen_cc_error(), "");
 
     std::vector<AGSString> lines = SplitLines(res);
-    ASSERT_EQ(lines.size(),14);
+    ASSERT_EQ(lines.size(), 14);
     ASSERT_STREQ(lines[0].GetCStr(), "\"__NEWSCRIPTSTART_MultiLine\"");
     ASSERT_STREQ(lines[1].GetCStr(), "");
     ASSERT_STREQ(lines[2].GetCStr(), "int hey = 7;");
@@ -101,13 +107,14 @@ int k;
     ASSERT_STREQ(lines[9].GetCStr(), "");
     ASSERT_STREQ(lines[10].GetCStr(), "");
     ASSERT_STREQ(lines[11].GetCStr(), "");
-    ASSERT_STREQ(lines[12].GetCStr(),"int k;");
+    ASSERT_STREQ(lines[12].GetCStr(), "int k;");
 }
 
 
-TEST(Preprocess, Define) {
+TEST(Preprocess, Define)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #define MACRO2 MACRO3
 #define MACRO3 9
 #define TEST1 5
@@ -149,9 +156,10 @@ Display(MACRO_ENDS_WITH_UNDERSCORE__);
 }
 
 
-TEST(Preprocess, ReDefine) {
+TEST(Preprocess, ReDefine)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #define TEST1 5
 Display("a: %d", TEST1);
 #define TEST1 10
@@ -165,9 +173,10 @@ Display("c: %d", TEST1);
 }
 
 
-TEST(Preprocess, MacroDoesNotExist) {
+TEST(Preprocess, MacroDoesNotExist)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #define BAR
 #undef FOO
 )EOS";
@@ -179,9 +188,10 @@ TEST(Preprocess, MacroDoesNotExist) {
 }
 
 
-TEST(Preprocess, MacroNameMissing) {
+TEST(Preprocess, MacroNameMissing)
+{
     Preprocessor pp = Preprocessor();
-        const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #define BAR
 #undef
 )EOS";
@@ -193,9 +203,10 @@ TEST(Preprocess, MacroNameMissing) {
 }
 
 
-TEST(Preprocess, MacroStartsWithDigit) {
+TEST(Preprocess, MacroStartsWithDigit)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #define 1BAR
 )EOS";
 
@@ -206,9 +217,10 @@ TEST(Preprocess, MacroStartsWithDigit) {
 }
 
 
-TEST(Preprocess, UserError) {
+TEST(Preprocess, UserError)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #error my error here
 Display("this doesn't display");
 )EOS";
@@ -220,9 +232,10 @@ Display("this doesn't display");
 }
 
 
-TEST(Preprocess, RemoveEditorDirectives) {
+TEST(Preprocess, RemoveEditorDirectives)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #region THIS_IS_DISPLAY
 Display("Prints normally");
 #endregion THIS_IS_DISPLAY
@@ -249,9 +262,10 @@ Display("Prints normally too");
 }
 
 
-TEST(Preprocess, UnknownDirective) {
+TEST(Preprocess, UnknownDirective)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #valhalla
 )EOS";
 
@@ -262,9 +276,10 @@ TEST(Preprocess, UnknownDirective) {
 }
 
 
-TEST(Preprocess, IfDef) {
+TEST(Preprocess, IfDef)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #define FOO
 #ifdef FOO
 Display("This displays!");
@@ -324,9 +339,10 @@ Display("This does");
 }
 
 
-TEST(Preprocess, IfDefNested) {
+TEST(Preprocess, IfDefNested)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #define DEFINEME
 #ifdef DEFINEME
 Display("This displays!");
@@ -416,9 +432,10 @@ Display("This doesn't");
 }
 
 
-TEST(Preprocess, IfDefElse) {
+TEST(Preprocess, IfDefElse)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #define FOO
 #ifdef FOO
 Display("This displays!");
@@ -478,9 +495,10 @@ Display("This doesn't");
 }
 
 
-TEST(Preprocess, IfDefElseNested) {
+TEST(Preprocess, IfDefElseNested)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #define DEFINEME
 #ifdef DEFINEME
 Display("This displays!");
@@ -559,9 +577,10 @@ Display("This doesn't");
 }
 
 
-TEST(Preprocess, IfDefNestedElseIfDef) {
-        Preprocessor pp = Preprocessor();
-        const char* inpl = R"EOS(
+TEST(Preprocess, IfDefNestedElseIfDef)
+{
+    Preprocessor pp = Preprocessor();
+    const char *inpl = R"EOS(
 #define FOO
 #define BAR
 #ifdef FOO
@@ -594,9 +613,10 @@ Display("Only FOO is defined");
     ASSERT_STREQ(lines[10].GetCStr(), "");
 }
 
-TEST(Preprocess, EscapeCharacters) {
+TEST(Preprocess, EscapeCharacters)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #define ESCAPE_SEQUENCE_STRING "This string has escape characters: \n\t\r\\\""
 Display(ESCAPE_SEQUENCE_STRING);
 )EOS";
@@ -616,10 +636,11 @@ Display(ESCAPE_SEQUENCE_STRING);
     ASSERT_STREQ(lines[4].GetCStr(), "");
 }
 
-TEST(Preprocess, IfVer) {
+TEST(Preprocess, IfVer)
+{
     Preprocessor pp = Preprocessor();
     pp.SetAppVersion("3.6.0.5");
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #ifver 3.6.0
 Display("This displays!");
 #endif
@@ -672,9 +693,10 @@ Display("But this displays");
 }
 
 
-TEST(Preprocess, IfWithoutEndIf) {
+TEST(Preprocess, IfWithoutEndIf)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #ifdef BAR
 #endif
 #ifdef FOO
@@ -688,9 +710,10 @@ Display("test");
 }
 
 
-TEST(Preprocess, EndIfWithoutIf) {
+TEST(Preprocess, EndIfWithoutIf)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #ifdef BAR
 #endif
 Display("test");
@@ -703,9 +726,10 @@ Display("test");
     EXPECT_STREQ(last_seen_cc_error(), "#endif has no matching #if");
 }
 
-TEST(Preprocess, ElseWithoutIf) {
+TEST(Preprocess, ElseWithoutIf)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 #ifdef BAR
 #endif
 Display("test");
@@ -718,7 +742,8 @@ Display("test");
     EXPECT_STREQ(last_seen_cc_error(), "#else has no matching #if");
 }
 
-TEST(Preprocess, FormatsScriptName) {
+TEST(Preprocess, FormatsScriptName)
+{
     Preprocessor pp = Preprocessor();
 
     String res = pp.Preprocess("", "room2.asc");
@@ -733,9 +758,10 @@ TEST(Preprocess, FormatsScriptName) {
     ASSERT_STREQ(lines2[0].GetCStr(), "\"__NEWSCRIPTSTART_Rooms\\\\2\\\\room2.asc\"");
 }
 
-TEST(Preprocess, NonLatinUnicodeComment) {
+TEST(Preprocess, NonLatinUnicodeComment)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 // this is a comment
 // this is a comment with invalid latin characters Иह€한𐍈 <- here
 // 1234
@@ -761,9 +787,10 @@ int i;
     ASSERT_STREQ(lines[7].GetCStr(), "int i;");
 }
 
-TEST(Preprocess, NonLatinUnicodeInString) {
+TEST(Preprocess, NonLatinUnicodeInString)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 // this is a comment
 // the string below has invalid latin characters
 string st = "aИह€한𐍈";
@@ -789,9 +816,10 @@ int i;
     ASSERT_STREQ(lines[7].GetCStr(), "int i;");
 }
 
-TEST(Preprocess, NonLatinUnicodeInScript) {
+TEST(Preprocess, NonLatinUnicodeInScript)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 // the variable below has invalid latin characters
 int aИह€한𐍈 = 15;
 int i;
@@ -804,9 +832,10 @@ int i;
     ASSERT_EQ(pp.GetLastError().Type, ErrorCode::InvalidCharacter);
 }
 
-TEST(Preprocess, NonLatinUnicodeInFunctionName) {
+TEST(Preprocess, NonLatinUnicodeInFunctionName)
+{
     Preprocessor pp = Preprocessor();
-    const char* inpl = R"EOS(
+    const char *inpl = R"EOS(
 // function name has invalid latin characters
 void FuncИह€한𐍈() {
     int i = 10;
@@ -820,7 +849,8 @@ void FuncИह€한𐍈() {
     ASSERT_EQ(pp.GetLastError().Type, ErrorCode::InvalidCharacter);
 }
 
-TEST(Preprocess, UnterminatedStringSingleQuote) {
+TEST(Preprocess, UnterminatedStringSingleQuote)
+{
     Preprocessor pp = Preprocessor();
     const char *inpl = R"EOS(
 int Func1()
@@ -842,7 +872,8 @@ int Func1()
     EXPECT_EQ(4, currentline);
 }
 
-TEST(Preprocess, UnterminatedStringDoubleQuote) {
+TEST(Preprocess, UnterminatedStringDoubleQuote)
+{
     Preprocessor pp = Preprocessor();
     const char *inpl = R"EOS(
 int Func1()
@@ -860,7 +891,8 @@ int Func1()
     EXPECT_EQ(currentline, 4);
 }
 
-TEST(Preprocess, MultipleNewScriptMarkers) {
+TEST(Preprocess, MultipleNewScriptMarkers)
+{
     Preprocessor pp = Preprocessor();
     const char *inpl = R"EOS(
 "__NEWSCRIPTSTART_Dialog1"
@@ -935,5 +967,5 @@ TEST(Preprocess, MarkerWithModuleSetsScriptName)
     EXPECT_STREQ(ccCurScriptName.c_str(), "Other");
 }
 
-} // Preprocessor
-} // AGS
+} // namespace Preprocessor
+} // namespace AGS

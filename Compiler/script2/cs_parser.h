@@ -104,12 +104,8 @@ private:
         const char *what(void) const noexcept { return _msg.c_str(); }
 
     public:
-        CompilingError()
-            : _msg("Compiling error")
-        {}
-        CompilingError(std::string const &msg)
-            : _msg(msg)
-        {}
+        CompilingError() : _msg("Compiling error") {}
+        CompilingError(std::string const &msg) : _msg(msg) {}
     };
 
     enum FunctionType
@@ -132,7 +128,7 @@ private:
         kFx_String = FIXUP_STRING,         // code[fixup] += &strings[0]
     };
 
-    // The stack of nesting compound statements 
+    // The stack of nesting compound statements
     class NestingStack
     {
     public:
@@ -158,24 +154,24 @@ private:
         // All data that is associated with a level of the nested compound statements
         struct NestingInfo
         {
-            NSType Type; // Shows what kind of statement this level pertains to (e.g., while or for)
+            NSType Type;            // Shows what kind of statement this level pertains to (e.g., while or for)
             BackwardJumpDest Start; // of the construct
-            ForwardJump JumpOut; // First byte after the construct
+            ForwardJump JumpOut;    // First byte after the construct
             // 'break', 'continue', and 'return' potentially jump out of several nestings.
             // In these cases, 'JumpOutLevel' is set to the level they jump out to.
             // If 'JumpOutLevel' < 'TopLevel' then we have passed a dead end and
             // code execution can't reach the current commands.
-            size_t JumpOutLevel; 
+            size_t JumpOutLevel;
             bool DeadEndWarned; // Whether a warning about the dead end has already been issued
-            // 'if' and 'switch' have more than one branch. This is set to the _highest_ 
+            // 'if' and 'switch' have more than one branch. This is set to the _highest_
             // jumpout level of the 'returns' etc. encountered in the branches.
             // Only if 'JumpOutLevel' < 'TopLevel' for _all_ the branches, then we can
             // guarantee that execution can't pass the end of this compound statement.
-            size_t BranchJumpOutLevel; 
-            Vartype SwitchExprVartype; // when switch: the vartype of the switch expression
+            size_t BranchJumpOutLevel;
+            Vartype SwitchExprVartype;                     // when switch: the vartype of the switch expression
             std::vector<BackwardJumpDest> SwitchCaseStart; // when switch: code locations of the case labels
-            size_t SwitchDefaultIdx; // when switch: code location of the default: label
-            ForwardJump SwitchJumptable; // when switch: code location of the "jumptable"
+            size_t SwitchDefaultIdx;                       // when switch: code location of the default: label
+            ForwardJump SwitchJumptable;                   // when switch: code location of the "jumptable"
             std::vector<Snippet> Snippets; // Bytecode snippets that must be moved (FOR loops and SWITCH)
             // Symbols defined on the current level, if applicable together with the respective old definition they hide
             std::map<Symbol, SymbolTableEntry> OldDefinitions;
@@ -196,15 +192,18 @@ private:
         inline NSType Type() const { return _stack.back().Type; }
         inline NSType Type(size_t level) const { return _stack.at(level).Type; }
         inline void SetType(NSType nt) { _stack.back().Type = nt; }
-        
+
         // "Old Definitions" are a collection of previous state of symbols from the upper nesting level.
         // Note that these are added not just for overridden symbols, but any local symbol found inside the nesting.
         // In the former case these contain old symbol properties that may be restored,
         // in the latter - empty symbol states, used to erase the current locals when their lifescope ends.
-        inline std::map<Symbol, SymbolTableEntry> const &GetOldDefinitions(size_t level) const { return _stack.at(level).OldDefinitions; }
+        inline std::map<Symbol, SymbolTableEntry> const &GetOldDefinitions(size_t level) const
+        {
+            return _stack.at(level).OldDefinitions;
+        }
         // Add an old symbol table entry to the innermost nesting; return true if there is one already.
         bool AddOldDefinition(Symbol s, SymbolTableEntry const &entry);
-        
+
         // If the innermost nesting is a loop that has a jump back to the start,
         // then this gives the location to jump to
         inline BackwardJumpDest &Start() { return _stack.back().Start; }
@@ -224,7 +223,7 @@ private:
         inline size_t &JumpOutLevel() { return _stack.back().JumpOutLevel; }
         inline bool &DeadEndWarned() { return _stack.back().DeadEndWarned; }
         inline size_t &BranchJumpOutLevel() { return _stack.back().BranchJumpOutLevel; }
-        
+
         // If the innermost nesting is a SWITCH, the location of the code of the switch cases
         inline std::vector<BackwardJumpDest> &SwitchCaseStart() { return _stack.back().SwitchCaseStart; }
 
@@ -301,7 +300,7 @@ private:
     private:
         ccCompiledScript &_scrip;
         TickT _register[CC_NUM_REGISTERS];
-        std::vector<size_t>_register_list;
+        std::vector<size_t> _register_list;
         TickT _tick;
 
     public:
@@ -341,7 +340,7 @@ private:
 
     public:
         MarMgr(Parser &parser);
-        MarMgr& operator=(const MarMgr &other);
+        MarMgr &operator=(const MarMgr &other);
 
         // Set the type and the start offset of the MAR register
         void SetStart(ScopeType type, size_t offset);
@@ -364,7 +363,7 @@ private:
     //    (that must be identical except for the "import" declarator),
     //    and this may only happen if the options don't forbid this.
     typedef std::map<Symbol, bool> TGIVM; // Global Import Variable Mgr
-    TGIVM _givm; // Global Import Variable Manager
+    TGIVM _givm;                          // Global Import Variable Manager
 
     // Main symbol table
     SymbolTable &_sym;
@@ -382,10 +381,10 @@ private:
     MessageHandler &_msgHandler;
 
     // For functions that have local bodies, manage their start locations
-    FuncLabelMgr _callpointLabels = FuncLabelMgr{ _scrip, 0 };
+    FuncLabelMgr _callpointLabels = FuncLabelMgr{_scrip, 0};
 
-    // For imported functions, manage their import numbers 
-    FuncLabelMgr _importLabels = FuncLabelMgr{ _scrip, 1 };
+    // For imported functions, manage their import numbers
+    FuncLabelMgr _importLabels = FuncLabelMgr{_scrip, 1};
 
     // Track a forward-declared struct and one of its references to it.
     std::map<Symbol, size_t> _structRefs;
@@ -424,10 +423,14 @@ private:
     // If the symbol 'actual' isn't equal to the symbol 'expected', give an error.
     // 'custom_msg', if given, replaces the "Expected " part of the message
     inline void Expect(Symbol expected, Symbol actual, std::string const &custom_msg = "")
-        { Expect(SymbolList{ expected }, actual, custom_msg); }
+    {
+        Expect(SymbolList{expected}, actual, custom_msg);
+    }
     // Replace 'what' by 'by' within 's'
     inline std::string string_replace(std::string &s, std::string const &what, std::string const &by) const
-        { return s.replace(s.find(what), what.length(), by); }
+    {
+        return s.replace(s.find(what), what.length(), by);
+    }
 
     // Mark the symbol as "accessed" in the symbol table
     inline void MarkAcessed(Symbol symb) { _sym[symb].Accessed = true; }
@@ -475,7 +478,7 @@ private:
     // Remove at nesting_level or higher.
     void RemoveLocalsFromStack(size_t nesting_level);
 
-    // Record the literal as a compile time literal 
+    // Record the literal as a compile time literal
     void SetCompileTimeLiteral(Symbol lit, EvaluationResult &eres);
 
     // Find or create a symbol that is a literal for the value 'value'.
@@ -494,7 +497,8 @@ private:
     // Extender function, eg. 'function GoAway(this Character *someone)'
     // We've just accepted something like 'int func('
     // We'll accept something like 'this Character *' --OR-- 'static Character'
-    void ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &struct_of_func, Symbol &name_of_func, TypeQualifierSet &tqs);
+    void ParseFuncdecl_ExtenderPreparations(bool is_static_extender, Symbol &struct_of_func, Symbol &name_of_func,
+                                            TypeQualifierSet &tqs);
 
     // Process a parameter decl in a function parameter list
     void ParseFuncdecl_Parameters_Param(Symbol name_of_func, bool body_follows, bool read_only, size_t param_idx);
@@ -502,27 +506,33 @@ private:
     // Process a function parameter list
     void ParseFuncdecl_Parameters(Symbol funcsym, bool body_follows);
 
-    void ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool body_follows);
+    void ParseFuncdecl_MasterData2Sym(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func,
+                                      Symbol name_of_func, bool body_follows);
 
     // There was a forward declaration -- check that the real declaration matches it
-    void ParseFuncdecl_CheckAndAddKnownInfo(Symbol name_of_func, SymbolTableEntry::FunctionDesc *known_info, size_t known_declared, bool body_follows);
+    void ParseFuncdecl_CheckAndAddKnownInfo(Symbol name_of_func, SymbolTableEntry::FunctionDesc *known_info,
+                                            size_t known_declared, bool body_follows);
 
-    // Enter the function in the 'imports[]' or 'functions[]' array of '_script'; get its index   
-    void ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import, size_t params_count, CodeLoc &function_soffs);
+    // Enter the function in the 'imports[]' or 'functions[]' array of '_script'; get its index
+    void ParseFuncdecl_EnterAsImportOrFunc(Symbol name_of_func, bool body_follows, bool func_is_import,
+                                           size_t params_count, CodeLoc &function_soffs);
 
     // We're at something like 'int foo(', directly before the '('
     // Return in 'body_follows' whether the symbol that follows the corresponding ')' is '{'
     bool ParseFuncdecl_DoesBodyFollow();
 
     // We're in a func decl. Check whether the declaration is valid.
-    void ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, Vartype return_vartype, bool body_follows, bool no_loop_check);
+    void ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, Vartype return_vartype,
+                              bool body_follows, bool no_loop_check);
 
-    void ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool body_follows);
+    void ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func,
+                                                   bool body_follows);
 
     // Parse a function declaration.
     // We're behind the opening '(' of the parameter list,
     // and any first extender parameter has already be resolved.
-    void ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool body_follows);
+    void ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func,
+                       bool no_loop_check, bool body_follows);
 
     // Return in 'idx' the index of the operator in the list that binds the least
     // so that either side of it can be evaluated first. '-1' if no operator was found
@@ -537,10 +547,11 @@ private:
     bool IsVartypeMismatch_Oneway(Vartype vartype_is, Vartype vartype_wants_to_be) const;
 
     // Check whether there is a type mismatch; if so, give an error. 'msg' for specializing the error message
-    void CheckVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters, std::string const &msg = "");
+    void CheckVartypeMismatch(Vartype vartype_is, Vartype vartype_wants_to_be, bool orderMatters,
+                              std::string const &msg = "");
 
-    // 'current_vartype' must be the vartype of AX. 
-    // If it is 'string' and 'wanted_vartype' is 'String', 
+    // 'current_vartype' must be the vartype of AX.
+    // If it is 'string' and 'wanted_vartype' is 'String',
     // then convert AX into a 'String' object and set its type accordingly
     void ConvertAXStringToStringObject(Vartype wanted_vartype, Vartype &current_vartype);
 
@@ -554,31 +565,41 @@ private:
     // We are processing a function call. Emit the actual function call
     void AccessData_FunctionCall_EmitCall(Symbol name_of_func, size_t args_count, bool func_is_import);
 
-    // Generate Length attribute for the parsed dynarray type 
+    // Generate Length attribute for the parsed dynarray type
     // and add it to the symbol table
     void AccessData_GenerateDynarrayLengthAttrib(EvaluationResult &eres);
 
-    void AccessData_FunctionCall_Arguments_Named(Symbol name_of_func, std::vector<FuncParameterDesc> const &param_desc, SrcList &arguments, std::vector<SrcList> &arg_exprs);
-    void AccessData_FunctionCall_Arguments_Sequence(Symbol name_of_func, std::vector<FuncParameterDesc> const &param_desc, SrcList &arguments, std::vector<SrcList> &arg_exprs);
+    void AccessData_FunctionCall_Arguments_Named(Symbol name_of_func, std::vector<FuncParameterDesc> const &param_desc,
+                                                 SrcList &arguments, std::vector<SrcList> &arg_exprs);
+    void AccessData_FunctionCall_Arguments_Sequence(Symbol name_of_func,
+                                                    std::vector<FuncParameterDesc> const &param_desc,
+                                                    SrcList &arguments, std::vector<SrcList> &arg_exprs);
 
     // Find the format string of the function; find its formats and write them to 'format_strings'
-    void AccessData_FunctionCall_AnalyseFormatString(std::vector<FuncParameterDesc> const &param_descs, std::vector<SrcList> &arg_exprs, bool &check_vartypes_by_format, std::vector<std::string> &format_strings);
+    void AccessData_FunctionCall_AnalyseFormatString(std::vector<FuncParameterDesc> const &param_descs,
+                                                     std::vector<SrcList> &arg_exprs, bool &check_vartypes_by_format,
+                                                     std::vector<std::string> &format_strings);
 
     // Push the arguments onto the stack, including the default ones.
     // Note, 'args_size' counts the return parameter in '[0]'. (This return parameter is NOT pushed.)
-    void AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bool func_is_import, size_t args_size, std::vector<SrcList> arg_exprs, bool use_named_args,
-        std::vector<AGS::FuncParameterDesc> const &param_descs, bool check_format, std::vector<std::string> const formats);
+    void AccessData_FunctionCall_Arguments_Push(Symbol name_of_func, bool func_is_import, size_t args_size,
+                                                std::vector<SrcList> arg_exprs, bool use_named_args,
+                                                std::vector<AGS::FuncParameterDesc> const &param_descs,
+                                                bool check_format, std::vector<std::string> const formats);
 
     // Parse the arguments 'args_list' of a function call
     // Note, 'args_size' counts the return parameter in [0]
-    void AccessData_FunctionCall_Arguments(Symbol name_of_func, bool func_is_import, std::vector<FuncParameterDesc> const &param_descs, bool is_variadic, SrcList &arguments, size_t &args_size);
+    void AccessData_FunctionCall_Arguments(Symbol name_of_func, bool func_is_import,
+                                           std::vector<FuncParameterDesc> const &param_descs, bool is_variadic,
+                                           SrcList &arguments, size_t &args_size);
 
-    // Process a function call. 
+    // Process a function call.
     void AccessData_FunctionCall(Symbol name_of_func, SrcList &arguments, EvaluationResult &eres);
 
     // Evaluate 'vloc_lhs op_sym vloc_rhs' at compile time, return the result in 'vloc'.
     // Return whether this is possible.
-    bool ParseExpression_CompileTime(Symbol op_sym, EvaluationResult const &eres_lhs, EvaluationResult const &eres_rhs, EvaluationResult &eres);
+    bool ParseExpression_CompileTime(Symbol op_sym, EvaluationResult const &eres_lhs, EvaluationResult const &eres_rhs,
+                                     EvaluationResult &eres);
 
     // Process a parenthesised list following a 'new'
     void ParseExpression_New_CtorFuncCall(Symbol arg_vartype, SrcList &expression);
@@ -617,8 +638,8 @@ private:
     // This happens when a term is called for side effect only, e.g. in the statement 'foo++;'
     void ParseExpression_Postfix(SrcList &expression, EvaluationResult &eres, bool result_used);
 
-    void ParseExpression_Ternary_Term2(EvaluationResult &eres_term1, bool term1_has_been_ripped_out,
-        SrcList &term2, EvaluationResult &eres_term2, bool result_used);
+    void ParseExpression_Ternary_Term2(EvaluationResult &eres_term1, bool term1_has_been_ripped_out, SrcList &term2,
+                                       EvaluationResult &eres_term2, bool result_used);
 
     // Parse the term given in 'expression'. Expression is a ternary 'a ? b : c'
     // Parsing must use up 'expression' completely; if there are trailing symbols, throw 'UserError'.
@@ -653,7 +674,8 @@ private:
     // This happens when a term is called for side effect only, e.g. in the statement '--foo;'
     // It is NOT guaranteed that the cursor will be at the end of 'expression'
     // after 'ParseExpression_Term()' returns
-    void ParseExpression_Term(SrcList &expression, EvaluationResult &eres, bool result_used = true, bool classic_array_ok = false);
+    void ParseExpression_Term(SrcList &expression, EvaluationResult &eres, bool result_used = true,
+                              bool classic_array_ok = false);
 
     // Parse an expression that must evaluate to a constant at compile time.
     // Return the symbol that signifies the constant.
@@ -668,7 +690,7 @@ private:
     // leave src pointing to last token in expression.
     // 'src'  is parsed from the point where the cursor is.
     void ParseIntegerExpression(SrcList &src, EvaluationResult &eres, std::string const &msg = "");
-    
+
     // Parse expression in delimiters, e.g., parentheses
     // 'src' may be longer than the expression. In this case,
     // leave src pointing to last token in expression.
@@ -684,7 +706,8 @@ private:
 
     // We access a variable or a component of a struct in order to read or write it.
     // This is a simple member of the struct.
-    void AccessData_StructMember(Symbol component, VariableAccess access_type, bool access_via_this, SrcList &expression, EvaluationResult &eres);
+    void AccessData_StructMember(Symbol component, VariableAccess access_type, bool access_via_this,
+                                 SrcList &expression, EvaluationResult &eres);
 
     // Return the symbol for the get or set function corresponding to the attribute given.
     Symbol ConstructAttributeFuncName(Symbol attribsym, bool is_setter, bool is_indexed);
@@ -696,12 +719,13 @@ private:
     void AccessData_Dereference(EvaluationResult &eres);
 
     // Process one index in a sequence of array indexes
-    void AccessData_ProcessArrayIndex(size_t dim, size_t factor, bool is_dynarray, SrcList &index_expr, EvaluationResult &eres);
+    void AccessData_ProcessArrayIndex(size_t dim, size_t factor, bool is_dynarray, SrcList &index_expr,
+                                      EvaluationResult &eres);
 
     // We're processing some struct component or global or local variable.
     // If a sequence of array indexes follows, parse it
     void AccessData_ProcessArrayIndexes(SrcList &expression, EvaluationResult &eres);
-    
+
     void AccessData_Variable(VariableAccess access_type, SrcList &expression, EvaluationResult &eres);
 
     void AccessData_This(EvaluationResult &eres);
@@ -715,21 +739,23 @@ private:
     // to the position of the '.'.
     // The "return_scope_type" is used for deciding what values can be returned from a function.
     // 'implied_dot' is set if subsequent processing should imply that a '.' has already been read
-    void AccessData_FirstClause(VariableAccess access_type, SrcList &expression, EvaluationResult &eres, bool &inside_access, bool &implied_dot);
+    void AccessData_FirstClause(VariableAccess access_type, SrcList &expression, EvaluationResult &eres,
+                                bool &inside_access, bool &implied_dot);
 
     // We're processing a STRUCT.STRUCT. ... clause.
     // We've already processed some structs, and the type of the last one is "vartype".
     // Now we process a component of "vartype".
-    void AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, SrcList &expression, EvaluationResult &eres);
+    void AccessData_SubsequentClause(VariableAccess access_type, bool access_via_this, SrcList &expression,
+                                     EvaluationResult &eres);
 
     // Find the component of a struct in the struct or in the ancestors of the struct
     // and return the name of the struct (!) that the component is defined in
-    // Return kKW_NoSymbol if such a struct doesn't exist 
+    // Return kKW_NoSymbol if such a struct doesn't exist
     Symbol FindStructOfComponent(Vartype strct, Symbol unqualified_component);
 
     // Find the component of a struct in the struct or in the ancestors of the struct
     // and return the name of the component(!), qualified by the struct that the component was defined in
-    // Return kKW_NoSymbol if such a struct doesn't exist 
+    // Return kKW_NoSymbol if such a struct doesn't exist
     Symbol FindComponentInStruct(Vartype strct, Symbol unqualified_component);
 
     // We are in a STRUCT.STRUCT.STRUCT... cascade.
@@ -775,7 +801,8 @@ private:
     // Assign a string literal to a char array or a 'string'
     // 'available_space' means the _total_ available space
     // counting the string-terminating '\0'.
-    void ParseVardecl_InitialValAssignment_ArrayOrStringBuf_Literal(Symbol string_lit, size_t available_space, std::vector<char> &initial_val);
+    void ParseVardecl_InitialValAssignment_ArrayOrStringBuf_Literal(Symbol string_lit, size_t available_space,
+                                                                    std::vector<char> &initial_val);
 
     // Initial assignment to a global non-managed struct
     void ParseVardecl_InitialValAssignment_Struct(Vartype vartype, std::vector<char> &initial_val);
@@ -785,11 +812,13 @@ private:
     bool ParseVardecl_InitialValAssignment_PeekArrayNamed();
     // Initialize a static array by specifying named entries of the form 'idx: value'
     // Starting '{' has already been eaten
-    void ParseVardecl_InitialValAssignment_Array_Named(size_t first_dim_size, Vartype el_vartype, std::vector<char> &initial_val);
+    void ParseVardecl_InitialValAssignment_Array_Named(size_t first_dim_size, Vartype el_vartype,
+                                                       std::vector<char> &initial_val);
 
     // Initialize a static array by specifying a sequence of (unnamed) entries
     // Starting '{' has already been eaten
-    void ParseVardecl_InitialValAssignment_Array_Sequence(size_t first_dim_size, Vartype el_vartype, std::vector<char> &initial_val);
+    void ParseVardecl_InitialValAssignment_Array_Sequence(size_t first_dim_size, Vartype el_vartype,
+                                                          std::vector<char> &initial_val);
 
     // Initial assignment to a global classic array
     void ParseVardecl_InitialValAssignment_Array(Vartype vartype, std::vector<char> &initial_val);
@@ -808,8 +837,9 @@ private:
 
     // We are at a declaration of an entity that has been declared before
     // (e.g., forward-declared)
-    // Check that this declaration doesn't contradict the previous declarations. 
-    void ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info, bool body_follows);
+    // Check that this declaration doesn't contradict the previous declarations.
+    void ParseVardecl_CheckThatKnownInfoMatches(SymbolTableEntry *this_entry, SymbolTableEntry *known_info,
+                                                bool body_follows);
 
     void ParseVardecl_Global(Symbol var_name, Vartype vartype);
 
@@ -831,7 +861,7 @@ private:
     // Helper for ParseStruct_CheckForwardDecls()
     void ParseStruct_GenerateForwardDeclError(Symbol stname, TypeQualifierSet tqs, TypeQualifier tq, VartypeFlag vtf);
 
-    // If there are forward declarations, check that their type qualifiers match 
+    // If there are forward declarations, check that their type qualifiers match
     void ParseStruct_CheckForwardDecls(Symbol stname, TypeQualifierSet tqs);
 
     void ParseStruct_SetTypeInSymboltable(Symbol stname, TypeQualifierSet tqs);
@@ -843,25 +873,30 @@ private:
 
     void ParseStruct_FuncDecl(TypeQualifierSet tqs, Symbol struct_of_func, Vartype vartype, Symbol name_of_func);
 
-    void ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
+    void ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed,
+                                         Vartype vartype);
 
     void ParseStruct_Attribute_CheckFunc(Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
 
     // We are processing an attribute.
     // This corresponds to a getter func and a setter func, declare one of them
-    void ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol strct, Symbol qualified_name, Symbol unqualified_name, bool is_setter, bool is_indexed, Vartype vartype);
+    void ParseStruct_Attribute_DeclareFunc(TypeQualifierSet tqs, Symbol strct, Symbol qualified_name,
+                                           Symbol unqualified_name, bool is_setter, bool is_indexed, Vartype vartype);
 
-    void ParseStruct_Attribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype, Symbol const name_of_struct, Symbol const unqualified_attribute, bool const is_indexed);
+    void ParseStruct_Attribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype, Symbol const name_of_struct,
+                                           Symbol const unqualified_attribute, bool const is_indexed);
 
-    void ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype, Symbol const name_of_struct, Symbol const unqualified_attribute, bool const is_indexed,
-        Symbol getter_func = kKW_NoSymbol, Symbol setter_func = kKW_NoSymbol);
+    void ParseStruct_MasterAttribute2SymbolTable(TypeQualifierSet tqs, Vartype const vartype,
+                                                 Symbol const name_of_struct, Symbol const unqualified_attribute,
+                                                 bool const is_indexed, Symbol getter_func = kKW_NoSymbol,
+                                                 Symbol setter_func = kKW_NoSymbol);
 
     // We're in a struct declaration. Parse an attribute declaration.
     void ParseStruct_Attribute(TypeQualifierSet tqs, Symbol stname);
 
     // We're inside a struct decl, processing a member variable
     void ParseStruct_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol stname, Symbol vname);
-    
+
     // We're inside a struct decl, processing a compile-time constant
     void ParseStruct_ConstantDefn(Symbol name_of_struct);
 
@@ -883,7 +918,7 @@ private:
     // We've accepted something like 'enum foo { bar'; '=' follows
     void ParseEnum_AssignedValue(Symbol vname, CodeCell &value);
 
-    // Define the item 'item_name' to have the value 'value'. 
+    // Define the item 'item_name' to have the value 'value'.
     void ParseEnum_Item2Symtable(Symbol enum_name, Symbol item_name, int value);
 
     void ParseEnum_Name2Symtable(Symbol enum_name);
@@ -909,13 +944,20 @@ private:
     // and structname the vartype (e.g., 'a')
     inline void ParseVarname(Symbol &structname, Symbol &varname) { ParseVarname0(true, structname, varname); }
     // Parse a variable name; may not contain '::'
-    inline Symbol ParseVarname() { Symbol dummy, varname; ParseVarname0(false, dummy, varname); return varname; }
+    inline Symbol ParseVarname()
+    {
+        Symbol dummy, varname;
+        ParseVarname0(false, dummy, varname);
+        return varname;
+    }
 
     void ParseVartype_CheckForIllegalContext();
 
     void ParseVartype_CheckIllegalCombis(bool is_function, TypeQualifierSet tqs);
 
-    void ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, Symbol struct_name, Symbol func_name, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func, bool &body_follows);
+    void ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, Symbol struct_name, Symbol func_name,
+                               bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func,
+                               bool &body_follows);
 
     void ParseVartype_VarDecl_PreAnalyze(Symbol var_name, ScopeType scope_type);
 
@@ -923,7 +965,8 @@ private:
 
     void ParseVartype_VariableDefn(TypeQualifierSet tqs, Vartype vartype, Symbol var_name, ScopeType scope_type);
 
-    void ParseVartype_MemberList(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, bool no_loop_check, Symbol &struct_of_current_func, Symbol &name_of_current_func);
+    void ParseVartype_MemberList(TypeQualifierSet tqs, Vartype vartype, ScopeType scope_type, bool no_loop_check,
+                                 Symbol &struct_of_current_func, Symbol &name_of_current_func);
 
     // We accepted a variable type such as 'int',
     // so what follows is a variable, compile-time constant, or function declaration
@@ -1013,7 +1056,9 @@ private:
     // emit an enclosing 'PushReg(register)' / 'PopReg(register)' around that Bytecode
     // NOTE: 'block' may be evaluated twice
     void RegisterGuard(size_t guarded_register, std::function<void(void)> block)
-        { return RegisterGuard(RegisterList{ guarded_register }, block); }
+    {
+        return RegisterGuard(RegisterList{guarded_register}, block);
+    }
 
     // If a new section has begun at cursor position 'pos', tell '_scrip' to deal with that.
     // Refresh 'ccCurScriptName'
@@ -1021,23 +1066,41 @@ private:
 
     // Emit an opcode without parameters
     inline void WriteCmd(CodeCell op)
-        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op); }
+    {
+        _scrip.RefreshLineno(_src.GetLineno());
+        _scrip.WriteCmd(op);
+    }
     // Emit an opcode and one parameter
     inline void WriteCmd(CodeCell op, CodeCell p1)
-        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op, p1); }
+    {
+        _scrip.RefreshLineno(_src.GetLineno());
+        _scrip.WriteCmd(op, p1);
+    }
     // Emit an opcode and 2 parameters
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2)
-        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op, p1, p2); }
+    {
+        _scrip.RefreshLineno(_src.GetLineno());
+        _scrip.WriteCmd(op, p1, p2);
+    }
     // Emit an opcode and 3 parameters
     inline void WriteCmd(CodeCell op, CodeCell p1, CodeCell p2, CodeCell p3)
-        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.WriteCmd(op, p1, p2, p3); }
+    {
+        _scrip.RefreshLineno(_src.GetLineno());
+        _scrip.WriteCmd(op, p1, p2, p3);
+    }
 
     // Emit a PUSH; keep track of the size of the block on the stack that contains pushed values
     inline void PushReg(CodeCell reg)
-        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.PushReg(reg); }
+    {
+        _scrip.RefreshLineno(_src.GetLineno());
+        _scrip.PushReg(reg);
+    }
     // Emit a POP; keep track of the size of the block on the stack that contains pushed values
     inline void PopReg(CodeCell reg)
-        { _scrip.RefreshLineno(_src.GetLineno()); _scrip.PopReg(reg); }
+    {
+        _scrip.RefreshLineno(_src.GetLineno());
+        _scrip.PopReg(reg);
+    }
 
     // Check that the qualifiers that accumulated for this decl go together
     void Parse_CheckTQ(TypeQualifierSet tqs, bool in_func_body, bool in_struct_decl);
@@ -1089,19 +1152,17 @@ public:
 } // namespace AGS
 
 // Compile the input, return any messages in mh, cc_error() does not get called
-extern int cc_compile(
-    std::string const &source,       // preprocessed text to be compiled
-    AGS::FlagSet options,            // as defined in cc_options
-    AGS::ccCompiledScript &scrip,    // store for the compiled text
-    AGS::MessageHandler &mh);        // warnings and the error
+extern int cc_compile(std::string const &source,    // preprocessed text to be compiled
+                      AGS::FlagSet options,         // as defined in cc_options
+                      AGS::ccCompiledScript &scrip, // store for the compiled text
+                      AGS::MessageHandler &mh);     // warnings and the error
 
 // Compile the input, additionally return gathered symbols and other source info
-extern int cc_compile(
-    std::string const &source,       // preprocessed text to be compiled
-    AGS::FlagSet options,            // as defined in cc_options 
-    AGS::ccCompiledScript &scrip,    // store for the compiled text
-    AGS::SymbolTable &symt,          // store for the parsed symbols
-    AGS::SectionList &sections,      // store for the list of sections
-    AGS::MessageHandler &mh);        // warnings and the error   
+extern int cc_compile(std::string const &source,    // preprocessed text to be compiled
+                      AGS::FlagSet options,         // as defined in cc_options
+                      AGS::ccCompiledScript &scrip, // store for the compiled text
+                      AGS::SymbolTable &symt,       // store for the parsed symbols
+                      AGS::SectionList &sections,   // store for the list of sections
+                      AGS::MessageHandler &mh);     // warnings and the error
 
 #endif // __CS_PARSER_H

@@ -20,7 +20,7 @@
 
 #include <string>
 #include <vector>
-#include "script/cc_script.h"  // ccScript
+#include "script/cc_script.h" // ccScript
 
 // ********* SCRIPT COMPILATION FUNCTIONS **************
 // Get a list of compiler extensions.

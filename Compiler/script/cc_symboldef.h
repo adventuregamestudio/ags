@@ -14,13 +14,13 @@
 #ifndef __CC_SYMBOLDEF_H
 #define __CC_SYMBOLDEF_H
 
-#include "cs_parser_common.h"   // macro definitions
+#include "cs_parser_common.h" // macro definitions
 
-#define STYPE_DYNARRAY  (0x10000000)
-#define STYPE_CONST     (0x20000000)
-#define STYPE_POINTER   (0x40000000)
+#define STYPE_DYNARRAY (0x10000000)
+#define STYPE_CONST    (0x20000000)
+#define STYPE_POINTER  (0x40000000)
 
-#define STYPE_MASK       (0xFFFFFFF)
+#define STYPE_MASK (0xFFFFFFF)
 
 #define SYM_TEMPORARYTYPE -99
 
@@ -34,12 +34,13 @@ struct FuncParamInfo
     std::string Name;
 };
 
-struct SymbolDef {
-    int16_t  stype;
-    int32_t  flags;
-    int32_t  ssize;  // or return type size for function
-    int16_t  sscope;  // or num arguments for function
-    int32_t  arrsize;
+struct SymbolDef
+{
+    int16_t stype;
+    int32_t flags;
+    int32_t ssize;  // or return type size for function
+    int16_t sscope; // or num arguments for function
+    int32_t arrsize;
     // return value is at index 0, actual args begin with 1
     std::vector<FuncParamInfo> funcparams;
 };

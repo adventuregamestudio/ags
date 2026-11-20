@@ -27,11 +27,11 @@
 
 struct FMEM
 {
-  char *data;
-  size_t len;                  // length of data in array
-  size_t size;                 // size of data array allocated
-  int magic;
-  size_t pos;                  // current seeked position
+    char *data;
+    size_t len;  // length of data in array
+    size_t size; // size of data array allocated
+    int magic;
+    size_t pos; // current seeked position
 };
 
 extern FMEM *fmem_create();

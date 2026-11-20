@@ -14,15 +14,18 @@
 #ifndef __CC_VARIABLESYMLIST_H
 #define __CC_VARIABLESYMLIST_H
 
-struct VariableSymlist {
+struct VariableSymlist
+{
     int len;
     int32_t *syml;
 
-    void init(int pLen) {
+    void init(int pLen)
+    {
         len = pLen;
-        syml = (int32_t*)malloc(sizeof(int32_t) * len);
+        syml = (int32_t *)malloc(sizeof(int32_t) * len);
     }
-    void destroy() {
+    void destroy()
+    {
         free(syml);
         syml = NULL;
     }

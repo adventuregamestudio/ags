@@ -17,55 +17,59 @@
 
 using namespace AGS::Common;
 
-namespace AGS {
-namespace Preprocessor {
-namespace ScriptAnnotations {
+namespace AGS
+{
+namespace Preprocessor
+{
+namespace ScriptAnnotations
+{
 
-    String MakeNewScriptMarker(const String &scriptName)
+String MakeNewScriptMarker(const String &scriptName)
+{
+    return MakeNewScriptMarker(scriptName, "");
+}
+
+String MakeNewScriptMarker(const String &scriptName, const String &moduleName)
+{
+    String escapedScriptName = scriptName;
+    escapedScriptName.Replace("\\", "\\\\");
+    if (moduleName.IsEmpty())
+        return String::FromFormat("%s%s\"", NEW_SCRIPT_TOKEN_PREFIX, escapedScriptName.GetCStr());
+    else
+        return String::FromFormat("%s%s;%s\"", NEW_SCRIPT_TOKEN_PREFIX, escapedScriptName.GetCStr(),
+                                  moduleName.GetCStr());
+}
+
+bool ParseNewScriptMarker(const String &marker, String &scriptName)
+{
+    String moduleName;
+    return ParseNewScriptMarker(marker, scriptName, moduleName);
+}
+
+bool ParseNewScriptMarker(const String &marker, String &scriptName, String &moduleName)
+{
+    if (!marker.StartsWith(NEW_SCRIPT_TOKEN_PREFIX))
     {
-        return MakeNewScriptMarker(scriptName, "");
+        scriptName = "";
+        moduleName = "";
+        return false;
     }
 
-    String MakeNewScriptMarker(const String &scriptName, const String &moduleName)
+    const size_t prefixLength = strlen(NEW_SCRIPT_TOKEN_PREFIX);
+    const size_t appendex_at = marker.FindChar(';', prefixLength);
+    if (appendex_at != String::NoIndex)
     {
-        String escapedScriptName = scriptName;
-        escapedScriptName.Replace("\\", "\\\\");
-        if (moduleName.IsEmpty())
-            return String::FromFormat("%s%s\"", NEW_SCRIPT_TOKEN_PREFIX, escapedScriptName.GetCStr());
-        else
-            return String::FromFormat("%s%s;%s\"", NEW_SCRIPT_TOKEN_PREFIX, escapedScriptName.GetCStr(), moduleName.GetCStr());
+        scriptName = marker.Mid(prefixLength, appendex_at - prefixLength);
+        moduleName = marker.Mid(appendex_at + 1, marker.GetLength() - (appendex_at + 1) - 1);
     }
-
-    bool ParseNewScriptMarker(const String &marker, String &scriptName)
+    else
     {
-        String moduleName;
-        return ParseNewScriptMarker(marker, scriptName, moduleName);
+        scriptName = marker.Mid(prefixLength, marker.GetLength() - prefixLength - 1);
+        moduleName = "";
     }
+    return true;
+}
 
-    bool ParseNewScriptMarker(const String &marker, String &scriptName, String &moduleName)
-    {
-        if (!marker.StartsWith(NEW_SCRIPT_TOKEN_PREFIX))
-        {
-            scriptName = "";
-            moduleName = "";
-            return false;
-        }
-
-        const size_t prefixLength = strlen(NEW_SCRIPT_TOKEN_PREFIX);
-        const size_t appendex_at = marker.FindChar(';', prefixLength);
-        if (appendex_at != String::NoIndex)
-        {
-            scriptName = marker.Mid(prefixLength, appendex_at - prefixLength);
-            moduleName = marker.Mid(appendex_at + 1, marker.GetLength() - (appendex_at + 1) - 1);
-        }
-        else
-        {
-            scriptName = marker.Mid(prefixLength, marker.GetLength() - prefixLength - 1);
-            moduleName = "";
-        }
-        return true;
-    }
-
-} // ScriptAnnotations
-} // Preprocessor
-} // AGS
+} // namespace ScriptAnnotations
+} // namespace Preprocessor
+} // namespace AGS

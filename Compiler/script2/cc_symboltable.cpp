@@ -57,15 +57,15 @@ AGS::SymbolTableEntry &AGS::SymbolTableEntry::operator=(const SymbolTableEntry &
     this->Accessed = orig.Accessed;
 
     // Deep copy semantics.
-    this->AttributeD = (orig.AttributeD) ? new SymbolTableEntry::AttributeDesc{ *(orig.AttributeD) } : nullptr;
-    this->ConstantD = (orig.ConstantD) ? new SymbolTableEntry::ConstantDesc{ *(orig.ConstantD) } : nullptr;
-    this->DelimeterD = (orig.DelimeterD) ? new SymbolTableEntry::DelimeterDesc{ *(orig.DelimeterD) } : nullptr;
-    this->FunctionD = (orig.FunctionD) ? new SymbolTableEntry::FunctionDesc{ *(orig.FunctionD) } : nullptr;
-    this->LiteralD = (orig.LiteralD) ? new SymbolTableEntry::LiteralDesc{ *(orig.LiteralD) } : nullptr;
-    this->OperatorD = (orig.OperatorD) ? new SymbolTableEntry::OperatorDesc{ *(orig.OperatorD) } : nullptr;
-    this->ComponentD = (orig.ComponentD) ? new SymbolTableEntry::ComponentDesc{ *(orig.ComponentD) } : nullptr;
-    this->VariableD = (orig.VariableD) ? new SymbolTableEntry::VariableDesc{ *(orig.VariableD) } : nullptr;
-    this->VartypeD = (orig.VartypeD) ? new SymbolTableEntry::VartypeDesc{ *(orig.VartypeD) } : nullptr;
+    this->AttributeD = (orig.AttributeD) ? new SymbolTableEntry::AttributeDesc{*(orig.AttributeD)} : nullptr;
+    this->ConstantD = (orig.ConstantD) ? new SymbolTableEntry::ConstantDesc{*(orig.ConstantD)} : nullptr;
+    this->DelimeterD = (orig.DelimeterD) ? new SymbolTableEntry::DelimeterDesc{*(orig.DelimeterD)} : nullptr;
+    this->FunctionD = (orig.FunctionD) ? new SymbolTableEntry::FunctionDesc{*(orig.FunctionD)} : nullptr;
+    this->LiteralD = (orig.LiteralD) ? new SymbolTableEntry::LiteralDesc{*(orig.LiteralD)} : nullptr;
+    this->OperatorD = (orig.OperatorD) ? new SymbolTableEntry::OperatorDesc{*(orig.OperatorD)} : nullptr;
+    this->ComponentD = (orig.ComponentD) ? new SymbolTableEntry::ComponentDesc{*(orig.ComponentD)} : nullptr;
+    this->VariableD = (orig.VariableD) ? new SymbolTableEntry::VariableDesc{*(orig.VariableD)} : nullptr;
+    this->VartypeD = (orig.VartypeD) ? new SymbolTableEntry::VartypeDesc{*(orig.VartypeD)} : nullptr;
 
     return *this;
 }
@@ -73,18 +73,47 @@ AGS::SymbolTableEntry &AGS::SymbolTableEntry::operator=(const SymbolTableEntry &
 std::map<AGS::TypeQualifier, AGS::Symbol> const &AGS::TypeQualifierSet::TQToSymbolMap() const
 {
     // "static" so that we get a singleton that will only be initialized once, at first use
-    static std::map<TypeQualifier, Symbol> const tq2sym =
-    {
-        { TQ::kAutoptr,         kKW_Autoptr, },
-        { TQ::kBuiltin,         kKW_Builtin, },
-        { TQ::kImport,          kKW_ImportStd, },
-        { TQ::kManaged,         kKW_Managed,  },
-        { TQ::kManagedBase,     kKW_ManagedBase,  },
-        { TQ::kProtected,       kKW_Protected,  },
-        { TQ::kReadonly,        kKW_Readonly, },
-        { TQ::kStatic,          kKW_Static, },
-        { TQ::kInternalstring,  kKW_Internalstring, },
-        { TQ::kWriteprotected,  kKW_Writeprotected, },
+    static std::map<TypeQualifier, Symbol> const tq2sym = {
+        {
+            TQ::kAutoptr,
+            kKW_Autoptr,
+        },
+        {
+            TQ::kBuiltin,
+            kKW_Builtin,
+        },
+        {
+            TQ::kImport,
+            kKW_ImportStd,
+        },
+        {
+            TQ::kManaged,
+            kKW_Managed,
+        },
+        {
+            TQ::kManagedBase,
+            kKW_ManagedBase,
+        },
+        {
+            TQ::kProtected,
+            kKW_Protected,
+        },
+        {
+            TQ::kReadonly,
+            kKW_Readonly,
+        },
+        {
+            TQ::kStatic,
+            kKW_Static,
+        },
+        {
+            TQ::kInternalstring,
+            kKW_Internalstring,
+        },
+        {
+            TQ::kWriteprotected,
+            kKW_Writeprotected,
+        },
     };
 
     return tq2sym;
@@ -92,24 +121,16 @@ std::map<AGS::TypeQualifier, AGS::Symbol> const &AGS::TypeQualifierSet::TQToSymb
 
 AGS::TypeQualifierSet AGS::TypeQualifierSet::WithoutTypedefQualifiers()
 {
-    TypeQualifierSet ret{ *this };
-    ret[TQ::kAutoptr] =
-        ret[TQ::kBuiltin] =
-        ret[TQ::kInternalstring] =
-        ret[TQ::kManaged] =
-        ret[TQ::kManagedBase] =
+    TypeQualifierSet ret{*this};
+    ret[TQ::kAutoptr] = ret[TQ::kBuiltin] = ret[TQ::kInternalstring] = ret[TQ::kManaged] = ret[TQ::kManagedBase] =
         false;
     return ret;
 }
 
 AGS::TypeQualifierSet AGS::TypeQualifierSet::WithouttVarFuncDefQualifiers()
 {
-    TypeQualifierSet ret{ *this };
-    ret[TQ::kImport] =
-        ret[TQ::kProtected] =
-        ret[TQ::kReadonly] =
-        ret[TQ::kStatic] =
-        ret[TQ::kWriteprotected] = false;
+    TypeQualifierSet ret{*this};
+    ret[TQ::kImport] = ret[TQ::kProtected] = ret[TQ::kReadonly] = ret[TQ::kStatic] = ret[TQ::kWriteprotected] = false;
     return ret;
 }
 
@@ -141,11 +162,7 @@ void AGS::SymbolTableEntry::Clear()
     VartypeD = nullptr;
 }
 
-AGS::SymbolTableEntry::SymbolTableEntry(Symbol const sym, const std::string &name)
-    : Sym(sym)
-    , Name(name)
-{
-}
+AGS::SymbolTableEntry::SymbolTableEntry(Symbol const sym, const std::string &name) : Sym(sym), Name(name) {}
 
 AGS::SymbolTableEntry::SymbolTableEntry(SymbolTableEntry const &orig)
 {
@@ -153,9 +170,7 @@ AGS::SymbolTableEntry::SymbolTableEntry(SymbolTableEntry const &orig)
 }
 
 AGS::SymbolTable::SymbolTable()
-    : _managedBaseSym(kKW_NoSymbol)
-    , _stringStructSym(kKW_NoSymbol)
-    , _stringStructPtrSym(kKW_NoSymbol)
+    : _managedBaseSym(kKW_NoSymbol), _stringStructSym(kKW_NoSymbol), _stringStructPtrSym(kKW_NoSymbol)
 {
     _findCache.clear();
     _vartypesCache.clear();
@@ -178,8 +193,8 @@ AGS::SymbolTable::SymbolTable()
     // Delimeters
     AddDelimeter(kKW_CloseBracket, "]", false, kKW_OpenBracket, true);
     AddDelimeter(kKW_OpenBracket, "[", true, kKW_CloseBracket, true);
-    AddDelimeter(kKW_CloseBrace, "}", false, kKW_OpenBrace, false);    
-    AddDelimeter(kKW_OpenBrace, "{", true, kKW_CloseBrace, false);    
+    AddDelimeter(kKW_CloseBrace, "}", false, kKW_OpenBrace, false);
+    AddDelimeter(kKW_OpenBrace, "{", true, kKW_CloseBrace, false);
     AddDelimeter(kKW_CloseParenthesis, ")", false, kKW_OpenParenthesis, true);
     AddDelimeter(kKW_OpenParenthesis, "(", true, kKW_CloseParenthesis, true);
 
@@ -189,126 +204,89 @@ AGS::SymbolTable::SymbolTable()
     AddOperator(kKW_As, "as", 130, kNoPrio, false, kNoOpcode);
     // No compile time functions defined here; those are done with special logic.
     AddOperator(kKW_BitAnd, "&", 109, kNoPrio, false, SCMD_BITAND);
-    OperatorCtFunctions(
-        kKW_BitAnd,
-        new CTF_IntToInt(*this, kKW_BitAnd, [](CodeCell i1, CodeCell i2) { return i1 & i2; }),
-        nullptr);
+    OperatorCtFunctions(kKW_BitAnd,
+                        new CTF_IntToInt(*this, kKW_BitAnd, [](CodeCell i1, CodeCell i2) { return i1 & i2; }), nullptr);
 
     AddOperator(kKW_BitNeg, "~", kNoPrio, 101, false, kSpecialLogic); // bitwise NOT
-    OperatorCtFunctions(
-        kKW_BitNeg,
-        new CTF_IntToInt(*this, kKW_BitNeg, [](CodeCell i1, CodeCell i2) { return ~i2; }),
-        nullptr);
+    OperatorCtFunctions(kKW_BitNeg, new CTF_IntToInt(*this, kKW_BitNeg, [](CodeCell i1, CodeCell i2) { return ~i2; }),
+                        nullptr);
 
     AddOperator(kKW_BitOr, "|", 110, kNoPrio, false, SCMD_BITOR);
-    OperatorCtFunctions(
-        kKW_BitOr,
-        new CTF_IntToInt(*this, kKW_BitOr, [](CodeCell i1, CodeCell i2) { return i1 | i2; }),
-        nullptr);
+    OperatorCtFunctions(kKW_BitOr, new CTF_IntToInt(*this, kKW_BitOr, [](CodeCell i1, CodeCell i2) { return i1 | i2; }),
+                        nullptr);
 
     AddOperator(kKW_BitXor, "^", 110, kNoPrio, false, SCMD_XORREG);
-    OperatorCtFunctions(
-        kKW_BitXor,
-        new CTF_IntToInt(*this, kKW_BitXor, [](CodeCell i1, CodeCell i2) { return i1 ^ i2; }),
-        nullptr);
+    OperatorCtFunctions(kKW_BitXor,
+                        new CTF_IntToInt(*this, kKW_BitXor, [](CodeCell i1, CodeCell i2) { return i1 ^ i2; }), nullptr);
 
     AddOperator(kKW_Decrement, "--", 101, 101, false, SCMD_SUB);
     // No compile time functions defined here; those are done with special logic.
 
     AddOperator(kKW_Divide, "/", 103, kNoPrio, false, SCMD_DIVREG, SCMD_FDIVREG);
-    OperatorCtFunctions(
-        kKW_Divide,
-        new CTF_IntDivide(*this),
-        new CTF_FloatDivide(*this));
+    OperatorCtFunctions(kKW_Divide, new CTF_IntDivide(*this), new CTF_FloatDivide(*this));
 
     AddOperator(kKW_Equal, "==", 112, kNoPrio, true, SCMD_ISEQUAL, SCMD_ISEQUAL, SCMD_ISEQUAL, SCMD_STRINGSEQUAL);
-    OperatorCtFunctions(
-        kKW_Equal,
-        new CTF_IntToBool(*this, kKW_Equal, [](CodeCell i1, CodeCell i2) { return i1 == i2; }),
-        new CTF_FloatToBool(*this, kKW_Equal, [](float f1, float f2) { return f1 == f2; }));
+    OperatorCtFunctions(kKW_Equal,
+                        new CTF_IntToBool(*this, kKW_Equal, [](CodeCell i1, CodeCell i2) { return i1 == i2; }),
+                        new CTF_FloatToBool(*this, kKW_Equal, [](float f1, float f2) { return f1 == f2; }));
 
     AddOperator(kKW_Greater, ">", 112, kNoPrio, true, SCMD_GREATER, SCMD_FGREATER);
-    OperatorCtFunctions(
-        kKW_Greater,
-        new CTF_IntToBool(*this, kKW_Greater, [](CodeCell i1, CodeCell i2) { return i1 > i2; }),
-        new CTF_FloatToBool(*this, kKW_Greater, [](float f1, float f2) { return f1 > f2; }));
+    OperatorCtFunctions(kKW_Greater,
+                        new CTF_IntToBool(*this, kKW_Greater, [](CodeCell i1, CodeCell i2) { return i1 > i2; }),
+                        new CTF_FloatToBool(*this, kKW_Greater, [](float f1, float f2) { return f1 > f2; }));
 
     AddOperator(kKW_GreaterEqual, ">=", 112, kNoPrio, true, SCMD_GTE, SCMD_FGTE);
-    OperatorCtFunctions(
-        kKW_GreaterEqual,
-        new CTF_IntToBool(*this, kKW_GreaterEqual, [](CodeCell i1, CodeCell i2) { return i1 >= i2; }),
-        new CTF_FloatToBool(*this, kKW_GreaterEqual, [](float f1, float f2) { return f1 >= f2; }));
+    OperatorCtFunctions(kKW_GreaterEqual,
+                        new CTF_IntToBool(*this, kKW_GreaterEqual, [](CodeCell i1, CodeCell i2) { return i1 >= i2; }),
+                        new CTF_FloatToBool(*this, kKW_GreaterEqual, [](float f1, float f2) { return f1 >= f2; }));
 
     AddOperator(kKW_Increment, "++", 101, 101, false, SCMD_ADD);
     // No compile time functions defined here; those are done with special logic.
 
     AddOperator(kKW_Less, "<", 112, kNoPrio, true, SCMD_LESSTHAN, SCMD_FLESSTHAN);
-    OperatorCtFunctions(
-        kKW_Less,
-        new CTF_IntToBool(*this, kKW_Less, [](CodeCell i1, CodeCell i2) { return i1 < i2; }),
-        new CTF_FloatToBool(*this, kKW_Less, [](float f1, float f2) { return f1 < f2; }));
+    OperatorCtFunctions(kKW_Less, new CTF_IntToBool(*this, kKW_Less, [](CodeCell i1, CodeCell i2) { return i1 < i2; }),
+                        new CTF_FloatToBool(*this, kKW_Less, [](float f1, float f2) { return f1 < f2; }));
 
     AddOperator(kKW_LessEqual, "<=", 112, kNoPrio, true, SCMD_LTE, SCMD_FLTE);
-    OperatorCtFunctions(
-        kKW_LessEqual,
-        new CTF_IntToBool(*this, kKW_LessEqual, [](CodeCell i1, CodeCell i2) { return i1 <= i2; }),
-        new CTF_FloatToBool(*this, kKW_LessEqual, [](float f1, float f2) { return f1 <= f2; }));
+    OperatorCtFunctions(kKW_LessEqual,
+                        new CTF_IntToBool(*this, kKW_LessEqual, [](CodeCell i1, CodeCell i2) { return i1 <= i2; }),
+                        new CTF_FloatToBool(*this, kKW_LessEqual, [](float f1, float f2) { return f1 <= f2; }));
 
     AddOperator(kKW_Minus, "-", 105, 101, false, SCMD_SUBREG, SCMD_FSUBREG);
-    OperatorCtFunctions(
-        kKW_Minus,
-        new CTF_IntMinus(*this),
-        new CTF_FloatToFloat(*this, kKW_Minus, [](float f1, float f2) { return f1 - f2; }));
+    OperatorCtFunctions(kKW_Minus, new CTF_IntMinus(*this),
+                        new CTF_FloatToFloat(*this, kKW_Minus, [](float f1, float f2) { return f1 - f2; }));
 
     AddOperator(kKW_Modulo, "%", 103, kNoPrio, false, SCMD_MODREG);
-    OperatorCtFunctions(
-        kKW_Modulo,
-        new CTF_IntModulo(*this),
-        nullptr);
+    OperatorCtFunctions(kKW_Modulo, new CTF_IntModulo(*this), nullptr);
 
     AddOperator(kKW_Multiply, "*", 103, kNoPrio, false, SCMD_MULREG, SCMD_FMULREG);
-    OperatorCtFunctions(
-        kKW_Multiply,
-        new CTF_IntMultiply(*this),
-        new CTF_FloatToFloat(*this, kKW_Multiply, [](float f1, float f2) { return f1 * f2; }));
+    OperatorCtFunctions(kKW_Multiply, new CTF_IntMultiply(*this),
+                        new CTF_FloatToFloat(*this, kKW_Multiply, [](float f1, float f2) { return f1 * f2; }));
 
     AddOperator(kKW_Not, "!", kNoPrio, 101, true, SCMD_NOTREG); // boolean NOT
-    OperatorCtFunctions(
-        kKW_Not,
-        new CTF_IntToBool(*this, kKW_Not, [](int i1, int i2) { return !i2; }),
-        nullptr);
+    OperatorCtFunctions(kKW_Not, new CTF_IntToBool(*this, kKW_Not, [](int i1, int i2) { return !i2; }), nullptr);
 
     AddOperator(kKW_New, "new", kNoPrio, 101, false, kSpecialLogic);
     // No compile time functions defined here, will be handled by special logic
 
     AddOperator(kKW_NotEqual, "!=", 112, kNoPrio, true, SCMD_NOTEQUAL, SCMD_NOTEQUAL, SCMD_NOTEQUAL, SCMD_STRINGSNOTEQ);
-    OperatorCtFunctions(
-        kKW_NotEqual,
-        new CTF_IntToBool(*this, kKW_NotEqual, [](int i1, int i2) { return i1 != i2; }),
-        new CTF_FloatToBool(*this, kKW_NotEqual, [](float f1, float f2) { return f1 != f2; }));
+    OperatorCtFunctions(kKW_NotEqual, new CTF_IntToBool(*this, kKW_NotEqual, [](int i1, int i2) { return i1 != i2; }),
+                        new CTF_FloatToBool(*this, kKW_NotEqual, [](float f1, float f2) { return f1 != f2; }));
 
     AddOperator(kKW_Or, "||", 119, kNoPrio, true, SCMD_OR);
     // No compile time functions defined here; those are handled with special logic.
 
     AddOperator(kKW_Plus, "+", 105, 101, false, SCMD_ADDREG, SCMD_FADDREG);
-    OperatorCtFunctions(
-        kKW_Plus,
-        new CTF_IntPlus(*this),
-        new CTF_FloatToFloat(*this, kKW_Plus, [](float f1, float f2) { return f1 + f2; }));
-        
+    OperatorCtFunctions(kKW_Plus, new CTF_IntPlus(*this),
+                        new CTF_FloatToFloat(*this, kKW_Plus, [](float f1, float f2) { return f1 + f2; }));
+
     AddOperator(kKW_ShiftLeft, "<<", 107, kNoPrio, false, SCMD_SHIFTLEFT);
-    OperatorCtFunctions(
-        kKW_ShiftLeft,
-        new CTF_IntShiftLeft(*this),
-        nullptr);
+    OperatorCtFunctions(kKW_ShiftLeft, new CTF_IntShiftLeft(*this), nullptr);
 
     AddOperator(kKW_ShiftRight, ">>", 107, kNoPrio, false, SCMD_SHIFTRIGHT);
-    OperatorCtFunctions(
-        kKW_ShiftRight,
-        new CTF_IntShiftRight(*this),
-        nullptr);
+    OperatorCtFunctions(kKW_ShiftRight, new CTF_IntShiftRight(*this), nullptr);
 
-    AddOperator(kKW_Tern, "?", 120, kNoPrio, false, kSpecialLogic);    // note, operator and keyword
+    AddOperator(kKW_Tern, "?", 120, kNoPrio, false, kSpecialLogic); // note, operator and keyword
     // No compile time functions defined here; those are handled with special logic.
 
     // Assignments
@@ -457,12 +435,7 @@ bool AGS::SymbolTable::IsInUse(Symbol s) const
     // Don't check for ComponentD. This record is subsidiary
     // and only makes sense if one of the other records is set.
     auto const &entry = entries.at(s);
-    return
-        entry.ConstantD ||
-        entry.FunctionD ||
-        entry.LiteralD ||
-        entry.VariableD ||
-        entry.VartypeD;
+    return entry.ConstantD || entry.FunctionD || entry.LiteralD || entry.VariableD || entry.VartypeD;
 }
 
 bool AGS::SymbolTable::IsIdentifier(Symbol s) const
@@ -477,10 +450,14 @@ bool AGS::SymbolTable::IsIdentifier(Symbol s) const
     for (size_t idx = 0u; idx < name.size(); ++idx)
     {
         char const &ch = name[idx];
-        if ('0' <= ch && ch <= '9') continue;
-        if ('A' <= ch && ch <= 'Z') continue;
-        if ('a' <= ch && ch <= 'z') continue;
-        if ('_' == ch) continue;
+        if ('0' <= ch && ch <= '9')
+            continue;
+        if ('A' <= ch && ch <= 'Z')
+            continue;
+        if ('a' <= ch && ch <= 'z')
+            continue;
+        if ('_' == ch)
+            continue;
         return false;
     }
     return true;
@@ -490,14 +467,8 @@ bool AGS::SymbolTable::CanBePartOfAnExpression(Symbol s)
 {
     // Note: Whatever is within delimeters will be completely skipped automatically,
     // it doesn't need to be considered here.
-    return
-        IsConstant(s) ||
-        (IsDelimeter(s) && entries.at(s).DelimeterD->CanBePartOfAnExpression) ||
-        IsFunction(s) ||
-        IsLiteral(s) ||
-        (IsOperator(s)) ||
-        IsVariable(s) ||
-        (s == kKW_OnePastLongMax);
+    return IsConstant(s) || (IsDelimeter(s) && entries.at(s).DelimeterD->CanBePartOfAnExpression) || IsFunction(s) ||
+           IsLiteral(s) || (IsOperator(s)) || IsVariable(s) || (s == kKW_OnePastLongMax);
 }
 
 bool AGS::SymbolTable::IsAnyIntegerVartype(Symbol s) const
@@ -515,7 +486,7 @@ size_t AGS::SymbolTable::GetSize(Symbol s) const
         s = entries.at(s).VariableD->Vartype;
     if (!IsVartype(s))
         return (0u);
-    return entries.at(s).VartypeD->Size;    
+    return entries.at(s).VartypeD->Size;
 }
 
 bool AGS::SymbolTable::IsPrimitiveVartype(Symbol s) const
@@ -552,10 +523,10 @@ bool AGS::SymbolTable::IsManagedVartype(Symbol s) const
 {
     if (!IsVartype(s))
         return false;
-    
+
     while (VTT::kAtomic != entries.at(s).VartypeD->Type)
         s = entries.at(s).VartypeD->BaseVartype;
-       
+
     return entries.at(s).VartypeD->Flags[VTF::kManaged];
 }
 
@@ -565,8 +536,7 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
         return std::string("(end of input)");
     if (static_cast<size_t>(symbl) >= entries.size())
         return std::string("(invalid symbol)");
-    if (IsDynpointerVartype(symbl) &&
-        IsAutoptrVartype(VartypeWithout(VTT::kDynpointer, symbl)))
+    if (IsDynpointerVartype(symbl) && IsAutoptrVartype(VartypeWithout(VTT::kDynpointer, symbl)))
     {
         std::string name = entries[symbl].Name;
         int const pos_of_last_ch = name.length() - 1u;
@@ -646,7 +616,7 @@ AGS::Vartype AGS::SymbolTable::ArrayVartypeWithoutFirstDim(Vartype const vartype
     if (1u == dims_count)
         return base_vartype;
 
-    std::vector<size_t> const new_dims{ dims.cbegin() + 1u, dims.cend() };
+    std::vector<size_t> const new_dims{dims.cbegin() + 1u, dims.cend()};
     return VartypeWithArray(new_dims, base_vartype);
 }
 
@@ -655,8 +625,8 @@ AGS::Vartype AGS::SymbolTable::VartypeWithConst(AGS::Vartype vartype)
     if (IsVTT(vartype, VTT::kConst))
         return vartype; // Nothing to be done
 
-    // Return cached result if existent 
-    std::pair<Vartype, VartypeType> const arg = { vartype, VTT::kConst };
+    // Return cached result if existent
+    std::pair<Vartype, VartypeType> const arg = {vartype, VTT::kConst};
     Vartype &valref(_vartypesCache[arg]);
     if (valref)
         return valref;
@@ -678,7 +648,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithConst(AGS::Vartype vartype)
 AGS::Vartype AGS::SymbolTable::VartypeWithDynarray(AGS::Vartype vartype)
 {
     // Return cached result if it exists
-    std::pair<Vartype, VartypeType> const arg = { vartype, VTT::kDynarray };
+    std::pair<Vartype, VartypeType> const arg = {vartype, VTT::kDynarray};
     Vartype &valref(_vartypesCache[arg]);
     if (valref)
         return valref;
@@ -711,7 +681,7 @@ AGS::Vartype AGS::SymbolTable::VartypeWithDynpointer(Vartype vartype)
         return vartype; // Nothing to be done
 
     // Return cached result if it exists
-    std::pair<Vartype, VartypeType> const arg = { vartype, VTT::kDynpointer };
+    std::pair<Vartype, VartypeType> const arg = {vartype, VTT::kDynpointer};
     Vartype &valref(_vartypesCache[arg]);
     if (valref)
         return valref;
@@ -801,8 +771,8 @@ AGS::Symbol AGS::SymbolTable::FindConstructorOfTypeOrParent(Symbol strct) const
 
 AGS::Vartype AGS::SymbolTable::GetBaseVartypeIfDynptr(AGS::Vartype vartype) const
 {
-    if (!entries[vartype].VartypeD || entries[vartype].VartypeD->Type != VartypeType::kDynpointer
-        || entries[vartype].VartypeD->BaseVartype == 0)
+    if (!entries[vartype].VartypeD || entries[vartype].VartypeD->Type != VartypeType::kDynpointer ||
+        entries[vartype].VartypeD->BaseVartype == 0)
         return vartype;
     return entries[vartype].VartypeD->BaseVartype;
 }
@@ -811,8 +781,9 @@ AGS::Vartype AGS::SymbolTable::GetFirstBaseVartype(AGS::Vartype vartype) const
 {
     // TODO: extra safety checks?
     for (const auto *ste = &entries[vartype]; ste->VartypeD && (ste->VartypeD->BaseVartype > 0);
-        vartype = ste->VartypeD->BaseVartype, ste = &entries[vartype])
-    { }
+         vartype = ste->VartypeD->BaseVartype, ste = &entries[vartype])
+    {
+    }
     return vartype;
 }
 
@@ -833,28 +804,23 @@ bool AGS::SymbolTable::IsAnyStringVartype(Symbol s) const
     // Oldstrings and String * are strings
     Vartype const s_without_const = VartypeWithout(VTT::kConst, s);
 
-    return
-        kKW_String == s_without_const ||
-        GetStringStructSym() == VartypeWithout(VTT::kDynpointer, s_without_const);
+    return kKW_String == s_without_const || GetStringStructSym() == VartypeWithout(VTT::kDynpointer, s_without_const);
 }
 
 bool AGS::SymbolTable::IsOldstring(Symbol s) const
 {
     if (!IsVartype(s))
-            return false;
+        return false;
 
-    Vartype const s_without_const =
-        VartypeWithout(VTT::kConst, s);
+    Vartype const s_without_const = VartypeWithout(VTT::kConst, s);
 
     // 'string' and 'const string' are oldstrings
     if (kKW_String == s_without_const)
         return true;
 
     // 'char'[..] considered oldstring, too
-    return
-        IsArrayVartype(s) &&
-        1u == ArrayDimensionsCount(s) &&
-        kKW_Char == VartypeWithout(VTT::kArray, s_without_const);
+    return IsArrayVartype(s) && 1u == ArrayDimensionsCount(s) &&
+           kKW_Char == VartypeWithout(VTT::kArray, s_without_const);
 }
 
 AGS::Symbol AGS::SymbolTable::Add(std::string const &name)
@@ -899,7 +865,8 @@ AGS::Symbol AGS::SymbolTable::AddNoSymbol(Predefined kw, std::string const &name
     return kw;
 }
 
-AGS::Symbol AGS::SymbolTable::AddAssign(Predefined kw, std::string const &name, size_t prio, CodeCell int_opcode, CodeCell float_opcode, CodeCell dyn_opcode, CodeCell string_opcode)
+AGS::Symbol AGS::SymbolTable::AddAssign(Predefined kw, std::string const &name, size_t prio, CodeCell int_opcode,
+                                        CodeCell float_opcode, CodeCell dyn_opcode, CodeCell string_opcode)
 {
     SymbolTableEntry &entry = entries.at(kw);
     entry.Sym = kw;
@@ -915,7 +882,8 @@ AGS::Symbol AGS::SymbolTable::AddAssign(Predefined kw, std::string const &name, 
     return kw;
 }
 
-AGS::Symbol AGS::SymbolTable::AddDelimeter(Predefined kw, std::string const &name, bool is_opener, Symbol partner, bool can_be_expression)
+AGS::Symbol AGS::SymbolTable::AddDelimeter(Predefined kw, std::string const &name, bool is_opener, Symbol partner,
+                                           bool can_be_expression)
 {
     SymbolTableEntry &entry = entries.at(kw);
     entry.Sym = kw;
@@ -934,12 +902,14 @@ AGS::Symbol AGS::SymbolTable::AddKeyword(Predefined kw, std::string const &name)
     SymbolTableEntry &entry = entries.at(kw);
     entry.Sym = kw;
     entry.Name = name;
-    
+
     _findCache[name] = kw;
     return kw;
 }
 
-AGS::Symbol AGS::SymbolTable::AddOperator(Predefined kw, std::string const &name, size_t binary_prio, size_t unary_prio, bool boolean, CodeCell int_opcode, CodeCell float_opcode, CodeCell dyn_opcode, CodeCell string_opcode)
+AGS::Symbol AGS::SymbolTable::AddOperator(Predefined kw, std::string const &name, size_t binary_prio, size_t unary_prio,
+                                          bool boolean, CodeCell int_opcode, CodeCell float_opcode, CodeCell dyn_opcode,
+                                          CodeCell string_opcode)
 {
     SymbolTableEntry &entry = entries.at(kw);
     entry.Sym = kw;
@@ -958,7 +928,7 @@ AGS::Symbol AGS::SymbolTable::AddOperator(Predefined kw, std::string const &name
     return kw;
 }
 
-void AGS::SymbolTable::OperatorCtFunctions(Predefined kw, CompileTimeFunc * int_ct_func, CompileTimeFunc * float_ct_func)
+void AGS::SymbolTable::OperatorCtFunctions(Predefined kw, CompileTimeFunc *int_ct_func, CompileTimeFunc *float_ct_func)
 {
     SymbolTableEntry &entry = entries.at(kw);
     entry.OperatorD->IntCTFunc = int_ct_func;

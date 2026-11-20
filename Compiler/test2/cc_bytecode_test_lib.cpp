@@ -77,8 +77,10 @@ static void WriteOutputCode(std::ofstream &of, AGS::ccCompiledScript const &scri
     {
         of.width(4);
         of << scrip.code[idx] << ", ";
-        if (idx % 8 == 3) of << "        ";
-        if (idx % 8 == 7) of << "   // " << idx << std::endl;
+        if (idx % 8 == 3)
+            of << "        ";
+        if (idx % 8 == 7)
+            of << "   // " << idx << std::endl;
     }
     of << " -999 " << std::endl << "};" << std::endl;
 
@@ -90,10 +92,10 @@ void CompareCode(AGS::ccCompiledScript *scrip, size_t code_size, int32_t code[])
     code_size = std::min(code_size, scrip->code.size());
     for (size_t idx = 0u; idx < code_size; idx++)
     {
-         std::string prefix = "code[" + std::to_string(idx) + "] == ";
-         std::string should_be_val = prefix + std::to_string(code[idx]);
-         std::string is_val = prefix + std::to_string(scrip->code[idx]);
-         ASSERT_STREQ(should_be_val.c_str(), is_val.c_str());
+        std::string prefix = "code[" + std::to_string(idx) + "] == ";
+        std::string should_be_val = prefix + std::to_string(code[idx]);
+        std::string is_val = prefix + std::to_string(scrip->code[idx]);
+        ASSERT_STREQ(should_be_val.c_str(), is_val.c_str());
     }
 }
 
@@ -112,18 +114,22 @@ static void WriteOutputFixups(std::ofstream &of, AGS::ccCompiledScript const &sc
     {
         of.width(4);
         of << scrip.fixups[idx] << ", ";
-        if (idx % 8u == 3u) of << "      ";
-        if (idx % 8u == 7u) of << "   // " << idx << std::endl;
+        if (idx % 8u == 3u)
+            of << "      ";
+        if (idx % 8u == 7u)
+            of << "   // " << idx << std::endl;
     }
     of << "};" << std::endl;
-    
+
     of << "char fixuptypes[] = {" << std::endl;
     for (size_t idx = 0u; idx < fixups_size; idx++)
     {
         of.width(4);
         of << static_cast<int>(scrip.fixuptypes[idx]) << ", ";
-        if (idx % 8u == 3u) of << "      ";
-        if (idx % 8u == 7u) of << "   // " << idx << std::endl;
+        if (idx % 8u == 3u)
+            of << "      ";
+        if (idx % 8u == 7u)
+            of << "   // " << idx << std::endl;
     }
     of << "};" << std::endl;
 
@@ -136,24 +142,24 @@ void CompareFixups(AGS::ccCompiledScript *scrip, size_t fixups_size, int32_t fix
 
     for (size_t idx = 0u; idx < fixups_size; idx++)
     {
-         std::string const prefix = "fixups[" + std::to_string(idx) + "] == ";
-         std::string const should_be_val = prefix + std::to_string(fixups[idx]);
-         std::string const is_val = prefix + std::to_string(scrip->fixups[idx]);
-         ASSERT_STREQ(should_be_val.c_str(), is_val.c_str());
+        std::string const prefix = "fixups[" + std::to_string(idx) + "] == ";
+        std::string const should_be_val = prefix + std::to_string(fixups[idx]);
+        std::string const is_val = prefix + std::to_string(scrip->fixups[idx]);
+        ASSERT_STREQ(should_be_val.c_str(), is_val.c_str());
     }
 
     for (size_t idx = 0u; idx < fixups_size; idx++)
     {
-         std::string const prefix = "fixuptypes[" + std::to_string(idx) + "] == ";
-         std::string const should_be_val = prefix + std::to_string(fixuptypes[idx]);
-         std::string const is_val = prefix + std::to_string(scrip->fixuptypes[idx]);
-         ASSERT_STREQ(should_be_val.c_str(), is_val.c_str());
+        std::string const prefix = "fixuptypes[" + std::to_string(idx) + "] == ";
+        std::string const should_be_val = prefix + std::to_string(fixuptypes[idx]);
+        std::string const is_val = prefix + std::to_string(scrip->fixuptypes[idx]);
+        ASSERT_STREQ(should_be_val.c_str(), is_val.c_str());
     }
 }
 
 static void WriteOutputImports(std::ofstream &of, AGS::ccCompiledScript const &scrip)
 {
-    // Unfortunately, imports can contain empty strings that mustn't be counted. 
+    // Unfortunately, imports can contain empty strings that mustn't be counted.
     // So we can't believe 'imports.size()' and we may not check against it.
     std::vector<std::string> imports;
     for (size_t idx = 0u; idx < scrip.imports.size(); idx++)
@@ -253,7 +259,8 @@ static void WriteOutputExports(std::ofstream &of, AGS::ccCompiledScript const &s
         of.setf(std::ios::showbase);
         of.width(4);
         of << scrip.export_addr[idx] << ", ";
-        if (idx % 4u == 1u) of << "   ";
+        if (idx % 4u == 1u)
+            of << "   ";
         if (idx % 8u == 3u)
         {
             of.setf(std::ios::dec, std::ios::basefield);
@@ -275,12 +282,8 @@ static void WriteOutputExports(std::ofstream &of, AGS::ccCompiledScript const &s
 
 void CompareExports(AGS::ccCompiledScript *scrip, size_t exports_size, std::string exports[], int32_t export_addr[])
 {
-    exports_size = std::min(
-        std::min(exports_size, scrip->exports.size()),
-        exports_size);
-    exports_size = std::min(
-        std::min(exports_size, scrip->export_addr.size()),
-        exports_size);
+    exports_size = std::min(std::min(exports_size, scrip->exports.size()), exports_size);
+    exports_size = std::min(std::min(exports_size, scrip->export_addr.size()), exports_size);
 
     for (size_t idx = 0u; idx < exports_size; idx++)
     {
@@ -316,23 +319,25 @@ static void WriteOutputStrings(std::ofstream &of, AGS::ccCompiledScript const &s
         else
             out += '\'' + Esc(scrip.strings[idx]) + '\'';
         of << out << ",  ";
-        if (idx % 8u == 3u) of << "        ";
-        if (idx % 8u == 7u) of << "   // " << idx << std::endl;
+        if (idx % 8u == 3u)
+            of << "        ";
+        if (idx % 8u == 7u)
+            of << "   // " << idx << std::endl;
     }
     of << "};" << std::endl;
 
     of << " CompareStrings(&scrip, strings_size, strings);" << std::endl << std::endl;
-   }
+}
 
 void CompareStrings(AGS::ccCompiledScript *scrip, size_t strings_size, char strings[])
 {
     strings_size = std::min(strings_size, scrip->strings.size());
     for (size_t idx = 0u; idx < strings_size; idx++)
     {
-         std::string const prefix = "strings[" + std::to_string(idx) + "] == ";
-         std::string const should_be_val = prefix + std::to_string(strings[idx]);
-         std::string const is_val = prefix + std::to_string(scrip->strings[idx]);
-         ASSERT_STREQ(should_be_val.c_str(), is_val.c_str());
+        std::string const prefix = "strings[" + std::to_string(idx) + "] == ";
+        std::string const should_be_val = prefix + std::to_string(strings[idx]);
+        std::string const is_val = prefix + std::to_string(scrip->strings[idx]);
+        ASSERT_STREQ(should_be_val.c_str(), is_val.c_str());
     }
 }
 
@@ -370,19 +375,14 @@ static void WriteOutputGlobals(std::ofstream &of, AGS::ccCompiledScript const &s
         for (size_t idx = 0u; idx < global_runs.size(); idx++)
         {
             cumulative += global_runs[idx].count;
-            of << "{ " <<
-                std::dec << std::setfill(' ') << std::setw(3) <<
-                    global_runs[idx].count << ", 0x" <<
-                std::hex << std::setfill('0') << std::setw(2) <<
-                (0xFF & global_runs[idx].value) <<
-                "}, ";
+            of << "{ " << std::dec << std::setfill(' ') << std::setw(3) << global_runs[idx].count << ", 0x" << std::hex
+               << std::setfill('0') << std::setw(2) << (0xFF & global_runs[idx].value) << "}, ";
             if (idx % 4u == 3u)
                 of << "   // " << std::dec << std::setw(0) << cumulative << std::endl;
         }
-        // Add a sentinel that has a count of '0' 
+        // Add a sentinel that has a count of '0'
         of << "{0, 0x00} };" << std::endl;
-        of << "CompareGlobalRuns(&scrip, global_runs);" <<
-            std::endl << std::endl;
+        of << "CompareGlobalRuns(&scrip, global_runs);" << std::endl << std::endl;
         return;
     }
 
@@ -390,15 +390,14 @@ static void WriteOutputGlobals(std::ofstream &of, AGS::ccCompiledScript const &s
     of << "unsigned char globaldata[] = {" << std::endl;
     for (size_t idx = 0u; idx < scrip.globaldata.size(); idx++)
     {
-        of << "0x" <<
-            std::hex << std::setfill('0') << std::setw(2) <<
-            (0xFF & scrip.globaldata[idx]) << ", ";
-        if (idx % 8u == 3u) of << "        ";
-        if (idx % 8u == 7u) of << "   // " << std::dec << std::setw(0) << idx << std::endl;
+        of << "0x" << std::hex << std::setfill('0') << std::setw(2) << (0xFF & scrip.globaldata[idx]) << ", ";
+        if (idx % 8u == 3u)
+            of << "        ";
+        if (idx % 8u == 7u)
+            of << "   // " << std::dec << std::setw(0) << idx << std::endl;
     }
     of << "};" << std::endl;
-    of << "CompareGlobalData(&scrip, globaldata_size, globaldata);" <<
-        std::endl << std::endl;
+    of << "CompareGlobalData(&scrip, globaldata_size, globaldata);" << std::endl << std::endl;
 }
 
 void CompareGlobalRuns(AGS::ccCompiledScript *scrip, CharRun global_runs[])
@@ -409,18 +408,17 @@ void CompareGlobalRuns(AGS::ccCompiledScript *scrip, CharRun global_runs[])
     size_t counter = global_runs[runs_idx].count;
     unsigned char value = global_runs[runs_idx].value;
     size_t data_idx = 0u;
-    do {
+    do
+    {
         if (data_idx >= scrip->globaldata.size())
             break;
-        if ((unsigned char) scrip->globaldata[data_idx] != value)
+        if ((unsigned char)scrip->globaldata[data_idx] != value)
         {
             std::string const prefix = "globaldata[" + std::to_string(data_idx) + "] == 0x";
             std::ostringstream should_be_val;
-            should_be_val << prefix << std::hex << std::setfill('0') <<
-                std::setw(2) << (0xFF & value);
+            should_be_val << prefix << std::hex << std::setfill('0') << std::setw(2) << (0xFF & value);
             std::ostringstream is_val;
-            is_val << prefix << std::hex << std::setfill('0') <<
-                std::setw(2) << (0xFF & scrip->globaldata[data_idx]);
+            is_val << prefix << std::hex << std::setfill('0') << std::setw(2) << (0xFF & scrip->globaldata[data_idx]);
             ASSERT_STREQ(should_be_val.str().c_str(), is_val.str().c_str());
         }
         ++data_idx;
@@ -440,23 +438,21 @@ void CompareGlobalData(AGS::ccCompiledScript *scrip, size_t size, unsigned char 
     size = std::min(size, scrip->globaldata.size());
     for (size_t idx = 0u; idx < size; idx++)
     {
-        if ((unsigned char) scrip->globaldata[idx] == gdata[idx])
+        if ((unsigned char)scrip->globaldata[idx] == gdata[idx])
             continue;
 
         std::string const prefix = "globaldata[" + std::to_string(idx) + "] == 0x";
         std::ostringstream should_be_val;
-        should_be_val << prefix << std::hex << std::setfill('0') <<
-            std::setw(2) << (0xFF & gdata[idx]);
+        should_be_val << prefix << std::hex << std::setfill('0') << std::setw(2) << (0xFF & gdata[idx]);
         std::ostringstream is_val;
-        is_val << prefix << std::hex << std::setfill('0') <<
-            std::setw(2) << (0xFF & scrip->globaldata[idx]);
+        is_val << prefix << std::hex << std::setfill('0') << std::setw(2) << (0xFF & scrip->globaldata[idx]);
         ASSERT_STREQ(should_be_val.str().c_str(), is_val.str().c_str());
     }
 }
 
 void WriteOutput(char const *fname, AGS::ccCompiledScript const &scrip)
 {
-    std::ofstream output { std::string(WRITE_PATH) + fname + ".txt" };
+    std::ofstream output{std::string(WRITE_PATH) + fname + ".txt"};
     output.exceptions(std::ofstream::failbit);
 
     WriteOutputCode(output, scrip);

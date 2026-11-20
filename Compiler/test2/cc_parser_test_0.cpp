@@ -45,8 +45,8 @@ protected:
 };
 
 
-TEST_F(Compile0, UnknownVartypeAfterReadonly) {
-
+TEST_F(Compile0, UnknownVartypeAfterReadonly)
+{
     // Must have a known vartype in struct
 
     char const *inpl = "\
@@ -68,8 +68,8 @@ TEST_F(Compile0, UnknownVartypeAfterReadonly) {
     EXPECT_NE(std::string::npos, err_msg.find("int2"));
 }
 
-TEST_F(Compile0, DynamicArrayReturnValueErrorText) {
-
+TEST_F(Compile0, DynamicArrayReturnValueErrorText)
+{
     // Can't convert DynamicSprite[] to int[]
 
     char const *inpl = "\
@@ -91,8 +91,8 @@ TEST_F(Compile0, DynamicArrayReturnValueErrorText) {
     EXPECT_STREQ("Type mismatch: Cannot convert 'DynamicSprite *[]' to 'int[]'", err_msg.c_str());
 }
 
-TEST_F(Compile0, DynarrayOfDynarrayTypecheck1) {
-
+TEST_F(Compile0, DynarrayOfDynarrayTypecheck1)
+{
     // Can't convert 'int[]' to 'int[][]'
 
     char const *inpl = "\
@@ -114,8 +114,8 @@ TEST_F(Compile0, DynarrayOfDynarrayTypecheck1) {
     EXPECT_STREQ("Cannot assign a type 'int[]' value to a type 'int[][]' variable", err_msg.c_str());
 }
 
-TEST_F(Compile0, StructMemberQualifierOrder) {
-
+TEST_F(Compile0, StructMemberQualifierOrder)
+{
     // The order of qualifiers shouldn't matter.
     // Note, "_tryimport" isn't legal for struct components.
     // Note, AGS doesn't feature static struct variables.
@@ -138,8 +138,8 @@ TEST_F(Compile0, StructMemberQualifierOrder) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, ParsingIntSuccess) {
-
+TEST_F(Compile0, ParsingIntSuccess)
+{
     char const *inpl = "\
         import  int  importedfunc(int data1 = 1, int data2=2, int data3=3); \n\
         int testfunc(int x ) { int y = 42; } \n\
@@ -153,8 +153,8 @@ TEST_F(Compile0, ParsingIntSuccess) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, ParsingIntLimits) {
-
+TEST_F(Compile0, ParsingIntLimits)
+{
     char const *inpl = "\
         import int int_limits(int param_min = -2147483648, int param_max = 2147483647); \n\
         int int_limits(int param_min, int param_max)    \n\
@@ -172,8 +172,8 @@ TEST_F(Compile0, ParsingIntLimits) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, ParsingIntDefaultOverflowPositive) {
-
+TEST_F(Compile0, ParsingIntDefaultOverflowPositive)
+{
     char const *inpl = "\
         import int importedfunc(int data1 = 9999999999999999999999, int data2=2, int data3=3);    \n\
         ";
@@ -189,8 +189,8 @@ TEST_F(Compile0, ParsingIntDefaultOverflowPositive) {
     EXPECT_NE(std::string::npos, err_msg.find("'99999999999999"));
 }
 
-TEST_F(Compile0, ParsingIntDefaultOverflowNegative) {
-
+TEST_F(Compile0, ParsingIntDefaultOverflowNegative)
+{
     char const *inpl = "\
         import  int  importedfunc(int data1 = -9999999999999999999999, int data2=2, int data3=3);   \n\
         ";
@@ -206,8 +206,8 @@ TEST_F(Compile0, ParsingIntDefaultOverflowNegative) {
     EXPECT_NE(std::string::npos, err_msg.find("'999999999999999"));
 }
 
-TEST_F(Compile0, ParsingIntOverflow) {
-
+TEST_F(Compile0, ParsingIntOverflow)
+{
     char const *inpl = "\
         int testfunc(int x ) { int y = 4200000000000000000000; }    \n\
         ";
@@ -223,8 +223,8 @@ TEST_F(Compile0, ParsingIntOverflow) {
     EXPECT_NE(std::string::npos, err_msg.find("'42000000000000"));
 }
 
-TEST_F(Compile0, ParsingNegIntOverflow) {
-
+TEST_F(Compile0, ParsingNegIntOverflow)
+{
     char const *inpl = "\
         int testfunc(int x ) { int y = -4200000000000000000000; }   \n\
         ";
@@ -240,8 +240,8 @@ TEST_F(Compile0, ParsingNegIntOverflow) {
     EXPECT_NE(std::string::npos, err_msg.find("'420000000000000"));
 }
 
-TEST_F(Compile0, ParsingHexSuccess) {
-
+TEST_F(Compile0, ParsingHexSuccess)
+{
     char const *inpl = "\
         import  int  importedfunc(int data1 = 0x01, int data2=0x20, int data3=0x400); \n\
         int testfunc(int x ) { int y = 0xABCDEF; int z = 0xabcdef; } \n\
@@ -255,7 +255,8 @@ TEST_F(Compile0, ParsingHexSuccess) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, ParsingHexLimits) {
+TEST_F(Compile0, ParsingHexLimits)
+{
     // Try some edge values (convert to INT32_MAX, INT32_MIN and -1)
     char const *inpl = "\
         import int int_limits(int param_hex1 = 0x7FFFFFFF, int param_hex2 = 0x80000000, int param_hex3 = 0xFFFFFFFF); \n\
@@ -275,8 +276,8 @@ TEST_F(Compile0, ParsingHexLimits) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, EnumNegative) {
-
+TEST_F(Compile0, EnumNegative)
+{
     std::vector<AGS::Symbol> tokens;
     AGS::LineHandler lh;
     size_t cursor = 0;
@@ -302,10 +303,10 @@ TEST_F(Compile0, EnumNegative) {
         ";
 
     // Call scanner and parser by hand so that we can see the symbol table
-    AGS::Scanner scanner = { inpl, false, targ, scrip, sym, mh };
+    AGS::Scanner scanner = {inpl, false, targ, scrip, sym, mh};
     scanner.Scan();
     ASSERT_FALSE(mh.HasError());
-    AGS::Parser parser = { targ, options, scrip, sym, mh };
+    AGS::Parser parser = {targ, options, scrip, sym, mh};
     parser.Parse();
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
@@ -331,8 +332,8 @@ TEST_F(Compile0, EnumNegative) {
     EXPECT_EQ(sym.Find("2147483647"), sym.entries.at(sym.Find("intmax")).ConstantD->ValueSym);
 }
 
-TEST_F(Compile0, DefaultParametersLargeInts) {
-
+TEST_F(Compile0, DefaultParametersLargeInts)
+{
     std::vector<AGS::Symbol> tokens;
     AGS::LineHandler lh;
     size_t cursor = 0;
@@ -355,10 +356,10 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
         ";
 
 
-    AGS::Scanner scanner = { inpl, false, targ, scrip, sym, mh };
+    AGS::Scanner scanner = {inpl, false, targ, scrip, sym, mh};
     scanner.Scan();
     ASSERT_FALSE(mh.HasError());
-    AGS::Parser parser = { targ, options, scrip, sym, mh };
+    AGS::Parser parser = {targ, options, scrip, sym, mh};
     parser.Parse();
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
@@ -395,8 +396,8 @@ TEST_F(Compile0, DefaultParametersLargeInts) {
     EXPECT_EQ(sym.Find("-2"), sym.entries.at(funcidx).FunctionD->Parameters[9].Default);
 }
 
-TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
-
+TEST_F(Compile0, ImportFunctionReturningDynamicArray)
+{
     std::vector<AGS::Symbol> tokens;
     AGS::LineHandler lh;
     size_t cursor = 0;
@@ -411,10 +412,10 @@ TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
         };                                  \n\
         ";
 
-    AGS::Scanner scanner = { inpl, false, targ, scrip, sym, mh };
+    AGS::Scanner scanner = {inpl, false, targ, scrip, sym, mh};
     scanner.Scan();
     ASSERT_FALSE(mh.HasError());
-    AGS::Parser parser = { targ, options, scrip, sym, mh };
+    AGS::Parser parser = {targ, options, scrip, sym, mh};
     parser.Parse();
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
@@ -429,8 +430,8 @@ TEST_F(Compile0, ImportFunctionReturningDynamicArray) {
     EXPECT_TRUE(sym.IsDynarrayVartype(sym.entries.at(funcidx).FunctionD->Parameters[0].Vartype));
 }
 
-TEST_F(Compile0, DoubleNegatedConstant) {
-
+TEST_F(Compile0, DoubleNegatedConstant)
+{
     // Parameter default can be evaluated at compile time
 
     char const *inpl = "\
@@ -447,8 +448,8 @@ TEST_F(Compile0, DoubleNegatedConstant) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, SubtractionWithoutSpaces) {
-
+TEST_F(Compile0, SubtractionWithoutSpaces)
+{
     char const *inpl = "\
         int MyFunction()        \n\
         {                       \n\
@@ -464,8 +465,8 @@ TEST_F(Compile0, SubtractionWithoutSpaces) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, NegationLHSOfExpression) {
-
+TEST_F(Compile0, NegationLHSOfExpression)
+{
     char const *inpl = "\
         enum MyEnum         \n\
         {                   \n\
@@ -495,8 +496,8 @@ TEST_F(Compile0, NegationLHSOfExpression) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, NegationRHSOfExpression) {
-
+TEST_F(Compile0, NegationRHSOfExpression)
+{
     char const *inpl = "\
         enum MyEnum\
         {\
@@ -526,8 +527,8 @@ TEST_F(Compile0, NegationRHSOfExpression) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Writeprotected) {
-
+TEST_F(Compile0, Writeprotected)
+{
     // Directly taken from the doc on writeprotected, simplified.
     // Should fail, no modifying of writeprotected components from the outside.
 
@@ -554,8 +555,8 @@ TEST_F(Compile0, Writeprotected) {
     EXPECT_NE(std::string::npos, err_msg.find("Damage"));
 }
 
-TEST_F(Compile0, Protected1) {
-
+TEST_F(Compile0, Protected1)
+{
     // Directly taken from the doc on protected, simplified.
     // Should fail, no reading protected components from the outside.
 
@@ -581,8 +582,8 @@ TEST_F(Compile0, Protected1) {
     EXPECT_NE(std::string::npos, err_msg.find("Damage"));
 }
 
-TEST_F(Compile0, Protected2) {
-
+TEST_F(Compile0, Protected2)
+{
     // Is still an attempt to modify a protected component from the outside
     // ('this.Damage = 7;' or even 'Damage = 7;' would be legal, however.)
 
@@ -609,8 +610,8 @@ TEST_F(Compile0, Protected2) {
     EXPECT_NE(std::string::npos, err_msg.find("rotected"));
 }
 
-TEST_F(Compile0, Protected3) {
-
+TEST_F(Compile0, Protected3)
+{
     // Should succeed; protected is allowed for struct component functions.
 
     char const *inpl = "\
@@ -639,8 +640,8 @@ TEST_F(Compile0, Protected3) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Protected4) {
-
+TEST_F(Compile0, Protected4)
+{
     // Should succeed
 
     char const *inpl = "\
@@ -669,8 +670,8 @@ TEST_F(Compile0, Protected4) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Protected5) {
-
+TEST_F(Compile0, Protected5)
+{
     // Should succeed; protected is allowed for extender functions.
 
     char const *inpl = "\
@@ -692,8 +693,8 @@ TEST_F(Compile0, Protected5) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Do1Wrong) {
-
+TEST_F(Compile0, Do1Wrong)
+{
     char const *inpl = "\
     void main()                     \n\
     {                               \n\
@@ -711,11 +712,10 @@ TEST_F(Compile0, Do1Wrong) {
     // Offer some leeway in the error message
     std::string res(err_msg.c_str());
     EXPECT_NE(std::string::npos, res.find("sole body of"));
-
 }
 
-TEST_F(Compile0, Do2Wrong) {
-
+TEST_F(Compile0, Do2Wrong)
+{
     // Should balk because the "while" clause is missing.
 
     char const *inpl = "\
@@ -737,8 +737,8 @@ TEST_F(Compile0, Do2Wrong) {
     EXPECT_NE(std::string::npos, res.find("while"));
 }
 
-TEST_F(Compile0, Do3Wrong) {
-
+TEST_F(Compile0, Do3Wrong)
+{
     char const *inpl = "\
     void main()                     \n\
     {                               \n\
@@ -760,8 +760,8 @@ TEST_F(Compile0, Do3Wrong) {
     EXPECT_NE(std::string::npos, res.find("("));
 }
 
-TEST_F(Compile0, Do4Wrong) {
-
+TEST_F(Compile0, Do4Wrong)
+{
     char const *inpl = "\
     void main()                     \n\
     {                               \n\
@@ -783,8 +783,8 @@ TEST_F(Compile0, Do4Wrong) {
     EXPECT_NE(std::string::npos, res.find("'blah'"));
 }
 
-TEST_F(Compile0, Protected0) {
-
+TEST_F(Compile0, Protected0)
+{
     // Should fail, no modifying of protected components from the outside.
 
     char const *inpl = "\
@@ -810,8 +810,8 @@ TEST_F(Compile0, Protected0) {
     EXPECT_NE(std::string::npos, err_msg.find("rotected"));
 }
 
-TEST_F(Compile0, ParamVoid) {
-
+TEST_F(Compile0, ParamVoid)
+{
     // Can't have a parameter of type 'void'.
 
     char const *inpl = "\
@@ -830,8 +830,8 @@ TEST_F(Compile0, ParamVoid) {
     EXPECT_NE(std::string::npos, err_msg.find("void"));
 }
 
-TEST_F(Compile0, LocalGlobalSeq2) {
-
+TEST_F(Compile0, LocalGlobalSeq2)
+{
     // Should garner a warning for line 7 because the re-definition hides the func
 
     char const *inpl = "\
@@ -855,10 +855,10 @@ TEST_F(Compile0, LocalGlobalSeq2) {
     AGS::SymbolTable sym;
     AGS::FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
-    AGS::Scanner scanner = { inpl, false, targ, scrip, sym, mh };
+    AGS::Scanner scanner = {inpl, false, targ, scrip, sym, mh};
     scanner.Scan();
     ASSERT_FALSE(mh.HasError());
-    AGS::Parser parser = { targ, options, scrip, sym, mh };
+    AGS::Parser parser = {targ, options, scrip, sym, mh};
     parser.Parse();
     std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
@@ -869,7 +869,7 @@ TEST_F(Compile0, LocalGlobalSeq2) {
 
 TEST_F(Compile0, WarningParameterHides01)
 {
-    // A function parameter cannot hide anything unless the 
+    // A function parameter cannot hide anything unless the
     // function body follows
 
     char const *inpl = R"%&/(
@@ -885,7 +885,7 @@ TEST_F(Compile0, WarningParameterHides01)
 
 TEST_F(Compile0, WarningParameterHides02)
 {
-    // A function parameter cannot hide anything unless the 
+    // A function parameter cannot hide anything unless the
     // function body follows
 
     char const *inpl = R"%&/(
@@ -904,8 +904,8 @@ TEST_F(Compile0, WarningParameterHides02)
     EXPECT_NE(std::string::npos, warn_msg.find("hide"));
 }
 
-TEST_F(Compile0, VartypeLocalSeq1) {
-
+TEST_F(Compile0, VartypeLocalSeq1)
+{
     // Can't redefine a vartype as a local variable
 
     char const *inpl = "\
@@ -925,8 +925,8 @@ TEST_F(Compile0, VartypeLocalSeq1) {
     EXPECT_NE(std::string::npos, err_msg.find("in use"));
 }
 
-TEST_F(Compile0, VartypeLocalSeq2) {
-
+TEST_F(Compile0, VartypeLocalSeq2)
+{
     // Can't redefine an enum constant as a local variable
 
     char const *inpl = "\
@@ -946,8 +946,8 @@ TEST_F(Compile0, VartypeLocalSeq2) {
     EXPECT_NE(std::string::npos, err_msg.find("in use"));
 }
 
-TEST_F(Compile0, StructMemberImport) {
-
+TEST_F(Compile0, StructMemberImport)
+{
     // Struct variables must not be 'import'
 
     char const *inpl = "\
@@ -966,8 +966,8 @@ TEST_F(Compile0, StructMemberImport) {
     EXPECT_NE(std::string::npos, err_msg.find("import"));
 }
 
-TEST_F(Compile0, StructExtend1) {
-
+TEST_F(Compile0, StructExtend1)
+{
     char const *inpl = "\
         struct Parent                   \n\
         {                               \n\
@@ -988,8 +988,8 @@ TEST_F(Compile0, StructExtend1) {
     EXPECT_NE(std::string::npos, err_msg.find("Payload"));
 }
 
-TEST_F(Compile0, StructExtend2) {
-
+TEST_F(Compile0, StructExtend2)
+{
     char const *inpl = "\
         struct Grandparent              \n\
         {                               \n\
@@ -1015,8 +1015,8 @@ TEST_F(Compile0, StructExtend2) {
     EXPECT_NE(std::string::npos, err_msg.find("Payload"));
 }
 
-TEST_F(Compile0, StructExtend3) {
-
+TEST_F(Compile0, StructExtend3)
+{
     char const *inpl = "\
         managed struct Parent           \n\
         {                               \n\
@@ -1040,8 +1040,8 @@ TEST_F(Compile0, StructExtend3) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, StructExtend4) {
-
+TEST_F(Compile0, StructExtend4)
+{
     // Can't assign Parent * to Child *: Parent doesn't necessarily have all the fields
 
     char const *inpl = "\
@@ -1068,8 +1068,8 @@ TEST_F(Compile0, StructExtend4) {
     EXPECT_NE(std::string::npos, err_msg.find("assign"));
 }
 
-TEST_F(Compile0, StructStaticFunc) {
-
+TEST_F(Compile0, StructStaticFunc)
+{
     // Okay, a struct that is being defined is automatically forward-declared
 
     char const *inpl = "\
@@ -1086,8 +1086,8 @@ TEST_F(Compile0, StructStaticFunc) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, StructForwardDeclare1) {
-
+TEST_F(Compile0, StructForwardDeclare1)
+{
     // GUI is forward-defined, but the definition will show up later so this is okay.
 
     char const *inpl = "\
@@ -1105,8 +1105,8 @@ TEST_F(Compile0, StructForwardDeclare1) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, StructForwardDeclare2) {
-
+TEST_F(Compile0, StructForwardDeclare2)
+{
     // Forward-declared structs must be "managed".
 
     char const *inpl = "\
@@ -1122,8 +1122,8 @@ TEST_F(Compile0, StructForwardDeclare2) {
     EXPECT_NE(std::string::npos, err_msg.find("managed"));
 }
 
-TEST_F(Compile0, StructForwardDeclare3) {
-
+TEST_F(Compile0, StructForwardDeclare3)
+{
     // GUI only has a forward definition
 
     char const *inpl = "\
@@ -1140,8 +1140,8 @@ TEST_F(Compile0, StructForwardDeclare3) {
     EXPECT_NE(std::string::npos, err_msg.find("completely defined"));
 }
 
-TEST_F(Compile0, StructForwardDeclareNew) {
-
+TEST_F(Compile0, StructForwardDeclareNew)
+{
     // "new" on a forward-declared struct mustn't work
     // even when the struct is defined after the reference
 
@@ -1166,8 +1166,8 @@ TEST_F(Compile0, StructForwardDeclareNew) {
     EXPECT_NE(std::string::npos, err_msg.find("Bang"));
 }
 
-TEST_F(Compile0, RedeclareInForBody) {
-
+TEST_F(Compile0, RedeclareInForBody)
+{
     // When a variable is declared in the 'for' initializer,
     // it can't be redeclared in the 'for' body scope
 
@@ -1357,8 +1357,8 @@ TEST_F(Compile0, StructRecursiveComponent02)
 }
 
 
-TEST_F(Compile0, Undefined) {
-
+TEST_F(Compile0, Undefined)
+{
     char const *inpl = "\
         Supercalifragilisticexpialidocious! \n\
         ";
@@ -1373,8 +1373,8 @@ TEST_F(Compile0, Undefined) {
     EXPECT_EQ(std::string::npos, err_msg.find("xception"));
 }
 
-TEST_F(Compile0, ImportOverride1) {
-
+TEST_F(Compile0, ImportOverride1)
+{
     char const *inpl = "\
     import int Func(int i = 5);     \n\
     int Func(int i)                 \n\
@@ -1392,8 +1392,8 @@ TEST_F(Compile0, ImportOverride1) {
     EXPECT_EQ(std::string::npos, err_msg.find("xception"));
 }
 
-TEST_F(Compile0, DynamicNonManaged2) {
-
+TEST_F(Compile0, DynamicNonManaged2)
+{
     // Dynamic pointer to non-managed struct not allowed
 
     char const *inpl = "\
@@ -1417,8 +1417,8 @@ TEST_F(Compile0, DynamicNonManaged2) {
     EXPECT_NE(std::string::npos, res.find("Inner"));
 }
 
-TEST_F(Compile0, DynamicNonManaged3) {
-
+TEST_F(Compile0, DynamicNonManaged3)
+{
     // Dynamic pointer to non-managed struct not allowed
 
     char const *inpl = "\
@@ -1439,9 +1439,9 @@ TEST_F(Compile0, DynamicNonManaged3) {
     EXPECT_NE(std::string::npos, res.find("Inner"));
 }
 
-TEST_F(Compile0, BuiltinStructMember) {
-
-    // Builtin (non-managed) components not allowed 
+TEST_F(Compile0, BuiltinStructMember)
+{
+    // Builtin (non-managed) components not allowed
 
     char const *inpl = "\
         builtin struct Inner                                \n\
@@ -1464,8 +1464,8 @@ TEST_F(Compile0, BuiltinStructMember) {
     EXPECT_NE(std::string::npos, res.find("Inner"));
 }
 
-TEST_F(Compile0, ImportOverride2) {
-
+TEST_F(Compile0, ImportOverride2)
+{
     char const *inpl = "\
         int Func(int i = 5);    \n\
         int Func(int i)         \n\
@@ -1484,8 +1484,8 @@ TEST_F(Compile0, ImportOverride2) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, ImportOverride3) {
-
+TEST_F(Compile0, ImportOverride3)
+{
     char const *inpl = "\
     int Func(int i)                 \n\
     {                               \n\
@@ -1495,7 +1495,7 @@ TEST_F(Compile0, ImportOverride3) {
     ";
 
     // Note: Don't use 'ccSetOption()' in Googletests.
-    
+
     int compile_result = cc_compile(inpl, SCOPT_NOIMPORTOVERRIDE, scrip, mh);
     std::string const &err_msg = mh.GetError().Message;
     size_t err_line = mh.GetError().Lineno;
@@ -1505,8 +1505,8 @@ TEST_F(Compile0, ImportOverride3) {
     EXPECT_EQ(std::string::npos, err_msg.find("xception"));
 }
 
-TEST_F(Compile0, LocalSeq1) {
-
+TEST_F(Compile0, LocalSeq1)
+{
     // The  { ... } must NOT invalidate Var1 but they MUST invalidate Var2.
 
     char const *inpl = "\
@@ -1527,8 +1527,8 @@ TEST_F(Compile0, LocalSeq1) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, LocalSeq2) {
-
+TEST_F(Compile0, LocalSeq2)
+{
     // The  while() { ... } must NOT invalidate Var1 but MUST invalidate Var2.
 
     char const *inpl = "\
@@ -1549,8 +1549,8 @@ TEST_F(Compile0, LocalSeq2) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, LocalSeq3) {
-
+TEST_F(Compile0, LocalSeq3)
+{
     // The  do { ... } while() must NOT invalidate Var1 but MUST invalidate Var2.
 
     char const *inpl = "\
@@ -1571,8 +1571,8 @@ TEST_F(Compile0, LocalSeq3) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, LocalSeq4) {
-
+TEST_F(Compile0, LocalSeq4)
+{
     // The  for() { ... } must NOT invalidate Var1 but MUST invalidate Var2 and Var3.
 
     char const *inpl = "\
@@ -1597,8 +1597,8 @@ TEST_F(Compile0, LocalSeq4) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, LocalParameterSeq1) {
-
+TEST_F(Compile0, LocalParameterSeq1)
+{
     // Must fail because definitions of I collide
 
     char const *inpl = "\
@@ -1617,8 +1617,8 @@ TEST_F(Compile0, LocalParameterSeq1) {
     EXPECT_EQ(std::string::npos, err_msg.find("xception"));
 }
 
-TEST_F(Compile0, LocalParameterSeq2) {
-
+TEST_F(Compile0, LocalParameterSeq2)
+{
     // Fine
 
     char const *inpl = "\
@@ -1636,8 +1636,8 @@ TEST_F(Compile0, LocalParameterSeq2) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, LocalGlobalSeq1) {
-
+TEST_F(Compile0, LocalGlobalSeq1)
+{
     char const *inpl = "\
         void Func()                     \n\
         {                               \n\
@@ -1655,8 +1655,8 @@ TEST_F(Compile0, LocalGlobalSeq1) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Void1) {
-
+TEST_F(Compile0, Void1)
+{
     char const *inpl = "\
         builtin managed struct Parser {                             \n\
 	        import static int    FindWordID(const string wordToFind);   \n\
@@ -1677,8 +1677,8 @@ TEST_F(Compile0, Void1) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, RetLengthNoMatch) {
-
+TEST_F(Compile0, RetLengthNoMatch)
+{
     char const *inpl = "\
         builtin managed struct GUI {                                \n\
             import void Centre();                                   \n\
@@ -1697,8 +1697,8 @@ TEST_F(Compile0, RetLengthNoMatch) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, ImportVar1) {
-
+TEST_F(Compile0, ImportVar1)
+{
     char const *inpl = "\
         import int Var;     \n\
         import int Var;     \n\
@@ -1714,8 +1714,8 @@ TEST_F(Compile0, ImportVar1) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, ImportVar2) {
-
+TEST_F(Compile0, ImportVar2)
+{
     char const *inpl = "\
         import int Var;     \n\
         import int Var;     \n\
@@ -1732,8 +1732,8 @@ TEST_F(Compile0, ImportVar2) {
     EXPECT_NE(std::string::npos, err_msg.find("import"));
 }
 
-TEST_F(Compile0, ImportVar3) {
-
+TEST_F(Compile0, ImportVar3)
+{
     char const *inpl = "\
         import int Var;     \n\
         import int Var;     \n\
@@ -1750,8 +1750,8 @@ TEST_F(Compile0, ImportVar3) {
     EXPECT_NE(std::string::npos, err_msg.find("'int'"));
 }
 
-TEST_F(Compile0, ImportVar4) {
-
+TEST_F(Compile0, ImportVar4)
+{
     char const *inpl = "\
         int Var;            \n\
         import int Var;     \n\
@@ -1766,8 +1766,8 @@ TEST_F(Compile0, ImportVar4) {
     EXPECT_EQ(std::string::npos, err_msg.find("xception"));
 }
 
-TEST_F(Compile0, ImportVar5) {
-
+TEST_F(Compile0, ImportVar5)
+{
     // "import int Var" is treated as a forward declaration
     // for the "int Var" that follows, not as an import proper.
 
@@ -1789,8 +1789,8 @@ TEST_F(Compile0, ImportVar5) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, ExtenderFuncDifference) {
-
+TEST_F(Compile0, ExtenderFuncDifference)
+{
     // Same func name, should be okay since they extend different structs
 
     char const *inpl = "\
@@ -1821,8 +1821,8 @@ TEST_F(Compile0, ExtenderFuncDifference) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, StaticFuncCall) {
-
+TEST_F(Compile0, StaticFuncCall)
+{
     // Static function call, should work.
 
     char const *inpl = "\
@@ -1845,8 +1845,8 @@ TEST_F(Compile0, StaticFuncCall) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Import2GlobalAllocation) {
-
+TEST_F(Compile0, Import2GlobalAllocation)
+{
     // Imported var I becomes a global var; must be allocated only once.
     // This means that J ought to be allocated at 4.
 
@@ -1863,10 +1863,10 @@ TEST_F(Compile0, Import2GlobalAllocation) {
     AGS::SymbolTable sym;
     AGS::FlagSet const options = ~SCOPT_NOIMPORTOVERRIDE | SCOPT_LINENUMBERS;
 
-    AGS::Scanner scanner = { inpl, false, targ, scrip, sym, mh };
+    AGS::Scanner scanner = {inpl, false, targ, scrip, sym, mh};
     scanner.Scan();
     ASSERT_FALSE(mh.HasError());
-    AGS::Parser parser = { targ, options, scrip, sym, mh };
+    AGS::Parser parser = {targ, options, scrip, sym, mh};
     parser.Parse();
     std::string const &err_msg = mh.GetError().Message;
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
@@ -1877,8 +1877,8 @@ TEST_F(Compile0, Import2GlobalAllocation) {
     ASSERT_EQ(4, entry.VariableD->Offset);
 }
 
-TEST_F(Compile0, LocalImportVar) {
-
+TEST_F(Compile0, LocalImportVar)
+{
     char const *inpl = "\
         import int Var;     \n\
         int Var;            \n\
@@ -1893,8 +1893,8 @@ TEST_F(Compile0, LocalImportVar) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Recursive1) {
-
+TEST_F(Compile0, Recursive1)
+{
     char const *inpl = "\
         import int Foo2 (int);    \n\
                                   \n\
@@ -1917,8 +1917,8 @@ TEST_F(Compile0, Recursive1) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, GlobalFuncStructFunc) {
-
+TEST_F(Compile0, GlobalFuncStructFunc)
+{
     char const *inpl = "\
         import int Foo2 (int);      \n\
                                     \n\
@@ -1940,8 +1940,8 @@ TEST_F(Compile0, GlobalFuncStructFunc) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, VariadicFunc) {
-
+TEST_F(Compile0, VariadicFunc)
+{
     std::string inpl = "\
         String payload;                 \n\
                                         \n\
@@ -1964,8 +1964,8 @@ TEST_F(Compile0, VariadicFunc) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, DynamicAndNull) {
-
+TEST_F(Compile0, DynamicAndNull)
+{
     std::string inpl = "\
         int main()                          \n\
         {                                   \n\
@@ -1985,8 +1985,8 @@ TEST_F(Compile0, DynamicAndNull) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, AssignPtr2ArrayOfPtr) {
-
+TEST_F(Compile0, AssignPtr2ArrayOfPtr)
+{
     std::string inpl = "\
         managed struct DynamicSprite            \n\
         {                                       \n\
@@ -2011,8 +2011,8 @@ TEST_F(Compile0, AssignPtr2ArrayOfPtr) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Attributes01) {
-
+TEST_F(Compile0, Attributes01)
+{
     // get_Flipped is implicitly declared with attribute Flipped so defns clash
 
     char const *inpl = "\
@@ -2033,8 +2033,8 @@ TEST_F(Compile0, Attributes01) {
     EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
 }
 
-TEST_F(Compile0, Attributes02) {
-
+TEST_F(Compile0, Attributes02)
+{
     // get_Flipped is implicitly declared with attribute Flipped so defns clash
 
     char const *inpl = "\
@@ -2055,8 +2055,8 @@ TEST_F(Compile0, Attributes02) {
     EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
 }
 
-TEST_F(Compile0, Attributes03) {
-
+TEST_F(Compile0, Attributes03)
+{
     // get_Flipped is implicitly declared with attribute Flipped so defns clash
 
     char const *inpl = "\
@@ -2077,8 +2077,8 @@ TEST_F(Compile0, Attributes03) {
     EXPECT_NE(std::string::npos, res.find("ViewFrame::get_Flipped"));
 }
 
-TEST_F(Compile0, Attributes04) {
-
+TEST_F(Compile0, Attributes04)
+{
     // Components may have the same name as vartypes.
 
     char const *inpl = "\
@@ -2104,8 +2104,8 @@ TEST_F(Compile0, Attributes04) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Attributes05) {
-
+TEST_F(Compile0, Attributes05)
+{
     // Assignment to static attribute should call the setter.
 
     char const *inpl = "\
@@ -2127,8 +2127,8 @@ TEST_F(Compile0, Attributes05) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Attributes06) {
-
+TEST_F(Compile0, Attributes06)
+{
     // Assignment to static indexed attribute
 
     char const *inpl = "\
@@ -2156,8 +2156,8 @@ TEST_F(Compile0, Attributes06) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Attributes07) {
-
+TEST_F(Compile0, Attributes07)
+{
     // Reading an import static attribute should not trigger
     //  a Not Declared error since it is declared.
 
@@ -2183,8 +2183,8 @@ TEST_F(Compile0, Attributes07) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Attributes08) {
-
+TEST_F(Compile0, Attributes08)
+{
     // Accept a readonly attribute and a non-readonly getter
 
     char const *inpl = "\
@@ -2208,8 +2208,8 @@ TEST_F(Compile0, Attributes08) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Attributes09) {
-
+TEST_F(Compile0, Attributes09)
+{
     // Do not accept a static attribute and a non-static getter
 
     char const *inpl = "\
@@ -2234,8 +2234,8 @@ TEST_F(Compile0, Attributes09) {
     EXPECT_NE(std::string::npos, err_msg.find("static"));
 }
 
-TEST_F(Compile0, Attributes10) {
-
+TEST_F(Compile0, Attributes10)
+{
     // Call non-indexed attribute with index, is error
 
     char const *inpl = "\
@@ -2260,8 +2260,8 @@ TEST_F(Compile0, Attributes10) {
 }
 
 
-TEST_F(Compile0, Attributes11) {
-
+TEST_F(Compile0, Attributes11)
+{
     // Call indexed attribute without index, is error
 
     char const *inpl = "\
@@ -2285,8 +2285,8 @@ TEST_F(Compile0, Attributes11) {
     EXPECT_NE(std::string::npos, err_msg.find(" indexed"));
 }
 
-TEST_F(Compile0, Attributes12) {
-
+TEST_F(Compile0, Attributes12)
+{
     // No local attributes
 
     char const *inpl = "\
@@ -2310,8 +2310,8 @@ TEST_F(Compile0, Attributes12) {
     EXPECT_NE(std::string::npos, err_msg.find("function body"));
 }
 
-TEST_F(Compile0, Attributes13) {
-
+TEST_F(Compile0, Attributes13)
+{
     // No attributes defined as 'static'
 
     char const *inpl = "\
@@ -2332,8 +2332,8 @@ TEST_F(Compile0, Attributes13) {
     EXPECT_NE(std::string::npos, err_msg.find("static attribute"));
 }
 
-TEST_F(Compile0, Attributes14) {
-
+TEST_F(Compile0, Attributes14)
+{
     // Setting a readonly attribute, is error
 
     char const *inpl = "\
@@ -2359,8 +2359,8 @@ TEST_F(Compile0, Attributes14) {
 }
 
 
-TEST_F(Compile0, Attributes15) {
-
+TEST_F(Compile0, Attributes15)
+{
     // Setting a readonly attribute, is error
 
     char const *inpl = "\
@@ -2386,8 +2386,8 @@ TEST_F(Compile0, Attributes15) {
     EXPECT_NE(std::string::npos, err_msg.find("readonly"));
 }
 
-TEST_F(Compile0, Attributes16) {
-
+TEST_F(Compile0, Attributes16)
+{
     // Import decls of autopointered variables must be processed correctly.
 
     char const *inpl = "\
@@ -2411,7 +2411,6 @@ TEST_F(Compile0, Attributes16) {
 
 TEST_F(Compile0, Attributes17)
 {
-
     // This attribute is type 'float' and assigned an 'int'. This should fail.
 
     char const *inpl = "\
@@ -2434,8 +2433,8 @@ TEST_F(Compile0, Attributes17)
     EXPECT_NE(std::string::npos, err_msg.find("'float'"));
 }
 
-TEST_F(Compile0, StructPtrFunc) {
-
+TEST_F(Compile0, StructPtrFunc)
+{
     // Func is ptr to managed, but it is a function not a variable
     // so ought to be let through.
 
@@ -2457,8 +2456,8 @@ TEST_F(Compile0, StructPtrFunc) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, StringOldstyle01) {
-
+TEST_F(Compile0, StringOldstyle01)
+{
     // Can't return a local string because it will be already de-allocated when
     // the function returns
 
@@ -2479,8 +2478,8 @@ TEST_F(Compile0, StringOldstyle01) {
     EXPECT_NE(std::string::npos, err_msg.find("local 'string'"));
 }
 
-TEST_F(Compile0, StringOldstyle02) {
-
+TEST_F(Compile0, StringOldstyle02)
+{
     // If a function expects a non-const string,
     // it mustn't be passed a const string
 
@@ -2502,8 +2501,8 @@ TEST_F(Compile0, StringOldstyle02) {
     EXPECT_NE(std::string::npos, err_msg.find("convert"));
 }
 
-TEST_F(Compile0, StringOldstyle03) {
-
+TEST_F(Compile0, StringOldstyle03)
+{
     // A string literal is a constant string,
     // so you can't return it as a string.
 
@@ -2525,7 +2524,8 @@ TEST_F(Compile0, StringOldstyle03) {
     EXPECT_NE(std::string::npos, err_msg.find("ype mismatch"));
 }
 
-TEST_F(Compile0, StringOldstyle04) {
+TEST_F(Compile0, StringOldstyle04)
+{
     // Initializing constant is too long
     // (the terminating '\0' MUST fit into 'Global2')
 
@@ -2542,7 +2542,8 @@ TEST_F(Compile0, StringOldstyle04) {
     EXPECT_NE(std::string::npos, err_msg.find("oo long"));
 }
 
-TEST_F(Compile0, StringOldstyle05) {
+TEST_F(Compile0, StringOldstyle05)
+{
     // Initializing constant is too long
 
     char const *inpl = R"%&/(
@@ -2604,8 +2605,8 @@ TEST_F(Compile0, ConstOldstringReturn2)
     EXPECT_NE(std::string::npos, err_msg.find("'const string'"));
 }
 
-TEST_F(Compile0, StructPointerAttribute) {
-
+TEST_F(Compile0, StructPointerAttribute)
+{
     // It's okay for a managed struct to have a pointer import attribute.
 
     char const *inpl = "\
@@ -2625,8 +2626,8 @@ TEST_F(Compile0, StructPointerAttribute) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, StringNullCompare) {
-
+TEST_F(Compile0, StringNullCompare)
+{
     // It's okay to compare strings to null
 
     char const *inpl = "\
@@ -2649,8 +2650,8 @@ TEST_F(Compile0, StringNullCompare) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Decl) {
-
+TEST_F(Compile0, Decl)
+{
     // Should complain about the "+="
     // Note, there are many more legal possibilites than just "," ";" "=".
 
@@ -2671,8 +2672,8 @@ TEST_F(Compile0, Decl) {
     EXPECT_EQ(std::string::npos, err_msg.find("xception"));
 }
 
-TEST_F(Compile0, DynamicArrayCompare) {
-
+TEST_F(Compile0, DynamicArrayCompare)
+{
     // May compare DynArrays for equality.
     // The pointers, not the array components are compared.
     // May have a '*' after a struct defn.
@@ -2699,8 +2700,8 @@ TEST_F(Compile0, DynamicArrayCompare) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, DoubleLocalDecl) {
-
+TEST_F(Compile0, DoubleLocalDecl)
+{
     // A local definition may hide an outer local definition or a global definition;
     // those will be uncovered when the scope of the local definition ends.
 
@@ -2727,8 +2728,8 @@ TEST_F(Compile0, DoubleLocalDecl) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, NewEnumArray) {
-
+TEST_F(Compile0, NewEnumArray)
+{
     // dynamic array of enum should work
 
     char const *inpl = "\
@@ -2752,8 +2753,8 @@ TEST_F(Compile0, NewEnumArray) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Readonly01) {
-
+TEST_F(Compile0, Readonly01)
+{
     // Declaring a readonly variable with initialization is okay.
 
     char const *inpl = "\
@@ -2771,8 +2772,8 @@ TEST_F(Compile0, Readonly01) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Ternary01) {
-
+TEST_F(Compile0, Ternary01)
+{
     // a trivial ternary operation
 
     char const *inpl = "\
@@ -2791,8 +2792,8 @@ TEST_F(Compile0, Ternary01) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Ternary02) {
-
+TEST_F(Compile0, Ternary02)
+{
     // ternary operations where condition and assignment have different types
 
     char const *inpl = "\
@@ -2812,8 +2813,8 @@ TEST_F(Compile0, Ternary02) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Ternary03) {
-
+TEST_F(Compile0, Ternary03)
+{
     // Values of ternary must have compatible vartypes
     // Note: the 'break;' is wrong. The compiler should stop before it.
 
@@ -2835,8 +2836,8 @@ TEST_F(Compile0, Ternary03) {
     EXPECT_NE(std::string::npos, err_msg.find("float"));
 }
 
-TEST_F(Compile0, Ternary04) {
-
+TEST_F(Compile0, Ternary04)
+{
     // ternary operations with constexpr arithmetical expressions in them
     // supposedly will be precalculated at compilation time
 
@@ -2857,8 +2858,8 @@ TEST_F(Compile0, Ternary04) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Ternary05) {
-
+TEST_F(Compile0, Ternary05)
+{
     // ternary operations with variable arithmetical expressions in them
 
     char const *inpl = "\
@@ -2878,8 +2879,8 @@ TEST_F(Compile0, Ternary05) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Ternary06) {
-
+TEST_F(Compile0, Ternary06)
+{
     // ternary operations with nested bracketed expressions in them
 
     char const *inpl = "\
@@ -2907,8 +2908,8 @@ TEST_F(Compile0, Ternary06) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, Ternary07) {
-
+TEST_F(Compile0, Ternary07)
+{
     // case labels accept expressions in AGS, so ternary expressions should work, too.
 
     char const *inpl = "\
@@ -2933,10 +2934,10 @@ TEST_F(Compile0, Ternary07) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, FlowPointerExpressions1) {
-
+TEST_F(Compile0, FlowPointerExpressions1)
+{
     // The parenthesized expression after 'if', 'while', 'do ... while'
-    // may evaluate to a pointer 
+    // may evaluate to a pointer
 
     char const *inpl = "\
         import builtin managed struct Character     \n\
@@ -2962,8 +2963,8 @@ TEST_F(Compile0, FlowPointerExpressions1) {
     ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
 }
 
-TEST_F(Compile0, FlowPointerExpressions2) {
-
+TEST_F(Compile0, FlowPointerExpressions2)
+{
     // The parenthesized expression after 'if' must not be float
 
     char const *inpl = "\
@@ -2983,8 +2984,8 @@ TEST_F(Compile0, FlowPointerExpressions2) {
     EXPECT_NE(std::string::npos, err_msg.find("float"));
 }
 
-TEST_F(Compile0, FlowPointerExpressions3) {
-
+TEST_F(Compile0, FlowPointerExpressions3)
+{
     // The parenthesized expression after 'while' must not be float
 
     char const *inpl = "\
@@ -3004,8 +3005,8 @@ TEST_F(Compile0, FlowPointerExpressions3) {
     EXPECT_NE(std::string::npos, err_msg.find("float"));
 }
 
-TEST_F(Compile0, FlowPointerExpressions4) {
-
+TEST_F(Compile0, FlowPointerExpressions4)
+{
     // The parenthesized expression after 'do ... while' must not be float
 
     char const *inpl = "\
@@ -3026,11 +3027,11 @@ TEST_F(Compile0, FlowPointerExpressions4) {
     EXPECT_NE(std::string::npos, err_msg.find("float"));
 }
 
-TEST_F(Compile0, AsUnknownType) {
-
+TEST_F(Compile0, AsUnknownType)
+{
     // A type must follow 'as'
 
-    char const *inpl =  R"%&/(
+    char const *inpl = R"%&/(
         struct S { int Payload; };
 
         int game_start()
@@ -3048,10 +3049,10 @@ TEST_F(Compile0, AsUnknownType) {
     EXPECT_NE(std::string::npos, err_msg.find("Putin"));
 }
 
-TEST_F(Compile0, NewUnknownType) {
-
+TEST_F(Compile0, NewUnknownType)
+{
     // A type must follow 'new'
-    char const *inpl =  R"%&/(
+    char const *inpl = R"%&/(
         struct S { int Payload; };
 
         int game_start()

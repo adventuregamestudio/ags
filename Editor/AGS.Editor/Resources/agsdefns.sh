@@ -1878,6 +1878,9 @@ builtin managed struct GUIControl {
   /// Gets/sets the shader of this control.
   import attribute ShaderInstance* Shader;
 #endif // SCRIPT_API_v400_18
+
+  // FIXME: this is for virtual function test only!
+  import virtual void CallMe();
 };
 
 builtin managed struct Label extends GUIControl {
@@ -1895,6 +1898,9 @@ builtin managed struct Label extends GUIControl {
   /// Gets/sets the colour of the text's outline (used if the text's font has outline).
   import attribute int  TextOutlineColor;
 #endif // SCRIPT_API_v363
+
+  // FIXME: this is for virtual function test only!
+  import virtual void CallMe();
 };
 
 builtin managed struct Button extends GUIControl {
@@ -1974,6 +1980,9 @@ builtin managed struct Button extends GUIControl {
   /// Gets/sets the flip direction of the button's graphic
   import attribute eFlipDirection GraphicFlip;
 #endif // SCRIPT_API_v400
+
+  // FIXME: this is for virtual function test only!
+  import virtual void CallMe();
 };
 
 builtin managed struct Slider extends GUIControl {

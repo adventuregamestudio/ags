@@ -521,6 +521,11 @@ void Button_SetWrapText(GUIButton *butt, bool wrap)
     }
 }
 
+void Button_CallMe(GUIButton *butt)
+{
+    debug_script_message(kDbgMsg_Alert, "This is BUTTON %s", butt->GetName().GetCStr());
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -823,6 +828,11 @@ RuntimeScriptValue Sc_Button_GetAnimView(void *self, const RuntimeScriptValue *p
     API_OBJCALL_INT(GUIButton, Button_GetAnimView);
 }
 
+RuntimeScriptValue Sc_Button_CallMe(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(GUIButton, Button_CallMe);
+}
+
 void RegisterButtonAPI()
 {
     ScFnRegister button_api[] = {
@@ -882,6 +892,8 @@ void RegisterButtonAPI()
         { "Button::get_PushedTextColor",  API_FN_PAIR(Button_GetPushedTextColor) },
         { "Button::set_PushedTextColor",  API_FN_PAIR(Button_SetPushedTextColor) },
         { "Button::get_View",             API_FN_PAIR(Button_GetAnimView) },
+
+        { "Button::CallMe",               API_FN_PAIR(Button_CallMe) },
     };
 
     ccAddExternalFunctions(button_api);

@@ -18,6 +18,7 @@
 #include "ac/label.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "debug/debug_log.h"
 
 using namespace AGS::Common;
 
@@ -77,6 +78,11 @@ int Label_GetFont(GUILabel *labl) {
 void Label_SetFont(GUILabel *guil, int fontnum) {
     fontnum = ValidateFontNumber("Label.Font", fontnum);
     guil->SetFont(fontnum);
+}
+
+void Label_CallMe(GUILabel *butt)
+{
+    debug_script_message(kDbgMsg_Alert, "This is LABEL %s", butt->GetName().GetCStr());
 }
 
 //=============================================================================
@@ -151,6 +157,11 @@ RuntimeScriptValue Sc_Label_SetTextOutlineColor(void *self, const RuntimeScriptV
     API_OBJCALL_VOID_PINT(GUILabel, Label_SetTextOutlineColor);
 }
 
+RuntimeScriptValue Sc_Label_CallMe(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(GUILabel, Label_CallMe);
+}
+
 
 
 void RegisterLabelAPI()
@@ -168,6 +179,8 @@ void RegisterLabelAPI()
         { "Label::set_TextColor", API_FN_PAIR(Label_SetTextColor) },
         { "Label::get_TextOutlineColor", API_FN_PAIR(Label_GetTextOutlineColor) },
         { "Label::set_TextOutlineColor", API_FN_PAIR(Label_SetTextOutlineColor) },
+
+        { "Label::CallMe",        API_FN_PAIR(Label_CallMe) },
     };
 
     ccAddExternalFunctions(label_api);

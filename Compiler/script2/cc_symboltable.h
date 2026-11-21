@@ -87,6 +87,7 @@ enum class TQ : size_t // Type qualifier
     kReadonly,
     kStatic,
     kWriteprotected,
+    kVirtual,
 };
 typedef TQ TypeQualifier;
 
@@ -220,10 +221,11 @@ enum Predefined : Symbol
     kKW_Struct,         // "struct"
     kKW_Switch,         // "switch"
     kKW_While,          // "while"
-    kKW_Writeprotected,  // "writeprotected"
+    kKW_Writeprotected, // "writeprotected"
     kKW_ManagedBase,    // "managedbase"
+    kKW_Virtual,        // "virtual"
 };
-constexpr Predefined kKW_LastPredefined = kKW_ManagedBase;
+constexpr Predefined kKW_LastPredefined = kKW_Virtual;
 constexpr Predefined kKW_Dynpointer = kKW_Multiply;
 
 // For function parameters, used in functions of the symbol table
@@ -313,6 +315,7 @@ struct SymbolTableEntry : public SymbolTableConstant
         bool IsVariadic = false;
         bool IsFormat = false;
         bool NoLoopCheck = false;
+        int VirtualIndex = -1;
     } *FunctionD = nullptr;
 
     // For literal values, e.g. 10, "foo", 2.0
@@ -356,6 +359,7 @@ struct SymbolTableEntry : public SymbolTableConstant
         Symbol Constructor = kKW_NoSymbol; // For structs: this vartype's constructor (also contained in Components)
         Symbol Parent = kKW_NoSymbol; // For structs: this vartype extends the Parent
         VartypeFlags Flags;
+        size_t VirtualTableCount = 0u; // Number of virtual functions (includes all parent's recursively)
     } *VartypeD = nullptr;
 
     SymbolTableEntry() = default;
@@ -507,8 +511,13 @@ public:
     // Start search with the components of ancestor.
     Symbol FindStructComponent(Symbol strct, Symbol component, Symbol ancestor) const;
     inline Symbol FindStructComponent(Symbol strct, Symbol component) const { return FindStructComponent(strct, component, strct); }
+    // Returns a unqualified (base) name of a struct's component (a), given the fully qualified name (A::a)
+    Symbol FindStructUnqualifiedComponentName(Symbol strct, Symbol qualified_component);
     // Finds the first constructor declared either in this struct or in any of its parent types (going up the hierarchy)
     Symbol FindConstructorOfTypeOrParent(Symbol strct) const;
+    // Finds the struct that have this virtual function declared first in the hierarchy of types;
+    // input is a *unqualified* function name, returns a struct on success, or kKW_NoSymbol on failure.
+    Symbol FindVirtualFunctionParent(Symbol strct, Symbol name_of_func);
 
     // Arrays and variables that are arrays
     // The "Array[...] of vartype" vartype
@@ -538,6 +547,8 @@ public:
     bool IsManagedVartype(Symbol s) const;
 
     // Functions
+    inline bool IsVirtualFunction(Symbol func) const
+        { return IsFunction(func) ? entries.at(func).FunctionD->VirtualIndex >= 0 : false; }
     inline size_t FuncParamsCount(Symbol func) const
         { return IsFunction(func) ? entries.at(func).FunctionD->Parameters.size() - 1u : 0u; }
     inline bool IsVariadicFunc(Symbol func) const

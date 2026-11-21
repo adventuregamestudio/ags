@@ -120,6 +120,7 @@ public:
     const static size_t PointerSize = sizeof(uint32_t);
 
     struct Field;
+    struct VTEntry;
 
     // Location info: a context, in which a symbol
     // (type, function, variable) may be defined.
@@ -141,7 +142,7 @@ public:
     struct Type
     {
         friend RTTI; friend RTTIBuilder; friend RTTISerializer; friend JointRTTI;
-        const static size_t FileSize = 10 * sizeof(uint32_t);
+        const static size_t FileSize = 12 * sizeof(uint32_t);
     public:
         uint32_t this_id = 0u; // this type's id (local to current RTTI struct)
         uint32_t loc_id = 0u; // type location's id (script or header)
@@ -151,6 +152,7 @@ public:
         uint32_t size = 0u; // type size in bytes
         uint32_t dim_num = 0u; // number of array dimensions (reserved field atm)
         uint32_t field_num = 0u; // number of fields, if any
+        uint32_t vte_num = 0u; // number of virtual table entries, if any
         // Quick-access links
         // Type's name; along with location's name will create a
         // "fully qualified name" suitable for uniquely identify this type
@@ -160,10 +162,12 @@ public:
         const Type *parent = nullptr;
         const Type *base = nullptr;
         const Field *first_field = nullptr;
+        const VTEntry *first_vte = nullptr;
     private:
         // Internal references
         uint32_t name_stri = 0u; // type's name (string table offset)
         uint32_t field_index = 0u; // first field index in the fields table
+        uint32_t vt_index = 0u; // first virtual table index in the single combined table
     };
 
     // Type's field info
@@ -185,6 +189,23 @@ public:
     private:
         // Internal references
         uint32_t name_stri = 0u; // field's name (string table offset)
+    };
+
+    // Virtual function table entry (a virtual function)
+    struct VTEntry
+    {
+        friend RTTI; friend RTTIBuilder; friend RTTISerializer; friend JointRTTI;
+        const static size_t FileSize = 2 * sizeof(uint32_t);
+    public:
+        uint32_t index = 0u; // index in table
+        // Quick-access links
+        const char *name = nullptr;
+        const Type *owner = nullptr;
+        const VTEntry *prev_vte = nullptr;
+        const VTEntry *next_vte = nullptr;
+    private:
+        // Internal references
+        uint32_t name_stri = 0u; // entry's name (string table offset)
     };
 
     RTTI()
@@ -220,6 +241,8 @@ private:
     std::vector<Type> _types;
     // Type fields' descriptions
     std::vector<Field> _fields;
+    // Virtual table: type's virtual functions
+    std::vector<VTEntry> _vt;
     // All RTTI strings packed, separated by null-terminators
     std::vector<char> _strings;
 };
@@ -228,11 +251,14 @@ private:
 class RTTISerializer
 {
 public:
+    // * kFmtver_400_22 - fields can describe arrays
+    // * kFmtver_400_34 - types can have virtual tables
     enum FormatVersion
     {
         kFmtver_Initial = 0,
         kFmtver_400_22  = 4000022,
-        kFmtver_Latest  = kFmtver_400_22
+        kFmtver_400_34  = 4000034,
+        kFmtver_Latest  = kFmtver_400_34
     };
 
     // Reads the RTTI collection from the stream
@@ -256,6 +282,8 @@ public:
     // Adds a type's field entry
     void AddField(uint32_t owner_id, const std::string &name, uint32_t offset,
         uint32_t f_typeid, uint32_t flags, uint32_t num_elems);
+    // Adds a type's virtual table entry
+    void AddVirtualFunction(uint32_t owner_id, const std::string &name, uint32_t index);
     // Finalizes the RTTI, generates remaining data based on collected one
     RTTI Finalize();
 
@@ -264,6 +292,7 @@ private:
     RTTI _rtti;
     // Helper fields
     std::multimap<uint32_t, RTTI::Field> _fieldIdx; // type id to fields list
+    std::multimap<uint32_t, RTTI::VTEntry> _vteIdx; // type id to virtual functions list
     std::map<std::string, uint32_t> _strtable; // string to offset
     uint32_t _strpackedLen = 0u; // packed string table size
 };
@@ -307,7 +336,8 @@ private:
     uint32_t JoinLocation(const Location &loc, uint32_t uid, const char *name,
         std::unordered_map<uint32_t, uint32_t> &loc_l2g);
     uint32_t JoinType(const Type &type, uint32_t uid, const char *name,
-        const std::vector<Field> &src_fields, const std::vector<char> &src_strings,
+        const std::vector<Field> &src_fields, const std::vector<VTEntry> &src_vt,
+        const std::vector<char> &src_strings,
         std::unordered_map<uint32_t, uint32_t> &type_l2g);
 };
 

@@ -3035,7 +3035,7 @@ TEST_F(Compile0, AsUnknownType) {
 
         int game_start()
         {
-            S var = new S as Putin;
+            S var = new S as R;
         }
                         )%&/";
 
@@ -3045,7 +3045,7 @@ TEST_F(Compile0, AsUnknownType) {
     EXPECT_EQ(0u, mh.WarningsCount());
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
-    EXPECT_NE(std::string::npos, err_msg.find("Putin"));
+    EXPECT_NE(std::string::npos, err_msg.find("R"));
 }
 
 TEST_F(Compile0, NewUnknownType) {
@@ -3056,7 +3056,7 @@ TEST_F(Compile0, NewUnknownType) {
 
         int game_start()
         {
-            S var = new Putin;
+            S var = new R;
         }
                         )%&/";
 
@@ -3066,5 +3066,5 @@ TEST_F(Compile0, NewUnknownType) {
     EXPECT_EQ(0u, mh.WarningsCount());
 
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
-    EXPECT_NE(std::string::npos, err_msg.find("Putin"));
+    EXPECT_NE(std::string::npos, err_msg.find("R"));
 }

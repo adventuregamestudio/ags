@@ -406,6 +406,11 @@ void GUIControl_SetShader(GUIControl *guio, ScriptShaderInstance *shader_inst)
                     ccReplaceObjectHandle(guio->GetShaderHandle(), shader_inst));
 }
 
+void GUIControl_CallMe(GUIControl *butt)
+{
+    debug_script_message(kDbgMsg_Alert, "This is GUI CONTROL %s", butt->GetName().GetCStr());
+}
+
 //=============================================================================
 //
 // Script API Functions
@@ -790,6 +795,11 @@ RuntimeScriptValue Sc_GUIControl_SetTextProperty(void *self, const RuntimeScript
     API_OBJCALL_BOOL_POBJ2(GUIControl, GUIControl_SetTextProperty, const char, const char);
 }
 
+RuntimeScriptValue Sc_GUIControl_CallMe(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID(GUIControl, GUIControl_CallMe);
+}
+
 
 void RegisterGUIControlAPI()
 {
@@ -866,6 +876,8 @@ void RegisterGUIControlAPI()
         { "GUIControl::set_BlendMode",    API_FN_PAIR(GUIControl_SetBlendMode) },
         { "GUIControl::get_Shader",       API_FN_PAIR(GUIControl_GetShader) },
         { "GUIControl::set_Shader",       API_FN_PAIR(GUIControl_SetShader) },
+
+        { "GUIControl::CallMe",           API_FN_PAIR(GUIControl_CallMe) },
     };
 
     ccAddExternalFunctions(guicontrol_api);

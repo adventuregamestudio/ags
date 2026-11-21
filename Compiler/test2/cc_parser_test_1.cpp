@@ -20,6 +20,7 @@
 #include "script2/cc_symboltable.h"
 #include "script2/cc_internallist.h"
 #include "script2/cs_parser.h"
+#include "script2/cs_scanner.h"
 
 #include "cc_parser_test_lib.h"
 
@@ -3247,4 +3248,239 @@ TEST_F(Compile1, ReturnValueFromVoidFunc) {
     std::string const &err_msg = mh.GetError().Message;
     ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
     EXPECT_NE(std::string::npos, err_msg.find("'void' function"));
+}
+
+TEST_F(Compile1, ImportVirtualFunction) {
+
+    std::vector<AGS::Symbol> tokens;
+    AGS::LineHandler lh;
+    size_t cursor = 0;
+    AGS::SrcList targ(tokens, lh, cursor);
+    AGS::SymbolTable sym;
+
+    char const *inpl = "\
+        managed struct A                    \n\
+        {                                   \n\
+            import virtual void MyFunc();   \n\
+        };                                  \n\
+                                            \n\
+        virtual void A::MyFunc()            \n\
+        {                                   \n\
+        }                                   \n\
+        ";
+
+    AGS::Scanner scanner = { inpl, false, targ, scrip, sym, mh };
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
+    AGS::Parser parser = { targ, kNoOptions, scrip, sym, mh };
+    parser.Parse();
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    int structidx = sym.Find("A");
+    int funcidx = sym.Find("A::MyFunc");
+    ASSERT_TRUE(structidx != -1);
+    ASSERT_TRUE(funcidx != -1);
+    EXPECT_TRUE(sym.IsVirtualFunction(funcidx));
+    EXPECT_EQ(1, sym.entries.at(structidx).VartypeD->VirtualTableCount);
+    EXPECT_EQ(0, sym.entries.at(funcidx).FunctionD->VirtualIndex);
+}
+
+TEST_F(Compile1, OverrideVirtualFunction) {
+
+    std::vector<AGS::Symbol> tokens;
+    AGS::LineHandler lh;
+    size_t cursor = 0;
+    AGS::SrcList targ(tokens, lh, cursor);
+    AGS::SymbolTable sym;
+
+    char const *inpl = "\
+        managed struct A                    \n\
+        {                                   \n\
+            import virtual void MyFunc();   \n\
+        };                                  \n\
+        managed struct B                    \n\
+        {                                   \n\
+            import virtual void MyFunc();   \n\
+        };                                  \n\
+        managed struct B2_1 extends B       \n\
+        {                                   \n\
+            import virtual void MyFunc();   \n\
+            import virtual void MyFunc2();  \n\
+        };                                  \n\
+        managed struct B2_2 extends B       \n\
+        {                                   \n\
+            import virtual void MyFunc2();  \n\
+            import virtual void MyFunc();   \n\
+        };                                  \n\
+        managed struct B3 extends B2_1      \n\
+        {                                   \n\
+            import virtual void MyFunc2();  \n\
+            import virtual void MyFunc3();  \n\
+            import virtual void MyFunc4();  \n\
+        };                                  \n\
+        ";
+
+    AGS::Scanner scanner = { inpl, false, targ, scrip, sym, mh };
+    scanner.Scan();
+    ASSERT_FALSE(mh.HasError());
+    AGS::Parser parser = { targ, kNoOptions, scrip, sym, mh };
+    parser.Parse();
+    std::string const &err_msg = mh.GetError().Message;
+    size_t err_line = mh.GetError().Lineno;
+    EXPECT_EQ(0u, mh.WarningsCount());
+    ASSERT_STREQ("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+
+    // struct A
+    {
+        int structidx = sym.Find("A");
+        int funcidx = sym.Find("A::MyFunc");
+        ASSERT_TRUE(structidx != -1);
+        ASSERT_TRUE(funcidx != -1);
+        EXPECT_TRUE(sym.IsVirtualFunction(funcidx));
+        EXPECT_EQ(1, sym.entries.at(structidx).VartypeD->VirtualTableCount);
+        EXPECT_EQ(0, sym.entries.at(funcidx).FunctionD->VirtualIndex);
+    }
+
+    // struct B
+    {
+        int structidx = sym.Find("B");
+        int funcidx = sym.Find("B::MyFunc");
+        ASSERT_TRUE(structidx != -1);
+        ASSERT_TRUE(funcidx != -1);
+        EXPECT_TRUE(sym.IsVirtualFunction(funcidx));
+        EXPECT_EQ(1, sym.entries.at(structidx).VartypeD->VirtualTableCount);
+        EXPECT_EQ(0, sym.entries.at(funcidx).FunctionD->VirtualIndex);
+    }
+
+    // struct B2_1
+    {
+        int structidx = sym.Find("B2_1");
+        ASSERT_TRUE(structidx != -1);
+        int funcidx1 = sym.Find("B2_1::MyFunc");
+        int funcidx2 = sym.Find("B2_1::MyFunc2");
+        ASSERT_TRUE(funcidx1 != -1);
+        ASSERT_TRUE(funcidx2 != -1);
+        EXPECT_TRUE(sym.IsVirtualFunction(funcidx1));
+        EXPECT_TRUE(sym.IsVirtualFunction(funcidx2));
+        EXPECT_EQ(2, sym.entries.at(structidx).VartypeD->VirtualTableCount);
+        EXPECT_EQ(0, sym.entries.at(funcidx1).FunctionD->VirtualIndex);
+        EXPECT_EQ(1, sym.entries.at(funcidx2).FunctionD->VirtualIndex);
+    }
+
+    // struct B2_2
+    {
+        int structidx = sym.Find("B2_2");
+        ASSERT_TRUE(structidx != -1);
+        int funcidx1 = sym.Find("B2_2::MyFunc");
+        int funcidx2 = sym.Find("B2_2::MyFunc2");
+        ASSERT_TRUE(funcidx1 != -1);
+        ASSERT_TRUE(funcidx2 != -1);
+        EXPECT_TRUE(sym.IsVirtualFunction(funcidx1));
+        EXPECT_TRUE(sym.IsVirtualFunction(funcidx2));
+        EXPECT_EQ(2, sym.entries.at(structidx).VartypeD->VirtualTableCount);
+        EXPECT_EQ(0, sym.entries.at(funcidx1).FunctionD->VirtualIndex);
+        EXPECT_EQ(1, sym.entries.at(funcidx2).FunctionD->VirtualIndex);
+    }
+
+    // struct B3
+    {
+        int structidx = sym.Find("B3");
+        ASSERT_TRUE(structidx != -1);
+        int funcidx2 = sym.Find("B3::MyFunc2");
+        int funcidx3 = sym.Find("B3::MyFunc3");
+        int funcidx4 = sym.Find("B3::MyFunc4");
+        ASSERT_TRUE(funcidx2 != -1);
+        ASSERT_TRUE(funcidx3 != -1);
+        ASSERT_TRUE(funcidx4 != -1);
+        EXPECT_TRUE(sym.IsVirtualFunction(funcidx2));
+        EXPECT_TRUE(sym.IsVirtualFunction(funcidx3));
+        EXPECT_TRUE(sym.IsVirtualFunction(funcidx4));
+        EXPECT_EQ(4, sym.entries.at(structidx).VartypeD->VirtualTableCount);
+        EXPECT_EQ(1, sym.entries.at(funcidx2).FunctionD->VirtualIndex);
+        EXPECT_EQ(2, sym.entries.at(funcidx3).FunctionD->VirtualIndex);
+        EXPECT_EQ(3, sym.entries.at(funcidx4).FunctionD->VirtualIndex);
+    }
+}
+
+TEST_F(Compile1, VirtualFunctionInvalidDeclarations) {
+
+    // 'virtual' cannot be applied to a global function
+    char const *inpl = "\
+        import virtual void Func(); \n\
+        ";
+
+    int compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    std::string err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("isn't a struct member and so cannot be 'virtual'"));
+    mh.Clear();
+
+    // Only managed struct can have 'virtual' functions
+    inpl = "\
+        struct A                            \n\
+        {                                   \n\
+            import virtual void MyFunc();   \n\
+        };                                  \n\
+        ";
+
+    compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("Only managed structs can have virtual functions"));
+    mh.Clear();
+
+    // 'virtual' functions cannot be 'static'
+    inpl = "\
+        managed struct A                           \n\
+        {                                          \n\
+            import static virtual void MyFunc();   \n\
+        };                                         \n\
+        ";
+
+    compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("Static functions cannot be virtual"));
+    mh.Clear();
+
+    // structs cannot be declared as 'virtual'
+    inpl = "\
+        virtual struct A                           \n\
+        {                                          \n\
+            int Variable;                          \n\
+        };                                         \n\
+        ";
+
+    compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("Can only use 'virtual' in a struct member declaration"));
+    mh.Clear();
+
+    // variables cannot be declared as 'virtual'
+    inpl = "\
+        virtual int Variable;  \n\
+        ";
+
+    compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("Can only use 'virtual' in a struct member declaration"));
+    mh.Clear();
+
+    // variables cannot be declared as 'virtual' (even if they are in struct)
+    inpl = "\
+        managed struct A                           \n\
+        {                                          \n\
+            virtual int Variable;                  \n\
+        };                                         \n\
+        ";
+
+    compile_result = cc_compile(inpl, kNoOptions, scrip, mh);
+    err_msg = mh.GetError().Message;
+    ASSERT_STRNE("Ok", mh.HasError() ? err_msg.c_str() : "Ok");
+    EXPECT_NE(std::string::npos, err_msg.find("A variable cannot be declared as 'virtual'"));
 }

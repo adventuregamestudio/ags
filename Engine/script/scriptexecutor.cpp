@@ -687,6 +687,136 @@ struct ScriptOperation
     inline int Arg3i() const { return Args[2].IValue; }
 };
 
+ScriptExecError ScriptExecutor::ExecCallAs(const RuntimeScriptValue &func_ptr,
+    const int instance_id, int &num_args_to_func, bool &next_call_needs_object,
+    int &was_just_callas, const FunctionCallStack &func_callstack)
+{
+    // If there are nested CALLAS calls, the stack might
+    // contain 2 calls worth of parameters, so only
+    // push args for this call (??? - CHECKME)
+    if (num_args_to_func < 0)
+    {
+        num_args_to_func = func_callstack.GetSize();
+    }
+    ASSERT_STACK_SPACE_VALS(num_args_to_func + 1 /* return address */);
+    for (const RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
+        --prval >= func_callstack.GetHead();)
+    {
+        PushValueToStack(*prval);
+    }
+
+    // determine the offset into the code of the instance we want
+    const RuntimeScript *next_to_run = RuntimeScript::GetLinkedScript(instance_id);
+    uintptr_t callAddr = func_ptr.PtrU8 - reinterpret_cast<const uint8_t*>(next_to_run->GetCode().data());
+    if (callAddr % sizeof(uintptr_t) != 0)
+    {
+        cc_error("call address not aligned");
+        return kScExecErr_Generic;
+    }
+    callAddr /= sizeof(uintptr_t); // size of code elements
+
+    PUSH_CALL_STACK();
+    const RuntimeScript *was_running = _current;
+    const int oldpc = _pc;
+    const RuntimeScriptValue oldstack = _registers[SREG_SP];
+    const uint8_t * const oldstackdata = _stackdataPtr;
+
+    // Push placeholder for the return value (it will be popped before ret)
+    PushValueToStack(RuntimeScriptValue().SetInt32(0));
+
+    SetCurrentScript(next_to_run); // switch to the new script
+
+    // TODO: rewrite executor impl here to NOT have any nested Run calls;
+    // instead continue same loop, just like in SCMD_CALL,
+    // but push "current script" on SCMD_CALLAS and pop "current script" on SCMD_RET.
+    ScriptExecError err = Run(static_cast<int32_t>(callAddr));
+    if (err != kScExecErr_None)
+        return err;
+
+    if ((_flags & kScExecState_Aborted) == 0)
+        ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
+
+    POP_CALL_STACK();
+    SetCurrentScript(was_running); // switch back to the previous script
+    _pc = oldpc;
+    next_call_needs_object = 0;
+    was_just_callas = func_callstack.GetSize();
+    num_args_to_func = -1;
+    return kScExecErr_None;
+}
+
+ScriptExecError ScriptExecutor::ExecCallExt(const RuntimeScriptValue &func_ptr,
+    int &num_args_to_func, bool &next_call_needs_object, int &was_just_callas,
+    FunctionCallStack &func_callstack)
+{
+    _flags &= ~kScExecState_Busy;
+    was_just_callas = -1;
+    if (num_args_to_func < 0)
+    {
+        num_args_to_func = func_callstack.GetSize();
+    }
+
+    // Convert pointer arguments to simple types
+    for (RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
+        --prval >= func_callstack.GetHead();)
+    {
+        prval->DirectPtr();
+    }
+
+    RuntimeScriptValue return_value;
+
+    if (func_ptr.Type == kScValPluginFunction)
+    {
+        if (next_call_needs_object)
+        {
+            RuntimeScriptValue obj_rval = _registers[SREG_OP];
+            obj_rval.DirectPtrObj();
+            return_value = CallPluginFunction(func_ptr.Ptr, &obj_rval, func_callstack.GetHead(), num_args_to_func);
+        }
+        else
+        {
+            return_value = CallPluginFunction(func_ptr.Ptr, nullptr, func_callstack.GetHead(), num_args_to_func);
+        }
+    }
+    else if (next_call_needs_object)
+    {
+        // member function call
+        if (func_ptr.Type == kScValObjectFunction)
+        {
+            RuntimeScriptValue obj_rval = _registers[SREG_OP];
+            obj_rval.DirectPtrObj();
+            return_value = func_ptr.ObjPfn(obj_rval.Ptr, func_callstack.GetHead(), num_args_to_func);
+        }
+        else
+        {
+            cc_error("invalid pointer type for object function call: %d", func_ptr.Type);
+        }
+    }
+    else if (func_ptr.Type == kScValStaticFunction)
+    {
+        return_value = func_ptr.SPfn(func_callstack.GetHead(), num_args_to_func);
+    }
+    else if (func_ptr.Type == kScValObjectFunction)
+    {
+        cc_error("unexpected object function pointer on SCMD_CALLEXT");
+    }
+    else
+    {
+        cc_error("invalid pointer type for function call: %d", func_ptr.Type);
+    }
+
+    if (cc_has_error())
+    {
+        return kScExecErr_Generic;
+    }
+
+    _flags |= kScExecState_Busy;
+    _registers[SREG_AX] = return_value;
+    next_call_needs_object = 0;
+    num_args_to_func = -1;
+    return kScExecErr_None;
+}
+
 ScriptExecError ScriptExecutor::Run(int32_t curpc)
 {
     _pc = curpc;
@@ -707,7 +837,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
     int was_just_callas = -1;
     int curnest = 0;
     int num_args_to_func = -1;
-    int next_call_needs_object = 0;
+    bool next_call_needs_object = false;
     thisbase[0] = 0;
     funcstart[0] = _pc;
     ScriptOperation codeOp;
@@ -1082,7 +1212,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 _pc += (reg1.IValue - thisbase[curnest]);
             }
 
-            next_call_needs_object = 0;
+            next_call_needs_object = false;
 
             if (loopIterationCheckDisabled)
                 loopIterationCheckDisabled++;
@@ -1361,132 +1491,20 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         {
             // Call to a function in another script
             const auto &reg1 = _registers[codeOp.Arg1i()];
-
-            // If there are nested CALLAS calls, the stack might
-            // contain 2 calls worth of parameters, so only
-            // push args for this call (??? - CHECKME)
-            if (num_args_to_func < 0)
-            {
-                num_args_to_func = func_callstack.GetSize();
-            }
-            ASSERT_STACK_SPACE_VALS(num_args_to_func + 1 /* return address */);
-            for (const RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
-                --prval >= func_callstack.GetHead();)
-            {
-                PushValueToStack(*prval);
-            }
-
             // extract the script ID
             const int32_t instance_id = codeOp.Instruction.InstanceId;
-            // determine the offset into the code of the instance we want
-            const RuntimeScript *next_to_run = RuntimeScript::GetLinkedScript(instance_id);
-            uintptr_t callAddr = reg1.PtrU8 - reinterpret_cast<const uint8_t*>(next_to_run->GetCode().data());
-            if (callAddr % sizeof(uintptr_t) != 0)
-            {
-                cc_error("call address not aligned");
-                return kScExecErr_Generic;
-            }
-            callAddr /= sizeof(uintptr_t); // size of code elements
-
-            PUSH_CALL_STACK();
-            const RuntimeScript *was_running = _current;
-            const int oldpc = _pc;
-            const RuntimeScriptValue oldstack = _registers[SREG_SP];
-            const uint8_t * const oldstackdata = _stackdataPtr;
-
-            // Push placeholder for the return value (it will be popped before ret)
-            PushValueToStack(RuntimeScriptValue().SetInt32(0));
-
-            SetCurrentScript(next_to_run); // switch to the new script
-
-            // TODO: rewrite executor impl here to NOT have any nested Run calls;
-            // instead continue same loop, just like in SCMD_CALL,
-            // but push "current script" on SCMD_CALLAS and pop "current script" on SCMD_RET.
-            if (Run(static_cast<int32_t>(callAddr)))
-                return kScExecErr_Generic;
-
-            if ((_flags & kScExecState_Aborted) == 0)
-                ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
-
-            POP_CALL_STACK();
-            SetCurrentScript(was_running); // switch back to the previous script
-            _pc = oldpc;
-            next_call_needs_object = 0;
-            was_just_callas = func_callstack.GetSize();
-            num_args_to_func = -1;
+            ScriptExecError err = ExecCallAs(reg1, instance_id, num_args_to_func, next_call_needs_object, was_just_callas, func_callstack);
+            if (err != kScExecErr_None)
+                return err;
             break;
         }
         case SCMD_CALLEXT:
         {
-            _flags &= ~kScExecState_Busy;
-
             // Call to a real 'C' code function
             const auto &reg1 = _registers[codeOp.Arg1i()];
-
-            was_just_callas = -1;
-            if (num_args_to_func < 0)
-            {
-                num_args_to_func = func_callstack.GetSize();
-            }
-
-            // Convert pointer arguments to simple types
-            for (RuntimeScriptValue *prval = func_callstack.GetHead() + num_args_to_func;
-                --prval >= func_callstack.GetHead();)
-            {
-                prval->DirectPtr();
-            }
-
-            RuntimeScriptValue return_value;
-
-            if (reg1.Type == kScValPluginFunction)
-            {
-                if (next_call_needs_object)
-                {
-                    RuntimeScriptValue obj_rval = _registers[SREG_OP];
-                    obj_rval.DirectPtrObj();
-                    return_value = CallPluginFunction(reg1.Ptr, &obj_rval, func_callstack.GetHead(), num_args_to_func);
-                }
-                else
-                {
-                    return_value = CallPluginFunction(reg1.Ptr, nullptr, func_callstack.GetHead(), num_args_to_func);
-                }
-            }
-            else if (next_call_needs_object)
-            {
-                // member function call
-                if (reg1.Type == kScValObjectFunction)
-                {
-                    RuntimeScriptValue obj_rval = _registers[SREG_OP];
-                    obj_rval.DirectPtrObj();
-                    return_value = reg1.ObjPfn(obj_rval.Ptr, func_callstack.GetHead(), num_args_to_func);
-                }
-                else
-                {
-                    cc_error("invalid pointer type for object function call: %d", reg1.Type);
-                }
-            }
-            else if (reg1.Type == kScValStaticFunction)
-            {
-                return_value = reg1.SPfn(func_callstack.GetHead(), num_args_to_func);
-            }
-            else if (reg1.Type == kScValObjectFunction)
-            {
-                cc_error("unexpected object function pointer on SCMD_CALLEXT");
-            }
-            else
-            {
-                cc_error("invalid pointer type for function call: %d", reg1.Type);
-            }
-
-            if (cc_has_error())
-            {
-                return kScExecErr_Generic;
-            }
-
-            _flags |= kScExecState_Busy;
-            _registers[SREG_AX] = return_value;
-            next_call_needs_object = 0;
-            num_args_to_func = -1;
+            ScriptExecError err = ExecCallExt(reg1, num_args_to_func, next_call_needs_object, was_just_callas, func_callstack);
+            if (err != kScExecErr_None)
+                return err;
             break;
         }
         case SCMD_PUSHREAL:
@@ -1550,7 +1568,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
                 cc_error("internal error: SCMD_CALLOBJ argument is not an object of built-in or user-defined type");
                 return kScExecErr_Generic;
             }
-            next_call_needs_object = 1;
+            next_call_needs_object = true;
             break;
         }
         case SCMD_SHIFTLEFT:
@@ -1659,9 +1677,10 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             // but we require the manager which this object was registered with.
             // TODO: possibly may be skipped if we guarantee that every function
             // that returns a parent type pointer (like GUIControl) pairs it with the
-            // real object's manager (? - need to be researched).
+            // real object's manager (? - need to be researched). UPD: maybe already done? double check
             IScriptObject *manager = ccGetObjectManager(object);
             uint32_t obj_tid = manager->GetTypeID(object);
+            // Normally this will be the case only for built-in types
             // TODO: consider assigning typeid for managers when registering them or adding object to managed pool?
             // (unless that slows it down unnecessarily...)
             if (obj_tid == UINT32_MAX)
@@ -1838,6 +1857,70 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             if (loopIterationCheckDisabled == 0)
                 loopIterationCheckDisabled++;
             break;
+        case SCMD_GETVIRTFUNC:
+        {
+            // Get object ptr from SREG_OP, virtual index from ARG2 and write function ptr into REG1
+            auto &reg1 = _registers[codeOp.Arg1i()];
+            auto *object = _registers[SREG_OP].DirectPtrObj().Ptr;
+            if (!object)
+            {
+                cc_error("!Null pointer referenced");
+                return kScExecErr_Generic;
+            }
+
+            // NOTE: see comments to SCMD_DYNAMICCAST about having to use ccGetObjectManager here.
+            // TODO: this may be optimized under same conditions as SCMD_DYNAMICCAST
+            // TODO: furthermore, most of the below code may be removed if manager could return a pointer
+            // to the virtual table directly, instead of getting one from RTTIHelper.
+            // For this, we would need to store vt pointer in user object's header,
+            // at its creation. But this needs to be done in such as way that would not slow NEW op down.
+            IScriptObject *manager = ccGetObjectManager(object);
+            uint32_t obj_tid = manager->GetTypeID(object);
+            // Normally this will be the case only for built-in types
+            if (obj_tid == UINT32_MAX)
+            {
+                auto it_found = _rtti->GetTypeLookup().find(manager->GetType());
+                if (it_found == _rtti->GetTypeLookup().end())
+                {
+                    cc_error("Failed to find object's type in RTTI, virtual functions table not accessible");
+                    return kScExecErr_Generic;
+                }
+                obj_tid = it_found->second;
+            }
+
+            const auto &vt = RuntimeScript::GetRTTIHelper()->GetVirtualTableForType(obj_tid);
+            if (codeOp.Arg2i() < 0 || static_cast<uint32_t>(codeOp.Arg2i()) >= vt.size())
+            {
+                // TODO: make a helper function for this
+                const char *typename_real = RuntimeScript::GetJointRTTI()->GetTypes()[obj_tid].name;
+                if (!typename_real) typename_real = manager->GetType();
+                vt.size() == 0 ?
+                    cc_error("Invalid virtual table access for type '%s': table is empty", typename_real) : 
+                    cc_error("Invalid virtual table access for type '%s': index %d, valid range is 0..%d", typename_real, codeOp.Arg2i(), static_cast<int>(vt.size() - 1));
+                return kScExecErr_Generic;
+            }
+
+            reg1.SetInt32(vt[codeOp.Arg2i()]); // store script import index
+            break;
+        }
+        case SCMD_CALLDYNAMIC:
+        {
+            auto &reg1 = _registers[codeOp.Arg1i()];
+            const ScriptImport *si = simp.GetByIndex(static_cast<uint32_t>(reg1.IValue));
+            if (!si || si->Value.IsNull())
+            {
+                cc_error("cannot resolve import, key = %d", reg1.IValue);
+                return kScExecErr_Generic;
+            }
+            ScriptExecError err = kScExecErr_None;
+            if (si->ScriptID >= 0)
+                err = ExecCallAs(si->Value, si->ScriptID, num_args_to_func, next_call_needs_object, was_just_callas, func_callstack);
+            else
+                err = ExecCallExt(si->Value, num_args_to_func, next_call_needs_object, was_just_callas, func_callstack);
+            if (err != kScExecErr_None)
+                return err;
+            break;
+        }
         default:
             cc_error("instruction %d is not implemented", codeOp.Instruction.Code);
             return kScExecErr_Generic;

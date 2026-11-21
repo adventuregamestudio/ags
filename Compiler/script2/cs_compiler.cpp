@@ -40,6 +40,8 @@ void ccGetExtensions2(std::vector<std::string> &exts)
     exts.push_back("FORMATCHECK");
     // Implicit parent type for all the managed types
     exts.push_back("MANAGEDBASE");
+    // Virtual functions in managed types
+    exts.push_back("VIRTUALFUNC");
 }
 
 // Convert VartypeFlags to RTTI::TypeFlags
@@ -121,6 +123,18 @@ static std::unique_ptr<RTTI> ccCompileRTTI(const SymbolTable &symt, const Sectio
                 num_elems += sz; // CHECKME if correct
             rtb.AddField(ste.ComponentD->Parent, buf, ste.ComponentD->Offset,
                 symt.GetFirstBaseVartype(ste.VariableD->Vartype), flags, num_elems);
+        }
+        // Detect a struct's virtual function
+        else if (ste.ComponentD && ste.FunctionD)
+        {
+            // NOTE: if we ever support function overloading, then we will have to
+            // register virtual functions by their fully mangled names, to match import names precisely
+            // (i.e. "funcname^numparams^args...")
+            if (ste.FunctionD->VirtualIndex >= 0)
+            {
+                buf = ste.Name.substr(ste.Name.rfind(":") + 1);
+                rtb.AddVirtualFunction(ste.ComponentD->Parent, buf, ste.FunctionD->VirtualIndex);
+            }
         }
     }
 

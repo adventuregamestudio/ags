@@ -221,9 +221,17 @@ private:
     // Offset is in data bytes; program stack ptr is __not__ changed
     RuntimeScriptValue GetStackPtrOffsetRw(int32_t rw_offset);
 
-    // Function call stack processing
-    void    PushToFuncCallStack(FunctionCallStack &func_callstack, const RuntimeScriptValue &rval);
-    void    PopFromFuncCallStack(FunctionCallStack &func_callstack, int32_t num_entries);
+    // TODO: normally these functions should have only func_ptr arg,
+    // but because Run() has a lot of local variables, these should be passed too.
+    // this may be resolved by making these local vars class members instead.
+    // Execute call to an imported script function
+    ScriptExecError ExecCallAs(const RuntimeScriptValue &func_ptr,
+        const int instance_id, int &num_args_to_func, bool &next_call_needs_object,
+        int &was_just_callas, const FunctionCallStack &func_callstack);
+    // Execute call to an imported engine/plugin function
+    ScriptExecError ExecCallExt(const RuntimeScriptValue &func_ptr,
+        int &num_args_to_func, bool &next_call_needs_object, int &was_just_callas,
+        FunctionCallStack &func_callstack);
 
 #if (DEBUG_CC_EXEC)
     // Opens log for dumping execution steps

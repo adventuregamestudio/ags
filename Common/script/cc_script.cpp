@@ -254,7 +254,7 @@ bool ccScript::Read(Stream *in)
         HError err = reader.Read();
         reader.ReleaseStream().release(); // FIXME: this double release is ugly
         if (!err) {
-            cc_error("!internal error reading script extensions: %s", err->FullMessage().GetCStr());
+            cc_error("internal error reading script extensions: %s", err->FullMessage().GetCStr());
             return false;
         }
     }
@@ -266,7 +266,7 @@ bool ccScript::Read(Stream *in)
 
     if (static_cast<uint32_t>(in->ReadInt32()) != ENDFILESIG)
     {
-        cc_error("!internal error reading script: end file signature not found");
+        cc_error("internal error reading script: end file signature not found");
         return false;
     }
     return true;

@@ -61,6 +61,8 @@ const ScriptError &cc_get_error();
 // Returns callstack of the last recorded script error, or a callstack
 // of a current execution point, if no script error is currently saved in memory.
 AGS::Common::String cc_get_err_callstack(int max_lines = INT_MAX);
+// Logs script system error (either during compiling or executing a script).
+// Prepend the message with "!" character to mark this as "user error".
 void cc_error(AGS_FORMAT_STRING_ARG const char *, ...) AGS_FORMAT_STRING(1);
 void cc_error(const ScriptError &err);
 // Project-dependent script error formatting

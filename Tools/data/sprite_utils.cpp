@@ -640,6 +640,22 @@ void MergePalettes(Palette &dest_pal, const Palette &game_pal, const Palette &ro
             dest_pal[i] = room_pal[i];
 }
 
+HError ConvertRoomBackgroundForGame(PixelBuffer &image, const Palette *pal, PixelBuffer &dst_image, Palette &dst_pal,
+                                    const int game_color_depth)
+{
+    assert(image);
+    if (!image)
+        return new Error("No image data provided");
+    // CreateOpaqueNativeBitmap: fix color depth, no alpha, no transparency, keep the palette
+    HError err =
+        ConvertToGameCompatible(image, dst_image, pal, &dst_pal, game_color_depth, true /* fix color depth */,
+                                false /* import alpha */, false /* keep transparency */, false /* fix palette */);
+    if (!err)
+        return err;
+    PixelOp::MakeOpaque(dst_image);
+    return HError::None();
+}
+
 HError ConvertSpriteForGame(PixelBuffer &image, const Palette *pal,
     PixelBuffer &dst_image, const GameColorSettings &game_color_opt, const RoomPaletteCache *room_cache, const SpriteData &sprite)
 {

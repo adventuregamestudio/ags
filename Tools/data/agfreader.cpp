@@ -189,8 +189,13 @@ static const std::array<std::pair<const char*, int>, 2> kSpriteImportColorDepthN
     { "GameDefault", 0 }, { "Indexed8Bit", 8 }
 }};
 
-// Compares "X.Y.Z.W" version strings numerically (missing parts count as 0);
-// returns a negative, zero or positive value like strcmp
+} // namespace
+
+namespace AGS
+{
+namespace AGF
+{
+
 int CompareXmlVersions(const char *a, const char *b)
 {
     int va[4] = {}, vb[4] = {};
@@ -203,13 +208,6 @@ int CompareXmlVersions(const char *a, const char *b)
     }
     return 0;
 }
-
-} // namespace
-
-namespace AGS
-{
-namespace AGF
-{
 
 // The tools read only project formats that need no upgrade step; older projects must be opened
 // and saved in the Editor first, so the upgrade code exists only there. 4.0.0.33 moved the dialogs
@@ -630,13 +628,13 @@ static CursorRole ReadCursorRole(const String &value)
     return StrUtil::ParseEnumOptions(value, kCursorRoleNames, kCursorRole_None);
 }
 
-static BlendMode ReadBlendMode(const String &value)
+BlendMode ReadBlendMode(const String &value)
 {
     return StrUtil::ParseEnum(value, kBlendModeNames, kBlend_Normal);
 }
 
 // AGS.Types GraphicAnchorTypeConverter: "x, y", each clamped to 0-1
-static Pointf ReadGraphicAnchor(const String &value, const Pointf &def_value)
+Pointf ReadGraphicAnchor(const String &value, const Pointf &def_value)
 {
     std::vector<String> parts = value.Split(',');
     if (parts.size() != 2)

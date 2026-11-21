@@ -1195,11 +1195,11 @@ void AGS::Parser::ParseFuncdecl_VirtualInheritance(TypeQualifierSet tqs, Symbol 
     {
         Symbol func_unq_name = _sym.FindStructUnqualifiedComponentName(struct_of_func, name_of_func);
         if (func_unq_name == kKW_NoSymbol)
-            InternalError("Expected to find function %s as a component in %s", _sym.GetName(name_of_func), _sym.GetName(struct_of_func));
+            InternalError("Expected to find function %s as a component in %s", _sym.GetName(name_of_func).c_str(), _sym.GetName(struct_of_func).c_str());
 
         Symbol base_parent = _sym.FindVirtualFunctionParent(struct_of_func, func_unq_name);
         if (base_parent == kKW_NoSymbol)
-            InternalError("Expected to find a owner struct of virtual function %s", _sym.entries[name_of_func]);
+            InternalError("Expected to find a owner struct of virtual function %s", _sym.GetName(name_of_func).c_str());
 
         if (base_parent == struct_of_func)
         {

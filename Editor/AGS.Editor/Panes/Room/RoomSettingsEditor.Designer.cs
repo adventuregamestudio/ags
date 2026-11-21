@@ -28,52 +28,79 @@ namespace AGS.Editor
         /// </summary>
         private void InitializeComponent()
         {
+            this.splitWindow = new System.Windows.Forms.SplitContainer();
+            this._layerTreeView = new AGS.Editor.Panes.Room.RoomLayerTreeView();
             this.mainFrame = new System.Windows.Forms.GroupBox();
             this.chkObjectOffset = new System.Windows.Forms.CheckBox();
             this.lblMouse = new System.Windows.Forms.Label();
             this.sldTransparency = new System.Windows.Forms.TrackBar();
             this.lblTransparency = new System.Windows.Forms.Label();
             this.lblZoomInfo = new System.Windows.Forms.Label();
-            this._editAddressBar = new AddressBarExt.Controls.AddressBarExt();
             this.sldZoomLevel = new System.Windows.Forms.TrackBar();
             this.label3 = new System.Windows.Forms.Label();
             this.lblMousePos = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
             this.btnExport = new System.Windows.Forms.Button();
             this.btnDelete = new System.Windows.Forms.Button();
             this.btnChangeImage = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.cmbBackgrounds = new System.Windows.Forms.ComboBox();
             this.bufferedPanel1 = new AGS.Editor.FreePanControl();
+            ((System.ComponentModel.ISupportInitialize)(this.splitWindow)).BeginInit();
+            this.splitWindow.Panel1.SuspendLayout();
+            this.splitWindow.Panel2.SuspendLayout();
+            this.splitWindow.SuspendLayout();
             this.mainFrame.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sldTransparency)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.sldZoomLevel)).BeginInit();
             this.SuspendLayout();
-            // 
+            //
+            // splitWindow
+            //
+            this.splitWindow.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitWindow.FixedPanel = System.Windows.Forms.FixedPanel.Panel1;
+            this.splitWindow.Location = new System.Drawing.Point(0, 0);
+            this.splitWindow.Name = "splitWindow";
+            //
+            // splitWindow.Panel1
+            //
+            this.splitWindow.Panel1.Controls.Add(this._layerTreeView);
+            this.splitWindow.Panel1MinSize = 120;
+            //
+            // splitWindow.Panel2
+            //
+            this.splitWindow.Panel2.Controls.Add(this.mainFrame);
+            this.splitWindow.Size = new System.Drawing.Size(968, 491);
+            this.splitWindow.SplitterDistance = 200;
+            this.splitWindow.TabIndex = 0;
+            //
+            // _layerTreeView
+            //
+            this._layerTreeView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this._layerTreeView.Location = new System.Drawing.Point(0, 0);
+            this._layerTreeView.Name = "_layerTreeView";
+            this._layerTreeView.Size = new System.Drawing.Size(200, 491);
+            this._layerTreeView.TabIndex = 0;
+            //
             // mainFrame
-            // 
-            this.mainFrame.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            //
             this.mainFrame.Controls.Add(this.chkObjectOffset);
             this.mainFrame.Controls.Add(this.lblMouse);
             this.mainFrame.Controls.Add(this.sldTransparency);
             this.mainFrame.Controls.Add(this.lblTransparency);
             this.mainFrame.Controls.Add(this.lblZoomInfo);
-            this.mainFrame.Controls.Add(this._editAddressBar);
             this.mainFrame.Controls.Add(this.sldZoomLevel);
             this.mainFrame.Controls.Add(this.label3);
             this.mainFrame.Controls.Add(this.lblMousePos);
-            this.mainFrame.Controls.Add(this.label2);
             this.mainFrame.Controls.Add(this.btnExport);
             this.mainFrame.Controls.Add(this.btnDelete);
             this.mainFrame.Controls.Add(this.btnChangeImage);
             this.mainFrame.Controls.Add(this.label1);
             this.mainFrame.Controls.Add(this.cmbBackgrounds);
             this.mainFrame.Controls.Add(this.bufferedPanel1);
-            this.mainFrame.Location = new System.Drawing.Point(2, 3);
+            this.mainFrame.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.mainFrame.Location = new System.Drawing.Point(0, 0);
             this.mainFrame.Name = "mainFrame";
-            this.mainFrame.Size = new System.Drawing.Size(759, 485);
+            this.mainFrame.Size = new System.Drawing.Size(764, 491);
             this.mainFrame.TabIndex = 4;
             this.mainFrame.TabStop = false;
             this.mainFrame.Text = "Room details";
@@ -81,7 +108,7 @@ namespace AGS.Editor
             // chkObjectOffset
             // 
             this.chkObjectOffset.AutoSize = true;
-            this.chkObjectOffset.Location = new System.Drawing.Point(308, 82);
+            this.chkObjectOffset.Location = new System.Drawing.Point(308, 52);
             this.chkObjectOffset.Name = "chkObjectOffset";
             this.chkObjectOffset.Size = new System.Drawing.Size(171, 17);
             this.chkObjectOffset.TabIndex = 21;
@@ -93,7 +120,7 @@ namespace AGS.Editor
             // lblMouse
             // 
             this.lblMouse.AutoSize = true;
-            this.lblMouse.Location = new System.Drawing.Point(16, 83);
+            this.lblMouse.Location = new System.Drawing.Point(16, 53);
             this.lblMouse.Name = "lblMouse";
             this.lblMouse.Size = new System.Drawing.Size(77, 13);
             this.lblMouse.TabIndex = 20;
@@ -101,15 +128,17 @@ namespace AGS.Editor
             // 
             // sldTransparency
             // 
+            this.sldTransparency.AutoSize = false;
             this.sldTransparency.LargeChange = 20;
-            this.sldTransparency.Location = new System.Drawing.Point(558, 50);
+            this.sldTransparency.Location = new System.Drawing.Point(558, 48);
             this.sldTransparency.Margin = new System.Windows.Forms.Padding(1);
             this.sldTransparency.Maximum = 100;
             this.sldTransparency.Name = "sldTransparency";
-            this.sldTransparency.Size = new System.Drawing.Size(91, 45);
+            this.sldTransparency.Size = new System.Drawing.Size(91, 26);
             this.sldTransparency.SmallChange = 5;
             this.sldTransparency.TabIndex = 14;
             this.sldTransparency.TickFrequency = 20;
+            this.sldTransparency.TickStyle = System.Windows.Forms.TickStyle.None;
             this.sldTransparency.Value = 70;
             this.sldTransparency.Visible = false;
             this.sldTransparency.Scroll += new System.EventHandler(this.sldTransparency_Scroll);
@@ -132,23 +161,7 @@ namespace AGS.Editor
             this.lblZoomInfo.Size = new System.Drawing.Size(36, 13);
             this.lblZoomInfo.TabIndex = 19;
             this.lblZoomInfo.Text = "100%";
-            // 
-            // _editAddressBar
-            // 
-            this._editAddressBar.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this._editAddressBar.CurrentNode = null;
-            this._editAddressBar.DropDownBackColor = System.Drawing.Color.Empty;
-            this._editAddressBar.DropDownForeColor = System.Drawing.Color.Empty;
-            this._editAddressBar.ForeColor = System.Drawing.SystemColors.InfoText;
-            this._editAddressBar.Location = new System.Drawing.Point(98, 48);
-            this._editAddressBar.MinDisplayedDropDownItems = 0;
-            this._editAddressBar.MinimumSize = new System.Drawing.Size(331, 26);
-            this._editAddressBar.Name = "_editAddressBar";
-            this._editAddressBar.RootNode = null;
-            this._editAddressBar.SelectedStyle = ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline)));
-            this._editAddressBar.Size = new System.Drawing.Size(419, 26);
-            this._editAddressBar.TabIndex = 18;
-            // 
+            //
             // sldZoomLevel
             // 
             this.sldZoomLevel.LargeChange = 1;
@@ -173,21 +186,12 @@ namespace AGS.Editor
             // lblMousePos
             // 
             this.lblMousePos.AutoSize = true;
-            this.lblMousePos.Location = new System.Drawing.Point(95, 83);
+            this.lblMousePos.Location = new System.Drawing.Point(95, 53);
             this.lblMousePos.Name = "lblMousePos";
             this.lblMousePos.Size = new System.Drawing.Size(24, 13);
             this.lblMousePos.TabIndex = 11;
             this.lblMousePos.Text = "?, ?";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(10, 53);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(83, 13);
-            this.label2.TabIndex = 10;
-            this.label2.Text = "Edit this room\'s:";
-            // 
+            //
             // btnExport
             // 
             this.btnExport.Location = new System.Drawing.Point(433, 16);
@@ -244,10 +248,10 @@ namespace AGS.Editor
             | System.Windows.Forms.AnchorStyles.Right)));
             this.bufferedPanel1.AutoScroll = true;
             this.bufferedPanel1.BackColor = System.Drawing.SystemColors.Control;
-            this.bufferedPanel1.Location = new System.Drawing.Point(12, 106);
+            this.bufferedPanel1.Location = new System.Drawing.Point(12, 76);
             this.bufferedPanel1.Name = "bufferedPanel1";
             this.bufferedPanel1.PanButtons = System.Windows.Forms.MouseButtons.Middle;
-            this.bufferedPanel1.Size = new System.Drawing.Size(741, 371);
+            this.bufferedPanel1.Size = new System.Drawing.Size(740, 403);
             this.bufferedPanel1.TabIndex = 1;
             this.bufferedPanel1.TabStop = true;
             this.bufferedPanel1.Paint += new System.Windows.Forms.PaintEventHandler(this.bufferedPanel1_Paint);
@@ -260,11 +264,15 @@ namespace AGS.Editor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
-            this.Controls.Add(this.mainFrame);
+            this.Controls.Add(this.splitWindow);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "RoomSettingsEditor";
-            this.Size = new System.Drawing.Size(768, 491);
+            this.Size = new System.Drawing.Size(968, 491);
             this.Load += new System.EventHandler(this.RoomSettingsEditor_Load);
+            this.splitWindow.Panel1.ResumeLayout(false);
+            this.splitWindow.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitWindow)).EndInit();
+            this.splitWindow.ResumeLayout(false);
             this.mainFrame.ResumeLayout(false);
             this.mainFrame.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sldTransparency)).EndInit();
@@ -275,6 +283,8 @@ namespace AGS.Editor
 
         #endregion
 
+        private System.Windows.Forms.SplitContainer splitWindow;
+        private AGS.Editor.Panes.Room.RoomLayerTreeView _layerTreeView;
         private System.Windows.Forms.GroupBox mainFrame;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ComboBox cmbBackgrounds;
@@ -282,13 +292,11 @@ namespace AGS.Editor
         private System.Windows.Forms.Button btnExport;
         private System.Windows.Forms.Button btnDelete;
         private System.Windows.Forms.Button btnChangeImage;
-        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label lblMousePos;
 		private System.Windows.Forms.TrackBar sldZoomLevel;
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.Label lblTransparency;
 		private System.Windows.Forms.TrackBar sldTransparency;
-        private AddressBarExt.Controls.AddressBarExt _editAddressBar;
         private System.Windows.Forms.Label lblZoomInfo;
         private System.Windows.Forms.Label lblMouse;
         private System.Windows.Forms.CheckBox chkObjectOffset;

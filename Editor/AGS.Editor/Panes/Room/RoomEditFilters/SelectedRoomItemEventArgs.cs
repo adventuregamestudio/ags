@@ -6,14 +6,14 @@ namespace AGS.Editor
 {
     public class SelectedRoomItemEventArgs : EventArgs
     {
-        public SelectedRoomItemEventArgs(string item)
+        public SelectedRoomItemEventArgs(string itemID)
         {
-            Item = item;
+            ItemID = itemID;
         }
 
         /// <summary>
-        /// Room item's human-readable name.
+        /// The ID of the room item in its layer's DesignItems.
         /// </summary>
-        public string Item { get; private set; }
+        public string ItemID { get; private set; }
     }
 }

@@ -958,9 +958,6 @@
       <DependentUpon>GlobalVariablesEditor.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Panes\Room\RoomNodeControl.resx">
-      <DependentUpon>RoomNodeControl.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Panes\WelcomePane.resx">
       <SubType>Designer</SubType>
       <DependentUpon>WelcomePane.cs</DependentUpon>
@@ -1178,14 +1175,11 @@
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Panes\Room\RoomEditFilters\SelectedRoomItemEventArgs.cs" />
-    <Compile Include="Panes\Room\RoomEditNode.cs" />
-    <Compile Include="Panes\Room\RoomNodeControl.cs">
-      <SubType>UserControl</SubType>
+    <Compile Include="Panes\Room\RoomAreaUsage.cs" />
+    <Compile Include="Panes\Room\RoomLayerTree.cs" />
+    <Compile Include="Panes\Room\RoomLayerTreeView.cs">
+      <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Panes\Room\RoomNodeControl.Designer.cs">
-      <DependentUpon>RoomNodeControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Panes\Room\VisibleLayerRadioGroup.cs" />
     <Compile Include="Utils\ColorMapper.cs" />
     <Compile Include="Utils\DialogScriptConverter.cs" />
     <Compile Include="EditorEvents.cs" />
@@ -1343,6 +1337,7 @@
     <Compile Include="Panes\Room\RoomEditFilters\EmptyEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\HotspotsEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\IRoomEditorFilter.cs" />
+    <Compile Include="Panes\Room\RoomEditFilters\IRoomLayer.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\ObjectsEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\RegionsEditorFilter.cs" />
     <Compile Include="Panes\Room\RoomEditFilters\WalkableAreasEditorFilter.cs" />

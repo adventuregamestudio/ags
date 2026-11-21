@@ -296,9 +296,9 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Forms a object's label for the Navigation bar.
+        /// Forms a object's label for the layer tree.
         /// </summary>
-        protected override string GetNavbarItemTitle(RoomObject obj)
+        protected override string GetTreeItemTitle(RoomObject obj)
         {
             return MakeLayerItemName("Object", obj.ScriptName, obj.DisplayName, obj.ID);
         }
@@ -406,7 +406,7 @@ namespace AGS.Editor
             if (_selectedObject != null &&
                 OnSelectedItemChanged != null)
             {
-                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetNavbarItemTitle(_selectedObject)));
+                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetItemID(_selectedObject)));
             }
             ClearMovingState();
         }

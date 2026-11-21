@@ -9,8 +9,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using AGS.Editor.Panes.Room;
-using AddressBarExt;
-using AddressBarExt.Controls;
 using System.Linq;
 using System.Drawing.Drawing2D;
 
@@ -31,7 +29,7 @@ namespace AGS.Editor
         private readonly Room _room;
         private readonly IRoomController _roomController;
         private IRoomEditorFilter _layer;
-        private RoomEditNode _layersRoot;
+        private RoomLayerTree _layerTree;
         private IRoomEditorFilter _emptyLayer;
         private List<IRoomEditorFilter> _layers = new List<IRoomEditorFilter>();
         private CharactersEditorFilter _characterLayer; // need to store the reference for special processing
@@ -39,7 +37,7 @@ namespace AGS.Editor
         private bool _mouseIsDown = false;
         private int _menuClickX;
         private int _menuClickY;
-        private object _startNode; // track breadcrumbs path so that it can be compared when saving
+        private string _startNodePath; // track the selection so that it can be compared when saving
 
         private const int ZOOM_STEP_VALUE = 25;
         private const int ZOOM_MAX_VALUE = 600;
@@ -52,9 +50,17 @@ namespace AGS.Editor
         public IEnumerable<IRoomEditorFilter> Layers { get { return _layers; } }
 
         /// <summary>
-        /// Selected navbar's node.
+        /// The selected node's path, as saved in the room's user file.
         /// </summary>
-        public IAddressNode CurrentNode { get { return _editAddressBar.CurrentNode; } }
+        public string SelectedNodePath
+        {
+            get { return _layerTree.GetPath(_layerTreeView.SelectedLayerNode ?? _layerTree.Root); }
+        }
+
+        public bool IsLayerVisibleByUser(IRoomEditorFilter layer)
+        {
+            return _layerTree.IsVisibleByUser(layer);
+        }
 
         internal static Cursor LockedCursor { get; private set; }
 
@@ -68,7 +74,7 @@ namespace AGS.Editor
                 foreach (IRoomEditorFilter layer in _layers)
                     if (layer.Modified) return true;
 
-                if (_startNode != _editAddressBar.CurrentNode.UniqueID)
+                if (SelectedNodePath != _startNodePath)
                     return true;
 
                 return false;
@@ -78,7 +84,7 @@ namespace AGS.Editor
                 foreach (IRoomEditorFilter layer in _layers)
                     layer.Modified = value;
 
-                _startNode = _editAddressBar.CurrentNode.UniqueID;
+                _startNodePath = SelectedNodePath;
             }
         }
 
@@ -116,14 +122,13 @@ namespace AGS.Editor
                 layer.OnItemsChanged += layer_OnItemsChanged;
                 layer.OnSelectedItemChanged += layer_OnSelectedItemChanged;
             }
-            
-            RefreshLayersTree();
 
-            // Customize AddressBar to display at minimum 16 items in dropdown menus;
-            // 16 is currently the number of walkable areas, walk-behinds and regions
-            _editAddressBar.MinDisplayedDropDownItems = 16;
-            _editAddressBar.SelectionChange += editAddressBar_SelectionChange;
-            _startNode = _editAddressBar.CurrentNode.UniqueID;
+            _layerTree = new RoomLayerTree(_layers);
+            _layerTreeView.Tree = _layerTree;
+            _layerTreeView.NodeSelected += layerTreeView_NodeSelected;
+            _layerTreeView.NodeToggled += layerTreeView_NodeToggled;
+            _layerTreeView.LeaveRequested += layerTreeView_LeaveRequested;
+            _startNodePath = SelectedNodePath;
 
             RepopulateBackgroundList(0);
             UpdateScrollableWindowSize();
@@ -142,83 +147,33 @@ namespace AGS.Editor
         }
 
         /// <summary>
-        /// Update the breadcrumb navigation bar, make all nodes correspond to the design-time state
-        /// of the room layers and items.
+        /// Rebuilds the layer tree, keeping the selection; if its item is gone, its layer is selected.
         /// </summary>
-        /// TODO: currently this is the only way to sync navbar with the design-time properties.
-        /// find a better solution, perhaps tie each DesignTimeProperties object to a bar node.
         public void RefreshLayersTree()
         {
-            IAddressNode currentNode = _editAddressBar.CurrentNode;
-            IAddressNode[] layers = new IAddressNode[_layers.Count];
-            VisibleLayerRadioGroup visibleLayerRadioGroup = new VisibleLayerRadioGroup();
-            for (int layerIndex = 0; layerIndex < layers.Length; layerIndex++)
-            {
-                IRoomEditorFilter layer = _layers[layerIndex];                
-                IAddressNode[] children = new IAddressNode[layer.DesignItems.Count];
-                int index = 0;
-                foreach (var item in layer.DesignItems)
-                {
-                    string id = item.Key;
-                    string name = layer.GetItemName(id);
-                    children[index++] = new RoomEditNode(GetLayerItemUniqueID(layer, name), name, id,
-                        new IAddressNode[0], item.Value.Visible, item.Value.Locked, false);
-                }
-                RoomEditNode node = new RoomEditNode(layer.DisplayName, children, layer.Visible, layer.Locked);
-                node.Layer = layer;
-                if (layer is BaseAreasEditorFilter)
-                {
-                    node.VisibleGroup = visibleLayerRadioGroup;
-                }
-                foreach (IAddressNode child in children)
-                {
-                    child.Parent = node;
-                }
-                layers[layerIndex] = node;
-            }
-            _layersRoot = new RoomEditNode("Room", layers, true, false);
-            foreach (IAddressNode layer in layers)
-            {
-                layer.Parent = _layersRoot;
-            }
-            _editAddressBar.InitializeRoot(_layersRoot);
-
-            SelectOldNode(currentNode);
+            string oldKey = _layerTreeView.SelectedLayerNode?.Key;
+            _layerTree.Rebuild();
+            RoomLayerNode selected = _layerTreeView.Reload();
+            if (selected != null && selected.Key != oldKey)
+                ApplyNodeSelection(selected, false);
         }
 
         /// <summary>
-        /// Attempts to select room node following the given path item by item.
-        /// Path elements are compared with RoomItemID or UniqueID if former is not set.
+        /// Recounts the drawn areas after the masks were replaced outside the area layers.
         /// </summary>
-        public bool TrySelectNodeUsingDesignIDPath(string[] path)
+        public void MasksChanged()
         {
-            if (path.Length < 1) return false;
-            if (path[0].CompareTo(_layersRoot.UniqueID) != 0) return false;
-            IAddressNode node = _layersRoot;
-            for (int i = 1; i < path.Length; ++i)
-            {
-                foreach (IAddressNode child in node.Children)
-                {
-                    var roomNode = child as RoomEditNode;
-                    if (roomNode != null && !string.IsNullOrEmpty(roomNode.RoomItemID))
-                    {
-                        if (roomNode.RoomItemID.CompareTo(path[i]) == 0)
-                        {
-                            node = roomNode;
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        if (child.UniqueID.ToString().CompareTo(path[i]) == 0)
-                        {
-                            node = child;
-                            continue;
-                        }
-                    }
-                }
-            }
-            _editAddressBar.CurrentNode = node;
+            foreach (BaseAreasEditorFilter layer in _layers.OfType<BaseAreasEditorFilter>())
+                layer.ForgetDrawnAreas();
+            RefreshLayersTree();
+        }
+
+        public bool TrySelectNodeByPath(string path)
+        {
+            RoomLayerNode node = _layerTree.FindByPath(path);
+            if (node == null)
+                return false;
+            SelectNode(node, false);
             return true;
         }
 
@@ -227,48 +182,46 @@ namespace AGS.Editor
         /// </summary>
         public void InvalidateDrawingBuffer() => bufferedPanel1.Invalidate();
         
-        private void SelectOldNode(IAddressNode currentNode)
+        private void SelectNode(RoomLayerNode node, bool focusCanvas)
         {
-            if (currentNode == null) return;
+            if (node.Key == _layerTreeView.SelectedLayerNode?.Key)
+                return;
+            _layerTreeView.SelectKey(node.Key);
+            ApplyNodeSelection(node, focusCanvas);
+        }
 
-            IAddressNode selectedNode = _layersRoot.GetChild(currentNode.UniqueID, true);
-            if (selectedNode != null)
+        private void ApplyNodeSelection(RoomLayerNode node, bool focusCanvas)
+        {
+            // A hidden layer is shown while selected, so that it can be edited
+            if (_layerTree.ShowForSelection(node))
             {
-                _editAddressBar.CurrentNode = selectedNode;
+                _layerTreeView.InvalidateToggles();
+                bufferedPanel1.Invalidate();
+            }
+            if (node.Layer == null)
+            {
+                SetPropertyGridObject(_room);
+                SelectLayer(null, focusCanvas);
                 return;
             }
-            if (currentNode.Parent == null)
-            {
-                _editAddressBar.CurrentNode = _layersRoot;
-                return;
-            }
-            selectedNode = _layersRoot.GetChild(currentNode.Parent.UniqueID, true);
-            if (selectedNode == null)
-            {
-                _editAddressBar.CurrentNode = _layersRoot;
-                return;
-            }
-            //We found the old node's parent, but not the node itself, so it was probably renamed.
-            //To find the renamed item, we need to find the item that doesn't exist in the old tree.
-            foreach (IAddressNode child in selectedNode.Children)
-            {
-                bool foundChild = false;
-                foreach (IAddressNode oldChild in currentNode.Parent.Children)
-                {
-                    if (oldChild.UniqueID.Equals(child.UniqueID))
-                    {
-                        foundChild = true;
-                        break;
-                    }
-                }
-                if (!foundChild)
-                {
-                    _editAddressBar.CurrentNode = child;
-                    return;
-                }
-            }
-            //We didn't find any missing node, lets at least select the parent
-            _editAddressBar.CurrentNode = selectedNode;
+            IRoomEditorFilter layer = (IRoomEditorFilter)node.Layer;
+            SelectLayer(layer, focusCanvas);
+            layer.SelectItem(node.Kind == RoomLayerNodeKind.Item ? node.ItemID : null);
+        }
+
+        private void layerTreeView_NodeSelected(object sender, RoomLayerNodeEventArgs e)
+        {
+            ApplyNodeSelection(e.Node, false);
+        }
+
+        private void layerTreeView_NodeToggled(object sender, RoomLayerNodeEventArgs e)
+        {
+            bufferedPanel1.Invalidate(); // visibility changed, or the lock cursor
+        }
+
+        private void layerTreeView_LeaveRequested(object sender, EventArgs e)
+        {
+            SetFocusToAllowArrowKeysToWork();
         }
 
         private void layer_OnItemsChanged(object sender, EventArgs e)
@@ -279,11 +232,11 @@ namespace AGS.Editor
         private void layer_OnSelectedItemChanged(object sender, SelectedRoomItemEventArgs e)
         {
             IRoomEditorFilter layer = sender as IRoomEditorFilter;
-            if (layer == null) { SelectLayer(null); return; }
-            IAddressNode node = _editAddressBar.RootNode.GetChild(GetLayerItemUniqueID(layer, e.Item), true);
-            if (node == null) { SelectLayer(null); return; }
-            _editAddressBar.CurrentNode = node;
-            SelectLayer(layer);
+            if (layer == null) { SelectLayer(null, true); return; }
+            RoomLayerNode node = _layerTree.FindItem(layer, e.ItemID);
+            if (node == null) { SelectLayer(null, true); return; }
+            SelectNode(node, true);
+            SelectLayer(layer, true);
             //selecting hotspot from designer Panel, then cant Draw more hotspots...
         }
 
@@ -295,11 +248,6 @@ namespace AGS.Editor
             if (e.Menu.Items.Count > 0)
                 e.Menu.Items.Add(new ToolStripSeparator());
             PrepareContextMenu(e.Menu, e.X, e.Y);
-        }
-
-        private string GetLayerItemUniqueID(IRoomEditorFilter layer, string itemName)
-        {
-            return layer.DisplayName + itemName;
         }
 
         public bool TrySelectObjectByName(string name)
@@ -638,6 +586,7 @@ namespace AGS.Editor
                             }
 
                             OnRoomSizeChanged(oldRoomSize, maskOption);
+                            MasksChanged();
                         }
 
                         // TODO: choose default zoom based on the room size vs window size?
@@ -797,30 +746,11 @@ namespace AGS.Editor
             bufferedPanel1.Cursor = state.CurrentCursor ?? Cursors.Default;
         }
 
-        private void editAddressBar_SelectionChange(object sender, NodeChangedArgs e)
-        {
-            if (_layersRoot.UniqueID.Equals(e.OUniqueID))
-            {
-                SetPropertyGridObject(_room);
-                SelectLayer(null);
-                return;
-            }
-
-            RoomEditNode node = _layersRoot.GetChild(e.OUniqueID, true) as RoomEditNode;
-            if (node == null) { SelectLayer(null); return; }
-            RoomEditNode layerNode = node;
-            while (layerNode != null && layerNode.Layer == null)
-            {
-                layerNode = layerNode.Parent as RoomEditNode;
-            }
-            if (layerNode == null) { SelectLayer(null); return; }
-
-            layerNode.IsVisible = true;
-            SelectLayer(layerNode.Layer);
-            layerNode.Layer.SelectItem(node == layerNode ? null : node.RoomItemID);
-        }
-
-        private void SelectLayer(IRoomEditorFilter layer)
+        /// <summary>
+        /// Turns a layer on for editing (null: none). A selection made in the layer tree
+        /// keeps the focus there, for its arrow keys.
+        /// </summary>
+        private void SelectLayer(IRoomEditorFilter layer, bool focusCanvas)
         {
             if (!_editorConstructed) return;
             if (layer == _layer) return;
@@ -843,7 +773,8 @@ namespace AGS.Editor
 
             bufferedPanel1.Invalidate();
             // ensure that shortcut keys do not move the combobox
-            bufferedPanel1.Focus();            
+            if (focusCanvas)
+                bufferedPanel1.Focus();
         }
 		
         private void SetDefaultPropertyGridList()
@@ -911,9 +842,36 @@ namespace AGS.Editor
             return false;
         }
 
+        /// <summary>
+        /// Tells whether a key belongs to the focused layer tree, not to the room.
+        /// </summary>
+        private bool IsLayerTreeKey(Keys keyData)
+        {
+            if (!_layerTreeView.ContainsFocus || (keyData & (Keys.Control | Keys.Alt)) != 0)
+                return false;
+            switch (keyData & Keys.KeyCode)
+            {
+                case Keys.Up:
+                case Keys.Down:
+                case Keys.Left:
+                case Keys.Right:
+                case Keys.Home:
+                case Keys.End:
+                case Keys.PageUp:
+                case Keys.PageDown:
+                case Keys.Add:
+                case Keys.Subtract:
+                case Keys.Multiply:
+                case Keys.Enter:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
 		protected override bool HandleKeyPress(Keys keyData)
 		{
-            if (!DoesThisPanelHaveFocus())
+            if (!DoesThisPanelHaveFocus() || IsLayerTreeKey(keyData))
             {
                 return false;
             }
@@ -929,7 +887,7 @@ namespace AGS.Editor
 
         protected override bool HandleKeyRelease(Keys keyData)
         {
-            if (!DoesThisPanelHaveFocus())
+            if (!DoesThisPanelHaveFocus() || IsLayerTreeKey(keyData))
             {
                 return false;
             }
@@ -1035,6 +993,11 @@ namespace AGS.Editor
                 }
                 RefreshLayersTree();
             }
+            else if (_layer is BaseAreasEditorFilter)
+            {
+                // Any property of an area can make it used or unused
+                RefreshLayersTree();
+            }
         }
 
 		protected override void OnWindowActivated()
@@ -1134,10 +1097,12 @@ namespace AGS.Editor
             t.ButtonHelper(btnDelete, "room-editor/btn-delete");
             t.ButtonHelper(btnExport, "room-editor/btn-export");
 
-            t.SetColor("room-editor/combo-view-type/background", c => _editAddressBar.BackColor = c);
-            t.SetColor("room-editor/combo-view-type/foreground", c => _editAddressBar.ForeColor = c);
-            t.SetColor("room-editor/combo-view-type/drop-down/background", c => _editAddressBar.DropDownBackColor = c);
-            t.SetColor("room-editor/combo-view-type/drop-down/foreground", c => _editAddressBar.DropDownForeColor = c);
+            // Older themes have colours for the breadcrumb bar's drop-down
+            t.SetColor(new string[] { "room-editor/tree/background", "room-editor/combo-view-type/drop-down/background",
+                "sprite-selector/tree/background" }, c => _layerTreeView.BackColor = c);
+            t.SetColor(new string[] { "room-editor/tree/foreground", "room-editor/combo-view-type/drop-down/foreground",
+                "sprite-selector/tree/foreground" }, c => _layerTreeView.ForeColor = c);
+            t.SetColor(new string[] { "room-editor/tree/line", "sprite-selector/tree/line" }, c => _layerTreeView.LineColor = c);
 
             if (t.ComboBoxHelper(mainFrame.Controls, ref cmbBackgrounds, "room-editor/combo-backgrounds"))
             {

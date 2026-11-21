@@ -332,6 +332,11 @@ namespace AGS.Editor
             return null;
         }
 
+        public RoomLayerItemState GetItemState(string id)
+        {
+            return RoomLayerItemState.Normal;
+        }
+
         public void SelectItem(string id)
         {
             SelectedEdge edge;
@@ -416,7 +421,7 @@ namespace AGS.Editor
             _selectedEdge = edge;
             if (OnSelectedItemChanged != null)
             {
-                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(edge.ToString()));
+                OnSelectedItemChanged(this, new SelectedRoomItemEventArgs(GetItemID(edge)));
             }
             return true;
         }

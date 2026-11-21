@@ -15,11 +15,10 @@ namespace AGS.Editor
     public class BaseRoomEditorFilter
     {
         /// <summary>
-        /// Generates a label for the Room's navigation bar.
+        /// Generates a label for the room editor's layer tree.
         /// Almost replicates PropertyGridTitle, but skips the typename
         /// whenever either a script name or a description is available,
-        /// because only items of the same type are displayed in a navbar's
-        /// dropdown list.
+        /// because only items of the same type are listed under a layer.
         /// </summary>
         protected string MakeLayerItemName(string typeName, string scriptName, string descName, int numID)
         {
